@@ -13,7 +13,7 @@ create table if not exists tests (
   selector       text,                                   -- CSS-Selektor des Zielelements (von Extension)
   goal           text,                                   -- "click:#cta-button"
   snippet_key    text unique not null default gen_random_uuid()::text,
-  status         text default 'draft',                   -- draft | active | done
+  status         text default 'draft',                   -- draft | active | paused | done
   traffic_split  int default 50,                         -- % der Besucher zu Variante B
   -- Captured von Chrome Extension
   original_html  text,
