@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<style>
+  body { width: 280px; font-family: -apple-system, Segoe UI, sans-serif; font-size: 13px; margin: 0; padding: 16px; color: #1a1a1a; }
+  h1 { font-size: 14px; margin: 0 0 4px; }
+  p.sub { color: #666; font-size: 11px; margin: 0 0 14px; }
+  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: #444; }
+  input { width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; }
+  input:focus { outline: none; border-color: #2563eb; }
+  button { width: 100%; padding: 9px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+  button:hover { background: #1d4ed8; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { margin-top: 10px; font-size: 11px; min-height: 14px; }
+  .status.ok { color: #16a34a; }
+  .status.err { color: #dc2626; }
+</style>
+</head>
+<body>
+  <h1>Element auswählen</h1>
+  <p class="sub">Tipp: Im Figma-Plugin „Test anlegen" öffnet die Seite automatisch mit aktivem Picker. Dieses Popup ist der manuelle Fallback — testId einfügen, dann ein Element auf der Seite anklicken.</p>
+
+  <label>API-Basis-URL (optional)</label>
+  <input id="api-base" value="https://ab-tool-pied.vercel.app" />
+
+  <label>testId (UUID)</label>
+  <input id="test-id" placeholder="z.B. 3f9a…" />
+
+  <button id="start">Element auf Seite wählen</button>
+  <div class="status" id="status"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

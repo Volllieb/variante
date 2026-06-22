@@ -1,0 +1,11 @@
+{
+  "name": "AB Figma",
+  "id": "ab-figma-mvp",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["https://ab-tool-pied.vercel.app"]
+  }
+}

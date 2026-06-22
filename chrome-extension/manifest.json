@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "AB Element Picker",
+  "version": "1.0.0",
+  "description": "Wählt ein Element auf der Live-Site aus und sendet es an das AB-Tool-Backend.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AB Element Picker"
+  },
+  "permissions": ["scripting", "storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
