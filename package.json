@@ -1,0 +1,12 @@
+{
+  "name": "ab-test-monorepo",
+  "private": true,
+  "scripts": {
+    "dev:tool":     "cd ab-tool && npm run dev",
+    "dev:spike":    "cd ab-spike && npm run dev",
+    "build:tool":   "cd ab-tool && npm run build",
+    "build:spike":  "cd ab-spike && npm run build",
+    "build:plugin": "cd figma-plugin && npm run build",
+    "build:all":    "npm run build:tool && npm run build:spike && npm run build:plugin"
+  }
+}
