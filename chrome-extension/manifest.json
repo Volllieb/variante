@@ -3,9 +3,24 @@
   "name": "AB Element Picker",
   "version": "1.0.0",
   "description": "Wählt ein Element auf der Live-Site aus und sendet es an das AB-Tool-Backend.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "AB Element Picker"
+    "default_title": "AB Element Picker",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "permissions": ["scripting", "storage", "activeTab"],
   "host_permissions": ["<all_urls>"],

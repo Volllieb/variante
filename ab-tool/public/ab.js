@@ -76,7 +76,10 @@
     var payload = JSON.stringify({ testId: key, variant: variant, event: 'conversion' })
     try {
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(origin + '/api/event', new Blob([payload], { type: 'application/json' }))
+        // WICHTIG: text/plain ist CORS-safelisted → kein Preflight. application/json
+        // erzwingt einen Preflight, den sendBeacon nicht kann → Beacon wird cross-origin
+        // verworfen. Der Server liest den Body per req.json(), Content-Type egal.
+        navigator.sendBeacon(origin + '/api/event', new Blob([payload], { type: 'text/plain' }))
       } else {
         fetch(origin + '/api/event', {
           method: 'POST',
@@ -129,6 +132,19 @@
     function finish(variant, html) {
       applyDom(selector, variant, html)
       active.push({ key: key, variant: variant, goalSel: goalSel })
+    }
+
+    // Abgeschlossener Test mit Gewinner B: ALLE Besucher bekommen B ausgeliefert,
+    // ohne Assign-Counter und ohne Conversion-Tracking (Test ist beendet).
+    if (t.force === 'B') {
+      return fetch(origin + '/api/variant?testId=' + encodeURIComponent(key))
+        .then(function (r) {
+          return r.ok ? r.json() : null
+        })
+        .then(function (vres) {
+          if (vres && vres.html) applyDom(selector, 'B', vres.html)
+        })
+        .catch(function () {})
     }
 
     // Sticky: bereits zugewiesene Variante aus dem Cache (kein erneuter Counter).

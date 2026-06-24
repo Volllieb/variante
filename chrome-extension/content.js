@@ -19,6 +19,13 @@
         parts.unshift(part)
         break
       }
+      // Klassen einbeziehen: max. 2, keine Tailwind-Utilities (kein : oder /)
+      if (node.className && typeof node.className === 'string') {
+        const cls = node.className.trim().split(/\s+/)
+          .filter(c => c && !c.includes(':') && !c.includes('/') && c.length > 1)
+          .slice(0, 2)
+        if (cls.length) part += '.' + cls.map(c => CSS.escape(c)).join('.')
+      }
       const parent = node.parentNode
       if (parent) {
         const siblings = Array.prototype.filter.call(

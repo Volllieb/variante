@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { determineWinner } from '@/lib/significance'
 
 export type VariantStats = {
   id: string
@@ -16,6 +17,8 @@ export type ExperimentData = {
   created_at: string
   significance: number
   winner: string | null
+  minVisitors: number
+  minUplift: number
   variants: VariantStats[]
 }
 
@@ -29,21 +32,48 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const { data: test } = await supabase
     .from('tests')
     .select(
-      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b'
+      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift'
     )
     .eq('id', id)
     .single()
 
   if (!test) return null
 
+  const minVisitors = test.min_visitors ?? 100
+  const minUplift = test.min_uplift ?? 0.05
+
+  // Auto-Gewinner-Fallback: Wird die Besucher-Schwelle überschritten, ohne dass
+  // eine weitere Conversion /api/event triggert, würde der Gewinner nie gesetzt.
+  // Beim Dashboard-Poll daher erneut auswerten und ggf. einmalig persistieren.
+  let status = test.status
+  let winner: string | null = test.winner ?? null
+  if (!winner) {
+    const computed = determineWinner(
+      test.significance ?? 0,
+      test.conversions_a ?? 0,
+      test.conversions_b ?? 0,
+      test.visitors_a ?? 0,
+      test.visitors_b ?? 0,
+      minVisitors,
+      minUplift
+    )
+    if (computed) {
+      winner = computed
+      status = 'done'
+      await supabase.from('tests').update({ winner: computed, status: 'done' }).eq('id', test.id)
+    }
+  }
+
   return {
     id: test.id,
     name: test.name,
     site_url: test.site_url,
-    status: test.status,
+    status,
     created_at: test.created_at,
     significance: test.significance ?? 0,
-    winner: test.winner ?? null,
+    winner,
+    minVisitors,
+    minUplift,
     variants: [
       {
         id: 'A',

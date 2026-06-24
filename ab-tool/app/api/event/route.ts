@@ -12,6 +12,8 @@ type TestRow = {
   visitors_b: number
   conversions_a: number
   conversions_b: number
+  min_visitors: number
+  min_uplift: number
 }
 
 export async function POST(req: Request) {
@@ -31,15 +33,16 @@ export async function POST(req: Request) {
     )
   }
 
-  // Paused-Guard: Conversions auf pausierten Tests nicht zählen.
+  // Guard: Conversions auf pausierten ODER abgeschlossenen Tests nicht zählen.
+  // (done kann über alte localStorage-Caches noch Klicks senden.)
   const { data: testMeta } = await supabase
     .from('tests')
     .select('status')
     .eq('snippet_key', testId)
     .single()
 
-  if (testMeta?.status === 'paused') {
-    return Response.json({ error: 'test is paused' }, { status: 409, headers: corsHeaders('POST, OPTIONS') })
+  if (testMeta?.status === 'paused' || testMeta?.status === 'done') {
+    return Response.json({ error: 'test is not active' }, { status: 409, headers: corsHeaders('POST, OPTIONS') })
   }
 
   const { data, error } = await supabase.rpc('ab_convert', { p_key: testId, p_variant: variant })
@@ -65,7 +68,9 @@ export async function POST(req: Request) {
     row.conversions_a,
     row.conversions_b,
     row.visitors_a,
-    row.visitors_b
+    row.visitors_b,
+    row.min_visitors,
+    row.min_uplift
   )
 
   const { error: updateError } = await supabase
