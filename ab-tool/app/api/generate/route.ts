@@ -36,12 +36,101 @@ const FRAMEWORK_HINTS: Record<string, string> = {
   custom: '',
 }
 
-function stripFences(text: string): string {
+// CSS-Filterung: Behält nur Regeln, deren Selektoren in original_html vorkommen.
+// So bekommt das Modell keine überflüssigen Styles aus dem Seiten-CSS.
+function cssFilterRelevant(html: string | null, css: string | null): string {
+  if (!html || !css) return css || '(kein Site-CSS vorhanden)'
+
+  const classes = new Set<string>()
+  const ids = new Set<string>()
+  const tags = new Set<string>()
+
+  let m: RegExpExecArray | null
+  const classRe = /class="([^"]+)"/g
+  while ((m = classRe.exec(html)) !== null) {
+    m[1].split(/\s+/).forEach(c => classes.add(c))
+  }
+  const idRe = /id="([^"]+)"/g
+  while ((m = idRe.exec(html)) !== null) ids.add(m[1])
+  const tagRe = /<\s*(\w+)/g
+  while ((m = tagRe.exec(html)) !== null) tags.add(m[1].toLowerCase())
+
+  const rules = css.split('}').map(r => r.trim()).filter(Boolean).map(r => {
+    const brace = r.indexOf('{')
+    if (brace === -1) return null
+    const selector = r.slice(0, brace).trim()
+    const body = r.slice(brace + 1).trim() + '}'
+    const selClasses = [...selector.matchAll(/\.([\w-]+)/g)].map(x => x[1])
+    const selIds = [...selector.matchAll(/#([\w-]+)/g)].map(x => x[1])
+    const selTags = [...selector.matchAll(/(?:^|[+>~\s,])\s*(\w+)/g)].map(x => x[1].toLowerCase()).filter(Boolean)
+    const relevant = selClasses.some(c => classes.has(c)) ||
+      selIds.some(id => ids.has(id)) ||
+      selTags.some(t => tags.has(t))
+    return relevant ? `${selector} {${body}}` : null
+  }).filter(Boolean).join('\n')
+
+  return rules || css // Fallback auf komplettes CSS, falls Filter zu aggressiv war
+}
+
+// Strukturierter Output per Delimiter: Das Modell wrappt sein HTML zwischen
+// <<<VARIANT_HTML>>> und <</VARIANT_HTML>>>. Robuster als Markdown-Code-Fences,
+// die das Modell oft vergisst oder falsch formatiert.
+const DELIM_START = '<<<VARIANT_HTML>>>'
+const DELIM_END = '<</VARIANT_HTML>>>'
+
+function parseStructuredOutput(text: string): string {
   let html = text.trim()
+  // Primär: Delimiter-Extraktion
+  const start = html.indexOf(DELIM_START)
+  const end = html.indexOf(DELIM_END)
+  if (start !== -1 && end !== -1 && end > start) {
+    return html.slice(start + DELIM_START.length, end).trim()
+  }
+  // Fallback: Markdown-Fences
   const fence = html.match(/^```(?:html)?\s*([\s\S]*?)\s*```$/i)
-  if (fence) html = fence[1].trim()
+  if (fence) return fence[1].trim()
   return html
 }
+
+// Minimales Beispiel (Few-Shot): zeigt dem Modell die erwartete Abbildung von
+// Figma-JSON → HTML. Ein Paar reicht, um Output-Format, .ab-v-Scoping und
+// Style-Block zu demonstrieren.
+const FEW_SHOT_PROMPT = `Beispiel für die erwartete Abbildung:
+
+Figma-JSON:
+${JSON.stringify({
+    type: 'FRAME', name: 'Button', width: 200, height: 48,
+    layoutMode: 'HORIZONTAL', justify: 'CENTER', align: 'CENTER',
+    cornerRadius: 8,
+    fills: [{ type: 'solid', hex: '#0066FF', opacity: 1 }],
+    children: [{
+      type: 'TEXT', name: 'Label', text: 'Click me', fontSize: 16,
+      fontFamily: 'Inter', textAlign: 'CENTER',
+      fills: [{ type: 'solid', hex: '#FFFFFF', opacity: 1 }],
+    }],
+  }, null, 2)}
+
+Erwartetes HTML:
+${DELIM_START}
+<div class="ab-v">
+  <style>
+    .ab-v button {
+      display: flex; align-items: center; justify-content: center;
+      width: 200px; height: 48px; border: none; border-radius: 8px;
+      background: #0066FF; color: #FFFFFF;
+      font-family: 'Inter', sans-serif; font-size: 16px;
+      cursor: pointer; transition: all .2s ease;
+    }
+    .ab-v button:hover { background: #0052CC; }
+    .ab-v button:focus-visible {
+      outline: 3px solid #0066FF88; outline-offset: 2px;
+    }
+  </style>
+  <button>Click me</button>
+</div>
+${DELIM_END}
+
+Jetzt das echte Figma-Design:`
 
 // Minimale Output-Validierung: fängt offensichtlich kaputte Generationen, bevor sie
 // in die DB geschrieben oder ans Preview gesendet werden. Keine vollständige HTML-
@@ -93,6 +182,7 @@ function buildPrompt(
 ): string {
   const fw = framework || 'custom'
   const hint = FRAMEWORK_HINTS[fw] ?? FRAMEWORK_HINTS.custom
+  const filteredCss = cssFilterRelevant(originalHtml, siteCss)
   return [
     'Du erstellst Variante B eines Website-Elements für einen A/B-Test.',
     'Ziel: das Figma-Design unten so EXAKT wie möglich als HTML nachbilden.',
@@ -101,9 +191,8 @@ function buildPrompt(
     'entsprechen den unten gelieferten CSS-Regeln, sodass du genau weißt, wie A aussieht:',
     originalHtml || '(kein Original-HTML vorhanden)',
     '',
-    'Computed Styles + CSS-Regeln des Originals (Referenz für Look: Schrift, Cover/object-fit,',
-    'background-size, transition, transform, animation, Layout, :hover):',
-    siteCss || '(kein Site-CSS vorhanden)',
+    'CSS-Regeln des Originals (gefiltert auf Elemente, die im Original-HTML vorkommen):',
+    filteredCss,
     '',
     'Figma-Design (JSON):',
     JSON.stringify(frameContent, null, 2),
@@ -112,6 +201,9 @@ function buildPrompt(
     '',
     outputRules(scope),
     hint,
+    '',
+    `WICHTIG - Output-Format: Deine Antwort muss mit ${DELIM_START} beginnen und mit ${DELIM_END} enden.`,
+    `Dazwischen steht NUR das HTML-Fragment. Kein Text vor ${DELIM_START} oder nach ${DELIM_END}.`,
   ]
     .filter(Boolean)
     .join('\n')
@@ -169,10 +261,11 @@ export async function POST(req: Request) {
   }
 
   // Mit Feedback + vorigem Output → Verfeinerung, sonst Erstgenerierung.
+  const isRefinement = !!(feedback && previousHtml)
   const prompt =
-    feedback && previousHtml
+    isRefinement
       ? buildRefinePrompt(previousHtml, feedback, scope)
-      : buildPrompt(test.original_html, test.site_css, test.framework, frameContent, scope)
+      : FEW_SHOT_PROMPT + '\n\n' + buildPrompt(test.original_html, test.site_css, test.framework, frameContent, scope)
 
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {
@@ -200,7 +293,7 @@ export async function POST(req: Request) {
     })
     if (!res.ok) throw new Error(`deepseek ${res.status}`)
     const json = await res.json()
-    variantHtml = stripFences(json.choices?.[0]?.message?.content ?? '')
+    variantHtml = parseStructuredOutput(json.choices?.[0]?.message?.content ?? '')
 
     // Output validieren – Warnungen loggen, aber nur bei Totalausfall abbrechen.
     const check = validateOutput(variantHtml)
@@ -226,5 +319,8 @@ export async function POST(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  return Response.json({ html: variantHtml, warnings: warnings.length ? warnings : undefined }, { headers: corsHeaders('POST, OPTIONS') })
+  const response: Record<string, unknown> = { html: variantHtml }
+  if (warnings.length) response.warnings = warnings
+  response.filtered_css = isRefinement ? undefined : true // Signal ans Preview: CSS wurde gefiltert
+  return Response.json(response, { headers: corsHeaders('POST, OPTIONS') })
 }
