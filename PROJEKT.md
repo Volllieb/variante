@@ -183,3 +183,20 @@ c:\dev\variante/
 ---
 
 *DSO — zuletzt geprüft: 25.06.2026*
+
+---
+
+## §11 Fazit
+
+**variante ist startklar.** Der komplette Loop steht: Figma → KI → Snippet → Conversion-Tracking. Auth, Billing und Multi-Tenancy sind implementiert. Die Domain ist gesichert, das Pricing steht, die Steuerfragen sind geklärt.
+
+**Was jetzt zählt, ist Distribution, nicht das Produkt.** Der GTM-Fahrplan in `GOTOMARKET.md` ist der Nordstern: Figma-Community-Plugin als PLG-Engine, viraler Loop über das Badge, Phase-1-Design-Partner für Case-Studies.
+
+**Drei Dinge, die den Unterschied machen:**
+1. **Figma-Plugin + Chrome-Extension in die Stores bringen** — das ist der Engpass (Review-Zeiten!)
+2. **Phase 1: 3–5 Design-Partner gewinnen** — echte Installs + Case-Studies vor Public-Launch
+3. **Dogfooding: variante auf getvariante.com laufen lassen** — erster Proof + Demo-Material
+
+**Bis Mitte August 2026** sollte der öffentliche Launch stehen. Danach: Conversion-Funnel optimieren, Free→Pro und vor allem Free→Agency (White-Label = wo das Geld sitzt).
+
+> **Ein Satz:** Gebaut ist es — jetzt muss es raus zu den Leuten.
