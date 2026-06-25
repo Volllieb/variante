@@ -197,12 +197,7 @@ export default async function HomePage({
                     <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                       <s.icon className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <Badge variant="secondary" className="h-6 w-6 rounded-full p-0 text-center text-xs">
-                        {i + 1}
-                      </Badge>
-                      <h3 className="text-xl font-bold text-foreground">{s.title}</h3>
-                    </div>
+                    <h3 className="text-xl font-bold text-foreground">{s.title}</h3>
                     <p className="text-sm leading-relaxed text-muted-foreground">
                       {s.body}
                     </p>
