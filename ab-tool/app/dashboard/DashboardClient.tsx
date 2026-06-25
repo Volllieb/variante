@@ -234,6 +234,28 @@ export default function Document() {
         </div>
       </div>
 
+      {/* Stats Summary */}
+      {tests.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-4 text-sm">
+          <div className="rounded-lg border border-gray-200 px-4 py-3">
+            <span className="font-semibold">{tests.length}</span>{' '}
+            <span className="text-gray-500">experiments</span>
+          </div>
+          <div className="rounded-lg border border-gray-200 px-4 py-3">
+            <span className="font-semibold">
+              {tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0).toLocaleString()}
+            </span>{' '}
+            <span className="text-gray-500">total visitors</span>
+          </div>
+          <div className="rounded-lg border border-gray-200 px-4 py-3">
+            <span className="font-semibold">
+              {tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0).toLocaleString()}
+            </span>{' '}
+            <span className="text-gray-500">total conversions</span>
+          </div>
+        </div>
+      )}
+
       {/* Tests */}
       <h2 className="mb-3 text-sm font-semibold">Your Experiments</h2>
       {tests.length === 0 ? (
@@ -242,22 +264,41 @@ export default function Document() {
         </p>
       ) : (
         <div className="space-y-2">
-          {tests.map(t => (
-            <a
-              key={t.id}
-              href={`/results/${t.id}`}
-              className="block rounded-lg border border-gray-200 p-4 hover:border-gray-400"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{t.name}</span>
-                <span className="text-xs uppercase text-gray-400">{t.status}</span>
-              </div>
-              <p className="mt-1 text-xs text-gray-500">
-                {(t.visitors_a + t.visitors_b)} visitors ·{' '}
-                {(t.conversions_a + t.conversions_b)} conversions · {t.site_url || '—'}
-              </p>
-            </a>
-          ))}
+          {tests.map(t => {
+            const va = t.visitors_a ?? 0
+            const vb = t.visitors_b ?? 0
+            const ca = t.conversions_a ?? 0
+            const cb = t.conversions_b ?? 0
+            const crA = va > 0 ? ca / va : 0
+            const crB = vb > 0 ? cb / vb : 0
+            const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
+            return (
+              <a
+                key={t.id}
+                href={`/results/${t.id}`}
+                className="block rounded-lg border border-gray-200 p-4 hover:border-gray-400"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{t.name}</span>
+                  <span className="flex items-center gap-2">
+                    {uplift !== null && uplift !== 0 && (
+                      <span
+                        className={`text-xs font-semibold ${uplift > 0 ? 'text-green-600' : 'text-red-500'}`}
+                      >
+                        {uplift > 0 ? '+' : ''}
+                        {uplift.toFixed(1)} %
+                      </span>
+                    )}
+                    <span className="text-xs uppercase text-gray-400">{t.status}</span>
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  {va + vb} visitors · {ca + cb} conversions{crA > 0 ? ` · A: ${(crA * 100).toFixed(1)}%` : ''}{crB > 0 ? ` · B: ${(crB * 100).toFixed(1)}%` : ''}{' '}
+                  · {t.site_url || '—'}
+                </p>
+              </a>
+            )
+          })}
         </div>
       )}
     </div>
