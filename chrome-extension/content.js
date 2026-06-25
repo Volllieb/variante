@@ -355,11 +355,11 @@
   const trig = getTrigger()
   if (trig && trig.testId) {
     try {
-      chrome.storage.local.set({
-        testId: trig.testId,
-        apiBase: trig.apiBase || DEFAULT_API,
-        abToken: trig.token || '',
-      })
+      // Nur nicht-leere Werte überschreiben — sonst bleiben manuelle Eingaben erhalten.
+      const patch = { testId: trig.testId }
+      if (trig.apiBase) patch.apiBase = trig.apiBase
+      if (trig.token) patch.abToken = trig.token
+      chrome.storage.local.set(patch)
     } catch (_) {}
     // Trigger aus der URL entfernen, damit ein Reload den Picker nicht erneut startet.
     try {

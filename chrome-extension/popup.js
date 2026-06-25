@@ -4,6 +4,20 @@ const tokenInput = document.getElementById('ab-token')
 const startBtn = document.getElementById('start')
 const statusEl = document.getElementById('status')
 
+const DEFAULT_API = 'https://www.getvariante.com'
+
+// Value beim Tippen sofort persistieren — einmal eingegeben, nie wieder vergessen.
+function saveInputs() {
+  chrome.storage.local.set({
+    apiBase: apiInput.value.trim() || DEFAULT_API,
+    testId: idInput.value.trim(),
+    abToken: tokenInput.value.trim(),
+  })
+}
+apiInput.addEventListener('input', saveInputs)
+idInput.addEventListener('input', saveInputs)
+tokenInput.addEventListener('input', saveInputs)
+
 // Gespeicherte Werte wiederherstellen.
 chrome.storage.local.get(['apiBase', 'testId', 'abToken'], (v) => {
   if (v.apiBase) apiInput.value = v.apiBase
@@ -15,8 +29,6 @@ function setStatus(msg, cls) {
   statusEl.textContent = msg
   statusEl.className = 'status' + (cls ? ' ' + cls : '')
 }
-
-const DEFAULT_API = 'https://www.getvariante.com'
 
 startBtn.addEventListener('click', async () => {
   const apiBase = (apiInput.value.trim() || DEFAULT_API).replace(/\/+$/, '')
