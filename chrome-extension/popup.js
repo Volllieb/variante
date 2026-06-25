@@ -1,15 +1,21 @@
 const idInput = document.getElementById('test-id')
+const tokenInput = document.getElementById('ab-token')
 const startBtn = document.getElementById('start')
 const statusEl = document.getElementById('status')
+const helpEl = document.getElementById('token-help')
 
-// testId beim Tippen persistieren.
-idInput.addEventListener('input', () => {
-  chrome.storage.local.set({ testId: idInput.value.trim() })
-})
+// Auto-save bei Eingabe.
+idInput.addEventListener('input', () => chrome.storage.local.set({ testId: idInput.value.trim() }))
+tokenInput.addEventListener('input', () => chrome.storage.local.set({ abToken: tokenInput.value.trim() }))
 
-// Gespeicherte testId wiederherstellen.
-chrome.storage.local.get(['testId'], (v) => {
+helpEl.addEventListener('click', () =>
+  chrome.tabs.create({ url: 'https://www.getvariante.com/dashboard' })
+)
+
+// Gespeicherte Werte wiederherstellen.
+chrome.storage.local.get(['testId', 'abToken'], (v) => {
   if (v.testId) idInput.value = v.testId
+  if (v.abToken) tokenInput.value = v.abToken
 })
 
 function setStatus(msg, cls) {
@@ -17,29 +23,27 @@ function setStatus(msg, cls) {
   statusEl.className = 'status' + (cls ? ' ' + cls : '')
 }
 
-startBtn.addEventListener('click', async () => {
+async function startPicker() {
   const testId = idInput.value.trim()
+  const abToken = tokenInput.value.trim()
 
-  if (!testId) {
-    setStatus('Please enter a testId.', 'err')
-    return
-  }
+  if (!testId) { setStatus('Please enter a testId.', 'err'); return }
+  if (!abToken) { setStatus('Please paste your API token (click "need it?" to find it).', 'err'); return }
 
-  // Vorhandene apiBase/abToken unverändert lassen, nur testId + Start-Flag setzen.
-  await chrome.storage.local.set({ testId, ab_manual_start: true })
+  // Speichern + Start-Status.
+  await chrome.storage.local.set({ testId, abToken })
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  if (!tab || !tab.id) {
-    setStatus('No active tab found.', 'err')
-    return
-  }
+  if (!tab || !tab.id) { setStatus('No active tab found.', 'err'); return }
 
   try {
-    // Fallback für Tabs, die vor der Extension-Installation geöffnet wurden
-    // (dort ist das deklarative Content-Script noch nicht aktiv).
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] })
-    window.close()
+    // content.js läuft via manifest content_scripts — Message reicht.
+    const resp = await chrome.tabs.sendMessage(tab.id, { type: 'START_PICKER', testId, mode: 'element' })
+    if (resp && resp.ok) window.close()
+    else setStatus('Picker did not start.', 'err')
   } catch (e) {
-    setStatus('Could not start picker: ' + e.message, 'err')
+    setStatus('Open a web page first, then try again.', 'err')
   }
-})
+}
+
+startBtn.addEventListener('click', startPicker)

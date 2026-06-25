@@ -19,10 +19,17 @@
 </head>
 <body>
   <h1>Pick Element</h1>
-  <p class="sub">The Figma plugin opens your site automatically with the picker active. This popup is the manual fallback — just paste the testId.</p>
+  <p class="sub">The Figma plugin opens your site automatically. This popup is the manual fallback.</p>
 
   <label>testId</label>
   <input id="test-id" placeholder="e.g. 3f9a…" />
+
+  <label>
+    API token
+    <span style="font-weight:400;font-size:11px;color:#2563eb;cursor:pointer;text-decoration:underline"
+          id="token-help">need it?</span>
+  </label>
+  <input id="ab-token" placeholder="Paste once — auto-saved" />
 
   <button id="start">Pick element on page</button>
   <div class="status" id="status"></div>

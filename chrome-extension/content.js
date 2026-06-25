@@ -366,15 +366,16 @@
       history.replaceState(null, '', location.pathname + location.search)
     } catch (_) {}
     startPicker(trig.mode)
-  } else {
-    // Manueller Start über das Popup (Einmal-Flag, immer Element-Modus).
-    try {
-      chrome.storage.local.get(['ab_manual_start'], function(v) {
-        if (v && v.ab_manual_start) {
-          chrome.storage.local.remove('ab_manual_start')
-          startPicker('element')
-        }
-      })
-    } catch (_) {}
   }
+
+  // --- Message-basierter Start (Popup → content script, kein Storage-Flag nötig) ---
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.type === 'START_PICKER') {
+      const testId = msg.testId
+      if (!testId) return
+      chrome.storage.local.set({ testId: msg.testId }).catch(() => {})
+      startPicker(msg.mode || 'element')
+      sendResponse({ ok: true })
+    }
+  })
 })()
