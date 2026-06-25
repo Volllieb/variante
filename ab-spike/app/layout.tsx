@@ -39,7 +39,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html:
               `document.documentElement.classList.add("__ab_pending");` +
-              `setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},1500)`,
+              `setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)`,
           }}
         />
         <script async src="https://ab-tool-pied.vercel.app/ab.js" />

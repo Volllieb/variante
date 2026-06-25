@@ -64,7 +64,7 @@ export function DashboardClient({
           <p className="text-sm text-gray-500">{email}</p>
         </div>
         <button onClick={logout} className="text-sm text-gray-500 hover:underline">
-          Abmelden
+          Log out
         </button>
       </div>
 
@@ -72,12 +72,12 @@ export function DashboardClient({
       <div className="mb-6 flex items-center justify-between rounded-xl border border-gray-200 p-5">
         <div>
           <p className="text-sm font-semibold">
-            Tarif: <span className="uppercase">{plan}</span>
+            Plan: <span className="uppercase">{plan}</span>
           </p>
           <p className="text-xs text-gray-500">
             {isPro
-              ? 'Unbegrenzte Experimente, volle Statistik, kein Badge.'
-              : '1 aktives Experiment, „Powered by Variante"-Badge.'}
+              ? 'Unlimited experiments, full statistics, no badge.'
+              : '1 active experiment, "Powered by Variante" badge.'}
           </p>
         </div>
         {isPro ? (
@@ -86,7 +86,7 @@ export function DashboardClient({
             disabled={busy}
             className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
           >
-            Abo verwalten
+            Manage subscription
           </button>
         ) : (
           <button
@@ -94,16 +94,16 @@ export function DashboardClient({
             disabled={busy}
             className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
           >
-            Auf Pro upgraden
+            Upgrade to Pro
           </button>
         )}
       </div>
 
       {/* API-Token */}
       <div className="mb-8 rounded-xl border border-gray-200 p-5">
-        <p className="mb-1 text-sm font-semibold">Plugin-Token</p>
+        <p className="mb-1 text-sm font-semibold">Plugin Token</p>
         <p className="mb-3 text-xs text-gray-500">
-          Diesen Token einmalig ins Figma-Plugin einfügen, um deine Tests zu verknüpfen.
+          Paste this token once into the Figma plugin to link your tests.
         </p>
         <div className="flex items-center gap-2">
           <code className="flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-xs">
@@ -113,16 +113,16 @@ export function DashboardClient({
             onClick={copyToken}
             className="shrink-0 rounded-md bg-gray-900 px-3 py-2 text-xs font-medium text-white hover:bg-gray-700"
           >
-            {copied ? '✓ Kopiert' : 'Kopieren'}
+            {copied ? '✓ Copied' : 'Copy'}
           </button>
         </div>
       </div>
 
       {/* Tests */}
-      <h2 className="mb-3 text-sm font-semibold">Deine Experimente</h2>
+      <h2 className="mb-3 text-sm font-semibold">Your Experiments</h2>
       {tests.length === 0 ? (
         <p className="text-sm text-gray-500">
-          Noch keine Tests. Lege sie im Figma-Plugin an (Token oben einfügen).
+          No tests yet. Create them in the Figma plugin (paste the token above).
         </p>
       ) : (
         <div className="space-y-2">
@@ -137,8 +137,8 @@ export function DashboardClient({
                 <span className="text-xs uppercase text-gray-400">{t.status}</span>
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                {(t.visitors_a + t.visitors_b)} Besucher ·{' '}
-                {(t.conversions_a + t.conversions_b)} Conversions · {t.site_url || '—'}
+                {(t.visitors_a + t.visitors_b)} visitors ·{' '}
+                {(t.conversions_a + t.conversions_b)} conversions · {t.site_url || '—'}
               </p>
             </a>
           ))}

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
   const [data, setData] = useState(initial)
-  // Lokale Eingabewerte für die Schwellen (entkoppelt vom 5s-Poll, damit Tippen nicht überschrieben wird).
+  // Local input values for thresholds (decoupled from 5s poll so typing isn't overwritten).
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
   const [saved, setSaved] = useState(false)
@@ -41,52 +41,52 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 font-sans">
       <h1 className="mb-1 text-2xl font-bold">{name}</h1>
-      <p className="mb-8 text-sm text-gray-500">Status: {status}{winner ? ` · Gewinner: Variante ${winner}` : ''}</p>
+      <p className="mb-8 text-sm text-gray-500">Status: {status}{winner ? ` · Winner: Variant ${winner}` : ''}</p>
       <div className="grid grid-cols-2 gap-6">
         {[a, b].map(v => (
           <div key={v.id} className={`rounded-xl border p-6 ${winner === v.id ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
             <p className="text-4xl font-bold">{v.cr}%</p>
             <p className="mt-1 text-sm text-gray-500">Conversion Rate</p>
-            <p className="mt-3 text-sm">Variante {v.label}</p>
-            <p className="text-xs text-gray-400">{v.views} Besucher · {v.conversions} Conv.</p>
+            <p className="mt-3 text-sm">Variant {v.label}</p>
+            <p className="text-xs text-gray-400">{v.views} visitors · {v.conversions} conv.</p>
           </div>
         ))}
       </div>
       {pro ? (
-        <p className="mt-6 text-sm text-gray-500">Signifikanz: {Math.round(significance * 100)}%</p>
+        <p className="mt-6 text-sm text-gray-500">Significance: {Math.round(significance * 100)}%</p>
       ) : (
-        <p className="mt-6 text-sm text-gray-400">🔒 Signifikanz &amp; automatischer Gewinner sind Pro-Features.</p>
+        <p className="mt-6 text-sm text-gray-400">🔒 Significance &amp; auto-winner are Pro features.</p>
       )}
 
-      {/* Auto-Gewinner-Panel — nur Pro */}
+      {/* Auto-winner panel — Pro only */}
       {!pro ? (
         <div className="mt-8 rounded-xl border border-dashed border-gray-300 p-6 text-center">
-          <h2 className="text-sm font-semibold">Automatischer Gewinner</h2>
+          <h2 className="text-sm font-semibold">Auto Winner</h2>
           <p className="mt-2 text-xs text-gray-500">
-            Statistische Signifikanz und der automatische Gewinner stehen ab dem Pro-Tarif zur Verfügung.
+            Statistical significance and the auto-winner are available from the Pro plan onward.
           </p>
           <a
             href="/dashboard"
             className="mt-4 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
           >
-            Auf Pro upgraden
+            Upgrade to Pro
           </a>
         </div>
       ) : (
       <div className="mt-8 rounded-xl border border-gray-200 p-6">
-        <h2 className="text-sm font-semibold">Automatischer Gewinner</h2>
+        <h2 className="text-sm font-semibold">Auto Winner</h2>
         {done ? (
           <p className="mt-2 text-sm text-green-700">
-            ✓ Test abgeschlossen — {winner ? `Variante ${winner} gewinnt und wird an alle Besucher ausgeliefert.` : 'kein Gewinner.'}
+            ✓ Test complete — {winner ? `Variant ${winner} wins and is now served to all visitors.` : 'no winner.'}
           </p>
         ) : (
           <>
             <p className="mt-1 mb-4 text-xs text-gray-500">
-              Sobald beide Schwellen erfüllt sind, wird Variante B automatisch zum Gewinner und an alle neuen Besucher ausgeliefert.
+              Once both thresholds are met, Variant B automatically becomes the winner and is served to all new visitors.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <label className="block text-xs font-medium text-gray-600">
-                Mindest-Besucher
+                Min Visitors
                 <input
                   type="number"
                   min={1}
@@ -96,7 +96,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 />
               </label>
               <label className="block text-xs font-medium text-gray-600">
-                Mindest-Uplift B (%)
+                Min Uplift B (%)
                 <input
                   type="number"
                   min={0}
@@ -109,7 +109,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
             </div>
             <div className="mt-4">
               <div className="mb-1 flex justify-between text-xs text-gray-500">
-                <span>Besucher-Schwelle</span>
+                <span>Visitor threshold</span>
                 <span>{totalVisitors} / {minVisitors}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-gray-100">
@@ -120,9 +120,9 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               onClick={saveConfig}
               className="mt-4 rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
             >
-              Speichern
+              Save
             </button>
-            {saved && <span className="ml-3 text-xs text-green-600">✓ Gespeichert</span>}
+            {saved && <span className="ml-3 text-xs text-green-600">✓ Saved</span>}
           </>
         )}
       </div>

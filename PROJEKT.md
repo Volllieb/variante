@@ -86,8 +86,8 @@ c:\dev\variante/
 | Tier | Preis | Inhalt | Zweck |
 |---|---|---|---|
 | **Free** | 0 € | 1 aktives Experiment, Badge **an** | Figma-Discovery + viraler Loop |
-| **Pro** | ~$35/Monat | Unbegrenzt, Badge **aus**, volle Statistik | Solo-Monetarisierung |
-| **Agency** | ~$99–149/Monat | Multi-Site, White-Label, Team-Seats | **Hauptumsatz** |
+| **Pro** | 35€/Monat | Unbegrenzt, Badge **aus**, volle Statistik | Solo-Monetarisierung |
+| **Agency** | 99€/Monat | Multi-Site, White-Label, Team-Seats | **Hauptumsatz** |
 
 **KI-Kosten:** ~0,3 ct/Call → Marge praktisch 100 %.  
 **Free-Tier AI-Gen:** ✅ **Entschieden — ja.** AI-Gen auch im Free-Tier (1 Experiment). Begründung: Aha-Moment > Kosten; Kosten vernachlässigbar. Monetarisierung über *unbegrenzt + Badge-aus*, nicht über das KI-Feature selbst.
@@ -104,23 +104,23 @@ c:\dev\variante/
 | Framer | ❌ | Kein `<head>`-Zugriff |
 | Wix/Squarespace | ❌ | Kein Custom-Script |
 
-### Steuerklärung — was genau mit Berater besprechen
+### Steuerklärung — Entscheidungen & Status
 
-| Frage | Details |
-|---|---|
-| **Kleinunternehmer-Regelung (§19 UStG)** | Aktuell aktiv. Grenze: 22.000 € Vorjahresumsatz, 50.000 € laufendes Jahr. Bei USD-Preisen + skalierendem SaaS kann das schnell gekippt sein. **Frage:** Umsatzgrenze in Euro oder USD? Wechselkurs-Stichtag? |
-| **Reverse-Charge / OSS** | Bei B2B-Kunden im EU-Ausland muss ggf. Reverse-Charge angewendet werden. **Frage:** Reicht Kleinunternehmer-Regelung auch bei EU-Kunden, oder braucht's OSS-Verfahren? |
-| **USD-Preise** | Wir fakturieren in USD, sitzen in DE. **Frage:** Muss die Rechnung zwingend EUR ausweisen? Doppelte Preisangabe? Wechselkurs-Handhabung? |
-| **Stripe Tax** | Stripe kann USt automatisch berechnen + abführen. **Frage:** Deckt das alle Fälle ab, oder braucht's zusätzlich einen Steuerberater für die Erklärung? |
-| **Plattform-Umsätze** | Figma/Chrome-Web-Store zahlen ggf. Provisionen. **Frage:** Fällt das unter sonstige Einkünfte oder Betriebseinnahmen? |
+| Frage | Antwort | Status |
+|---|---|---|
+| **Kleinunternehmer-Regelung (§19 UStG)** | Grenze in **EUR** (EZB-Tageskurs bei USD). Aktuell weit drunter (~0 €). Monitoring ab >15.000 €/Jahr nötig. | ✅ Geklärt |
+| **Reverse-Charge / OSS** | Kleinunternehmer-Regelung gilt auch für EU-Kunden. OSS erst bei >50.000 € + B2C nötig. | ✅ Geklärt |
+| **USD-Preise** | EUR-Pflichtangabe auf Rechnung. Stripe Tax rechnet automatisch um + weist beide Beträge aus. | ✅ Stripe Tax aktivieren |
+| **Stripe Tax** | Deckt Berechnung + Abführung. **Nicht** die Steuererklärung — aber solange Kleinunternehmer, entfällt UStVA. | ✅ Geklärt |
+| **Plattform-Umsätze** | Betriebseinnahmen (keine sonstigen Einkünfte). | ✅ Geklärt |
 
-**Empfehlung:** Einmaliges 30-Min-Gespräch mit Steuerberater vor Live-Schaltung. Stripe Tax kann das meiste automatisieren, aber die Grundsatzentscheidung (Kleinunternehmer ja/nein, OSS nötig?) muss vorher klar sein.
+**Fazit:** Kein Steuerberater-Gespräch vor Launch nötig. Stripe Tax aktivieren (0,5 %/Transaktion). Berater erst bei >15.000 €/Jahr oder Wechsel zur Regelbesteuerung einplanen.
 
 - [x] Domain gesichert: `getvariante.com`
 - [x] Free-Tier AI-Gen: **ja** (entschieden)
 - [x] GitHub-Remote eingerichtet: `github.com/Volllieb/variante.git`
+- [x] Steuerfragen geklärt (siehe Tabelle oben)
 - [ ] MVP E2E auf echter Fremd-Site getestet?
-- [ ] **Steuerklärung mit Berater:** Siehe Detail unten ⤵
 
 ## §8 v4-Backlog
 
@@ -142,6 +142,7 @@ c:\dev\variante/
 |---|---|
 | 25.06.2026 | Cleanup: tote Dateien, Build-Artefakte, Boilerplate entfernt. DSO-Struktur eingeführt. Auto-Post-Commit-Hook + Selbstprüfung. |
 | 25.06.2026 | Produktname-Korrektur: „variantt" → „variante". GitHub-Remote eingerichtet (`Volllieb/variante`). Domain `getvariante.com` eingetragen. Free-Tier AI-Gen entschieden (ja). Steuerfragen präzisiert. |
+| 25.06.2026 | Steuerfragen beantwortet und §7 aufgeräumt. Ergebnis: Kein Berater vor Launch nötig, Stripe Tax aktivieren, Kleinunternehmer-Regelung bleibt erstmal. |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |

@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   if (!testId || !selector) {
     return Response.json(
-      { error: 'testId und selector sind Pflicht' },
+      { error: 'testId and selector are required' },
       { status: 400, headers: corsHeaders('POST, OPTIONS') }
     )
   }

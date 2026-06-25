@@ -162,10 +162,11 @@
 
     function finish(variant, html) {
       var applied = applyDom(selector, variant, html, key)
-      // Goal = getestetes Element UND B angewandt → auf die markierte B-Wurzel
-      // matchen, weil der Originalselektor das ersetzte Element nicht mehr trifft.
+      // Goal-Selektor nach B-Tausch IMMER auf data-ab-el umstellen, damit
+      // auch abweichende Goal-Selektoren (z. B. Button in getestetem Container)
+      // nach dem outerHTML-Tausch noch matchen.
       var gsel = goalSel
-      if (variant === 'B' && applied && goalSel === selector) {
+      if (variant === 'B' && applied) {
         gsel = '[data-ab-el="' + key + '"]'
       }
       active.push({ key: key, variant: variant, goalSel: gsel })
@@ -209,11 +210,22 @@
           lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html }))
           finish('B', html)
         } else {
-          // Noch kein generiertes HTML → wie A behandeln, nicht cachen.
+          // Noch kein generiertes HTML → assign wurde trotzdem aufgerufen,
+          // Besucher ist gezählt. A anzeigen, aber nicht cachen (damit beim
+          // nächsten Page-View erneut assign aufgerufen wird und ggf. B-HTML
+          // inzwischen existiert).
           finish('A', null)
         }
       })
       .catch(function () {})
+  }
+
+  // --- SPA-Support: bei History-Navigation erneut auflösen -------------------
+  // Setzt active zurück (alte data-ab-el existieren nicht mehr im neu
+  // gerenderten DOM) und führt run() erneut aus.
+  function reobserve() {
+    active = []
+    run()
   }
 
   // --- Hauptlogik ------------------------------------------------------------
@@ -239,10 +251,30 @@
       .catch(reveal)
   }
 
+  // --- Initialisierung -------------------------------------------------------
   // Erst nach dem Parsen des DOM anwenden, damit das Zielelement existiert.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run)
   } else {
     run()
+  }
+
+  // SPA-Support: History-Navigation (popstate) und DOM-Mutationen (für
+  // Framework-Router, die das Ziel-Element neu rendern) triggern erneutes
+  // Auflösen. Einfaches Reobserve nach jeder Mutation — applyDom ist
+  // idempotent (schlägt still fehl, wenn das Element nicht mehr existiert).
+  window.addEventListener('popstate', reobserve)
+  if (typeof MutationObserver !== 'undefined') {
+    var mo = new MutationObserver(function () {
+      // Nur triggern, wenn active-Tests existieren (sonst kein Grund).
+      if (active.length > 0) reobserve()
+    })
+    if (document.body) {
+      mo.observe(document.body, { childList: true, subtree: true })
+    } else {
+      document.addEventListener('DOMContentLoaded', function () {
+        mo.observe(document.body, { childList: true, subtree: true })
+      })
+    }
   }
 })()

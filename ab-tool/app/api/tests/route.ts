@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   const { name, site_url, selector, goal, traffic_split, min_visitors, min_uplift } = body
 
   if (!name) {
-    return Response.json({ error: 'name ist Pflicht' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'name is required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
   // Gating: Free-Tier erlaubt nur 1 laufenden Test (status != 'done').
