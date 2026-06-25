@@ -1,6 +1,6 @@
 node_modules/
 .next/
 .vercel/
-dist/
+ab-tool/.next/
 *.tsbuildinfo
 ab-tool/public/chrome-extension.zip

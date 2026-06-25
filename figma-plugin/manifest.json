@@ -1,11 +1,12 @@
 {
-  "name": "AB Figma",
-  "id": "ab-figma-mvp",
+  "name": "variante — A/B Testing",
+  "id": "variante-ab-testing",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["https://ab-tool-pied.vercel.app"]
+    "allowedDomains": ["https://getvariante.com"]
   }
 }
