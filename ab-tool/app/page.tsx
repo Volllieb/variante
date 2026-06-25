@@ -209,7 +209,7 @@ export default async function HomePage({
                 {/* ponytail: hardcoded arrow — 3 items, never more */}
                 {i < steps.length - 1 && (
                   <span className="mx-2 hidden text-2xl text-muted-foreground/40 md:block" aria-hidden="true">
-                    →→→
+                    →
                   </span>
                 )}
               </div>

@@ -9,7 +9,7 @@ export default function ImprintPage() {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-3xl font-bold text-gray-900">Imprint</h1>
       <p className="mt-2 text-sm text-gray-500">
-        Angaben gemäß § 5 DDG (ehemals TMG)
+        Information pursuant to § 5 DDG (formerly TMG)
       </p>
 
       <div className="mt-8 space-y-6 text-sm leading-relaxed text-gray-700">
@@ -22,7 +22,7 @@ export default function ImprintPage() {
             <br />
             97082 Würzburg
             <br />
-            Deutschland
+            Germany
           </p>
           <p className="mt-2">
             Email:{' '}
@@ -37,7 +37,7 @@ export default function ImprintPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-gray-900">
-            Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)
+            Responsible for Content (§ 18 (2) MStV)
           </h2>
           <p className="mt-2">
             Valentin Wilhelm
@@ -50,10 +50,10 @@ export default function ImprintPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-gray-900">
-            Umsatzsteuer
+            VAT
           </h2>
           <p className="mt-2">
-            Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.
+            Small business according to § 19 UStG. VAT is not charged.
           </p>
         </section>
 
