@@ -5,7 +5,7 @@
 // Hover-highlight + click capture: selector, outerHTML, filtered CSS,
 // framework, goal_candidates.
 (function () {
-  const DEFAULT_API = 'https://ab-tool-pied.vercel.app'
+  const DEFAULT_API = 'https://www.getvariante.com'
 
   // --- CSS-Selektor: möglichst eindeutiger Pfad zum Element ------------------
   function cssSelector(el) {

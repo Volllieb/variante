@@ -16,7 +16,7 @@ function setStatus(msg, cls) {
   statusEl.className = 'status' + (cls ? ' ' + cls : '')
 }
 
-const DEFAULT_API = 'https://ab-tool-pied.vercel.app'
+const DEFAULT_API = 'https://www.getvariante.com'
 
 startBtn.addEventListener('click', async () => {
   const apiBase = (apiInput.value.trim() || DEFAULT_API).replace(/\/+$/, '')
