@@ -19,16 +19,10 @@
 </head>
 <body>
   <h1>Pick Element</h1>
-  <p class="sub">Tip: The Figma plugin opens your site automatically with the picker active. This popup is the manual fallback — paste a testId, then click an element on the page.</p>
+  <p class="sub">The Figma plugin opens your site automatically with the picker active. This popup is the manual fallback — just paste the testId.</p>
 
-  <label>API Base URL (optional)</label>
-  <input id="api-base" value="https://www.getvariante.com" />
-
-  <label>testId (UUID)</label>
+  <label>testId</label>
   <input id="test-id" placeholder="e.g. 3f9a…" />
-
-  <label>API Token (from Dashboard)</label>
-  <input id="ab-token" placeholder="Your account token" />
 
   <button id="start">Pick element on page</button>
   <div class="status" id="status"></div>

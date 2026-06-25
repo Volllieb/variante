@@ -1,28 +1,15 @@
-const apiInput = document.getElementById('api-base')
 const idInput = document.getElementById('test-id')
-const tokenInput = document.getElementById('ab-token')
 const startBtn = document.getElementById('start')
 const statusEl = document.getElementById('status')
 
-const DEFAULT_API = 'https://www.getvariante.com'
+// testId beim Tippen persistieren.
+idInput.addEventListener('input', () => {
+  chrome.storage.local.set({ testId: idInput.value.trim() })
+})
 
-// Value beim Tippen sofort persistieren — einmal eingegeben, nie wieder vergessen.
-function saveInputs() {
-  chrome.storage.local.set({
-    apiBase: apiInput.value.trim() || DEFAULT_API,
-    testId: idInput.value.trim(),
-    abToken: tokenInput.value.trim(),
-  })
-}
-apiInput.addEventListener('input', saveInputs)
-idInput.addEventListener('input', saveInputs)
-tokenInput.addEventListener('input', saveInputs)
-
-// Gespeicherte Werte wiederherstellen.
-chrome.storage.local.get(['apiBase', 'testId', 'abToken'], (v) => {
-  if (v.apiBase) apiInput.value = v.apiBase
+// Gespeicherte testId wiederherstellen.
+chrome.storage.local.get(['testId'], (v) => {
   if (v.testId) idInput.value = v.testId
-  if (v.abToken) tokenInput.value = v.abToken
 })
 
 function setStatus(msg, cls) {
@@ -31,17 +18,15 @@ function setStatus(msg, cls) {
 }
 
 startBtn.addEventListener('click', async () => {
-  const apiBase = (apiInput.value.trim() || DEFAULT_API).replace(/\/+$/, '')
   const testId = idInput.value.trim()
-  const abToken = tokenInput.value.trim()
 
   if (!testId) {
     setStatus('Please enter a testId.', 'err')
     return
   }
 
-  // Einmal-Flag: content.js startet den Picker beim nächsten Lauf.
-  await chrome.storage.local.set({ apiBase, testId, abToken, ab_manual_start: true })
+  // Vorhandene apiBase/abToken unverändert lassen, nur testId + Start-Flag setzen.
+  await chrome.storage.local.set({ testId, ab_manual_start: true })
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab || !tab.id) {
