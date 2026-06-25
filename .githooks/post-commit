@@ -1,0 +1,11 @@
+#!/bin/sh
+# Auto-Push nach jedem Commit — nur wenn Remote existiert.
+# Install: git config core.hooksPath .githooks
+# (oder Kopie nach .git/hooks/post-commit)
+
+if git remote -v | grep -q origin; then
+  echo "🔁 Auto-Push: git push..."
+  git push
+else
+  echo "⏸️  Auto-Push: kein Remote konfiguriert (git remote -v ist leer)"
+fi

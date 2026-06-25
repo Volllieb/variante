@@ -1,4 +1,4 @@
-# CLAUDE.md — Arbeitsanweisungen SaaS-Projekt
+# CLAUDE.md — Arbeitsanweisungen variantt
 
 Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` — dort fortschreiben, nicht hier.
 
@@ -11,3 +11,16 @@ Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` �
 
 ## Standing Order
 - **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` fortschreiben (Stand, Entscheidungen, Brainstorms, Interview-Erkenntnisse). CLAUDE.md bleibt frei von Memory.
+- **Nach jeder Änderung: Selbstprüfung aus §10 PROJEKT.md durchführen** — Struktur, Git, Doku, Deployment, Produkt-Health checken.
+- **Immer committen** — keine losen Änderungen hinterlassen. Nach Commit: `git push` (wenn Remote vorhanden).
+
+## Auto-Push-Regel
+- Nach jedem Commit: `git push` ausführen (sofern Remote existiert).
+- Ist kein Remote eingerichtet: in PROJEKT.md §7 den Punkt „GitHub-Remote einrichten" offen lassen.
+- Bei erstmaligem Remote-Setup: `post-commit`-Hook aktivieren (siehe `.githooks/post-commit`).
+
+## Prüfpflicht
+Bei JEDEM Task (Code, Doku, Config):
+1. **Vor dem Task:** PROJEKT.md §10 durchgehen — gibt es offene Prüfpunkte?
+2. **Nach dem Task:** PROJEKT.md §10 erneut durchgehen — hat der Task neue Prüfpunkte erzeugt?
+3. **Nicht bestandene Prüfung = Task nicht fertig.**
