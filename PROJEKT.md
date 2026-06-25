@@ -44,13 +44,15 @@ c:\dev\variante/
 │
 ├── ab-tool/                # Kernprodukt — Next.js API + Dashboard
 │   ├── app/
-│   │   ├── api/            # API-Routen (assign, billing, capture, event, generate, resolve, results, stripe, tests, variant)
+│   │   ├── api/            # API-Routen (assign, billing, capture, event, generate, resolve, results, stripe, tests, variant, waitlist)
 │   │   ├── dashboard/      # Dashboard-UI
 │   │   ├── login/          # Login-Seite
 │   │   ├── signup/         # Signup-Seite
 │   │   ├── results/[id]/   # Ergebnisse
+│   │   ├── imprint/        # Impressum
+│   │   ├── privacy/        # Privacy Policy
 │   │   ├── layout.tsx      # Root-Layout
-│   │   └── page.tsx        # Landing-Page
+│   │   └── page.tsx        # Landing-Page (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify)
 │   ├── lib/                # Server-Logik (auth, cors, stats, significance, stripe, supabase)
 │   └── public/ab.js        # Das Snippet
 │
@@ -74,7 +76,7 @@ c:\dev\variante/
 
 | Projekt | URL | Vercel-Name | Deploy-Methode |
 |---|---|---|---|
-| ab-tool | `ab-tool-pied.vercel.app` | `ab-tool` | `vercel deploy` (CLI) |
+| ab-tool | `ab-tool-pied.vercel.app` → **`www.getvariante.com`** | `ab-tool` | `vercel deploy` (CLI) |
 | ab-spike | `ab-spike.vercel.app` | — | `vercel deploy` (CLI) |
 
 **Git-Remote:** `origin` → `github.com/Volllieb/variante.git` (`master`)  
@@ -140,6 +142,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 25.06.2026 | Landingpage für getvariante.com gebaut (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify/Waitlist). Privacy-/Imprint-Seiten, Waitlist-API, SQL-Migration 006. `lib/supabase.ts` auf Proxy umgestellt (lazy init für Build ohne Env-Vars). Domain-Verweis auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | Figma-Plugin "Failed to Fetch" final fix: `Authorization` fehlte in CORS-Allow-Headers → Preflight blockte alle authentifizierten Requests. + openDashboard URL auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | Figma-Plugin "Failed to Fetch" fix: API URL in `ui.html` (src+dist) von `ab-tool-pied.vercel.app` auf `getvariante.com` geändert — mismatch mit `manifest.json` allowedDomains. |
 | 25.06.2026 | Figma-Plugin: Build fix — `dist/` war nicht gebaut (fehlende `node_modules/`). `npm install` + Build als Voraussetzung dokumentiert. Manifest auf `getvariante.com` aktualisiert. |

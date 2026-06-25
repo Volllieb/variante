@@ -2,14 +2,15 @@ import './globals.css'
 import type { ReactNode } from 'react'
 
 export const metadata = {
-  title: 'Variante — Designer-native A/B Testing',
-  description: 'Designer-native A/B testing: pick an element, generate Variant B, ship one snippet.',
+  title: 'Variante — A/B Testing from Figma, No Dev Needed',
+  description:
+    'Pick an element on your live site, describe the change in Figma, AI generates Variant B. One snippet tracks conversions.',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-white text-gray-900 antialiased">{children}</body>
+      <body className="min-h-screen bg-white text-gray-900 antialiased">{children}</body>
     </html>
   )
 }
