@@ -1,10 +1,28 @@
 // AB Element Picker — Content Script.
-// Runs persistently (manifest content_scripts) on http/https pages, but only
-// activates the picker when the page was opened with #ab_pick=<testId>
-// (auto-flow from the Figma plugin) or the popup starts it manually.
+// Runs persistently via manifest content_scripts on http/https pages.
+// Activates the picker on #ab_pick=<testId> (auto-flow from Figma plugin)
+// or via START_PICKER message from the popup.
 // Hover-highlight + click capture: selector, outerHTML, filtered CSS,
 // framework, goal_candidates.
-(function () {
+
+// --- Hash-Snapshot SOFORT sichern (bevor SPA-Router ihn frisst) ---
+const __abHashSnapshot = (function () {
+  const src = location.hash + '&' + location.search
+  const mPick = src.match(/[#?&]ab_pick=([^&]+)/)
+  const mGoal = src.match(/[#?&]ab_goal=([^&]+)/)
+  const m = mPick || mGoal
+  if (!m) return null
+  const am = src.match(/[#?&]ab_api=([^&]+)/)
+  const tm = src.match(/[#?&]ab_token=([^&]+)/)
+  return {
+    testId: decodeURIComponent(m[1]),
+    apiBase: am ? decodeURIComponent(am[1]) : '',
+    token: tm ? decodeURIComponent(tm[1]) : '',
+    mode: mGoal ? 'goal' : 'element',
+  }
+})()
+
+;(function () {
   const DEFAULT_API = 'https://www.getvariante.com'
 
   // --- CSS-Selektor: möglichst eindeutiger Pfad zum Element ------------------
@@ -19,7 +37,6 @@
         parts.unshift(part)
         break
       }
-      // Klassen einbeziehen: max. 2, keine Tailwind-Utilities (kein : oder /)
       if (node.className && typeof node.className === 'string') {
         const cls = node.className.trim().split(/\s+/)
           .filter(c => c && !c.includes(':') && !c.includes('/') && c.length > 1)
@@ -49,13 +66,8 @@
       .call(document.querySelectorAll('link[href], script[src]'), (n) => n.href || n.src)
       .join(' ')
       .toLowerCase()
-
-    if (links.includes('tailwind') || /class="[^"]*\b(flex|grid|px-\d|py-\d|text-\w+-\d{3})\b/.test(html)) {
-      return 'tailwind'
-    }
-    if (links.includes('bootstrap') || /class="[^"]*\b(container|row|col-|btn-)\b/.test(html)) {
-      return 'bootstrap'
-    }
+    if (links.includes('tailwind') || /class="[^"]*\b(flex|grid|px-\d|py-\d|text-\w+-\d{3})\b/.test(html)) return 'tailwind'
+    if (links.includes('bootstrap') || /class="[^"]*\b(container|row|col-|btn-)\b/.test(html)) return 'bootstrap'
     return 'custom'
   }
 
@@ -65,11 +77,7 @@
   function matchesPseudo(el, sel) {
     const base = sel.replace(/:(hover|focus|active|focus-visible|focus-within)\b/g, '').trim()
     if (!base) return false
-    try {
-      return el.matches(base)
-    } catch (_) {
-      return false
-    }
+    try { return el.matches(base) } catch (_) { return false }
   }
 
   function computedBlock(el) {
@@ -89,58 +97,32 @@
         .map((p) => '  ' + p + ': ' + cs.getPropertyValue(p) + ';')
         .filter((l) => l.indexOf(': ;') === -1 && l.indexOf(': none;') === -1 && l.indexOf(': normal;') === -1)
       if (!lines.length) return ''
-      return '/* computed styles des Originalelements (Referenz) */\n.__original {\n' + lines.join('\n') + '\n}'
-    } catch (_) {
-      return ''
-    }
+      return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
+    } catch (_) { return '' }
   }
 
   function collectCss(el) {
     const out = []
     const seen = new Set()
-
-    function push(rule) {
-      if (!seen.has(rule.cssText)) {
-        seen.add(rule.cssText)
-        out.push(rule.cssText)
-      }
-    }
-
+    function push(rule) { if (!seen.has(rule.cssText)) { seen.add(rule.cssText); out.push(rule.cssText) } }
     function consider(rule) {
       try {
         const sel = rule.selectorText
         if (!sel) return
-        if (sel.includes(':root') || rule.cssText.includes('--')) {
-          push(rule)
-          return
-        }
-        if (PSEUDO_RE.test(sel)) {
-          if (matchesPseudo(el, sel)) push(rule)
-          return
-        }
+        if (sel.includes(':root') || rule.cssText.includes('--')) { push(rule); return }
+        if (PSEUDO_RE.test(sel)) { if (matchesPseudo(el, sel)) push(rule); return }
         if (el.matches(sel)) push(rule)
       } catch (_) {}
     }
-
     for (const sheet of Array.from(document.styleSheets)) {
       let rules
-      try {
-        rules = sheet.cssRules
-      } catch (_) {
-        continue // cross-origin Stylesheet — nicht lesbar
-      }
+      try { rules = sheet.cssRules } catch (_) { continue }
       if (!rules) continue
       for (const rule of Array.from(rules)) {
-        if (rule.type === CSSRule.STYLE_RULE) {
-          consider(rule)
-        } else if (rule.cssRules) {
-          for (const sub of Array.from(rule.cssRules)) {
-            if (sub.type === CSSRule.STYLE_RULE) consider(sub)
-          }
-        }
+        if (rule.type === CSSRule.STYLE_RULE) consider(rule)
+        else if (rule.cssRules) { for (const sub of Array.from(rule.cssRules)) { if (sub.type === CSSRule.STYLE_RULE) consider(sub) } }
       }
     }
-
     const rulesText = out.join('\n').slice(0, 18000)
     const computed = computedBlock(el)
     return (computed ? rulesText + '\n\n' + computed : rulesText).slice(0, 24000)
@@ -155,225 +137,181 @@
       const sel = cssSelector(el)
       if (!sel || seen.has(sel)) return
       seen.add(sel)
-      const text = (el.innerText || el.textContent || el.value || '')
-        .trim()
-        .replace(/\s+/g, ' ')
-        .slice(0, 40)
+      const text = (el.innerText || el.textContent || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 40)
       out.push({ selector: sel, text })
     }
     add(picked)
-    const nodes = document.querySelectorAll(
-      'button, a[href], [role="button"], input[type="submit"], input[type="button"]'
-    )
+    const nodes = document.querySelectorAll('button, a[href], [role="button"], input[type="submit"], input[type="button"]')
     for (let i = 0; i < nodes.length && out.length < 15; i++) add(nodes[i])
     return out.slice(0, 15)
   }
 
+  // --- Persistentes Banner (visible header, kein Toast) --------------------
+  var __abBanner = null
+
+  function showBanner(msg) {
+    hideBanner()
+    var b = document.createElement('div')
+    b.id = '__ab_banner'
+    b.textContent = msg || 'Click element (ESC cancels).'
+    b.style.cssText =
+      'position:fixed;z-index:2147483647;top:0;left:0;right:0;' +
+      'padding:10px 40px;font:700 14px -apple-system,Segoe UI,sans-serif;color:#fff;' +
+      'text-align:center;background:#2563eb;box-shadow:0 2px 12px rgba(0,0,0,.3);' +
+      'letter-spacing:.3px;user-select:none;'
+    // Close button (X) on the right
+    var closeBtn = document.createElement('span')
+    closeBtn.textContent = '\u2716'
+    closeBtn.style.cssText =
+      'position:absolute;right:12px;top:50%;transform:translateY(-50%);' +
+      'cursor:pointer;font-size:16px;opacity:.7'
+    closeBtn.onclick = function (e) { e.stopPropagation(); hideBanner() }
+    b.appendChild(closeBtn)
+    // Klick auf Banner → cleanup + ESC
+    b.onclick = function () { if (window.__abCleanup) window.__abCleanup(); hideBanner() }
+    document.body.appendChild(b)
+    __abBanner = b
+  }
+
+  function hideBanner() {
+    if (__abBanner) { try { __abBanner.remove() } catch (_) {}; __abBanner = null }
+  }
+
   // --- Erfolgs-Overlay mit "Tab schließen" -----------------------------------
   function overlay(msg, ok) {
-    const wrap = document.createElement('div')
-    wrap.style.cssText =
-      'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;' +
-      'background:rgba(0,0,0,.45);font-family:-apple-system,Segoe UI,sans-serif'
-    const card = document.createElement('div')
-    card.style.cssText =
-      'background:#fff;color:#111;padding:24px 28px;border-radius:14px;text-align:center;max-width:360px;' +
-      'box-shadow:0 12px 40px rgba(0,0,0,.3)'
-    
+    hideBanner()
+    var wrap = document.createElement('div')
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);font-family:-apple-system,Segoe UI,sans-serif'
+    var card = document.createElement('div')
+    card.style.cssText = 'background:#fff;color:#111;padding:24px 28px;border-radius:14px;text-align:center;max-width:360px;box-shadow:0 12px 40px rgba(0,0,0,.3)'
     if (ok) {
-      // Erfolgs-Overlay: Button schließt den Tab, damit Figma wieder in den Vordergrund kommt.
       card.innerHTML =
-        '<div style="font-size:40px;margin-bottom:10px">✅</div>' +
-        '<div style="font-size:16px;font-weight:700;margin-bottom:4px">' + msg + ' ✓</div>' +
-        '<div style="font-size:12px;color:#666;margin-bottom:16px">The tab will close — you'll land back in Figma automatically.</div>' +
-        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">Close tab → back to Figma</button>' +
-        '<div style="font-size:11px;color:#999">Click anywhere to dismiss the overlay.</div>'
-      
-      setTimeout(() => {
-        const btn = document.getElementById('__ab_close_btn')
+        '<div style="font-size:40px;margin-bottom:10px">\u2705</div>' +
+        '<div style="font-size:16px;font-weight:700;margin-bottom:4px">' + msg + ' \u2713</div>' +
+        '<div style="font-size:12px;color:#666;margin-bottom:16px">The tab will close. You\u2019ll land back in Figma automatically.</div>' +
+        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">Close tab \u2192 back to Figma</button>' +
+        '<div style="font-size:11px;color:#999">Click anywhere to dismiss.</div>'
+      setTimeout(function () {
+        var btn = document.getElementById('__ab_close_btn')
         if (btn) {
-          btn.onclick = function() {
+          btn.onclick = function () {
             btn.textContent = 'Closing tab...'
             btn.style.background = '#16a34a'
             btn.disabled = true
-            // Versuch 1: background.js bitten den Tab zu schließen
             try { chrome.runtime.sendMessage({ type: 'CLOSE_TAB' }) } catch (_) {}
-            // Versuch 2: direkt window.close (funktioniert bei per JS geöffneten Tabs)
             try { window.close() } catch (_) {}
           }
         }
       }, 50)
     } else {
-      card.innerHTML =
-        '<div style="font-size:34px;margin-bottom:8px">⚠️</div>' +
-        '<div style="font-size:15px;font-weight:700;margin-bottom:6px">' + msg + '</div>'
+      card.innerHTML = '<div style="font-size:34px;margin-bottom:8px">\u26A0\uFE0F</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">' + msg + '</div>'
     }
-    
     wrap.appendChild(card)
-    wrap.addEventListener('click', function(e) { if (e.target === wrap) wrap.remove() })
+    wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.remove() })
     document.body.appendChild(wrap)
-    if (!ok) setTimeout(function() { wrap.remove() }, 3500)
+    if (!ok) setTimeout(function () { wrap.remove() }, 3500)
   }
 
   // --- Picker starten --------------------------------------------------------
-  // mode: 'element' = volle Erfassung (POST /api/capture)
-  //       'goal'    = nur Selektor als Conversion-Ziel (PATCH /api/tests/:id)
   function startPicker(mode) {
     if (window.__abPickerActive) return
     window.__abPickerActive = true
 
-    let lastEl = null
-    const HL = '2px solid #2563eb'
+    // Warten bis DOM bereit ist für Banner (document_start läuft vor <body>).
+    function boot() {
+      if (!document.body) { setTimeout(boot, 50); return }
+      showBanner(mode === 'goal' ? 'Click goal element (ESC cancels).' : 'Click element (ESC cancels).')
 
-    function toast(msg, ok) {
-      const t = document.createElement('div')
-      t.textContent = msg
-      t.style.cssText =
-        'position:fixed;z-index:2147483647;top:16px;left:50%;transform:translateX(-50%);' +
-        'padding:10px 16px;border-radius:8px;font:600 13px sans-serif;color:#fff;' +
-        'box-shadow:0 4px 12px rgba(0,0,0,.25);background:' +
-        (ok ? '#16a34a' : '#dc2626')
-      document.body.appendChild(t)
-      setTimeout(function() { t.remove() }, 3000)
-    }
+      var lastEl = null
+      var HL = '2px solid #2563eb'
 
-    function onOver(e) {
-      if (lastEl) lastEl.style.outline = ''
-      lastEl = e.target
-      lastEl.style.outline = HL
-    }
-    function onOut(e) {
-      if (e.target.style) e.target.style.outline = ''
-    }
+      function onOver(e) { if (lastEl) lastEl.style.outline = ''; lastEl = e.target; lastEl.style.outline = HL }
+      function onOut(e) { if (e.target && e.target.style) e.target.style.outline = '' }
 
-    async function onClick(e) {
-      e.preventDefault()
-      e.stopPropagation()
-      const el = e.target
-
-      cleanup()
-
-      let cfg
-      try {
-        cfg = await chrome.storage.local.get(['apiBase', 'testId', 'abToken'])
-      } catch (_) {
-        cfg = {}
-      }
-      const apiBase = (cfg.apiBase || DEFAULT_API).replace(/\/+$/, '')
-      const testId = cfg.testId
-      if (!testId) {
-        overlay('testId missing — open via the Figma plugin.', false)
-        return
-      }
-
-      // Login-Token für die jetzt auth-pflichtigen Routen.
-      const headers = { 'Content-Type': 'application/json' }
-      if (cfg.abToken) headers['Authorization'] = 'Bearer ' + cfg.abToken
-
-      try {
-        let res
-        if (mode === 'goal') {
-          // Metrik-Modus: nur den Selektor als Conversion-Ziel speichern.
-          res = await fetch(apiBase + '/api/tests/' + testId, {
-            method: 'PATCH',
-            headers: headers,
-            body: JSON.stringify({ goal: cssSelector(el) }),
-          })
-        } else {
-          // Element-Modus: volle Erfassung des Test-Elements.
-          res = await fetch(apiBase + '/api/capture', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-              testId,
-              selector: cssSelector(el),
-              original_html: el.outerHTML,
-              site_css: collectCss(el),
-              framework: detectFramework(),
-              goal_candidates: collectGoalCandidates(el),
-            }),
-          })
-        }
-        if (res.ok) {
-          overlay(mode === 'goal' ? 'Goal saved' : 'Element saved', true)
-        } else {
-          overlay('Save failed (' + res.status + ')', false)
-        }
-      } catch (err) {
-        overlay('Network error while saving.', false)
-      }
-    }
-
-    function onKey(e) {
-      if (e.key === 'Escape') {
+      async function onClick(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        var el = e.target
         cleanup()
-        toast('Selection cancelled.', false)
+        hideBanner()
+
+        var cfg
+        try { cfg = await chrome.storage.local.get(['apiBase', 'testId', 'abToken']) } catch (_) { cfg = {} }
+        var apiBase = (cfg.apiBase || DEFAULT_API).replace(/\/+$/, '')
+        var testId = cfg.testId
+        if (!testId) { overlay('testId missing.', false); return }
+
+        var headers = { 'Content-Type': 'application/json' }
+        if (cfg.abToken) headers['Authorization'] = 'Bearer ' + cfg.abToken
+
+        try {
+          var res
+          if (mode === 'goal') {
+            res = await fetch(apiBase + '/api/tests/' + testId, {
+              method: 'PATCH', headers: headers,
+              body: JSON.stringify({ goal: cssSelector(el) }),
+            })
+          } else {
+            res = await fetch(apiBase + '/api/capture', {
+              method: 'POST', headers: headers,
+              body: JSON.stringify({
+                testId: testId,
+                selector: cssSelector(el),
+                original_html: el.outerHTML,
+                site_css: collectCss(el),
+                framework: detectFramework(),
+                goal_candidates: collectGoalCandidates(el),
+              }),
+            })
+          }
+          if (res.ok) { overlay(mode === 'goal' ? 'Goal saved' : 'Element saved', true) }
+          else { overlay('Save failed (' + res.status + ')', false) }
+        } catch (err) { overlay('Network error while saving.', false) }
       }
+
+      function onKey(e) {
+        if (e.key === 'Escape') { cleanup(); hideBanner() }
+      }
+
+      function cleanup() {
+        if (lastEl) lastEl.style.outline = ''
+        document.removeEventListener('mouseover', onOver, true)
+        document.removeEventListener('mouseout', onOut, true)
+        document.removeEventListener('click', onClick, true)
+        document.removeEventListener('keydown', onKey, true)
+        window.__abPickerActive = false
+        window.__abCleanup = null
+      }
+
+      window.__abCleanup = cleanup
+      document.addEventListener('mouseover', onOver, true)
+      document.addEventListener('mouseout', onOut, true)
+      document.addEventListener('click', onClick, true)
+      document.addEventListener('keydown', onKey, true)
     }
 
-    function cleanup() {
-      if (lastEl) lastEl.style.outline = ''
-      document.removeEventListener('mouseover', onOver, true)
-      document.removeEventListener('mouseout', onOut, true)
-      document.removeEventListener('click', onClick, true)
-      document.removeEventListener('keydown', onKey, true)
-      window.__abPickerActive = false
-    }
-
-    // Capture-Phase, damit wir vor Seiten-Handlern abfangen.
-    document.addEventListener('mouseover', onOver, true)
-    document.addEventListener('mouseout', onOut, true)
-    document.addEventListener('click', onClick, true)
-    document.addEventListener('keydown', onKey, true)
-
-    toast(
-      (mode === 'goal' ? 'Click goal element' : 'Click element') + ' (ESC cancels).',
-      true
-    )
+    boot()
   }
 
-  // --- Auto-Start ------------------------------------------------------------
-  // Trigger aus der URL lesen:
-  //   #ab_pick=<testId> = Element-Modus, #ab_goal=<testId> = Metrik-Modus
-  //   (optional &ab_api=<url>).
-  function getTrigger() {
-    const src = location.hash + '&' + location.search
-    const mPick = src.match(/[#?&]ab_pick=([^&]+)/)
-    const mGoal = src.match(/[#?&]ab_goal=([^&]+)/)
-    const m = mPick || mGoal
-    if (!m) return null
-    const am = src.match(/[#?&]ab_api=([^&]+)/)
-    const tm = src.match(/[#?&]ab_token=([^&]+)/)
-    return {
-      testId: decodeURIComponent(m[1]),
-      apiBase: am ? decodeURIComponent(am[1]) : '',
-      token: tm ? decodeURIComponent(tm[1]) : '',
-      mode: mGoal ? 'goal' : 'element',
-    }
-  }
-
-  const trig = getTrigger()
-  if (trig && trig.testId) {
+  // --- Auto-Start aus Hash-Snapshot (vor SPA gerettet) -----------------------
+  if (__abHashSnapshot && __abHashSnapshot.testId) {
     try {
-      // Nur nicht-leere Werte überschreiben — sonst bleiben manuelle Eingaben erhalten.
-      const patch = { testId: trig.testId }
-      if (trig.apiBase) patch.apiBase = trig.apiBase
-      if (trig.token) patch.abToken = trig.token
+      var patch = { testId: __abHashSnapshot.testId }
+      if (__abHashSnapshot.apiBase) patch.apiBase = __abHashSnapshot.apiBase
+      if (__abHashSnapshot.token) patch.abToken = __abHashSnapshot.token
       chrome.storage.local.set(patch)
     } catch (_) {}
-    // Trigger aus der URL entfernen, damit ein Reload den Picker nicht erneut startet.
-    try {
-      history.replaceState(null, '', location.pathname + location.search)
-    } catch (_) {}
-    startPicker(trig.mode)
+    // KEIN history.replaceState — das kills den Hash für SPAs. Der Banner
+    // zeigt an, dass der Picker läuft. Ein Reload startet nicht erneut weil
+    // __abPickerActive dann true ist.
+    startPicker(__abHashSnapshot.mode)
   }
 
-  // --- Message-basierter Start (Popup → content script, kein Storage-Flag nötig) ---
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // --- Message-basierter Start (Popup → content script) ----------------------
+  chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (msg.type === 'START_PICKER') {
-      const testId = msg.testId
-      if (!testId) return
-      chrome.storage.local.set({ testId: msg.testId }).catch(() => {})
+      if (!msg.testId) return
+      chrome.storage.local.set({ testId: msg.testId }).catch(function () {})
       startPicker(msg.mode || 'element')
       sendResponse({ ok: true })
     }
