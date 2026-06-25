@@ -75,12 +75,24 @@
 </head>
 <body>
 
+<!-- Screen -1: Connect (Login-Token) -->
+<div id="s-connect" class="screen active">
+  <h2>Mit Variante verbinden</h2>
+  <p class="sub">Logge dich im Dashboard ein, kopiere deinen Token und füge ihn hier ein.</p>
+  <button class="btn btn-secondary" onclick="openDashboard()">Dashboard öffnen (Token holen)</button>
+  <label>API-Token</label>
+  <input id="connect-token" placeholder="Token aus dem Dashboard einfügen" />
+  <button class="btn btn-primary" onclick="saveToken()">Verbinden</button>
+  <div class="error" id="e-connect"></div>
+</div>
+
 <!-- Screen 0: Dashboard -->
-<div id="s-dashboard" class="screen active">
+<div id="s-dashboard" class="screen">
   <h2>A/B Tests</h2>
   <p class="sub">All tests, grouped by page.</p>
   <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
   <button class="btn btn-secondary" onclick="showDashboard()">Refresh</button>
+  <button class="btn btn-secondary" onclick="go('connect')">Token ändern</button>
   <div class="divider"></div>
   <div id="dash-list"></div>
 </div>
@@ -230,6 +242,29 @@
 const API = 'https://ab-tool-pied.vercel.app'
 const state = { testId: '', snippetKey: '', name: '', url: '', goal: '', selector: '', originalHtml: '', goalCandidates: [], frameId: '', screenshot: '', frameContent: null, html: '' }
 let elTimer = null, resTimer = null, dotTimer = null, mTimer = null, mDotTimer = null
+let API_TOKEN = ''
+let tokenReceived = false
+
+// fetch-Wrapper: hängt den Login-Token als Authorization-Header an alle API-Calls.
+function afetch(url, opts) {
+  opts = opts || {}
+  const headers = {}
+  const src = opts.headers || {}
+  for (const k in src) headers[k] = src[k]
+  if (API_TOKEN) headers['Authorization'] = 'Bearer ' + API_TOKEN
+  opts.headers = headers
+  return fetch(url, opts)
+}
+function openDashboard() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://getvariante.com/dashboard' } }, '*')
+}
+function saveToken() {
+  const v = ($('connect-token').value || '').trim()
+  if (!v) { err('connect', 'Bitte Token einfügen.'); return }
+  API_TOKEN = v
+  parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
+  showDashboard()
+}
 
 function $(id) { return document.getElementById(id) }
 function escapeHtml(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
@@ -269,7 +304,7 @@ async function showDashboard() {
   const list = $('dash-list')
   list.innerHTML = '<div class="loading">Loading tests…</div>'
   try {
-    const res = await fetch(API + '/api/tests')
+    const res = await afetch(API + '/api/tests')
     if (!res.ok) throw new Error('API ' + res.status)
     const { tests } = await res.json()
     if (!tests || !tests.length) { list.innerHTML = '<div class="muted">No tests yet. Create one.</div>'; return }
@@ -350,7 +385,7 @@ async function createTest() {
 
   $('l-setup').style.display = 'block'
   try {
-    const res = await fetch(API + '/api/tests', {
+    const res = await afetch(API + '/api/tests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, site_url: url })
@@ -376,14 +411,15 @@ function siteTriggerUrl(mode) {
   if (!state.url) return ''
   const base = /^https?:\/\//i.test(state.url) ? state.url : 'https://' + state.url
   const param = mode === 'goal' ? 'ab_goal' : 'ab_pick'
-  return base + '#' + param + '=' + encodeURIComponent(state.testId)
+  return base + '#' + param + '=' + encodeURIComponent(state.testId) +
+    '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
 }
 async function openSite(mode) {
   const url = siteTriggerUrl(mode)
   if (!url) { err(mode === 'goal' ? 'metric' : 'element', 'No site URL set.'); return }
   if (mode === 'goal') {
     try {
-      await fetch(API + '/api/tests/' + state.testId, {
+      await afetch(API + '/api/tests/' + state.testId, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ goal: '' })
       })
@@ -400,7 +436,7 @@ function startElementPoll() {
   dotTimer = setInterval(() => { n = (n + 1) % 4; $('el-dots').textContent = '.'.repeat(n) }, 500)
   const poll = async () => {
     try {
-      const res = await fetch(API + '/api/tests/' + state.testId)
+      const res = await afetch(API + '/api/tests/' + state.testId)
       if (res.ok) {
         const t = await res.json()
         if (t.selector) {
@@ -426,7 +462,7 @@ async function reselectElement() {
   $('el-done').style.display = 'none'
   $('el-waiting').style.display = 'block'
   try {
-    await fetch(API + '/api/tests/' + state.testId, {
+    await afetch(API + '/api/tests/' + state.testId, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ selector: null })
     })
@@ -470,7 +506,7 @@ async function enterMetric() {
   go('metric')
   $('m-waiting').style.display = 'none'
   let t = {}
-  try { const r = await fetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
+  try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
   state.originalHtml = t.original_html || state.originalHtml
   state.goalCandidates = t.goal_candidates || state.goalCandidates || []
   const clickable = isClickable(state.originalHtml)
@@ -498,7 +534,7 @@ function onMetricSelect() {
   state.goal = v
   $('m-current').textContent = v
   $('m-generate').disabled = false
-  fetch(API + '/api/tests/' + state.testId, {
+  afetch(API + '/api/tests/' + state.testId, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ goal: v })
   }).catch(() => {})
@@ -509,7 +545,7 @@ function startMetricPoll() {
   mDotTimer = setInterval(() => { n = (n + 1) % 4; $('m-dots').textContent = '.'.repeat(n) }, 500)
   const poll = async () => {
     try {
-      const res = await fetch(API + '/api/tests/' + state.testId)
+      const res = await afetch(API + '/api/tests/' + state.testId)
       if (res.ok) {
         const t = await res.json()
         if (t.goal) {
@@ -554,7 +590,7 @@ async function generate() {
   $('gen-result').style.display = 'none'
   $('l-generate').style.display = 'block'
   try {
-    const res = await fetch(API + '/api/generate', {
+    const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ testId: state.testId, screenshot: state.screenshot, frameContent: state.frameContent, scope: getScope() })
@@ -580,7 +616,7 @@ async function refine() {
   $('gen-result').style.display = 'none'
   $('l-generate').style.display = 'block'
   try {
-    const res = await fetch(API + '/api/generate', {
+    const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ testId: state.testId, frameContent: state.frameContent, feedback: feedback, previousHtml: state.html, scope: getScope() })
@@ -615,7 +651,7 @@ function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '�
 function startResults() {
   const poll = async () => {
     try {
-      const res = await fetch(API + '/api/tests/' + state.testId)
+      const res = await afetch(API + '/api/tests/' + state.testId)
       if (!res.ok) return
       const t = await res.json()
       $('res-va').textContent = t.visitors_a || 0
@@ -646,6 +682,13 @@ function stopResultsPoll() {
 window.onmessage = (event) => {
   const msg = event.data.pluginMessage
   if (!msg) return
+  if (msg.type === 'TOKEN') {
+    tokenReceived = true
+    API_TOKEN = msg.token || ''
+    if (API_TOKEN) { $('connect-token').value = API_TOKEN; showDashboard() }
+    else go('connect')
+    return
+  }
   if (msg.type === 'SELECTION') {
     const s = msg.selection || { count: 0 }
     const valid = s.count === 1 && s.exportable
@@ -677,7 +720,7 @@ window.onmessage = (event) => {
 // Toggle Pause/Resume and Delete from dashboard
 function togglePause(id, currentStatus) {
   const newStatus = currentStatus === 'paused' ? 'active' : 'paused'
-  fetch(API + '/api/tests/' + id, {
+  afetch(API + '/api/tests/' + id, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status: newStatus })
   })
@@ -688,7 +731,7 @@ function togglePause(id, currentStatus) {
 async function deleteTest(id) {
   if (!confirm('Really delete this test?')) return
   try {
-    const res = await fetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
+    const res = await afetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
     if (!res.ok) throw new Error('API ' + res.status)
     showDashboard()
   } catch (e) {
@@ -706,8 +749,8 @@ async function deleteTest(id) {
   updateCreateDisabled()
 })()
 
-// Plugin starts with the test overview.
-showDashboard()
+// Boot: auf den Token von code.ts warten; Fallback → Connect-Screen.
+setTimeout(function () { if (!tokenReceived) go('connect') }, 1500)
 </script>
 </body>
 </html>

@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('tests')
-    .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html')
+    .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html, user_id')
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
 
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, OPTIONS') })
   }
 
-  const tests = (data ?? [])
+  const matched = (data ?? [])
     // Abgeschlossene Tests nur dann ausliefern, wenn B gewonnen hat (→ erzwungenes B).
     // done+A bleibt draußen, weil das Original ohnehin Variante A ist.
     .filter(t => !(t.status === 'done' && t.winner !== 'B'))
@@ -50,15 +50,34 @@ export async function GET(req: Request) {
       const tp = pathOf(t.site_url)
       return !tp || path === tp || path.startsWith(tp + '/')
     })
-    .map(t => ({
-      snippet_key: t.snippet_key,
-      selector: t.selector,
-      goal: t.goal,
-      status: t.status,
-      traffic_split: t.traffic_split,
-      variant_b_html: t.variant_b_html,
-      force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
-    }))
 
-  return Response.json({ tests }, { headers: corsHeaders('GET, OPTIONS') })
+  // Badge-Logik: „Powered by Variante" wird angezeigt, wenn der Besitzer eines
+  // greifenden Tests NICHT Pro/Agency ist (Free oder Legacy ohne Owner).
+  let badge = false
+  const ownerIds = Array.from(new Set(matched.map(t => t.user_id).filter(Boolean)))
+  if (matched.length) {
+    const proOwners = new Set<string>()
+    if (ownerIds.length) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('user_id, plan')
+        .in('user_id', ownerIds)
+      for (const p of profs ?? []) {
+        if (p.plan === 'pro' || p.plan === 'agency') proOwners.add(p.user_id)
+      }
+    }
+    badge = matched.some(t => !t.user_id || !proOwners.has(t.user_id))
+  }
+
+  const tests = matched.map(t => ({
+    snippet_key: t.snippet_key,
+    selector: t.selector,
+    goal: t.goal,
+    status: t.status,
+    traffic_split: t.traffic_split,
+    variant_b_html: t.variant_b_html,
+    force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
+  }))
+
+  return Response.json({ tests, badge }, { headers: corsHeaders('GET, OPTIONS') })
 }

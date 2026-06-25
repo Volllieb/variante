@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
+import { getApiUser, unauthorized } from '@/lib/auth'
 
 export const maxDuration = 60
 
@@ -109,10 +110,14 @@ export async function POST(req: Request) {
     return Response.json({ error: 'testId fehlt' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  const user = await getApiUser(req)
+  if (!user) return unauthorized('POST, OPTIONS')
+
   const { data: test, error: fetchErr } = await supabase
     .from('tests')
     .select('original_html, site_css, framework')
     .eq('id', testId)
+    .eq('user_id', user.userId)
     .single()
 
   if (fetchErr || !test) {
@@ -153,6 +158,7 @@ export async function POST(req: Request) {
     .from('tests')
     .update({ variant_b_html: variantHtml })
     .eq('id', testId)
+    .eq('user_id', user.userId)
 
   if (updateErr) {
     console.error('[generate] update error:', updateErr)

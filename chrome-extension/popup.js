@@ -1,12 +1,14 @@
 const apiInput = document.getElementById('api-base')
 const idInput = document.getElementById('test-id')
+const tokenInput = document.getElementById('ab-token')
 const startBtn = document.getElementById('start')
 const statusEl = document.getElementById('status')
 
 // Gespeicherte Werte wiederherstellen.
-chrome.storage.local.get(['apiBase', 'testId'], (v) => {
+chrome.storage.local.get(['apiBase', 'testId', 'abToken'], (v) => {
   if (v.apiBase) apiInput.value = v.apiBase
   if (v.testId) idInput.value = v.testId
+  if (v.abToken) tokenInput.value = v.abToken
 })
 
 function setStatus(msg, cls) {
@@ -19,6 +21,7 @@ const DEFAULT_API = 'https://ab-tool-pied.vercel.app'
 startBtn.addEventListener('click', async () => {
   const apiBase = (apiInput.value.trim() || DEFAULT_API).replace(/\/+$/, '')
   const testId = idInput.value.trim()
+  const abToken = tokenInput.value.trim()
 
   if (!testId) {
     setStatus('Bitte eine testId eingeben.', 'err')
@@ -26,7 +29,7 @@ startBtn.addEventListener('click', async () => {
   }
 
   // Einmal-Flag: content.js startet den Picker beim nächsten Lauf.
-  await chrome.storage.local.set({ apiBase, testId, ab_manual_start: true })
+  await chrome.storage.local.set({ apiBase, testId, abToken, ab_manual_start: true })
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab || !tab.id) {

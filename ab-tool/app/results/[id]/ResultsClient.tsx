@@ -20,7 +20,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     return () => clearInterval(iv)
   }, [experimentId])
 
-  const { name, status, significance, winner, variants } = data
+  const { name, status, significance, winner, variants, pro } = data
   const [a, b] = variants
   const totalVisitors = a.views + b.views
   const done = status === 'done' || !!winner
@@ -52,9 +52,27 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           </div>
         ))}
       </div>
-      <p className="mt-6 text-sm text-gray-500">Signifikanz: {Math.round(significance * 100)}%</p>
+      {pro ? (
+        <p className="mt-6 text-sm text-gray-500">Signifikanz: {Math.round(significance * 100)}%</p>
+      ) : (
+        <p className="mt-6 text-sm text-gray-400">🔒 Signifikanz &amp; automatischer Gewinner sind Pro-Features.</p>
+      )}
 
-      {/* Auto-Gewinner-Panel */}
+      {/* Auto-Gewinner-Panel — nur Pro */}
+      {!pro ? (
+        <div className="mt-8 rounded-xl border border-dashed border-gray-300 p-6 text-center">
+          <h2 className="text-sm font-semibold">Automatischer Gewinner</h2>
+          <p className="mt-2 text-xs text-gray-500">
+            Statistische Signifikanz und der automatische Gewinner stehen ab dem Pro-Tarif zur Verfügung.
+          </p>
+          <a
+            href="/dashboard"
+            className="mt-4 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+          >
+            Auf Pro upgraden
+          </a>
+        </div>
+      ) : (
       <div className="mt-8 rounded-xl border border-gray-200 p-6">
         <h2 className="text-sm font-semibold">Automatischer Gewinner</h2>
         {done ? (
@@ -108,6 +126,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           </>
         )}
       </div>
+      )}
     </div>
   )
 }

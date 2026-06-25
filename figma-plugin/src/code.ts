@@ -1,5 +1,10 @@
 figma.showUI(__html__, { width: 360, height: 560, title: 'AB Figma' })
 
+// Persistenten API-Token (Login) laden und an die UI schicken.
+figma.clientStorage.getAsync('ab_token').then((token) => {
+  figma.ui.postMessage({ type: 'TOKEN', token: typeof token === 'string' ? token : '' })
+})
+
 // Zusammenfassung der aktuellen Leinwand-Auswahl für die UI.
 // Variante B wird per Klick in Figma gewählt (analog zur Chrome Extension),
 // damit auch Unter-Elemente wie ein einzelner Button exportiert werden können.
@@ -181,6 +186,11 @@ figma.ui.onmessage = async (msg) => {
           /* z.B. fehlende Geste — UI bietet einen manuellen Button an */
         }
       }
+      break
+    }
+
+    case 'TOKEN_SAVE': {
+      await figma.clientStorage.setAsync('ab_token', typeof msg.token === 'string' ? msg.token : '')
       break
     }
 

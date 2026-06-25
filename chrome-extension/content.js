@@ -255,7 +255,7 @@
 
       let cfg
       try {
-        cfg = await chrome.storage.local.get(['apiBase', 'testId'])
+        cfg = await chrome.storage.local.get(['apiBase', 'testId', 'abToken'])
       } catch (_) {
         cfg = {}
       }
@@ -266,20 +266,24 @@
         return
       }
 
+      // Login-Token für die jetzt auth-pflichtigen Routen.
+      const headers = { 'Content-Type': 'application/json' }
+      if (cfg.abToken) headers['Authorization'] = 'Bearer ' + cfg.abToken
+
       try {
         let res
         if (mode === 'goal') {
           // Metrik-Modus: nur den Selektor als Conversion-Ziel speichern.
           res = await fetch(apiBase + '/api/tests/' + testId, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify({ goal: cssSelector(el) }),
           })
         } else {
           // Element-Modus: volle Erfassung des Test-Elements.
           res = await fetch(apiBase + '/api/capture', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify({
               testId,
               selector: cssSelector(el),
@@ -339,9 +343,11 @@
     const m = mPick || mGoal
     if (!m) return null
     const am = src.match(/[#?&]ab_api=([^&]+)/)
+    const tm = src.match(/[#?&]ab_token=([^&]+)/)
     return {
       testId: decodeURIComponent(m[1]),
       apiBase: am ? decodeURIComponent(am[1]) : '',
+      token: tm ? decodeURIComponent(tm[1]) : '',
       mode: mGoal ? 'goal' : 'element',
     }
   }
@@ -349,7 +355,11 @@
   const trig = getTrigger()
   if (trig && trig.testId) {
     try {
-      chrome.storage.local.set({ testId: trig.testId, apiBase: trig.apiBase || DEFAULT_API })
+      chrome.storage.local.set({
+        testId: trig.testId,
+        apiBase: trig.apiBase || DEFAULT_API,
+        abToken: trig.token || '',
+      })
     } catch (_) {}
     // Trigger aus der URL entfernen, damit ein Reload den Picker nicht erneut startet.
     try {

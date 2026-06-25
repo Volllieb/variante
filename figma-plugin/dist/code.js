@@ -13,6 +13,9 @@
   var require_code = __commonJS({
     "src/code.ts"() {
       figma.showUI(__html__, { width: 360, height: 560, title: "AB Figma" });
+      figma.clientStorage.getAsync("ab_token").then((token) => {
+        figma.ui.postMessage({ type: "TOKEN", token: typeof token === "string" ? token : "" });
+      });
       function selectionSummary() {
         const sel = figma.currentPage.selection;
         if (sel.length === 0) return { count: 0 };
@@ -161,6 +164,10 @@
               } catch (e) {
               }
             }
+            break;
+          }
+          case "TOKEN_SAVE": {
+            await figma.clientStorage.setAsync("ab_token", typeof msg.token === "string" ? msg.token : "");
             break;
           }
           case "CLOSE":

@@ -19,6 +19,7 @@ export type ExperimentData = {
   winner: string | null
   minVisitors: number
   minUplift: number
+  pro: boolean // false → Free-Tier: Signifikanz + Auto-Gewinner gesperrt
   variants: VariantStats[]
 }
 
@@ -32,12 +33,23 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const { data: test } = await supabase
     .from('tests')
     .select(
-      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift'
+      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, user_id'
     )
     .eq('id', id)
     .single()
 
   if (!test) return null
+
+  // Plan des Besitzers: Signifikanz + Auto-Gewinner sind Pro-Features.
+  let pro = false
+  if (test.user_id) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('user_id', test.user_id)
+      .single()
+    pro = profile?.plan === 'pro' || profile?.plan === 'agency'
+  }
 
   const minVisitors = test.min_visitors ?? 100
   const minUplift = test.min_uplift ?? 0.05
@@ -45,9 +57,10 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   // Auto-Gewinner-Fallback: Wird die Besucher-Schwelle überschritten, ohne dass
   // eine weitere Conversion /api/event triggert, würde der Gewinner nie gesetzt.
   // Beim Dashboard-Poll daher erneut auswerten und ggf. einmalig persistieren.
+  // Nur für Pro — im Free-Tier ist die Signifikanz-/Gewinner-Logik gesperrt.
   let status = test.status
   let winner: string | null = test.winner ?? null
-  if (!winner) {
+  if (pro && !winner) {
     const computed = determineWinner(
       test.significance ?? 0,
       test.conversions_a ?? 0,
@@ -70,10 +83,11 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     site_url: test.site_url,
     status,
     created_at: test.created_at,
-    significance: test.significance ?? 0,
+    significance: pro ? test.significance ?? 0 : 0,
     winner,
     minVisitors,
     minUplift,
+    pro,
     variants: [
       {
         id: 'A',

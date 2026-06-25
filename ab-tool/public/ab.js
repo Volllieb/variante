@@ -37,6 +37,25 @@
     return
   }
 
+  // Free-Tier-Badge „A/B by Variante" (vom Server über resolve gesteuert).
+  function showBadge() {
+    try {
+      if (document.getElementById('__ab_badge') || !document.body) return
+      var a = document.createElement('a')
+      a.id = '__ab_badge'
+      a.href = 'https://getvariante.com'
+      a.target = '_blank'
+      a.rel = 'noopener'
+      a.textContent = 'A/B by Variante'
+      a.style.cssText =
+        'position:fixed;bottom:12px;right:12px;z-index:2147483646;' +
+        'background:#111;color:#fff;font:600 11px -apple-system,Segoe UI,sans-serif;' +
+        'padding:6px 10px;border-radius:8px;text-decoration:none;' +
+        'box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.9'
+      document.body.appendChild(a)
+    } catch (_) {}
+  }
+
   // --- Hilfsfunktionen -------------------------------------------------------
   function lsGet(k) {
     try {
@@ -209,6 +228,7 @@
         return r.ok ? r.json() : null
       })
       .then(function (res) {
+        if (res && res.badge) showBadge()
         var tests = res && res.tests ? res.tests : []
         if (!tests.length) {
           reveal()

@@ -1,11 +1,14 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
+import { getApiUser, unauthorized } from '@/lib/auth'
 
 export async function OPTIONS() {
   return preflight('GET, PATCH, DELETE, OPTIONS')
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getApiUser(req)
+  if (!user) return unauthorized('GET, PATCH, DELETE, OPTIONS')
   const { id } = await params
 
   let body: {
@@ -38,19 +41,35 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return Response.json({ error: 'nichts zu aktualisieren' }, { status: 400, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
   }
 
-  const { error } = await supabase.from('tests').update(patch).eq('id', id)
+  // Besitz-Scope: nur eigene Tests aktualisierbar.
+  const { data: updated, error } = await supabase
+    .from('tests')
+    .update(patch)
+    .eq('id', id)
+    .eq('user_id', user.userId)
+    .select('id')
   if (error) {
     console.error('[tests:patch] update error:', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
+  }
+  if (!updated || updated.length === 0) {
+    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
   }
 
   return Response.json({ ok: true }, { headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getApiUser(req)
+  if (!user) return unauthorized('GET, PATCH, DELETE, OPTIONS')
   const { id } = await params
 
-  const { data, error } = await supabase.from('tests').select('*').eq('id', id).single()
+  const { data, error } = await supabase
+    .from('tests')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.userId)
+    .single()
 
   if (error || !data) {
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, OPTIONS') })
@@ -59,10 +78,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   return Response.json(data, { headers: corsHeaders('GET, OPTIONS') })
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getApiUser(req)
+  if (!user) return unauthorized('GET, PATCH, DELETE, OPTIONS')
   const { id } = await params
   try {
-    const url = new URL((_req as any).url)
+    const url = new URL(req.url)
     const confirm = url.searchParams.get('confirm')
     if (confirm !== 'true') {
       return Response.json({ error: 'confirm=true fehlt' }, { status: 400, headers: corsHeaders('DELETE, OPTIONS') })
@@ -71,7 +92,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     return Response.json({ error: 'invalid request' }, { status: 400, headers: corsHeaders('DELETE, OPTIONS') })
   }
 
-  const { error } = await supabase.from('tests').delete().eq('id', id)
+  const { error } = await supabase.from('tests').delete().eq('id', id).eq('user_id', user.userId)
   if (error) {
     console.error('[tests:delete] delete error:', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })
