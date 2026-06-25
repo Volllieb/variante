@@ -7,6 +7,6 @@
   "editorType": ["figma"],
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["https://getvariante.com"]
+    "allowedDomains": ["https://getvariante.com", "https://www.getvariante.com"]
   }
 }
