@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   },
 }
 
+export const dynamic = 'force-static'
+
 const steps = [
   {
     icon: Paintbrush,
@@ -187,10 +189,10 @@ export default async function HomePage({
             Three steps. No developer. No deploy.
           </p>
 
-          <div className="mt-16 flex flex-col items-center gap-8 md:flex-row md:gap-3">
+          <div className="mt-16 flex flex-col items-center gap-8 md:flex-row md:gap-0">
             {steps.map((s, i) => (
-              <div key={s.title} className="w-full md:flex-1">
-                <Card className="transition-shadow hover:shadow-md">
+              <div key={s.title} className="flex w-full items-center md:flex-1">
+                <Card className="w-full transition-shadow hover:shadow-md">
                   <CardContent className="p-6">
                     <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                       <s.icon className="h-5 w-5 text-primary" />

@@ -9,22 +9,51 @@ export default function ImprintPage() {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-3xl font-bold text-gray-900">Imprint</h1>
       <p className="mt-2 text-sm text-gray-500">
-        Angaben gemäß § 5 TMG
+        Angaben gemäß § 5 DDG (ehemals TMG)
       </p>
 
       <div className="mt-8 space-y-6 text-sm leading-relaxed text-gray-700">
         <section>
           <h2 className="text-lg font-semibold text-gray-900">Contact</h2>
           <p className="mt-2">
-            Valentin
+            Valentin Wilhelm
             <br />
+            Judenbühlweg 23
+            <br />
+            97082 Würzburg
+            <br />
+            Deutschland
+          </p>
+          <p className="mt-2">
             Email:{' '}
             <a
-              href="mailto:hello@getvariante.com"
+              href="mailto:valentin@4wilhelm.de"
               className="text-violet-600 underline"
             >
-              hello@getvariante.com
+              valentin@4wilhelm.de
             </a>
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)
+          </h2>
+          <p className="mt-2">
+            Valentin Wilhelm
+            <br />
+            Judenbühlweg 23
+            <br />
+            97082 Würzburg
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Umsatzsteuer
+          </h2>
+          <p className="mt-2">
+            Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.
           </p>
         </section>
 

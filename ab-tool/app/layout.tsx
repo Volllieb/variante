@@ -5,6 +5,9 @@ export const metadata = {
   title: 'Variante — A/B Testing from Figma, No Dev Needed',
   description:
     'Pick an element on your live site, describe the change in Figma, AI generates Variant B. One snippet tracks conversions.',
+  alternates: {
+    canonical: 'https://www.getvariante.com',
+  },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
