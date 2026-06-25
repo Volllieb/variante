@@ -326,6 +326,8 @@ function newTest() {
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
   go('setup')
+  // Figma-Iframe-Fokus erzwingen, sonst schluckt Figma die ersten Tastenanschläge.
+  setTimeout(function () { var n = $('f-name'); if (n) n.focus() }, 50)
 }
 // Validiert + normalisiert die Site-URL. Gibt null zurück, wenn ungültig —
 // verhindert, dass Schrott-Eingaben als Tab im Browser geöffnet werden.
@@ -603,7 +605,7 @@ function buildSnippet() {
     '<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->\n' +
     '<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n' +
     '<script>document.documentElement.classList.add("__ab_pending");' +
-    'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},1500)<\/script>\n' +
+    'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)<\/script>\n' +
     '<script async src="' + API + '/ab.js"><\/script>'
   $('snippet-code').textContent = code
 }

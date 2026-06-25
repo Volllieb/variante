@@ -76,10 +76,14 @@
     try {
       const cs = getComputedStyle(el)
       const props = [
-        'color', 'background-color', 'background-image', 'border', 'border-radius',
-        'padding', 'margin', 'font-family', 'font-size', 'font-weight', 'line-height',
-        'letter-spacing', 'text-align', 'text-transform', 'display', 'box-shadow',
-        'transition', 'cursor', 'opacity',
+        'color', 'background-color', 'background-image', 'background-size',
+        'background-position', 'background-repeat', 'border', 'border-radius',
+        'padding', 'margin', 'width', 'height', 'font-family', 'font-size',
+        'font-weight', 'line-height', 'letter-spacing', 'text-align',
+        'text-transform', 'text-decoration', 'white-space', 'display',
+        'flex-direction', 'align-items', 'justify-content', 'gap', 'object-fit',
+        'box-shadow', 'transition', 'transform', 'transform-origin', 'animation',
+        'backdrop-filter', 'cursor', 'opacity',
       ]
       const lines = props
         .map((p) => '  ' + p + ': ' + cs.getPropertyValue(p) + ';')

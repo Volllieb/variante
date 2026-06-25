@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('tests')
-    .select('snippet_key, selector, goal, status, site_url, winner')
+    .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html')
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
 
@@ -55,6 +55,8 @@ export async function GET(req: Request) {
       selector: t.selector,
       goal: t.goal,
       status: t.status,
+      traffic_split: t.traffic_split,
+      variant_b_html: t.variant_b_html,
       force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
     }))
 

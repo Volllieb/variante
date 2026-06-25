@@ -111,14 +111,26 @@
   }
 
   // --- Variante auf den DOM anwenden -----------------------------------------
-  function applyDom(selector, variant, html) {
-    if (variant === 'B' && html) {
-      var el = document.querySelector(selector)
-      if (el) {
-        try {
-          el.outerHTML = html
-        } catch (_) {}
+  // Markiert die eingefügte B-Wurzel mit data-ab-el="<key>", damit Conversions
+  // auch nach dem Element-Tausch zuverlässig zugeordnet werden können. Gibt true
+  // zurück, wenn B tatsächlich angewandt wurde.
+  function applyDom(selector, variant, html, key) {
+    if (variant !== 'B' || !html) return false
+    var el = document.querySelector(selector)
+    if (!el) return false
+    try {
+      var tmp = document.createElement('div')
+      tmp.innerHTML = html
+      var node = tmp.firstElementChild
+      if (node) {
+        if (key) node.setAttribute('data-ab-el', key)
+        el.replaceWith(node)
+        return true
       }
+      el.outerHTML = html // Fallback: kein Einzel-Wurzelelement im Fragment
+      return true
+    } catch (_) {
+      return false
     }
   }
 
@@ -130,21 +142,21 @@
     var goalSel = normGoal(t.goal, selector)
 
     function finish(variant, html) {
-      applyDom(selector, variant, html)
-      active.push({ key: key, variant: variant, goalSel: goalSel })
+      var applied = applyDom(selector, variant, html, key)
+      // Goal = getestetes Element UND B angewandt → auf die markierte B-Wurzel
+      // matchen, weil der Originalselektor das ersetzte Element nicht mehr trifft.
+      var gsel = goalSel
+      if (variant === 'B' && applied && goalSel === selector) {
+        gsel = '[data-ab-el="' + key + '"]'
+      }
+      active.push({ key: key, variant: variant, goalSel: gsel })
     }
 
     // Abgeschlossener Test mit Gewinner B: ALLE Besucher bekommen B ausgeliefert,
-    // ohne Assign-Counter und ohne Conversion-Tracking (Test ist beendet).
+    // ohne Assign-Counter und ohne Conversion-Tracking. HTML kommt aus resolve.
     if (t.force === 'B') {
-      return fetch(origin + '/api/variant?testId=' + encodeURIComponent(key))
-        .then(function (r) {
-          return r.ok ? r.json() : null
-        })
-        .then(function (vres) {
-          if (vres && vres.html) applyDom(selector, 'B', vres.html)
-        })
-        .catch(function () {})
+      if (t.variant_b_html) applyDom(selector, 'B', t.variant_b_html, key)
+      return Promise.resolve()
     }
 
     // Sticky: bereits zugewiesene Variante aus dem Cache (kein erneuter Counter).
@@ -159,7 +171,9 @@
       } catch (_) {}
     }
 
-    // Erstbesuch: Variante zuweisen lassen.
+    // Erstbesuch: Variante zuweisen lassen. Das B-HTML liegt bereits in der
+    // resolve-Antwort (t.variant_b_html) → kein separater /api/variant-Call,
+    // weniger Roundtrips = weniger Flicker.
     return fetch(origin + '/api/assign?testId=' + encodeURIComponent(key))
       .then(function (r) {
         return r.ok ? r.json() : null
@@ -171,19 +185,14 @@
           finish('A', null)
           return
         }
-        return fetch(origin + '/api/variant?testId=' + encodeURIComponent(key))
-          .then(function (r) {
-            return r.ok ? r.json() : null
-          })
-          .then(function (vres) {
-            if (vres && vres.html) {
-              lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: vres.html }))
-              finish('B', vres.html)
-            } else {
-              // Noch kein generiertes HTML → wie A behandeln, nicht cachen.
-              finish('A', null)
-            }
-          })
+        var html = t.variant_b_html
+        if (html) {
+          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html }))
+          finish('B', html)
+        } else {
+          // Noch kein generiertes HTML → wie A behandeln, nicht cachen.
+          finish('A', null)
+        }
       })
       .catch(function () {})
   }
