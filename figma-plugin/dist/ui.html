@@ -256,7 +256,7 @@ function afetch(url, opts) {
   return fetch(url, opts)
 }
 function openDashboard() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://getvariante.com/dashboard' } }, '*')
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard' } }, '*')
 }
 function saveToken() {
   const v = ($('connect-token').value || '').trim()
