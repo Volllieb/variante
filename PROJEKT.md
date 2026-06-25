@@ -1,12 +1,79 @@
 # PROJEKT.md — variantt (Designer-native A/B-Testing)
 
-## Status (24.06.2026)
+## Status (25.06.2026)
 **Produktname:** **variantt** (Domain noch offen → sichern).
 **Phase:** Post-MVP → Go-to-Market. Markt validiert (Phase 0 bestanden 19.06.), kompletter Loop gebaut.
 **Jetzt:** Produkt verkaufsreif machen über drei Launch-Flächen — **Figma-Plugin · Chrome-Extension · Landing-Page**.
 **Pricing entschieden:** Login-Wall + Paid ab Tag 1 (Supabase Auth, JWT-Gate, Stripe). 3 Tiers (s. u.).
 **Leitziel:** 500–1.000 €/Mo passives Asset. Hebel = **Distribution** (Figma Community PLG), nicht Produkt.
 **GTM-Fahrplan:** siehe `GOTOMARKET.md`.
+
+## Repository-Struktur (nach Cleanup 25.06.)
+```
+c:\dev\variante/
+├── CLAUDE.md              # Meta-Anweisungen (nur Arbeitsweise)
+├── GOTOMARKET.md           # GTM-Strategie & Phasen
+├── PROJEKT.md              # Projektstatus & Entscheidungen (diese Datei)
+├── README.md               # Kurzübersicht
+├── package.json            # Root-Scripts (dev:tool, dev:spike, build:all)
+│
+├── ab-tool/                # 🟢 Kernprodukt — Next.js API + Dashboard
+│   ├── app/
+│   │   ├── api/            # API-Routen (assign, billing, capture, event, generate, resolve, results, stripe, tests, variant)
+│   │   ├── dashboard/      # Dashboard-UI (DashboardClient.tsx)
+│   │   ├── login/          # Login-Seite
+│   │   ├── signup/         # Signup-Seite
+│   │   ├── results/[id]/   # Ergebnisse (ResultsClient.tsx)
+│   │   ├── layout.tsx      # Root-Layout
+│   │   └── page.tsx        # Landing-Page
+│   ├── lib/                # Server-Logik (auth, cors, stats, significance, stripe, supabase)
+│   ├── public/ab.js        # 🟢 Das Snippet — wird von Client-Sites geladen
+│   └── Deploy: Vercel (ab-tool-pied.vercel.app)
+│
+├── ab-spike/               # 🟢 Demo-Client-Site (für E2E-Tests)
+│   ├── app/
+│   │   ├── layout.tsx      # Lädt ab.js + Anti-Flicker
+│   │   └── page.tsx        # Simulierte Kundenseite mit CTA
+│   └── Deploy: Vercel (ab-spike.vercel.app)
+│
+├── chrome-extension/       # 🟢 Chrome-Extension (Element + Goal Picker)
+│   ├── manifest.json       # MV3
+│   ├── content.js          # Läuft auf Client-Site
+│   ├── background.js       # Service Worker
+│   ├── popup.html/js       # Popup-UI
+│   ├── welcome.html        # Onboarding
+│   └── icons/              # Extension-Icons
+│
+├── figma-plugin/           # 🟢 Figma-Plugin (8 Screens)
+│   ├── manifest.json
+│   ├── src/code.ts         # Plugin-Logik
+│   └── src/ui.html         # Plugin-UI
+│
+└── db/migrations/          # 🟢 Supabase SQL-Migrationen
+    ├── 001_schema.sql
+    ├── 002_migrate_v1_to_v2.sql
+    ├── 003_goal_candidates.sql
+    ├── 004_winner_config.sql
+    └── 005_auth_billing.sql
+```
+
+### Deployment
+- **Kein Git-Remote** — nur lokales Repo (`master`). Bei Bedarf GitHub-Remote einrichten.
+- **ab-tool** → `ab-tool-pied.vercel.app` (Vercel, automatisch via `vercel deploy`)
+- **ab-spike** → `ab-spike.vercel.app` (Vercel)
+- Keine automatische CI/CD (kein Git-Remote → kein Vercel-Git-Import). Deployment manuell via Vercel CLI.
+
+### Entfernt (Cleanup 25.06.)
+- `ab-tool/proxy.ts` — war Middleware für lokale Spike-Entwicklung, nicht mehr benötigt
+- `ab-tool/DEPLOY_VERCEL.md` — in README integriert
+- `ab-tool/AGENTS.md`, `ab-tool/CLAUDE.md`, `ab-spike/AGENTS.md`, `ab-spike/CLAUDE.md` — Next.js-Hinweise, durch Root-CLAUDE.md ersetzt
+- `ab-tool/README.md`, `ab-spike/README.md` — Standard-Boilerplate, durch Root-README.md ersetzt
+- `ab-tool/public/chrome-extension.zip` — Build-Artefakt
+- `ab-tool/public/*.svg`, `ab-spike/public/*.svg`, `ab-spike/app/favicon.ico` — Standard Next.js-Assets
+- `AB-Test/todo.txt`, `UMSETZUNG-V2.md`, `USER_GUIDE.md` — veraltete Planungsdokumente
+- `docs/` — interne Planungs-Artefakte
+- `test_deepseek.mjs` — einmaliger Test
+- `figma-plugin/node_modules/`, `figma-plugin/dist/` — jetzt in `.gitignore`
 
 ## Produkt
 Designer wählt ein Element auf seiner Live-Site (Chrome-Extension) → beschreibt Variante B in Figma → KI generiert neues HTML passend zur Site-CSS → Snippet ersetzt das Element bei jedem 2. Besucher → Ergebnisse mit Signifikanz im Plugin. **Kein Dev nötig.**
