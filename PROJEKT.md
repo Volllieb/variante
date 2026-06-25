@@ -143,6 +143,7 @@ c:\dev\variante/
 | 25.06.2026 | Cleanup: tote Dateien, Build-Artefakte, Boilerplate entfernt. DSO-Struktur eingeführt. Auto-Post-Commit-Hook + Selbstprüfung. |
 | 25.06.2026 | Produktname-Korrektur: „variantt" → „variante". GitHub-Remote eingerichtet (`Volllieb/variante`). Domain `getvariante.com` eingetragen. Free-Tier AI-Gen entschieden (ja). Steuerfragen präzisiert. |
 | 25.06.2026 | Steuerfragen beantwortet und §7 aufgeräumt. Ergebnis: Kein Berater vor Launch nötig, Stripe Tax aktivieren, Kleinunternehmer-Regelung bleibt erstmal. |
+| 25.06.2026 | Währungsentscheidung: EUR statt USD. Fazit in §11 ergänzt. |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |
@@ -196,6 +197,8 @@ c:\dev\variante/
 1. **Figma-Plugin + Chrome-Extension in die Stores bringen** — das ist der Engpass (Review-Zeiten!)
 2. **Phase 1: 3–5 Design-Partner gewinnen** — echte Installs + Case-Studies vor Public-Launch
 3. **Dogfooding: variante auf getvariante.com laufen lassen** — erster Proof + Demo-Material
+
+**Währungsentscheidung:** Abrechnung in **EUR**. Begründung: Sitz in DE, Kosten in EUR, erste Kunden aus DACH. USD-Komplexität (Wechselkurs-Doku, Stripe-Tax-Gebühr) spart man sich. Bei US-Dominanz (>60 % Kunden) später wechseln — reines Stripe-Setting, kein Produkt-Entscheid.
 
 **Bis Mitte August 2026** sollte der öffentliche Launch stehen. Danach: Conversion-Funnel optimieren, Free→Pro und vor allem Free→Agency (White-Label = wo das Geld sitzt).
 

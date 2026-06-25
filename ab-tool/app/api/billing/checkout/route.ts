@@ -6,11 +6,11 @@ import { getSessionUser } from '@/lib/supabaseServer'
 // Dashboard (Session-Cookie) — daher kein CORS nötig.
 export async function POST() {
   if (!stripe) {
-    return Response.json({ error: 'Stripe nicht konfiguriert' }, { status: 500 })
+    return Response.json({ error: 'Stripe not configured' }, { status: 500 })
   }
   const priceId = process.env.STRIPE_PRICE_PRO
   if (!priceId) {
-    return Response.json({ error: 'STRIPE_PRICE_PRO fehlt' }, { status: 500 })
+    return Response.json({ error: 'STRIPE_PRICE_PRO missing' }, { status: 500 })
   }
 
   const user = await getSessionUser()

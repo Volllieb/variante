@@ -5,7 +5,7 @@ import { getSessionUser } from '@/lib/supabaseServer'
 // Öffnet das Stripe Customer Portal (Abo verwalten/kündigen).
 export async function POST() {
   if (!stripe) {
-    return Response.json({ error: 'Stripe nicht konfiguriert' }, { status: 500 })
+    return Response.json({ error: 'Stripe not configured' }, { status: 500 })
   }
 
   const user = await getSessionUser()
@@ -18,7 +18,7 @@ export async function POST() {
     .single()
 
   if (!profile?.stripe_customer_id) {
-    return Response.json({ error: 'Kein Stripe-Kunde — zuerst upgraden.' }, { status: 400 })
+    return Response.json({ error: 'No Stripe customer — upgrade first.' }, { status: 400 })
   }
 
   const session = await stripe.billingPortal.sessions.create({

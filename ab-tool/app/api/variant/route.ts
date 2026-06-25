@@ -8,7 +8,7 @@ export async function OPTIONS() {
 export async function GET(req: Request) {
   const testId = new URL(req.url).searchParams.get('testId') ?? ''
   if (!testId) {
-    return Response.json({ error: 'testId fehlt' }, { status: 400, headers: corsHeaders('GET, OPTIONS') })
+    return Response.json({ error: 'testId required' }, { status: 400, headers: corsHeaders('GET, OPTIONS') })
   }
 
   const { data, error } = await supabase

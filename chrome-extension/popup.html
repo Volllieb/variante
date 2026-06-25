@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <style>
@@ -18,19 +18,19 @@
 </style>
 </head>
 <body>
-  <h1>Element auswählen</h1>
-  <p class="sub">Tipp: Im Figma-Plugin „Test anlegen" öffnet die Seite automatisch mit aktivem Picker. Dieses Popup ist der manuelle Fallback — testId einfügen, dann ein Element auf der Seite anklicken.</p>
+  <h1>Pick Element</h1>
+  <p class="sub">Tip: The Figma plugin opens your site automatically with the picker active. This popup is the manual fallback — paste a testId, then click an element on the page.</p>
 
-  <label>API-Basis-URL (optional)</label>
+  <label>API Base URL (optional)</label>
   <input id="api-base" value="https://ab-tool-pied.vercel.app" />
 
   <label>testId (UUID)</label>
-  <input id="test-id" placeholder="z.B. 3f9a…" />
+  <input id="test-id" placeholder="e.g. 3f9a…" />
 
-  <label>API-Token (aus dem Dashboard)</label>
-  <input id="ab-token" placeholder="Token für deinen Account" />
+  <label>API Token (from Dashboard)</label>
+  <input id="ab-token" placeholder="Your account token" />
 
-  <button id="start">Element auf Seite wählen</button>
+  <button id="start">Pick element on page</button>
   <div class="status" id="status"></div>
 
   <script src="popup.js"></script>

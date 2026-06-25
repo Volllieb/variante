@@ -6,11 +6,11 @@ import type Stripe from 'stripe'
 // Braucht den ROHEN Body für die Signaturprüfung → req.text().
 export async function POST(req: Request) {
   if (!stripe) {
-    return Response.json({ error: 'Stripe nicht konfiguriert' }, { status: 500 })
+    return Response.json({ error: 'Stripe not configured' }, { status: 500 })
   }
   const secret = process.env.STRIPE_WEBHOOK_SECRET
   if (!secret) {
-    return Response.json({ error: 'STRIPE_WEBHOOK_SECRET fehlt' }, { status: 500 })
+    return Response.json({ error: 'STRIPE_WEBHOOK_SECRET missing' }, { status: 500 })
   }
 
   const sig = req.headers.get('stripe-signature') || ''

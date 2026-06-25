@@ -44,7 +44,7 @@ export async function getApiUser(req: Request): Promise<ApiUser | null> {
 // Standard-401 mit CORS-Headern.
 export function unauthorized(methods: string): Response {
   return Response.json(
-    { error: 'unauthorized', hint: 'API-Token fehlt oder ungültig — im Dashboard kopieren.' },
+    { error: 'unauthorized', hint: 'API token missing or invalid — copy it from the dashboard.' },
     { status: 401, headers: corsHeaders(methods) }
   )
 }

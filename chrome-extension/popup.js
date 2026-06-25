@@ -24,7 +24,7 @@ startBtn.addEventListener('click', async () => {
   const abToken = tokenInput.value.trim()
 
   if (!testId) {
-    setStatus('Bitte eine testId eingeben.', 'err')
+    setStatus('Please enter a testId.', 'err')
     return
   }
 
@@ -33,7 +33,7 @@ startBtn.addEventListener('click', async () => {
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab || !tab.id) {
-    setStatus('Kein aktiver Tab gefunden.', 'err')
+    setStatus('No active tab found.', 'err')
     return
   }
 
@@ -43,6 +43,6 @@ startBtn.addEventListener('click', async () => {
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] })
     window.close()
   } catch (e) {
-    setStatus('Konnte Picker nicht starten: ' + e.message, 'err')
+    setStatus('Could not start picker: ' + e.message, 'err')
   }
 })

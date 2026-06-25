@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     if ((count ?? 0) >= 1) {
       return paymentRequired(
         'POST, OPTIONS',
-        'Der Free-Tarif erlaubt 1 aktives Experiment. Upgrade auf Pro für unbegrenzte Tests.'
+        'The Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.'
       )
     }
   }
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
 
   if (error || !data) {
     console.error('[tests] insert error:', error)
-    return Response.json({ error: 'Fehler beim Anlegen' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'failed to create test' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
   return Response.json(

@@ -1,8 +1,8 @@
 // AB Element Picker — Content Script.
-// Läuft persistent (manifest content_scripts) auf http/https-Seiten, aktiviert
-// den Picker aber NUR, wenn die Seite mit #ab_pick=<testId> geöffnet wurde
-// (Auto-Flow aus dem Figma-Plugin) oder das Popup ihn manuell startet.
-// Hover-Highlight + Klick-Capture: selector, outerHTML, gefiltertes CSS,
+// Runs persistently (manifest content_scripts) on http/https pages, but only
+// activates the picker when the page was opened with #ab_pick=<testId>
+// (auto-flow from the Figma plugin) or the popup starts it manually.
+// Hover-highlight + click capture: selector, outerHTML, filtered CSS,
 // framework, goal_candidates.
 (function () {
   const DEFAULT_API = 'https://ab-tool-pied.vercel.app'
@@ -185,15 +185,15 @@
       card.innerHTML =
         '<div style="font-size:40px;margin-bottom:10px">✅</div>' +
         '<div style="font-size:16px;font-weight:700;margin-bottom:4px">' + msg + ' ✓</div>' +
-        '<div style="font-size:12px;color:#666;margin-bottom:16px">Der Tab wird geschlossen — du landest automatisch wieder in Figma.</div>' +
-        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">Tab schließen → zurück zu Figma</button>' +
-        '<div style="font-size:11px;color:#999">Oder irgendwo hin klicken um das Overlay zu schließen.</div>'
+        '<div style="font-size:12px;color:#666;margin-bottom:16px">The tab will close — you'll land back in Figma automatically.</div>' +
+        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">Close tab → back to Figma</button>' +
+        '<div style="font-size:11px;color:#999">Click anywhere to dismiss the overlay.</div>'
       
       setTimeout(() => {
         const btn = document.getElementById('__ab_close_btn')
         if (btn) {
           btn.onclick = function() {
-            btn.textContent = 'Schließe Tab...'
+            btn.textContent = 'Closing tab...'
             btn.style.background = '#16a34a'
             btn.disabled = true
             // Versuch 1: background.js bitten den Tab zu schließen
@@ -262,7 +262,7 @@
       const apiBase = (cfg.apiBase || DEFAULT_API).replace(/\/+$/, '')
       const testId = cfg.testId
       if (!testId) {
-        overlay('testId fehlt — über das Figma-Plugin öffnen.', false)
+        overlay('testId missing — open via the Figma plugin.', false)
         return
       }
 
@@ -295,19 +295,19 @@
           })
         }
         if (res.ok) {
-          overlay(mode === 'goal' ? 'Conversion-Ziel gespeichert' : 'Element gespeichert', true)
+          overlay(mode === 'goal' ? 'Goal saved' : 'Element saved', true)
         } else {
-          overlay('Speichern fehlgeschlagen (' + res.status + ')', false)
+          overlay('Save failed (' + res.status + ')', false)
         }
       } catch (err) {
-        overlay('Netzwerkfehler beim Speichern.', false)
+        overlay('Network error while saving.', false)
       }
     }
 
     function onKey(e) {
       if (e.key === 'Escape') {
         cleanup()
-        toast('Auswahl abgebrochen.', false)
+        toast('Selection cancelled.', false)
       }
     }
 
@@ -327,7 +327,7 @@
     document.addEventListener('keydown', onKey, true)
 
     toast(
-      (mode === 'goal' ? 'Conversion-Ziel anklicken' : 'Element anklicken') + ' (ESC bricht ab).',
+      (mode === 'goal' ? 'Click goal element' : 'Click element') + ' (ESC cancels).',
       true
     )
   }

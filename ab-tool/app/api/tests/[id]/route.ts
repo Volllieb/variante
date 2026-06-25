@@ -38,7 +38,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (typeof body.min_uplift === 'number') patch.min_uplift = body.min_uplift
 
   if (Object.keys(patch).length === 0) {
-    return Response.json({ error: 'nichts zu aktualisieren' }, { status: 400, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
+    return Response.json({ error: 'nothing to update' }, { status: 400, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
   }
 
   // Besitz-Scope: nur eigene Tests aktualisierbar.
@@ -86,7 +86,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const url = new URL(req.url)
     const confirm = url.searchParams.get('confirm')
     if (confirm !== 'true') {
-      return Response.json({ error: 'confirm=true fehlt' }, { status: 400, headers: corsHeaders('DELETE, OPTIONS') })
+      return Response.json({ error: 'confirm=true required' }, { status: 400, headers: corsHeaders('DELETE, OPTIONS') })
     }
   } catch (_) {
     return Response.json({ error: 'invalid request' }, { status: 400, headers: corsHeaders('DELETE, OPTIONS') })

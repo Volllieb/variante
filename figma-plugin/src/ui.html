@@ -77,12 +77,12 @@
 
 <!-- Screen -1: Connect (Login-Token) -->
 <div id="s-connect" class="screen active">
-  <h2>Mit Variante verbinden</h2>
-  <p class="sub">Logge dich im Dashboard ein, kopiere deinen Token und füge ihn hier ein.</p>
-  <button class="btn btn-secondary" onclick="openDashboard()">Dashboard öffnen (Token holen)</button>
-  <label>API-Token</label>
-  <input id="connect-token" placeholder="Token aus dem Dashboard einfügen" />
-  <button class="btn btn-primary" onclick="saveToken()">Verbinden</button>
+  <h2>Connect to Variante</h2>
+  <p class="sub">Log in to the dashboard, copy your token and paste it here.</p>
+  <button class="btn btn-secondary" onclick="openDashboard()">Open Dashboard (get token)</button>
+  <label>API Token</label>
+  <input id="connect-token" placeholder="Paste your token from the dashboard" />
+  <button class="btn btn-primary" onclick="saveToken()">Connect</button>
   <div class="error" id="e-connect"></div>
 </div>
 
@@ -92,7 +92,7 @@
   <p class="sub">All tests, grouped by page.</p>
   <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
   <button class="btn btn-secondary" onclick="showDashboard()">Refresh</button>
-  <button class="btn btn-secondary" onclick="go('connect')">Token ändern</button>
+  <button class="btn btn-secondary" onclick="go('connect')">Change Token</button>
   <div class="divider"></div>
   <div id="dash-list"></div>
 </div>
@@ -192,15 +192,15 @@
     <button class="btn btn-primary" onclick="go('snippet'); buildSnippet()">Looks good →</button>
     <button class="btn btn-secondary" onclick="generate()">Regenerate</button>
     <div class="divider"></div>
-    <label>Was soll geändert werden? (optional)</label>
-    <textarea id="gen-feedback" rows="2" placeholder="z. B. Button kräftiger, mehr Abstand, klareres Hover-Feedback"></textarea>
-    <label>Scope — was darf die KI ändern?</label>
+    <label>What should be changed? (optional)</label>
+    <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
+    <label>Scope — what may the AI change?</label>
     <select id="gen-scope">
-      <option value="all">Alles</option>
-      <option value="text">Nur Text</option>
-      <option value="color">Nur Farben</option>
+      <option value="all">Everything</option>
+      <option value="text">Text only</option>
+      <option value="color">Colors only</option>
     </select>
-    <button class="btn btn-secondary" onclick="refine()">↻ Mit KI verfeinern</button>
+    <button class="btn btn-secondary" onclick="refine()">↻ Refine with AI</button>
   </div>
   <div class="error" id="e-generate"></div>
 </div>
@@ -260,7 +260,7 @@ function openDashboard() {
 }
 function saveToken() {
   const v = ($('connect-token').value || '').trim()
-  if (!v) { err('connect', 'Bitte Token einfügen.'); return }
+  if (!v) { err('connect', 'Please paste your token.'); return }
   API_TOKEN = v
   parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
   showDashboard()
@@ -342,7 +342,7 @@ function renderTestCard(t) {
     '</div></div>' +
     '<div class="muted">' + (va + vb) + ' visitors · ' + totalConv + ' conversions' + winner + '</div>' +
     '<div class="bar"><div class="bar-fill" style="width:' + Math.min(sig, 100) + '%"></div></div>' +
-    '<div class="muted" style="font-size:10px">Significance ' + sig + '% · Ziel: ' + minV + ' Besucher &amp; +' + minU + '% Uplift</div>'
+    '<div class="muted" style="font-size:10px">Significance ' + sig + '% · Target: ' + minV + ' visitors &amp; +' + minU + '% uplift</div>'
   card.onclick = () => resumeTest(t.id)
   return card
 }
@@ -381,7 +381,7 @@ async function createTest() {
   const name = $('f-name').value.trim()
   const url = normalizeUrl($('f-url').value)
   if (!name) { err('setup', 'Name is required.'); return }
-  if (!url) { err('setup', 'Bitte eine gültige URL eingeben, z. B. https://deine-seite.de/pricing'); return }
+  if (!url) { err('setup', 'Please enter a valid URL, e.g. https://yoursite.com/pricing'); return }
 
   $('l-setup').style.display = 'block'
   try {
@@ -612,7 +612,7 @@ async function generate() {
 // Iterative Verfeinerung: zweiter DeepSeek-Call mit dem bisherigen Output als Kontext.
 async function refine() {
   const feedback = ($('gen-feedback').value || '').trim()
-  if (!feedback) { err('generate', 'Bitte beschreiben, was geändert werden soll.'); return }
+  if (!feedback) { err('generate', 'Please describe what should be changed.'); return }
   $('gen-result').style.display = 'none'
   $('l-generate').style.display = 'block'
   try {
@@ -664,7 +664,7 @@ function startResults() {
 
       const hasWinner = t.status === 'done' && !!t.winner
       $('res-winner').style.display = hasWinner ? 'block' : 'none'
-      if (hasWinner) $('res-winner').textContent = '🏆 Variante ' + t.winner + ' gewinnt'
+      if (hasWinner) $('res-winner').textContent = '🏆 Variant ' + t.winner + ' wins'
 
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'

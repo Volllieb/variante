@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   if (!testId || (variant !== 'A' && variant !== 'B') || event !== 'conversion') {
     return Response.json(
-      { error: 'testId, variant (A|B) und event=conversion sind Pflicht' },
+      { error: 'testId, variant (A|B) and event=conversion are required' },
       { status: 400, headers: corsHeaders('POST, OPTIONS') }
     )
   }

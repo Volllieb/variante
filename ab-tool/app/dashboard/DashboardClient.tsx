@@ -28,6 +28,7 @@ export function DashboardClient({
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const [snippetCopied, setSnippetCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
 
@@ -115,6 +116,121 @@ export function DashboardClient({
           >
             {copied ? '✓ Copied' : 'Copy'}
           </button>
+        </div>
+      </div>
+
+      {/* Snippet Installation */}
+      <div className="mb-8 rounded-xl border border-gray-200 p-5">
+        <p className="mb-1 text-sm font-semibold">Snippet Installation</p>
+        <p className="mb-3 text-xs text-gray-500">
+          One universal block — paste in <code className="bg-gray-100 px-1 rounded">{'<head>'}</code> on <strong>every</strong> page of your site. Do NOT add it multiple times.
+        </p>
+
+        {/* Code block */}
+        <div className="relative mb-3">
+          <pre className="overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-xs text-green-400">
+{`<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
+<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
+<script>document.documentElement.classList.add("__ab_pending");setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)<\/script>
+<script async src="https://ab-tool-pied.vercel.app/ab.js"><\/script>`}
+          </pre>
+          <button
+            onClick={() => {
+              const code = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->\n<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n<script>document.documentElement.classList.add("__ab_pending");setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)<\/script>\n<script async src="https://ab-tool-pied.vercel.app/ab.js"><\/script>`
+              navigator.clipboard.writeText(code).then(() => {
+                setSnippetCopied(true)
+                setTimeout(() => setSnippetCopied(false), 2000)
+              })
+            }}
+            className="absolute right-2 top-2 rounded-md bg-gray-700 px-2 py-1 text-xs text-white hover:bg-gray-600"
+          >
+            {snippetCopied ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+
+        <details className="group mb-2">
+          <summary className="cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900">
+            Next.js (App Router) — paste in <code className="bg-gray-100 px-1 rounded">app/layout.tsx</code>
+          </summary>
+          <pre className="mt-2 overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-xs text-green-400">
+{`// app/layout.tsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
+        <script dangerouslySetInnerHTML={{
+          __html: \`document.documentElement.classList.add("__ab_pending");setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)\`
+        }} />
+        <script async src="https://ab-tool-pied.vercel.app/ab.js" />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}`}
+          </pre>
+        </details>
+
+        <details className="group mb-2">
+          <summary className="cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900">
+            Next.js (Pages Router) — paste in <code className="bg-gray-100 px-1 rounded">pages/_document.tsx</code>
+          </summary>
+          <pre className="mt-2 overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-xs text-green-400">
+{`// pages/_document.tsx
+import { Html, Head, Main, NextScript } from 'next/document'
+
+export default function Document() {
+  return (
+    <Html>
+      <Head>
+        <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
+        <script dangerouslySetInnerHTML={{
+          __html: \`document.documentElement.classList.add("__ab_pending");setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)\`
+        }} />
+        <script async src="https://ab-tool-pied.vercel.app/ab.js" />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  )
+}`}
+          </pre>
+        </details>
+
+        <details className="group mb-2">
+          <summary className="cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900">
+            Plain HTML — paste in <code className="bg-gray-100 px-1 rounded">{'<head>'}</code>
+          </summary>
+          <pre className="mt-2 overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-xs text-green-400">
+{`<!DOCTYPE html>
+<html>
+<head>
+  <!-- A/B Testing: universal snippet -->
+  <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
+  <script>document.documentElement.classList.add("__ab_pending");setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)<\/script>
+  <script async src="https://ab-tool-pied.vercel.app/ab.js"><\/script>
+</head>
+<body>
+  <!-- your content -->
+</body>
+</html>`}
+          </pre>
+        </details>
+
+        <details className="group">
+          <summary className="cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900">
+            Other frameworks (Vue, Svelte, Astro, etc.)
+          </summary>
+          <div className="mt-2 text-xs text-gray-500">
+            <p className="mb-1">Inject the three lines into the <code className="bg-gray-100 px-1 rounded">{'<head>'}</code> of your root layout or template. The snippet is framework-agnostic — it works anywhere.</p>
+            <p>Make sure the anti-flicker <code className="bg-gray-100 px-1 rounded">{'<style>'}</code> and inline <code className="bg-gray-100 px-1 rounded">{'<script>'}</code> come <strong>before</strong> the async <code className="bg-gray-100 px-1 rounded">ab.js</code> script tag.</p>
+          </div>
+        </details>
+
+        <div className="mt-4 rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800">
+          <strong>🔒 Privacy:</strong> ab.js stores a random visitor ID in <code className="bg-amber-100 px-1 rounded">localStorage</code> (no cookies). No personal data is collected or transmitted. The snippet only sends: current URL, visitor ID, and click events on test elements.
         </div>
       </div>
 

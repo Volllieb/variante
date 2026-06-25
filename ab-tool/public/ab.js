@@ -2,10 +2,10 @@
   'use strict'
 
   // ===========================================================================
-  // AB-Testing — universeller Client (V2.1)
-  // Der Snippet im <head> ist auf jeder Seite identisch und trägt KEINE
-  // Test-Daten. ab.js löst über die aktuelle URL (/api/resolve) auf, welche
-  // Tests greifen, weist Varianten zu und trackt Conversions per Delegation.
+  // AB Testing — universal client (V2.1)
+  // The snippet in <head> is identical on every page and carries NO test data.
+  // ab.js resolves which tests apply via the current URL (/api/resolve),
+  // assigns variants, and tracks conversions via event delegation.
   // ===========================================================================
 
   // --- Eigenen Script-Tag finden → API-Origin ableiten ----------------------

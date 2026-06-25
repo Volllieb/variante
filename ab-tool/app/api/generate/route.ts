@@ -107,7 +107,7 @@ export async function POST(req: Request) {
   const { testId, frameContent, feedback, previousHtml } = body
   const scope = body.scope === 'text' || body.scope === 'color' ? body.scope : 'all'
   if (!testId) {
-    return Response.json({ error: 'testId fehlt' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'testId required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
   const user = await getApiUser(req)
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
     .single()
 
   if (fetchErr || !test) {
-    return Response.json({ error: 'Test nicht gefunden' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'test not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
   }
 
   // Mit Feedback + vorigem Output → Verfeinerung, sonst Erstgenerierung.
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {
-    return Response.json({ error: 'DEEPSEEK_API_KEY fehlt' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'DEEPSEEK_API_KEY missing' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
   let variantHtml: string
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
     variantHtml = stripFences(json.choices?.[0]?.message?.content ?? '')
   } catch (e) {
     console.error('[generate] deepseek error:', e)
-    return Response.json({ error: 'KI-Fehler' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
   }
 
   const { error: updateErr } = await supabase
