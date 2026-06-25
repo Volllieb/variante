@@ -1,4 +1,4 @@
-# variantt — A/B-Testing aus Figma
+# variante — A/B-Testing aus Figma
 
 Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI generiert HTML → Snippet trackt Conversions. **Kein Dev nötig.**
 

@@ -1,4 +1,4 @@
-# PROJEKT.md — variantt (DSO)
+# PROJEKT.md — variante (DSO)
 
 > **DSO = Documentation Structure Overview.** Lebendes Projektdokument. Bei jeder Änderung fortschreiben, nicht ersetzen. Enthält Selbstprüfung (siehe §Prüfung).
 
@@ -8,7 +8,7 @@
 
 | Feld | Wert |
 |---|---|
-| **Produktname** | variantt |
+| **Produktname** | variante |
 | **Mission** | Designer-natives A/B-Testing — Element in Figma auswählen → KI generiert Variante B → Snippet trackt Conversions. Kein Dev nötig. |
 | **ICP** | Designer & kleine Agenturen, die eigenes Design per KI in Websites übertragen — auf Plattformen **ohne** natives A/B-Testing (Custom HTML, WordPress, Next/React, Shopify). |
 | **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
@@ -77,9 +77,9 @@ c:\dev\variante/
 | ab-tool | `ab-tool-pied.vercel.app` | `ab-tool` | `vercel deploy` (CLI) |
 | ab-spike | `ab-spike.vercel.app` | — | `vercel deploy` (CLI) |
 
-**Git-Remote:** Derzeit **keiner** — nur lokales Repo (`master`).  
-**CI/CD:** Keine automatische Pipeline (kein Remote → kein Vercel-Git-Import).  
-**Auto-Push:** Sobald ein Remote eingerichtet ist, pushed der `post-commit`-Hook automatisch (siehe `.git/hooks/post-commit`).
+**Git-Remote:** `origin` → `github.com/Volllieb/variante.git` (`master`)  
+**CI/CD:** Keine automatische Pipeline (kein Vercel-Git-Import eingerichtet).  
+**Auto-Push:** `post-commit`-Hook pusht automatisch nach jedem Commit (siehe `.githooks/post-commit`).
 
 ## §5 Pricing
 
@@ -90,7 +90,7 @@ c:\dev\variante/
 | **Agency** | ~$99–149/Monat | Multi-Site, White-Label, Team-Seats | **Hauptumsatz** |
 
 **KI-Kosten:** ~0,3 ct/Call → Marge praktisch 100 %.  
-**Entscheidung:** AI-Gen auch im Free-Tier (1 Experiment) — Aha-Moment > Kosten.
+**Free-Tier AI-Gen:** ✅ **Entschieden — ja.** AI-Gen auch im Free-Tier (1 Experiment). Begründung: Aha-Moment > Kosten; Kosten vernachlässigbar. Monetarisierung über *unbegrenzt + Badge-aus*, nicht über das KI-Feature selbst.
 
 ## §6 Plattform-Support
 
@@ -104,13 +104,23 @@ c:\dev\variante/
 | Framer | ❌ | Kein `<head>`-Zugriff |
 | Wix/Squarespace | ❌ | Kein Custom-Script |
 
-## §7 Offene Punkte
+### Steuerklärung — was genau mit Berater besprechen
 
-- [ ] Domain „variantt" sichern
-- [ ] Free-Tier AI-Gen final entscheiden (Empfehlung: ja)
+| Frage | Details |
+|---|---|
+| **Kleinunternehmer-Regelung (§19 UStG)** | Aktuell aktiv. Grenze: 22.000 € Vorjahresumsatz, 50.000 € laufendes Jahr. Bei USD-Preisen + skalierendem SaaS kann das schnell gekippt sein. **Frage:** Umsatzgrenze in Euro oder USD? Wechselkurs-Stichtag? |
+| **Reverse-Charge / OSS** | Bei B2B-Kunden im EU-Ausland muss ggf. Reverse-Charge angewendet werden. **Frage:** Reicht Kleinunternehmer-Regelung auch bei EU-Kunden, oder braucht's OSS-Verfahren? |
+| **USD-Preise** | Wir fakturieren in USD, sitzen in DE. **Frage:** Muss die Rechnung zwingend EUR ausweisen? Doppelte Preisangabe? Wechselkurs-Handhabung? |
+| **Stripe Tax** | Stripe kann USt automatisch berechnen + abführen. **Frage:** Deckt das alle Fälle ab, oder braucht's zusätzlich einen Steuerberater für die Erklärung? |
+| **Plattform-Umsätze** | Figma/Chrome-Web-Store zahlen ggf. Provisionen. **Frage:** Fällt das unter sonstige Einkünfte oder Betriebseinnahmen? |
+
+**Empfehlung:** Einmaliges 30-Min-Gespräch mit Steuerberater vor Live-Schaltung. Stripe Tax kann das meiste automatisieren, aber die Grundsatzentscheidung (Kleinunternehmer ja/nein, OSS nötig?) muss vorher klar sein.
+
+- [x] Domain gesichert: `getvariante.com`
+- [x] Free-Tier AI-Gen: **ja** (entschieden)
+- [x] GitHub-Remote eingerichtet: `github.com/Volllieb/variante.git`
 - [ ] MVP E2E auf echter Fremd-Site getestet?
-- [ ] Steuer/USt mit Berater klären (USD-Preise, intl. Kunden)
-- [ ] GitHub-Remote einrichten + `post-commit`-Hook aktivieren
+- [ ] **Steuerklärung mit Berater:** Siehe Detail unten ⤵
 
 ## §8 v4-Backlog
 
@@ -131,6 +141,7 @@ c:\dev\variante/
 | Datum | Eintrag |
 |---|---|
 | 25.06.2026 | Cleanup: tote Dateien, Build-Artefakte, Boilerplate entfernt. DSO-Struktur eingeführt. Auto-Post-Commit-Hook + Selbstprüfung. |
+| 25.06.2026 | Produktname-Korrektur: „variantt" → „variante". GitHub-Remote eingerichtet (`Volllieb/variante`). Domain `getvariante.com` eingetragen. Free-Tier AI-Gen entschieden (ja). Steuerfragen präzisiert. |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |

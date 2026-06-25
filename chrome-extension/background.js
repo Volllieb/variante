@@ -2,7 +2,7 @@
 // Hört auf Nachrichten aus content.js und schließt Tabs auf Wunsch.
 
 // Onboarding: bei Erstinstallation eine kurze Welcome-Seite öffnen, die erklärt,
-// dass die Extension zum variantt-Figma-Plugin gehört und sich dort automatisch öffnet.
+// dass die Extension zum variante-Figma-Plugin gehört und sich dort automatisch öffnet.
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') }).catch(() => {})
