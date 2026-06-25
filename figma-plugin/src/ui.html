@@ -75,15 +75,27 @@
 </head>
 <body>
 
-<!-- Screen -1: Connect (Login-Token) -->
+<!-- Screen -1: Welcome / Connect (zwei Modi) -->
 <div id="s-connect" class="screen active">
-  <h2>Connect to Variante</h2>
-  <p class="sub">Log in to the dashboard, copy your token and paste it here.</p>
-  <button class="btn btn-secondary" onclick="openDashboard()">Open Dashboard (get token)</button>
-  <label>API Token</label>
-  <input id="connect-token" placeholder="Paste your token from the dashboard" />
-  <button class="btn btn-primary" onclick="saveToken()">Connect</button>
-  <div class="error" id="e-connect"></div>
+  <!-- Mode: kein Token → Welcome -->
+  <div id="c-welcome">
+    <h2>Welcome to Variante</h2>
+    <p class="sub">A/B testing from Figma — no dev needed. Pick an element, describe the change in Figma, AI generates Variant B. One snippet tracks conversions.</p>
+    <button class="btn btn-primary" onclick="createAccount()">Create free account →</button>
+    <div class="divider"></div>
+    <button class="btn btn-secondary" onclick="showTokenMode()">I already have an account — connect with token</button>
+  </div>
+
+  <!-- Mode: Token eingeben -->
+  <div id="c-token" style="display:none">
+    <h2>Connect with Token</h2>
+    <p class="sub">Paste your API token from the dashboard to link this plugin.</p>
+    <label>API Token</label>
+    <input id="connect-token" placeholder="Paste your token from the dashboard" />
+    <button class="btn btn-primary" onclick="saveToken()">Connect</button>
+    <button class="btn btn-secondary" onclick="showWelcomeMode()">← Back</button>
+    <div class="error" id="e-connect"></div>
+  </div>
 </div>
 
 <!-- Screen 0: Dashboard -->
@@ -92,7 +104,7 @@
   <p class="sub">All tests, grouped by page.</p>
   <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
   <button class="btn btn-secondary" onclick="showDashboard()">Refresh</button>
-  <button class="btn btn-secondary" onclick="go('connect')">Change Token</button>
+  <button class="btn btn-secondary" onclick="goToTokenMode()">Change Token</button>
   <div class="divider"></div>
   <div id="dash-list"></div>
 </div>
@@ -254,6 +266,21 @@ function afetch(url, opts) {
   if (API_TOKEN) headers['Authorization'] = 'Bearer ' + API_TOKEN
   opts.headers = headers
   return fetch(url, opts)
+}
+function createAccount() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
+}
+function showTokenMode() {
+  $('c-welcome').style.display = 'none'
+  $('c-token').style.display = 'block'
+}
+function showWelcomeMode() {
+  $('c-token').style.display = 'none'
+  $('c-welcome').style.display = 'block'
+}
+function goToTokenMode() {
+  showTokenMode()
+  go('connect')
 }
 function openDashboard() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard' } }, '*')

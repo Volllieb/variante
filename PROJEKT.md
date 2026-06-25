@@ -47,6 +47,7 @@ c:\dev\variante/
 │   │   ├── api/            # API-Routen (assign, billing, capture, event, generate, resolve, results, stripe, tests, variant, waitlist)
 │   │   ├── dashboard/      # Dashboard-UI
 │   │   ├── login/          # Login-Seite
+│   │   ├── onboarding/     # Post-Signup-Onboarding (Token, Upgrade, Extension)
 │   │   ├── signup/         # Signup-Seite
 │   │   ├── results/[id]/   # Ergebnisse
 │   │   ├── imprint/        # Impressum
@@ -67,7 +68,7 @@ c:\dev\variante/
 │
 ├── figma-plugin/           # Figma-Plugin
 │   ├── manifest.json
-│   └── src/ (code.ts + ui.html)
+│   └── src/ (code.ts + ui.html — Screen 1: Welcome statt Token-Eingabe)
 │
 └── db/migrations/          # Supabase SQL (001–005)
 ```
@@ -147,6 +148,7 @@ c:\dev\variante/
 | 25.06.2026 | Figma-Plugin "Failed to Fetch" final fix: `Authorization` fehlte in CORS-Allow-Headers → Preflight blockte alle authentifizierten Requests. + openDashboard URL auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | Figma-Plugin "Failed to Fetch" fix: API URL in `ui.html` (src+dist) von `ab-tool-pied.vercel.app` auf `getvariante.com` geändert — mismatch mit `manifest.json` allowedDomains. |
 | 25.06.2026 | Figma-Plugin: Build fix — `dist/` war nicht gebaut (fehlende `node_modules/`). `npm install` + Build als Voraussetzung dokumentiert. Manifest auf `getvariante.com` aktualisiert. |
+| 25.06.2026 | **User-Onboarding-Flow (Plan A):** Figma-Plugin Screen 1 zeigt jetzt „Create free account →" statt Token-Feld. Neue `/onboarding`-Seite nach Signup (Token, Upgrade, Chrome-Extension). Signup redirect → `/onboarding` statt `/dashboard`. |
 | 25.06.2026 | Cleanup: tote Dateien, Build-Artefakte, Boilerplate entfernt. DSO-Struktur eingeführt. Auto-Post-Commit-Hook + Selbstprüfung. |
 | 25.06.2026 | Produktname-Korrektur: „variantt" → „variante". GitHub-Remote eingerichtet (`Volllieb/variante`). Domain `getvariante.com` eingetragen. Free-Tier AI-Gen entschieden (ja). Steuerfragen präzisiert. |
 | 25.06.2026 | Steuerfragen beantwortet und §7 aufgeräumt. Ergebnis: Kein Berater vor Launch nötig, Stripe Tax aktivieren, Kleinunternehmer-Regelung bleibt erstmal. |

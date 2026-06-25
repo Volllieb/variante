@@ -4,8 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 
+function signupSource(): string {
+  if (typeof window === 'undefined') return ''
+  const p = new URLSearchParams(window.location.search)
+  return p.get('source') || ''
+}
+
 export default function SignupPage() {
   const router = useRouter()
+  const source = signupSource()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [err, setErr] = useState('')
@@ -26,7 +33,8 @@ export default function SignupPage() {
     }
     if (data.session) {
       // E-Mail-Bestätigung deaktiviert → direkt eingeloggt.
-      router.push('/dashboard')
+      const qs = source ? '?source=' + encodeURIComponent(source) : ''
+      router.push('/onboarding' + qs)
       router.refresh()
     } else {
       setInfo('Fast geschafft — bestätige deine E-Mail-Adresse, dann kannst du dich anmelden.')
