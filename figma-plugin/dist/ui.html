@@ -71,19 +71,43 @@
   .ext-notice { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px; margin-bottom: 12px; }
   .ext-notice .ext-title { font-size: 11px; font-weight: 600; color: #1d4ed8; margin-bottom: 4px; }
   .ext-notice .btn-secondary { margin-bottom: 0; font-size: 11px; padding: 6px 9px; }
+
+  /* Dark preview */
+  .frame-dark { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 8px; background: #000; color: #fff; overflow: auto; max-height: 220px; }
+  .frame-dark img { max-width: 100%; display: block; }
+
+  /* Upgrade banner */
+  .upgrade-banner { display:none; background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; padding:12px; margin-bottom:12px; text-align:center; }
+  .upgrade-banner .ub-title { font-size:13px; font-weight:700; color:#92400e; margin-bottom:4px; }
+  .upgrade-banner .ub-sub { font-size:11px; color:#92400e; margin-bottom:10px; }
+  .btn-upgrade { background:#f59e0b; color:#fff; padding:9px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; width:auto; display:inline-block; }
+  .btn-upgrade:hover { background:#d97706; }
 </style>
 </head>
 <body>
 
-<!-- Screen -1: Connect (Login-Token) -->
+<!-- Screen -1: Welcome / Connect (zwei Modi) -->
 <div id="s-connect" class="screen active">
-  <h2>Connect to Variante</h2>
-  <p class="sub">Log in to the dashboard, copy your token and paste it here.</p>
-  <button class="btn btn-secondary" onclick="openDashboard()">Open Dashboard (get token)</button>
-  <label>API Token</label>
-  <input id="connect-token" placeholder="Paste your token from the dashboard" />
-  <button class="btn btn-primary" onclick="saveToken()">Connect</button>
-  <div class="error" id="e-connect"></div>
+  <!-- Mode: kein Token → Welcome -->
+  <div id="c-welcome">
+    <h2>Welcome to Variante</h2>
+    <p class="sub">A/B testing from Figma — no dev needed. Pick an element, describe the change in Figma, AI generates Variant B. One snippet tracks conversions.</p>
+    <button class="btn btn-primary" onclick="createAccount()">Create free account →</button>
+    <div class="divider"></div>
+    <button class="btn btn-secondary" onclick="showTokenMode()">I already have an account — connect with token</button>
+  </div>
+
+  <!-- Mode: Token eingeben -->
+  <div id="c-token" style="display:none">
+    <h2>Connect with Token</h2>
+    <p class="sub">Paste your API token from the dashboard to link this plugin.</p>
+    <label>API Token</label>
+    <input id="connect-token" placeholder="Paste your token from the dashboard" list="dl-token" />
+    <datalist id="dl-token"></datalist>
+    <button class="btn btn-primary" onclick="saveToken()">Connect</button>
+    <button class="btn btn-secondary" onclick="showWelcomeMode()">← Back</button>
+    <div class="error" id="e-connect"></div>
+  </div>
 </div>
 
 <!-- Screen 0: Dashboard -->
@@ -92,7 +116,7 @@
   <p class="sub">All tests, grouped by page.</p>
   <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
   <button class="btn btn-secondary" onclick="showDashboard()">Refresh</button>
-  <button class="btn btn-secondary" onclick="go('connect')">Change Token</button>
+  <button class="btn btn-secondary" onclick="goToTokenMode()">Change Token</button>
   <div class="divider"></div>
   <div id="dash-list"></div>
 </div>
@@ -104,10 +128,17 @@
   <label>Name</label>
   <input id="f-name" placeholder="e.g. Hero CTA" />
   <label>Site URL (domain or full page URL)</label>
-  <input id="f-url" placeholder="https://your-site.com/pricing" />
+  <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url" />
+  <datalist id="dl-url"></datalist>
+  <div id="url-feedback" style="font-size:11px;margin-top:-10px;margin-bottom:10px;min-height:16px"></div>
   <button id="btn-create" class="btn btn-primary" onclick="createTest()">Create test →</button>
-  <button class="btn btn-secondary" onclick="showDashboard()">← Overview</button>
+  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
   <div class="loading" id="l-setup" style="display:none">Creating…</div>
+  <div class="upgrade-banner" id="upgrade-banner-setup" style="display:none;margin-top:8px">
+    <div class="ub-title">⚡ Free limit reached</div>
+    <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
+    <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+  </div>
   <div class="error" id="e-setup"></div>
 </div>
 
@@ -132,6 +163,7 @@
       <pre id="el-testid"></pre>
       <button class="btn btn-secondary" onclick="copyEl('el-testid')">Copy testId</button>
     </details>
+    <button class="btn btn-secondary" onclick="navBack()" style="margin-top:8px">← Back</button>
   </div>
 
   <!-- Selected: Continue + Reselect -->
@@ -139,6 +171,7 @@
     <div class="box"><div class="muted">Selected element</div><div id="el-selector"></div></div>
     <button class="btn btn-primary" onclick="goToDesign()">Continue →</button>
     <button class="btn btn-secondary" onclick="reselectElement()">Reselect</button>
+    <button class="btn btn-secondary" onclick="navBack()">← Back</button>
   </div>
   <div class="error" id="e-element"></div>
 </div>
@@ -151,6 +184,7 @@
   <!-- Waiting: no button, just hint -->
   <div id="d-waiting">
     <div class="loading">Select an element in Figma… <span id="d-info"></span></div>
+    <button class="btn btn-secondary" onclick="navBack()" style="margin-top:12px">← Back</button>
   </div>
 
   <!-- Selected: Continue + Reselect -->
@@ -158,6 +192,7 @@
     <div class="box"><div class="muted">Selected</div><div id="sel-info"></div></div>
     <button class="btn btn-primary" onclick="exportSelection()">Continue — Export Variant B →</button>
     <button class="btn btn-secondary" onclick="reselectDesign()">Reselect</button>
+    <button class="btn btn-secondary" onclick="navBack()">← Back</button>
   </div>
 
   <div class="loading" id="l-design" style="display:none">Exporting…</div>
@@ -174,6 +209,7 @@
   <button class="btn btn-secondary" onclick="openSite('goal')">Pick goal in Chrome</button>
   <div class="loading" id="m-waiting" style="display:none">Waiting for goal selection in browser… <span id="m-dots"></span></div>
   <button class="btn btn-primary" id="m-generate" onclick="goGenerate()">Generate →</button>
+  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
   <div class="error" id="e-metric"></div>
 </div>
 
@@ -187,10 +223,20 @@
       <div><div class="muted">Figma reference</div><div class="frame" id="gen-ref"></div></div>
       <div><div class="muted">Variant B (rendered)</div><div class="frame" id="gen-preview"></div></div>
     </div>
+    <div class="cmp">
+      <div><div class="muted">On white bg</div><div class="frame" id="gen-preview-white"></div></div>
+      <div><div class="muted">On black bg</div><div class="frame-dark" id="gen-preview-black"></div></div>
+    </div>
     <div class="muted" style="font-size:10px; margin-bottom:8px">Preview without web fonts/site CSS — close approximation, not pixel-perfect.</div>
+    <div class="upgrade-banner" id="upgrade-banner">
+      <div class="ub-title">⚡ Free limit reached</div>
+      <div class="ub-sub" id="upgrade-msg">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
+      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+    </div>
     <details style="margin-bottom:10px"><summary class="muted" style="cursor:pointer">Show HTML</summary><pre id="gen-html"></pre></details>
-    <button class="btn btn-primary" onclick="go('snippet'); buildSnippet()">Looks good →</button>
+    <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good →</button>
     <button class="btn btn-secondary" onclick="generate()">Regenerate</button>
+    <button class="btn btn-secondary" onclick="navBack()">← Back</button>
     <div class="divider"></div>
     <label>What should be changed? (optional)</label>
     <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
@@ -212,13 +258,19 @@
   <pre id="snippet-code"></pre>
   <button class="btn btn-primary" onclick="copyEl('snippet-code')">Copy snippet</button>
   <div class="ok" id="cp-snippet" style="display:none">✓ Copied!</div>
-  <button class="btn btn-secondary" onclick="go('results'); startResults()">View Results →</button>
+  <button class="btn btn-secondary" onclick="navPush('results'); startResults()">View Results →</button>
+  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
 </div>
 
 <!-- Screen 6: Results -->
 <div id="s-results" class="screen">
   <h2>Results</h2>
   <p class="sub">Refreshes every 30s.</p>
+  <div class="upgrade-banner" id="upgrade-banner-results" style="display:none">
+    <div class="ub-title">⚡ Free limit reached</div>
+    <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
+    <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+  </div>
   <div id="res-nodata" class="box" style="display:none">
     <div class="muted">No data yet — snippet installed? Status: <span id="res-status"></span></div>
   </div>
@@ -232,7 +284,7 @@
     <div class="stat"><div class="k"><span class="badge b">B</span> CR</div><div class="v" id="res-crb">—</div></div>
   </div>
   <div class="box"><div class="muted">Significance</div><div class="v" id="res-sig" style="font-size:18px;font-weight:700">0%</div></div>
-  <button class="btn btn-secondary" onclick="showDashboard()">← Overview</button>
+  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
 </div>
 
 <script>
@@ -244,6 +296,7 @@ const state = { testId: '', snippetKey: '', name: '', url: '', goal: '', selecto
 let elTimer = null, resTimer = null, dotTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
+let navHistory = []
 
 // fetch-Wrapper: hängt den Login-Token als Authorization-Header an alle API-Calls.
 function afetch(url, opts) {
@@ -255,6 +308,23 @@ function afetch(url, opts) {
   opts.headers = headers
   return fetch(url, opts)
 }
+function createAccount() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
+}
+function showTokenMode() {
+  $('c-welcome').style.display = 'none'
+  $('c-token').style.display = 'block'
+  populateDatalist('dl-token', 'token')
+  setTimeout(() => { var n = $('connect-token'); if (n) n.focus() }, 50)
+}
+function showWelcomeMode() {
+  $('c-token').style.display = 'none'
+  $('c-welcome').style.display = 'block'
+}
+function goToTokenMode() {
+  showTokenMode()
+  go('connect')
+}
 function openDashboard() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard' } }, '*')
 }
@@ -262,12 +332,38 @@ function saveToken() {
   const v = ($('connect-token').value || '').trim()
   if (!v) { err('connect', 'Please paste your token.'); return }
   API_TOKEN = v
+  saveInputHistory('token', v)
   parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
-  showDashboard()
+  const btn = document.querySelector('#c-token .btn-primary')
+  if (btn) { btn.textContent = '✅ Connected!'; btn.disabled = true }
+  setTimeout(showDashboard, 1200)
 }
 
 function $(id) { return document.getElementById(id) }
 function escapeHtml(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
+
+// ── Input History (localStorage) ─────────────────────────────────────────
+function saveInputHistory(key, value) {
+  if (!value) return
+  const k = 'ab_history_' + key
+  let arr = []
+  try { arr = JSON.parse(localStorage.getItem(k) || '[]') } catch (_) {}
+  arr = [value, ...arr.filter(v => v !== value)].slice(0, 10)
+  try { localStorage.setItem(k, JSON.stringify(arr)) } catch (_) {}
+}
+function loadInputHistory(key) {
+  try { return JSON.parse(localStorage.getItem('ab_history_' + key) || '[]') } catch (_) { return [] }
+}
+function populateDatalist(id, key) {
+  const dl = $(id)
+  if (!dl) return
+  dl.innerHTML = ''
+  loadInputHistory(key).forEach(v => {
+    const o = document.createElement('option')
+    o.value = v
+    dl.appendChild(o)
+  })
+}
 
 function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
@@ -280,6 +376,27 @@ function err(id, msg) {
   const el = $('e-' + id); if (!el) return
   el.textContent = msg
   setTimeout(() => { if (el.textContent === msg) el.textContent = '' }, 4000)
+}
+function showUpgradeBanner(msg) {
+  // Zeige Banner auf allen Screens, die eins haben
+  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
+  ids.forEach(function(id) {
+    var b = $(id)
+    if (b) {
+      if (msg) {
+        var sub = b.querySelector('.ub-sub')
+        if (sub) sub.textContent = msg
+      }
+      b.style.display = 'block'
+    }
+  })
+}
+function goUpgrade() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?upgrade=true' } }, '*')
+}
+function hideUpgradeBanner() {
+  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
+  ids.forEach(function(id) { var b = $(id); if (b) b.style.display = 'none' })
 }
 
 function copyEl(id) {
@@ -299,7 +416,18 @@ function downloadExtension() {
 }
 
 // --- Screen 0: Dashboard ----------------------------------------------------
-async function showDashboard() {
+async function navPush(id) { navHistory.push(id); go(id) }
+function navBack() {
+  if (navHistory.length < 2) { navHistory = ['dashboard']; go('dashboard'); return }
+  navHistory.pop()
+  let prev = navHistory[navHistory.length - 1]
+  // Nicht auf Connect-Seite landen, wenn da kein Token ist
+  if (prev === 'connect') { navHistory = ['dashboard']; go('dashboard'); return }
+  go(prev)
+}
+
+function showDashboard() {
+  navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
   list.innerHTML = '<div class="loading">Loading tests…</div>'
@@ -348,7 +476,7 @@ function renderTestCard(t) {
 }
 function resumeTest(id) {
   state.testId = id
-  go('results')
+  navPush('results')
   startResults()
 }
 
@@ -360,7 +488,9 @@ function newTest() {
   $('f-name').value = ''; $('f-url').value = ''
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
-  go('setup')
+  hideUpgradeBanner()
+  navPush('setup')
+  populateDatalist('dl-url', 'url')
   // Figma-Iframe-Fokus erzwingen, sonst schluckt Figma die ersten Tastenanschläge.
   setTimeout(function () { var n = $('f-name'); if (n) n.focus() }, 50)
 }
@@ -376,6 +506,14 @@ function normalizeUrl(raw) {
     return u
   } catch (_) { return null }
 }
+function validateUrlInput() {
+  const el = $('f-url'); const fb = $('url-feedback'); const btn = $('btn-create')
+  const v = (el.value || '').trim()
+  if (!v) { fb.textContent = ''; btn.disabled = true; return }
+  const ok = normalizeUrl(v)
+  if (ok) { fb.textContent = '✓ valid URL'; fb.style.color = '#15803d'; btn.disabled = false }
+  else { fb.textContent = '✗ needs a domain with a dot (e.g. mysite.com)'; fb.style.color = '#dc2626'; btn.disabled = true }
+}
 
 async function createTest() {
   const name = $('f-name').value.trim()
@@ -390,13 +528,23 @@ async function createTest() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, site_url: url })
     })
-    if (!res.ok) throw new Error('API ' + res.status)
+    if (!res.ok) {
+      var errBody = {}
+      try { errBody = await res.json() } catch (_) {}
+      if (errBody.upgrade) {
+        showUpgradeBanner(errBody.message || 'Free plan allows 1 active experiment. Upgrade for unlimited tests.')
+        throw new Error(errBody.message || 'Free plan limit reached')
+      }
+      throw new Error('API ' + res.status)
+    }
     const data = await res.json()
+    hideUpgradeBanner()
     state.testId = data.id
     state.snippetKey = data.snippet_key
     state.name = name; state.url = url
+    saveInputHistory('url', url)
     $('el-testid').textContent = data.id
-    go('element')
+    navPush('element')
     startElementPoll()
     openSite('element')
   } catch (e) {
@@ -471,7 +619,7 @@ async function reselectElement() {
   openSite('element')
   startElementPoll()
 }
-function goToDesign() { go('design'); requestSelection() }
+function goToDesign() { navPush('design'); requestSelection() }
 
 // --- Screen 3b: Conversion goal --------------------------------------------
 function isClickable(html) {
@@ -503,7 +651,7 @@ function fillMetricDropdown(clickable) {
   })
 }
 async function enterMetric() {
-  go('metric')
+  navPush('metric')
   $('m-waiting').style.display = 'none'
   let t = {}
   try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
@@ -567,7 +715,7 @@ function stopMetricPoll() {
 }
 function goGenerate() {
   if ($('m-generate').disabled) return
-  go('generate'); generate()
+  navPush('generate'); generate()
 }
 
 // --- Screen 3: Export Variant B via Figma selection -------------------------
@@ -586,20 +734,35 @@ function reselectDesign() {
 // --- Screen 4: AI generation ------------------------------------------------
 function getScope() { const el = $('gen-scope'); return el ? el.value : 'all' }
 
+function fillPreviews(html) {
+  $('gen-preview').innerHTML = html || ''
+  $('gen-preview-white').innerHTML = html || ''
+  $('gen-preview-black').innerHTML = html || ''
+}
+
 async function generate() {
   $('gen-result').style.display = 'none'
   $('l-generate').style.display = 'block'
+  hideUpgradeBanner()
   try {
     const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ testId: state.testId, screenshot: state.screenshot, frameContent: state.frameContent, scope: getScope() })
     })
-    if (!res.ok) throw new Error('Generation failed (' + res.status + ')')
+    if (!res.ok) {
+      var errBody = {}
+      try { errBody = await res.json() } catch (_) {}
+      if (errBody.upgrade) {
+        showUpgradeBanner(errBody.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
+        throw new Error(errBody.message || 'Generation limit reached')
+      }
+      throw new Error('Generation failed (' + res.status + ')')
+    }
     const data = await res.json()
     state.html = data.html
     $('gen-ref').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div class="muted">—</div>'
-    $('gen-preview').innerHTML = state.html || ''
+    fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
   } catch (e) {
@@ -615,16 +778,25 @@ async function refine() {
   if (!feedback) { err('generate', 'Please describe what should be changed.'); return }
   $('gen-result').style.display = 'none'
   $('l-generate').style.display = 'block'
+  hideUpgradeBanner()
   try {
     const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ testId: state.testId, frameContent: state.frameContent, feedback: feedback, previousHtml: state.html, scope: getScope() })
     })
-    if (!res.ok) throw new Error('Refine failed (' + res.status + ')')
+    if (!res.ok) {
+      var errBody = {}
+      try { errBody = await res.json() } catch (_) {}
+      if (errBody.upgrade) {
+        showUpgradeBanner(errBody.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
+        throw new Error(errBody.message || 'Generation limit reached')
+      }
+      throw new Error('Refine failed (' + res.status + ')')
+    }
     const data = await res.json()
     state.html = data.html
-    $('gen-preview').innerHTML = state.html || ''
+    fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-feedback').value = ''
     $('gen-result').style.display = 'block'

@@ -1,7 +1,7 @@
 'use client'
 
 import { ExperimentData } from '@/lib/getExperimentStats'
-import { VariantPreview } from '@/components/VariantPreview'
+import { VariantPreview } from '@/app/components/VariantPreview'
 import { useEffect, useState } from 'react'
 
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {

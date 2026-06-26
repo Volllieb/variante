@@ -151,6 +151,7 @@ c:\dev\variante/
 | 25.06.2026 | Figma-Plugin "Failed to Fetch" fix: API URL in `ui.html` (src+dist) von `ab-tool-pied.vercel.app` auf `getvariante.com` geändert — mismatch mit `manifest.json` allowedDomains. |
 | 25.06.2026 | Figma-Plugin: Build fix — `dist/` war nicht gebaut (fehlende `node_modules/`). `npm install` + Build als Voraussetzung dokumentiert. Manifest auf `getvariante.com` aktualisiert. |
 | 25.06.2026 | **User-Onboarding-Flow (Plan A):** Figma-Plugin Screen 1 zeigt jetzt „Create free account →" statt Token-Feld. Neue `/onboarding`-Seite nach Signup (Token, Upgrade, Chrome-Extension). Signup redirect → `/onboarding` statt `/dashboard`. |
+| 25.06.2026 | Figma-Plugin: URL-Validierung, Upgrade-Banner bei Limits, Zurück-Navigation + schwarze Preview-Box. |
 | 25.06.2026 | Cleanup: tote Dateien, Build-Artefakte, Boilerplate entfernt. DSO-Struktur eingeführt. Auto-Post-Commit-Hook + Selbstprüfung. |
 | 25.06.2026 | Produktname-Korrektur: „variantt" → „variante". GitHub-Remote eingerichtet (`Volllieb/variante`). Domain `getvariante.com` eingetragen. Free-Tier AI-Gen entschieden (ja). Steuerfragen präzisiert. |
 | 25.06.2026 | Steuerfragen beantwortet und §7 aufgeräumt. Ergebnis: Kein Berater vor Launch nötig, Stripe Tax aktivieren, Kleinunternehmer-Regelung bleibt erstmal. |
