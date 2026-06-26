@@ -3,325 +3,875 @@
 <head>
 <meta charset="utf-8">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Inter, sans-serif; font-size: 12px; color: var(--figma-color-text); background: var(--figma-color-bg); padding: 16px; }
+/* ── Design Tokens ─────────────────────────────────────────────────────── */
+:root {
+  --brand:          #0D99FF;
+  --brand-hover:    #0B87E0;
+  --brand-subtle:   rgba(13,153,255,.08);
+  --brand-border:   rgba(13,153,255,.25);
+  --r:   6px;
+  --rsm: 4px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  color: var(--figma-color-text);
+  background: var(--figma-color-bg);
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  overflow: hidden;
+}
 
-  .screen { display: none; }
-  .screen.active { display: block; }
+/* ── Screen shell ──────────────────────────────────────────────────────── */
+.screen { display: none; flex-direction: column; height: 100%; }
+.screen.active { display: flex; }
 
-  h2 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .sub { color: var(--figma-color-text-secondary); font-size: 11px; margin-bottom: 16px; }
+/* ── Header ────────────────────────────────────────────────────────────── */
+.hdr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px 0;
+  flex-shrink: 0;
+}
+.back-btn {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer;
+  color: var(--figma-color-text-secondary);
+  border-radius: var(--rsm);
+  flex-shrink: 0;
+  padding: 0;
+}
+.back-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
+.back-btn svg { display: block; }
+.hdr-title { flex: 1; font-size: 12px; font-weight: 600; }
+.hdr-step  { font-size: 11px; color: var(--figma-color-text-secondary); flex-shrink: 0; }
 
-  label { display: block; font-weight: 500; margin-bottom: 4px; font-size: 11px; color: var(--figma-color-text-secondary); }
-  input, select, textarea {
-    width: 100%; padding: 8px; margin-bottom: 12px;
-    border: 1px solid var(--figma-color-border); border-radius: 6px;
-    font-size: 12px; color: var(--figma-color-text); background: var(--figma-color-bg);
-    outline: none;
-  }
-  textarea { resize: vertical; font-family: inherit; }
-  input:focus, select:focus, textarea:focus { border-color: var(--figma-color-brand); }
+/* ── Progress bar ──────────────────────────────────────────────────────── */
+.step-bar {
+  display: flex; gap: 3px;
+  padding: 8px 12px 0;
+  flex-shrink: 0;
+}
+.step-dot {
+  flex: 1; height: 2px; border-radius: 1px;
+  background: var(--figma-color-border);
+  transition: background .25s;
+}
+.step-dot.on { background: var(--brand); }
 
-  .btn { width: 100%; padding: 9px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; margin-bottom: 8px; }
-  .btn-primary { background: #0d99ff; color: #fff; }
-  .btn-primary:hover { background: #0b87e0; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { background: transparent; border: 1px solid var(--figma-color-border); color: var(--figma-color-text); }
+/* ── Content / scroll area ─────────────────────────────────────────────── */
+.body {
+  flex: 1; overflow-y: auto;
+  padding: 14px 12px 6px;
+}
+.body::-webkit-scrollbar { width: 4px; }
+.body::-webkit-scrollbar-thumb { background: var(--figma-color-border); border-radius: 2px; }
 
-  .divider { height: 1px; background: var(--figma-color-border); margin: 14px 0; }
-  pre {
-    background: var(--figma-color-bg-secondary); border: 1px solid var(--figma-color-border);
-    border-radius: 6px; padding: 10px; font-size: 10px; white-space: pre-wrap;
-    word-break: break-all; max-height: 160px; overflow-y: auto; margin-bottom: 10px;
-  }
-  code { background: var(--figma-color-bg-secondary); padding: 1px 4px; border-radius: 3px; }
-  .badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-  .a { background: #dbeafe; color: #1d4ed8; }
-  .b { background: #dcfce7; color: #15803d; }
-  .st-draft { background: #f3f4f6; color: #6b7280; }
-  .st-active { background: #dbeafe; color: #1d4ed8; }
-  .st-done { background: #dcfce7; color: #15803d; }
-  .error { color: #dc2626; font-size: 11px; margin-top: 6px; min-height: 16px; }
-  .ok { color: #15803d; font-size: 11px; margin-top: 6px; }
-  .loading { text-align: center; color: var(--figma-color-text-secondary); padding: 12px 0; font-size: 11px; }
-  .box { background: var(--figma-color-bg-secondary); border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
-  .muted { color: var(--figma-color-text-secondary); font-size: 11px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .stat { background: var(--figma-color-bg-secondary); border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 8px 10px; }
-  .stat .k { font-size: 10px; color: var(--figma-color-text-secondary); }
-  .stat .v { font-size: 16px; font-weight: 700; }
-  .winner { background: #dcfce7; color: #15803d; padding: 8px 10px; border-radius: 6px; font-weight: 700; margin-bottom: 10px; text-align: center; }
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.ftr {
+  padding: 10px 12px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--figma-color-border);
+}
 
-  /* Dashboard */
-  .group-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--figma-color-text-secondary); margin: 12px 0 6px; word-break: break-all; }
-  .card { background: var(--figma-color-bg-secondary); border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
-  .card:hover { border-color: var(--figma-color-brand); }
-  .card.paused { opacity: 0.6; background: var(--figma-color-bg-secondary); filter: grayscale(40%); }
-  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .bar { height: 6px; background: var(--figma-color-border); border-radius: 3px; overflow: hidden; margin: 6px 0 4px; }
-  .bar-fill { height: 100%; background: #0d99ff; border-radius: 3px; transition: width .3s; }
+/* ── Typography ─────────────────────────────────────────────────────────── */
+.lbl {
+  display: block;
+  font-size: 11px; font-weight: 500;
+  color: var(--figma-color-text-secondary);
+  margin-bottom: 4px;
+}
+.hint {
+  font-size: 11px; color: var(--figma-color-text-secondary);
+  line-height: 1.55; margin-bottom: 14px;
+}
+.section-gap { height: 12px; }
 
-  /* Before/After preview */
-  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px; }
-  .cmp .muted { margin-bottom: 4px; }
-  .frame { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 8px; background: #fff; color: #111; overflow: auto; max-height: 220px; }
-  .frame img { max-width: 100%; display: block; }
+/* ── Inputs ─────────────────────────────────────────────────────────────── */
+input, select, textarea {
+  width: 100%; padding: 7px 9px;
+  border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  font-size: 12px; font-family: inherit;
+  color: var(--figma-color-text); background: var(--figma-color-bg);
+  outline: none; transition: border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-subtle);
+}
+textarea { resize: vertical; }
 
-  /* Extension notice */
-  .ext-notice { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px; margin-bottom: 12px; }
-  .ext-notice .ext-title { font-size: 11px; font-weight: 600; color: #1d4ed8; margin-bottom: 4px; }
-  .ext-notice .btn-secondary { margin-bottom: 0; font-size: 11px; padding: 6px 9px; }
+.input-wrap { position: relative; margin-bottom: 4px; }
+.input-wrap input { padding-right: 30px; }
+.input-icon {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; display: none;
+}
 
-  /* Dark preview */
-  .frame-dark { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 8px; background: #000; color: #fff; overflow: auto; max-height: 220px; }
-  .frame-dark img { max-width: 100%; display: block; }
+.field-err {
+  font-size: 11px; color: #dc2626;
+  min-height: 15px; display: none; padding: 2px 0 8px;
+}
+.field-err.vis { display: block; }
 
-  /* Results preview — compact thumbnail, keine Überläufe */
-  .frame-preview { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 6px; overflow: hidden; max-height: 72px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; background: #fff; color: #111; }
-  .frame-preview-dark { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 6px; overflow: hidden; max-height: 72px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; background: #000; color: #fff; }
-  .frame-preview img, .frame-preview-dark img { max-width: 100%; display: block; }
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  width: 100%; padding: 8px 14px;
+  border-radius: var(--r);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background .12s, opacity .12s, color .12s;
+  line-height: 1;
+}
+.btn + .btn { margin-top: 6px; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--brand-hover); }
+.btn-primary:disabled {
+  background: var(--figma-color-bg-secondary);
+  color: var(--figma-color-text-disabled, #aaa);
+  border: 1px solid var(--figma-color-border);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--figma-color-border);
+  color: var(--figma-color-text);
+}
+.btn-secondary:hover { background: var(--figma-color-bg-hover); }
+.btn-sm { width: auto; padding: 5px 10px; font-size: 11px; }
 
-  /* Upgrade banner */
-  .upgrade-banner { display:none; background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; padding:12px; margin-bottom:12px; text-align:center; }
-  .upgrade-banner .ub-title { font-size:13px; font-weight:700; color:#92400e; margin-bottom:4px; }
-  .upgrade-banner .ub-sub { font-size:11px; color:#92400e; margin-bottom:10px; }
-  .btn-upgrade { background:#f59e0b; color:#fff; padding:9px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; width:auto; display:inline-block; }
-  .btn-upgrade:hover { background:#d97706; }
+/* ── Info card ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); padding: 9px 11px; margin-bottom: 10px;
+}
+.card-lbl {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; color: var(--figma-color-text-secondary); margin-bottom: 3px;
+}
+.card-val { font-size: 12px; font-weight: 500; }
+
+/* ── Notice ──────────────────────────────────────────────────────────────── */
+.notice {
+  border-radius: var(--r); padding: 9px 11px; margin-bottom: 12px;
+}
+.notice-blue { background: #eff6ff; border: 1px solid #bfdbfe; }
+.notice-green { background: #f0fdf4; border: 1px solid #86efac; }
+.notice-title { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+.notice-blue .notice-title { color: #1d4ed8; }
+.notice-green .notice-title { color: #15803d; }
+.notice-body { font-size: 11px; line-height: 1.5; margin-bottom: 8px; }
+.notice-blue .notice-body { color: #3b5fa0; }
+.notice-green .notice-body { color: #166534; }
+
+/* ── Element chip ────────────────────────────────────────────────────────── */
+.el-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-border);
+  border-radius: var(--r);
+  font-size: 12px; color: var(--brand); font-weight: 500;
+  max-width: 100%; overflow: hidden;
+}
+.el-chip-type {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .3px; opacity: .7; flex-shrink: 0;
+}
+.el-chip-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ── Test-ID row ─────────────────────────────────────────────────────────── */
+.testid-row {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); padding: 6px 10px; margin-bottom: 12px;
+}
+.testid-lbl {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; color: var(--figma-color-text-secondary); flex-shrink: 0;
+}
+.testid-val {
+  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--figma-color-text); flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ── Metric options ──────────────────────────────────────────────────────── */
+.m-opt {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); cursor: pointer; margin-bottom: 7px;
+  transition: border-color .12s, background .12s;
+}
+.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); }
+.m-opt.m-selected { border-color: var(--brand); background: var(--brand-subtle); }
+.m-opt.m-disabled { opacity: .45; cursor: not-allowed; }
+.m-radio {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid var(--figma-color-border);
+  margin-top: 1px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .12s;
+}
+.m-selected .m-radio { border-color: var(--brand); }
+.m-selected .m-radio::after {
+  content: ''; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--brand);
+}
+.m-title { font-size: 12px; font-weight: 500; }
+.m-desc { font-size: 11px; color: var(--figma-color-text-secondary); margin-top: 1px; line-height: 1.4; }
+
+/* ── Advanced toggle ─────────────────────────────────────────────────────── */
+.adv-toggle {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; color: var(--figma-color-text-secondary);
+  cursor: pointer; margin-bottom: 8px; user-select: none; margin-top: 4px;
+}
+.adv-toggle:hover { color: var(--figma-color-text); }
+.adv-toggle .adv-arrow { transition: transform .18s; }
+.adv-toggle.open .adv-arrow { transform: rotate(90deg); }
+.adv-section { display: none; padding: 0 2px; }
+.adv-section.open { display: block; }
+.adv-group { margin-bottom: 12px; }
+.adv-group-title { font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+.adv-group-desc { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 6px; line-height: 1.4; }
+
+/* ── Loading ─────────────────────────────────────────────────────────────── */
+.loading-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; color: var(--figma-color-text-secondary); padding: 8px 0;
+}
+.loading-center {
+  justify-content: center; padding: 20px 0;
+}
+@keyframes dot { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+.dots span {
+  display: inline-block; width: 3px; height: 3px; border-radius: 50%;
+  background: currentColor; margin: 0 1px;
+  animation: dot 1.2s infinite;
+}
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--figma-color-border); margin: 12px 0; }
+
+/* ── Badges ──────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+}
+.ba { background: #dbeafe; color: #1d4ed8; }
+.bb { background: #dcfce7; color: #15803d; }
+.bs-draft   { background: var(--figma-color-bg-secondary); color: var(--figma-color-text-secondary); border: 1px solid var(--figma-color-border); }
+.bs-active  { background: #dbeafe; color: #1d4ed8; }
+.bs-done    { background: #dcfce7; color: #15803d; }
+.bs-paused  { background: #fef3c7; color: #92400e; }
+
+/* ── Code pre ────────────────────────────────────────────────────────────── */
+pre {
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); padding: 10px;
+  font-size: 10px; font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: pre-wrap; word-break: break-all;
+  max-height: 150px; overflow-y: auto; margin-bottom: 10px;
+  line-height: 1.5;
+}
+code {
+  background: var(--figma-color-bg-secondary);
+  padding: 1px 4px; border-radius: 3px; font-size: 11px;
+}
+
+/* ── Upgrade banner ──────────────────────────────────────────────────────── */
+.upgrade-banner {
+  display: none;
+  background: #fef3c7; border: 1px solid #f59e0b;
+  border-radius: var(--r); padding: 11px; margin-bottom: 12px; text-align: center;
+}
+.ub-title { font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 4px; }
+.ub-sub   { font-size: 11px; color: #92400e; margin-bottom: 10px; }
+.btn-upgrade {
+  background: #f59e0b; color: #fff; padding: 7px 14px;
+  border-radius: var(--r); font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none;
+}
+.btn-upgrade:hover { background: #d97706; }
+
+/* ── Stats grid (results) ────────────────────────────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.stat {
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); padding: 8px 10px;
+}
+.stat-k { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 2px; }
+.stat-v { font-size: 18px; font-weight: 700; }
+
+/* ── Significance bar ────────────────────────────────────────────────────── */
+.sig-wrap {
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); padding: 9px 11px; margin-bottom: 10px;
+}
+.sig-lbl { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 5px; }
+.sig-bar { height: 5px; background: var(--figma-color-border); border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+.sig-fill { height: 100%; background: var(--brand); border-radius: 3px; transition: width .3s; }
+.sig-val  { font-size: 18px; font-weight: 700; }
+
+/* ── Winner ──────────────────────────────────────────────────────────────── */
+.winner {
+  background: #dcfce7; border: 1px solid #86efac;
+  border-radius: var(--r); padding: 8px 11px;
+  font-weight: 700; color: #15803d; text-align: center; margin-bottom: 10px;
+}
+
+/* ── Dashboard cards ─────────────────────────────────────────────────────── */
+.group-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; color: var(--figma-color-text-secondary);
+  margin: 12px 0 5px; word-break: break-all;
+}
+.test-card {
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); padding: 9px 11px; margin-bottom: 6px; cursor: pointer;
+}
+.test-card:hover { border-color: var(--brand); }
+.test-card.paused { opacity: .6; filter: grayscale(30%); }
+.tc-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.tc-name { font-weight: 600; font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px; }
+.tc-meta { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 2px; }
+.tc-bar  { height: 3px; background: var(--figma-color-border); border-radius: 2px; overflow: hidden; margin: 5px 0 3px; }
+.tc-fill { height: 100%; background: var(--brand); border-radius: 2px; transition: width .3s; }
+.tc-sig  { font-size: 10px; color: var(--figma-color-text-secondary); }
+.tc-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.icon-btn {
+  width: 22px; height: 22px; font-size: 12px;
+  border: 1px solid var(--figma-color-border); border-radius: var(--rsm);
+  background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--figma-color-text-secondary);
+}
+.icon-btn:hover { background: var(--figma-color-bg-hover); }
+
+/* ── Previews ────────────────────────────────────────────────────────────── */
+.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
+.prev-lbl  { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 3px; }
+.frame      { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #fff; color: #111; overflow: auto; max-height: 180px; }
+.frame-dark { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #111; color: #fff; overflow: auto; max-height: 180px; }
+.frame img, .frame-dark img { max-width: 100%; display: block; }
+.frame-sm      { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 5px; background: #fff; color: #111; overflow: hidden; max-height: 64px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+.frame-sm-dark { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 5px; background: #111; color: #fff; overflow: hidden; max-height: 64px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+.frame-sm img, .frame-sm-dark img { max-width: 100%; display: block; }
+
+/* ── Error / ok text ─────────────────────────────────────────────────────── */
+.err { color: #dc2626; font-size: 11px; min-height: 15px; padding: 3px 0; }
+.ok  { color: #15803d; font-size: 11px; padding: 3px 0; }
+.copy-ok { display: none; }
+.copy-ok.vis { display: inline; }
 </style>
 </head>
 <body>
 
-<!-- Screen -1: Welcome / Connect (zwei Modi) -->
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN –1 · Connect / Welcome
+════════════════════════════════════════════════════════════════════ -->
 <div id="s-connect" class="screen active">
-  <!-- Mode: kein Token → Welcome -->
-  <div id="c-welcome">
-    <h2>Welcome to Variante</h2>
-    <p class="sub">A/B testing from Figma — no dev needed. Pick an element, describe the change in Figma, AI generates Variant B. One snippet tracks conversions.</p>
-    <button class="btn btn-primary" onclick="createAccount()">Create free account →</button>
-    <div class="divider"></div>
-    <button class="btn btn-secondary" onclick="showTokenMode()">I already have an account — connect with token</button>
-  </div>
+  <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:28px 20px">
 
-  <!-- Mode: Token eingeben -->
-  <div id="c-token" style="display:none">
-    <h2>Connect with Token</h2>
-    <p class="sub">Paste your API token from the dashboard to link this plugin.</p>
-    <label>API Token</label>
-    <input id="connect-token" placeholder="Paste your token from the dashboard" list="dl-token" />
-    <datalist id="dl-token"></datalist>
-    <button class="btn btn-primary" onclick="saveToken()">Connect</button>
-    <button class="btn btn-secondary" onclick="showWelcomeMode()">← Back</button>
-    <div class="error" id="e-connect"></div>
+    <!-- Brand mark -->
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:26px;height:26px;background:var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
+            <rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/>
+            <rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/>
+          </svg>
+        </div>
+        <span style="font-size:13px;font-weight:700">Variante</span>
+      </div>
+      <div style="font-size:11px;color:var(--figma-color-text-secondary);line-height:1.6">
+        A/B testing from Figma — no dev needed.<br>
+        Pick an element, AI generates Variant B.
+      </div>
+    </div>
+
+    <!-- Welcome mode -->
+    <div id="c-welcome">
+      <button class="btn btn-primary" onclick="createAccount()" style="margin-bottom:8px">Create free account →</button>
+      <div class="divider"></div>
+      <button class="btn btn-secondary" onclick="showTokenMode()">I have an account — connect</button>
+    </div>
+
+    <!-- Token mode -->
+    <div id="c-token" style="display:none">
+      <div style="font-size:12px;font-weight:600;margin-bottom:3px">Connect your account</div>
+      <div style="font-size:11px;color:var(--figma-color-text-secondary);margin-bottom:14px">Paste the API token from your dashboard.</div>
+      <span class="lbl">API Token</span>
+      <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" style="margin-bottom:8px"/>
+      <datalist id="dl-token"></datalist>
+      <button class="btn btn-primary" onclick="saveToken()" style="margin-bottom:6px">Connect →</button>
+      <button class="btn btn-secondary" onclick="showWelcomeMode()">← Back</button>
+      <div class="err" id="e-connect" style="margin-top:6px"></div>
+    </div>
+
   </div>
 </div>
 
-<!-- Screen 0: Dashboard -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 0 · Dashboard
+════════════════════════════════════════════════════════════════════ -->
 <div id="s-dashboard" class="screen">
-  <h2>A/B Tests</h2>
-  <p class="sub">All tests, grouped by page.</p>
-  <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
-  <button class="btn btn-secondary" onclick="showDashboard()">Refresh</button>
-  <button class="btn btn-secondary" onclick="goToTokenMode()">Change Token</button>
-  <div class="divider"></div>
-  <div id="dash-list"></div>
-</div>
-
-<!-- Screen 1: Setup -->
-<div id="s-setup" class="screen">
-  <h2>New A/B Test</h2>
-  <p class="sub">Basic test info.</p>
-  <label>Name</label>
-  <input id="f-name" placeholder="e.g. Hero CTA" />
-  <label>Site URL (domain or full page URL)</label>
-  <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url" />
-  <datalist id="dl-url"></datalist>
-  <div id="url-feedback" style="font-size:11px;margin-top:-10px;margin-bottom:10px;min-height:16px"></div>
-  <button id="btn-create" class="btn btn-primary" onclick="createTest()">Create test →</button>
-  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
-  <div class="loading" id="l-setup" style="display:none">Creating…</div>
-  <div class="upgrade-banner" id="upgrade-banner-setup" style="display:none;margin-top:8px">
-    <div class="ub-title">⚡ Free limit reached</div>
-    <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
-    <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+  <div class="hdr" style="padding:12px 12px 0">
+    <span class="hdr-title">A/B Tests</span>
+    <button class="btn btn-secondary btn-sm" onclick="showDashboard()">Refresh</button>
+    <button class="btn btn-secondary btn-sm" onclick="goToTokenMode()" style="margin-left:4px">Token</button>
   </div>
-  <div class="error" id="e-setup"></div>
-</div>
-
-<!-- Screen 2: Pick element + Goal -->
-<div id="s-element" class="screen">
-  <h2>Element &amp; Conversion</h2>
-  <p class="sub">The browser opens your site automatically with the element picker active. Click your target element there.</p>
-
-  <!-- Chrome Extension notice -->
-  <div class="ext-notice">
-    <div class="ext-title">Chrome Extension required</div>
-    <div class="muted" style="margin-bottom:8px">The element picker runs via a Chrome Extension. Install it once — no rebuild needed after updates.</div>
-    <button class="btn btn-secondary" onclick="downloadExtension()">⬇ Download Chrome Extension</button>
-  </div>
-
-  <!-- Waiting: no button, just hint (fallback collapsed) -->
-  <div id="el-waiting">
-    <div class="loading">Waiting for element selection in browser… <span id="el-dots"></span></div>
-    <details style="margin-top:8px">
-      <summary class="muted" style="cursor:pointer">Browser not opening? Open manually</summary>
-      <button class="btn btn-secondary" style="margin-top:8px" onclick="openSite()">Open site in browser</button>
-      <pre id="el-testid"></pre>
-      <button class="btn btn-secondary" onclick="copyEl('el-testid')">Copy testId</button>
-    </details>
-    <button class="btn btn-secondary" onclick="navBack()" style="margin-top:8px">← Back</button>
-  </div>
-
-  <!-- Selected: Continue + Reselect -->
-  <div id="el-done" style="display:none">
-    <div class="box"><div class="muted">Selected element</div><div id="el-selector"></div></div>
-    <button class="btn btn-primary" onclick="goToDesign()">Continue →</button>
-    <button class="btn btn-secondary" onclick="reselectElement()">Reselect</button>
-    <button class="btn btn-secondary" onclick="navBack()">← Back</button>
-  </div>
-  <div class="error" id="e-element"></div>
-</div>
-
-<!-- Screen 3: Pick Variant B in Figma -->
-<div id="s-design" class="screen">
-  <h2>Select Variant B in Figma</h2>
-  <p class="sub">Click the element in Figma that represents Variant B (e.g. the new button) — just like the Chrome Extension, but in Figma. Any layer, even a single button.</p>
-
-  <!-- Waiting: no button, just hint -->
-  <div id="d-waiting">
-    <div class="loading">Select an element in Figma… <span id="d-info"></span></div>
-    <button class="btn btn-secondary" onclick="navBack()" style="margin-top:12px">← Back</button>
-  </div>
-
-  <!-- Selected: Continue + Reselect -->
-  <div id="d-done" style="display:none">
-    <div class="box"><div class="muted">Selected</div><div id="sel-info"></div></div>
-    <button class="btn btn-primary" onclick="exportSelection()">Continue — Export Variant B →</button>
-    <button class="btn btn-secondary" onclick="reselectDesign()">Reselect</button>
-    <button class="btn btn-secondary" onclick="navBack()">← Back</button>
-  </div>
-
-  <div class="loading" id="l-design" style="display:none">Exporting…</div>
-  <div class="error" id="e-design"></div>
-</div>
-
-<!-- Screen 3b: Conversion goal -->
-<div id="s-metric" class="screen">
-  <h2>Conversion Goal</h2>
-  <p class="sub" id="m-sub">Which click should count as a conversion?</p>
-  <div class="box"><div class="muted">Current goal</div><div id="m-current">—</div></div>
-  <label>Quick pick (clickable page elements)</label>
-  <select id="m-goalsel" onchange="onMetricSelect()"></select>
-  <button class="btn btn-secondary" onclick="openSite('goal')">Pick goal in Chrome</button>
-  <div class="loading" id="m-waiting" style="display:none">Waiting for goal selection in browser… <span id="m-dots"></span></div>
-  <button class="btn btn-primary" id="m-generate" onclick="goGenerate()">Generate →</button>
-  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
-  <div class="error" id="e-metric"></div>
-</div>
-
-<!-- Screen 4: AI generation -->
-<div id="s-generate" class="screen">
-  <h2>AI Generating HTML</h2>
-  <p class="sub">Variant B HTML is generated from your Figma design + original HTML/CSS (deltas only).</p>
-  <div class="loading" id="l-generate" style="display:none">AI working… (up to 30s)</div>
-  <div id="gen-result" style="display:none">
-    <div class="cmp">
-      <div><div class="muted">Figma reference</div><div class="frame" id="gen-ref"></div></div>
-      <div><div class="muted">Figma reference (dark)</div><div class="frame-dark" id="gen-ref-dark"></div></div>
-    </div>
-    <div class="cmp">
-      <div><div class="muted">Variant B (white)</div><div class="frame" id="gen-preview-white"></div></div>
-      <div><div class="muted">Variant B (dark)</div><div class="frame-dark" id="gen-preview-black"></div></div>
-    </div>
-    <div class="muted" style="font-size:10px; margin-bottom:8px">Preview without web fonts/site CSS — close approximation, not pixel-perfect.</div>
-    <div class="upgrade-banner" id="upgrade-banner">
+  <div class="body">
+    <div class="upgrade-banner" id="upgrade-banner-dash">
       <div class="ub-title">⚡ Free limit reached</div>
-      <div class="ub-sub" id="upgrade-msg">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
+      <div class="ub-sub">Upgrade to Pro for unlimited tests and AI generations.</div>
+      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
+    </div>
+    <div id="dash-list"></div>
+  </div>
+  <div class="ftr">
+    <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 1 · Test Details
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-setup" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Test Details</span>
+    <span class="hdr-step">1 / 6</span>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+    <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <div class="hint">Name the test and enter the page URL you want to run it on.</div>
+
+    <span class="lbl">Test name</span>
+    <input id="f-name" placeholder="e.g. Hero CTA" oninput="onNameInput()" style="margin-bottom:12px"/>
+
+    <span class="lbl">Site URL</span>
+    <div class="input-wrap" style="margin-bottom:0">
+      <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url"/>
+      <datalist id="dl-url"></datalist>
+      <div class="input-icon" id="url-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="#22c55e" stroke-width="1.3"/>
+          <path d="M4.5 7L6.3 8.8L9.5 5.2" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="field-err" id="url-err"></div>
+
+    <div class="upgrade-banner" id="upgrade-banner-setup" style="margin-top:6px">
+      <div class="ub-title">⚡ Free limit reached</div>
+      <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
     </div>
-    <details style="margin-bottom:10px"><summary class="muted" style="cursor:pointer">Show HTML</summary><pre id="gen-html"></pre></details>
-    <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good →</button>
-    <button class="btn btn-secondary" onclick="generate()">Regenerate</button>
-    <button class="btn btn-secondary" onclick="navBack()">← Back</button>
-    <div class="divider"></div>
-    <label>What should be changed? (optional)</label>
-    <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
-    <label>Scope — what may the AI change?</label>
-    <select id="gen-scope">
-      <option value="all">Everything</option>
-      <option value="text">Text only</option>
-      <option value="color">Colors only</option>
-    </select>
-    <button class="btn btn-secondary" onclick="refine()">↻ Refine with AI</button>
+    <div class="loading-row" id="l-setup" style="display:none">
+      <div class="dots"><span></span><span></span><span></span></div>
+      Creating test…
+    </div>
+    <div class="err" id="e-setup"></div>
   </div>
-  <div class="error" id="e-generate"></div>
+  <div class="ftr">
+    <button id="btn-create" class="btn btn-primary" onclick="createTest()" disabled>Continue →</button>
+  </div>
 </div>
 
-<!-- Screen 5: Snippet -->
-<div id="s-snippet" class="screen">
-  <h2>Install Snippet 🎉</h2>
-  <p class="sub">One universal block in the <code>&lt;head&gt;</code> — identical on every page. Do <strong>NOT</strong> add it multiple times. Selector &amp; goal come from the server.</p>
-  <pre id="snippet-code"></pre>
-  <button class="btn btn-primary" onclick="copyEl('snippet-code')">Copy snippet</button>
-  <div class="ok" id="cp-snippet" style="display:none">✓ Copied!</div>
-  <button class="btn btn-secondary" onclick="navPush('results'); startResults()">View Results →</button>
-  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
-</div>
 
-<!-- Screen 6: Results -->
-<div id="s-results" class="screen">
-  <h2>Results</h2>
-  <p class="sub">Refreshes every 30s.</p>
-  <div class="upgrade-banner" id="upgrade-banner-results" style="display:none">
-    <div class="ub-title">⚡ Free limit reached</div>
-    <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
-    <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 2 · Pick Element
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-element" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Pick Element</span>
+    <span class="hdr-step">2 / 6</span>
   </div>
-  <div id="res-nodata" class="box" style="display:none">
-    <div class="muted">No data yet — snippet installed? Status: <span id="res-status"></span></div>
+  <div class="step-bar">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
+    <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
-  <div id="res-winner" class="winner" style="display:none"></div>
-  <div class="grid">
-    <div class="stat"><div class="k"><span class="badge a">A</span> Visitors</div><div class="v" id="res-va">0</div></div>
-    <div class="stat"><div class="k"><span class="badge b">B</span> Visitors</div><div class="v" id="res-vb">0</div></div>
-    <div class="stat"><div class="k"><span class="badge a">A</span> Conversions</div><div class="v" id="res-ca">0</div></div>
-    <div class="stat"><div class="k"><span class="badge b">B</span> Conversions</div><div class="v" id="res-cb">0</div></div>
-    <div class="stat"><div class="k"><span class="badge a">A</span> CR</div><div class="v" id="res-cra">—</div></div>
-    <div class="stat"><div class="k"><span class="badge b">B</span> CR</div><div class="v" id="res-crb">—</div></div>
-  </div>
-  <div class="box"><div class="muted">Significance</div><div class="v" id="res-sig" style="font-size:18px;font-weight:700">0%</div></div>
+  <div class="body">
 
-  <!-- Preview A/B -->
-  <div id="res-preview-section" style="display:none">
-    <div class="divider"></div>
-    <div class="cmp">
-      <div>
-        <div class="muted">A (Original)</div>
-        <div class="frame-preview" id="res-preview-a-white"></div>
-        <div class="frame-preview-dark" id="res-preview-a-black"></div>
+    <!-- Test-ID always visible -->
+    <div class="testid-row" id="el-testid-row">
+      <span class="testid-lbl">Test ID</span>
+      <span class="testid-val" id="el-testid-val">—</span>
+    </div>
+
+    <!-- Extension notice -->
+    <div class="notice notice-blue">
+      <div class="notice-title">Chrome Extension required</div>
+      <div class="notice-body">The element picker runs via the Chrome Extension. Install it once — no rebuild needed after updates.</div>
+      <button class="btn btn-secondary btn-sm" onclick="downloadExtension()">Download Chrome Extension</button>
+    </div>
+
+    <!-- Waiting state -->
+    <div id="el-waiting">
+      <div class="loading-row">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <span>Waiting for element selection in browser…</span>
       </div>
+      <details style="margin-top:4px">
+        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer;user-select:none">Browser not opening?</summary>
+        <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:6px">Open site manually</button>
+      </details>
+    </div>
+
+    <!-- Done state -->
+    <div id="el-done" style="display:none">
+      <span class="lbl" style="margin-bottom:5px">Selected element</span>
+      <div id="el-chip-wrap" style="margin-bottom:10px"></div>
+      <button class="btn btn-secondary btn-sm" onclick="reselectElement()">Reselect</button>
+    </div>
+
+    <div class="err" id="e-element" style="margin-top:6px"></div>
+  </div>
+  <div class="ftr">
+    <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 3 · Select Variant B in Figma
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-design" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Variant B in Figma</span>
+    <span class="hdr-step">3 / 6</span>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+    <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <div class="hint">Click any layer in Figma that represents Variant B — a single button, heading, or section. Just like the Chrome Extension, but in Figma.</div>
+
+    <!-- Waiting -->
+    <div id="d-waiting">
+      <div class="loading-row">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <span id="d-info">Click a layer in Figma to select it…</span>
+      </div>
+    </div>
+
+    <!-- Selected -->
+    <div id="d-done" style="display:none">
+      <span class="lbl" style="margin-bottom:5px">Layer selected</span>
+      <div class="card" style="margin-bottom:8px"><div class="card-val" id="sel-info"></div></div>
+      <button class="btn btn-secondary btn-sm" onclick="reselectDesign()">Reselect</button>
+    </div>
+
+    <div class="loading-row" id="l-design" style="display:none;margin-top:8px">
+      <div class="dots"><span></span><span></span><span></span></div>
+      Exporting layer…
+    </div>
+    <div class="err" id="e-design" style="margin-top:4px"></div>
+  </div>
+  <div class="ftr">
+    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Weiter zur Metrik →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 4 · Conversion Goal
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-metric" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Conversion Goal</span>
+    <span class="hdr-step">4 / 6</span>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <div class="hint" id="m-hint">What counts as a conversion for this test?</div>
+
+    <!-- Default metric: click on tested element -->
+    <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()">
+      <div class="m-radio"></div>
       <div>
-        <div class="muted">B (Variant)</div>
-        <div class="frame-preview" id="res-preview-b-white"></div>
-        <div class="frame-preview-dark" id="res-preview-b-black"></div>
+        <div class="m-title">Click on the tested element</div>
+        <div class="m-desc" id="m-default-desc">Counts when a visitor clicks the element picked in Step 2.</div>
+      </div>
+    </div>
+
+    <!-- Candidates (other page elements) -->
+    <div id="m-candidates-section" style="display:none">
+      <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()">
+        <div class="m-radio"></div>
+        <div>
+          <div class="m-title">Another element on the page</div>
+          <div class="m-desc">Count clicks on a different element as the goal.</div>
+        </div>
+      </div>
+      <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
+        <select id="m-goalsel" onchange="onMetricSelect()"></select>
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <div class="adv-toggle" id="adv-toggle" onclick="toggleAdvanced()">
+      <svg class="adv-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <path d="M3.5 2L6.5 5l-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Advanced settings
+    </div>
+    <div class="adv-section" id="adv-section">
+      <div class="adv-group">
+        <div class="adv-group-title">Pick goal in browser</div>
+        <div class="adv-group-desc">Use the Chrome Extension to click any element on your live site as the conversion goal.</div>
+        <button class="btn btn-secondary btn-sm" onclick="openSite('goal')" style="margin-bottom:6px">Open in Chrome</button>
+        <div class="loading-row" id="m-waiting" style="display:none">
+          <div class="dots"><span></span><span></span><span></span></div>
+          Waiting for goal selection…
+        </div>
+      </div>
+      <div class="adv-group">
+        <div class="adv-group-title">Custom CSS selector</div>
+        <div class="adv-group-desc">Enter any CSS selector as the conversion event trigger.</div>
+        <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:11px;font-family:'SF Mono',monospace;margin-bottom:6px"/>
+        <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()">Apply selector</button>
+      </div>
+    </div>
+
+    <!-- Current goal pill (shown when a non-default goal is active) -->
+    <div id="m-goal-display" style="display:none;margin-top:10px">
+      <span class="lbl">Active goal</span>
+      <div class="card"><div class="card-val" id="m-current">—</div></div>
+    </div>
+
+    <div class="err" id="e-metric" style="margin-top:4px"></div>
+  </div>
+  <div class="ftr">
+    <button class="btn btn-primary" id="m-generate" onclick="goGenerate()" disabled>Generate HTML →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 5 · Generate Variant B
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-generate" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Generate Variant B</span>
+    <span class="hdr-step">5 / 6</span>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <div class="loading-row loading-center" id="l-generate" style="display:none">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <span>AI generating Variant B… (up to 30s)</span>
+    </div>
+
+    <div id="gen-result" style="display:none">
+      <div class="upgrade-banner" id="upgrade-banner">
+        <div class="ub-title">⚡ Free limit reached</div>
+        <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
+        <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+      </div>
+
+      <!-- 2×2 preview -->
+      <div class="prev-grid">
+        <div><div class="prev-lbl">Figma reference</div><div class="frame" id="gen-ref"></div></div>
+        <div><div class="prev-lbl">Reference (dark)</div><div class="frame-dark" id="gen-ref-dark"></div></div>
+      </div>
+      <div class="prev-grid">
+        <div><div class="prev-lbl">Variant B (light)</div><div class="frame" id="gen-preview-white"></div></div>
+        <div><div class="prev-lbl">Variant B (dark)</div><div class="frame-dark" id="gen-preview-black"></div></div>
+      </div>
+      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin-bottom:10px">Preview without site CSS — close approximation, not pixel-perfect.</div>
+
+      <!-- HTML source (collapsed) -->
+      <details style="margin-bottom:12px">
+        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show generated HTML</summary>
+        <pre id="gen-html" style="margin-top:6px"></pre>
+      </details>
+
+      <div class="divider"></div>
+
+      <!-- Refine controls -->
+      <span class="lbl">Refine (optional)</span>
+      <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback" style="margin-bottom:8px"></textarea>
+      <span class="lbl">Scope — what may the AI change?</span>
+      <select id="gen-scope" style="margin-bottom:8px">
+        <option value="all">Everything</option>
+        <option value="text">Text only</option>
+        <option value="color">Colors only</option>
+      </select>
+      <button class="btn btn-secondary" onclick="refine()" style="margin-bottom:5px">↻ Refine with AI</button>
+      <button class="btn btn-secondary" onclick="generate()">Regenerate</button>
+    </div>
+
+    <div class="err" id="e-generate" style="margin-top:4px"></div>
+  </div>
+  <div class="ftr" id="gen-ftr" style="display:none">
+    <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good — Install Snippet →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 6 · Install Snippet
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-snippet" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Install Snippet</span>
+    <span class="hdr-step">6 / 6</span>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+  </div>
+  <div class="body">
+    <div class="notice notice-green">
+      <div class="notice-title">One snippet — every page</div>
+      <div class="notice-body">Paste this once in the <code>&lt;head&gt;</code> on every page of your site. Selector and goal load from the server automatically. Do <strong>not</strong> add it multiple times.</div>
+    </div>
+
+    <pre id="snippet-code"></pre>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <button class="btn btn-primary" onclick="copySnippet()" style="flex:1">Copy snippet</button>
+      <span class="copy-ok ok" id="cp-snippet">✓ Copied</span>
+    </div>
+
+    <button class="btn btn-secondary" onclick="navPush('results'); startResults()">View Results →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN · Results
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-results" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Results</span>
+    <span style="font-size:10px;color:var(--figma-color-text-secondary)">auto-refresh 30s</span>
+  </div>
+  <div class="body">
+    <div class="upgrade-banner" id="upgrade-banner-results">
+      <div class="ub-title">⚡ Free limit reached</div>
+      <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
+      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
+    </div>
+    <div id="res-nodata" class="card" style="display:none">
+      <div class="card-lbl">No data yet</div>
+      <div class="card-val" style="font-weight:400;font-size:11px">Snippet installed? Status: <strong id="res-status"></strong></div>
+    </div>
+    <div class="winner" id="res-winner" style="display:none"></div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-k"><span class="badge ba">A</span> Visitors</div><div class="stat-v" id="res-va">0</div></div>
+      <div class="stat"><div class="stat-k"><span class="badge bb">B</span> Visitors</div><div class="stat-v" id="res-vb">0</div></div>
+      <div class="stat"><div class="stat-k"><span class="badge ba">A</span> Conv.</div><div class="stat-v" id="res-ca">0</div></div>
+      <div class="stat"><div class="stat-k"><span class="badge bb">B</span> Conv.</div><div class="stat-v" id="res-cb">0</div></div>
+      <div class="stat"><div class="stat-k"><span class="badge ba">A</span> Rate</div><div class="stat-v" id="res-cra">—</div></div>
+      <div class="stat"><div class="stat-k"><span class="badge bb">B</span> Rate</div><div class="stat-v" id="res-crb">—</div></div>
+    </div>
+    <div class="sig-wrap">
+      <div class="sig-lbl">Statistical significance</div>
+      <div class="sig-bar"><div class="sig-fill" id="res-sig-fill" style="width:0%"></div></div>
+      <div class="sig-val" id="res-sig">0%</div>
+    </div>
+    <div id="res-preview-section" style="display:none">
+      <div class="divider"></div>
+      <div class="prev-grid">
+        <div>
+          <div class="prev-lbl">A (Original)</div>
+          <div class="frame-sm"      id="res-preview-a-white"></div>
+          <div class="frame-sm-dark" id="res-preview-a-black"></div>
+        </div>
+        <div>
+          <div class="prev-lbl">B (Variant)</div>
+          <div class="frame-sm"      id="res-preview-b-white"></div>
+          <div class="frame-sm-dark" id="res-preview-b-black"></div>
+        </div>
       </div>
     </div>
   </div>
-
-  <button class="btn btn-secondary" onclick="navBack()">← Back</button>
 </div>
 
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════════════════════════════ -->
 <script>
 /* ponytail: removed global keydown/keyup/keypress stopPropagation (capture mode) —
-   blockierte Tastatureingaben in Input-Feldern, weil Events nie das Ziel erreichten.
-   Figma-Host-Frame wird durch stopPropagation im iFrame ohnehin nicht beeinflusst. */
+   blockierte Tastatureingaben in Input-Feldern. */
 const API = 'https://www.getvariante.com'
-const state = { testId: '', snippetKey: '', name: '', url: '', goal: '', selector: '', originalHtml: '', goalCandidates: [], frameId: '', screenshot: '', frameContent: null, html: '' }
+const state = {
+  testId: '', snippetKey: '', name: '', url: '', goal: '',
+  selector: '', originalHtml: '', goalCandidates: [],
+  frameId: '', screenshot: '', frameContent: null, html: ''
+}
 let elTimer = null, resTimer = null, dotTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
 let navHistory = []
 
-// fetch-Wrapper: hängt den Login-Token als Authorization-Header an alle API-Calls.
 function afetch(url, opts) {
   opts = opts || {}
   const headers = {}
@@ -331,44 +881,14 @@ function afetch(url, opts) {
   opts.headers = headers
   return fetch(url, opts)
 }
-function createAccount() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
-}
-function showTokenMode() {
-  $('c-welcome').style.display = 'none'
-  $('c-token').style.display = 'block'
-  populateDatalist('dl-token', 'token')
-  ;(function retryFocus(attempt) {
-    var n = $('connect-token');
-    if (n && document.activeElement !== n) { n.focus(); if (document.activeElement !== n && attempt < 10) setTimeout(retryFocus, 100, attempt + 1) }
-  })(0)
-}
-function showWelcomeMode() {
-  $('c-token').style.display = 'none'
-  $('c-welcome').style.display = 'block'
-}
-function goToTokenMode() {
-  showTokenMode()
-  go('connect')
-}
-function openDashboard() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard' } }, '*')
-}
-function saveToken() {
-  const v = ($('connect-token').value || '').trim()
-  if (!v) { err('connect', 'Please paste your token.'); return }
-  API_TOKEN = v
-  saveInputHistory('token', v)
-  parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
-  const btn = document.querySelector('#c-token .btn-primary')
-  if (btn) { btn.textContent = '✅ Connected!'; btn.disabled = true }
-  setTimeout(showDashboard, 1200)
-}
 
 function $(id) { return document.getElementById(id) }
-function escapeHtml(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s }
 
-// ── Input History (localStorage) ─────────────────────────────────────────
+// ── Input history ───────────────────────────────────────────────────────────
 function saveInputHistory(key, value) {
   if (!value) return
   const k = 'ab_history_' + key
@@ -381,180 +901,201 @@ function loadInputHistory(key) {
   try { return JSON.parse(localStorage.getItem('ab_history_' + key) || '[]') } catch (_) { return [] }
 }
 function populateDatalist(id, key) {
-  const dl = $(id)
-  if (!dl) return
+  const dl = $(id); if (!dl) return
   dl.innerHTML = ''
   loadInputHistory(key).forEach(v => {
-    const o = document.createElement('option')
-    o.value = v
-    dl.appendChild(o)
+    const o = document.createElement('option'); o.value = v; dl.appendChild(o)
   })
 }
 
+// ── Navigation ──────────────────────────────────────────────────────────────
 function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
   $('s-' + id).classList.add('active')
   if (id !== 'element') stopElementPoll()
-  if (id !== 'metric') stopMetricPoll()
+  if (id !== 'metric')  stopMetricPoll()
   if (id !== 'results') stopResultsPoll()
 }
-function err(id, msg) {
-  const el = $('e-' + id); if (!el) return
-  el.textContent = msg
-  setTimeout(() => { if (el.textContent === msg) el.textContent = '' }, 4000)
-}
-function showUpgradeBanner(msg) {
-  // Zeige Banner auf allen Screens, die eins haben
-  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
-  ids.forEach(function(id) {
-    var b = $(id)
-    if (b) {
-      if (msg) {
-        var sub = b.querySelector('.ub-sub')
-        if (sub) sub.textContent = msg
-      }
-      b.style.display = 'block'
-    }
-  })
-}
-function goUpgrade() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?upgrade=true' } }, '*')
-}
-function hideUpgradeBanner() {
-  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
-  ids.forEach(function(id) { var b = $(id); if (b) b.style.display = 'none' })
-}
-
-function copyEl(id) {
-  const text = $(id).textContent
-  const ta = document.createElement('textarea')
-  ta.value = text
-  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
-  document.body.appendChild(ta)
-  ta.focus(); ta.select()
-  try { document.execCommand('copy') } catch (_) {}
-  document.body.removeChild(ta)
-  if (id === 'snippet-code') { const c = $('cp-snippet'); c.style.display = 'block'; setTimeout(() => c.style.display = 'none', 2000) }
-}
-
-function downloadExtension() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: API + '/chrome-extension.zip' } }, '*')
-}
-
-// --- Screen 0: Dashboard ----------------------------------------------------
 async function navPush(id) { navHistory.push(id); go(id) }
 function navBack() {
   if (navHistory.length < 2) { navHistory = ['dashboard']; go('dashboard'); return }
   navHistory.pop()
   let prev = navHistory[navHistory.length - 1]
-  // Nicht auf Connect-Seite landen, wenn da kein Token ist
   if (prev === 'connect') { navHistory = ['dashboard']; go('dashboard'); return }
   go(prev)
 }
 
+// ── Error display ───────────────────────────────────────────────────────────
+function err(id, msg) {
+  const el = $('e-' + id); if (!el) return
+  el.textContent = msg
+  setTimeout(() => { if (el.textContent === msg) el.textContent = '' }, 4000)
+}
+
+// ── Upgrade banner ──────────────────────────────────────────────────────────
+function showUpgradeBanner(msg) {
+  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
+  ids.forEach(function(id) {
+    var b = $(id); if (!b) return
+    if (msg) { var s = b.querySelector('.ub-sub'); if (s) s.textContent = msg }
+    b.style.display = 'block'
+  })
+}
+function hideUpgradeBanner() {
+  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
+  ids.forEach(function(id) { var b = $(id); if (b) b.style.display = 'none' })
+}
+function goUpgrade() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?upgrade=true' } }, '*')
+}
+
+// ── Connect / token ─────────────────────────────────────────────────────────
+function createAccount() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
+}
+function showTokenMode() {
+  $('c-welcome').style.display = 'none'
+  $('c-token').style.display = 'block'
+  populateDatalist('dl-token', 'token')
+  ;(function retry(n) {
+    var f = $('connect-token')
+    if (f && document.activeElement !== f) { f.focus(); if (document.activeElement !== f && n < 10) setTimeout(retry, 100, n + 1) }
+  })(0)
+}
+function showWelcomeMode() {
+  $('c-token').style.display = 'none'
+  $('c-welcome').style.display = 'block'
+}
+function goToTokenMode() { showTokenMode(); go('connect') }
+function saveToken() {
+  const v = ($('connect-token').value || '').trim()
+  if (!v) { err('connect', 'Please paste your token.'); return }
+  API_TOKEN = v
+  saveInputHistory('token', v)
+  parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
+  const btn = document.querySelector('#c-token .btn-primary')
+  if (btn) { btn.textContent = '✓ Connected!'; btn.disabled = true }
+  setTimeout(showDashboard, 1200)
+}
+
+// ── Dashboard ───────────────────────────────────────────────────────────────
 async function showDashboard() {
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
-  list.innerHTML = '<div class="loading">Loading tests…</div>'
+  list.innerHTML = '<div class="loading-row" style="padding:16px 0"><div class="dots"><span></span><span></span><span></span></div>Loading tests…</div>'
   try {
     const res = await afetch(API + '/api/tests')
     if (!res.ok) throw new Error('API ' + res.status)
     const { tests } = await res.json()
-    if (!tests || !tests.length) { list.innerHTML = '<div class="muted">No tests yet. Create one.</div>'; return }
+    if (!tests || !tests.length) {
+      list.innerHTML = '<div style="font-size:11px;color:var(--figma-color-text-secondary);padding:20px 0 0;text-align:center">No tests yet — create one.</div>'
+      return
+    }
     const groups = {}
     tests.forEach(t => { const k = t.site_url || '(no URL)'; (groups[k] = groups[k] || []).push(t) })
     list.innerHTML = ''
     Object.keys(groups).forEach(url => {
-      const h = document.createElement('div')
-      h.className = 'group-title'
-      h.textContent = url
+      const h = document.createElement('div'); h.className = 'group-title'; h.textContent = url
       list.appendChild(h)
       groups[url].forEach(t => list.appendChild(renderTestCard(t)))
     })
   } catch (e) {
-    list.innerHTML = '<div class="error">' + e.message + '</div>'
+    list.innerHTML = '<div class="err" style="padding:8px 0">' + e.message + '</div>'
   }
 }
 function renderTestCard(t) {
   const va = t.visitors_a || 0, vb = t.visitors_b || 0
   const ca = t.conversions_a || 0, cb = t.conversions_b || 0
-  const totalConv = ca + cb
   const sig = Math.round((t.significance || 0) * 100)
   const minV = (t.min_visitors == null) ? 100 : t.min_visitors
   const minU = Math.round(((t.min_uplift == null) ? 0.05 : t.min_uplift) * 100)
-  const winner = t.winner && t.status === 'done' ? ' · 🏆 ' + t.winner : ''
+  const st = t.status || 'draft'
+  const winner = t.winner && st === 'done' ? ' · 🏆 ' + t.winner : ''
+  const pauseLbl = st === 'paused' ? '▶' : '⏸'
   const card = document.createElement('div')
-  card.className = 'card' + (t.status === 'paused' ? ' paused' : '')
-  const pauseLabel = (t.status === 'paused') ? '▶️' : '⏸️'
+  card.className = 'test-card' + (st === 'paused' ? ' paused' : '')
   card.innerHTML =
-    '<div class="card-top"><strong>' + escapeHtml(t.name) + '</strong>' +
-    '<div>' +
-    '<button class="btn-secondary" style="margin-right:6px;padding:4px 6px;font-size:11px" onclick="event.stopPropagation(); togglePause(\'' + t.id + '\', \'' + (t.status || '') + '\')">' + pauseLabel + '</button>' +
-    '<button class="btn-secondary" style="margin-right:6px;padding:4px 6px;font-size:11px" onclick="event.stopPropagation(); deleteTest(\'' + t.id + '\')">🗑️</button>' +
-    '<span class="badge st-' + (t.status || 'draft') + '">' + (t.status || 'draft') + '</span>' +
+    '<div class="tc-top">' +
+    '<span class="tc-name">' + escapeHtml(t.name) + '</span>' +
+    '<div class="tc-actions">' +
+    '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseLbl + '</button>' +
+    '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')">🗑</button>' +
+    '<span class="badge bs-' + st + '" style="margin-left:2px">' + st + '</span>' +
     '</div></div>' +
-    '<div class="muted">' + (va + vb) + ' visitors · ' + totalConv + ' conversions' + winner + '</div>' +
-    '<div class="bar"><div class="bar-fill" style="width:' + Math.min(sig, 100) + '%"></div></div>' +
-    '<div class="muted" style="font-size:10px">Significance ' + sig + '% · Target: ' + minV + ' visitors &amp; +' + minU + '% uplift</div>'
+    '<div class="tc-meta">' + (va + vb) + ' visitors · ' + (ca + cb) + ' conversions' + winner + '</div>' +
+    '<div class="tc-bar"><div class="tc-fill" style="width:' + Math.min(sig, 100) + '%"></div></div>' +
+    '<div class="tc-sig">Significance ' + sig + '% · Target: ' + minV + ' visitors & +' + minU + '% uplift</div>'
   card.onclick = () => resumeTest(t.id)
   return card
 }
-function resumeTest(id) {
-  state.testId = id
-  navPush('results')
-  startResults()
-}
+function resumeTest(id) { state.testId = id; navPush('results'); startResults() }
 
-// --- Screen 1: Create test --------------------------------------------------
-function newTest() {
-  state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
-  state.originalHtml = ''; state.goalCandidates = []
-  state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
-  $('f-name').value = ''; $('f-url').value = ''
-  $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
-  $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
-  hideUpgradeBanner()
-  navPush('setup')
-  populateDatalist('dl-url', 'url')
-  // Figma-Iframe-Fokus: Das Plugin-UI läuft in einem iFrame, Figma
-  // schluckt Tastaturevents wenn der Fokus nicht im Input liegt.
-  // Retry bis Focus gesetzt ist (DOM-Updates durch populateDatalist
-  // können initialen Fokus klauen).
-  ;(function retryFocus(attempt) {
-    var n = $('f-name');
-    if (n && document.activeElement !== n) { n.focus(); if (document.activeElement !== n && attempt < 10) setTimeout(retryFocus, 100, attempt + 1) }
-  })(0)
-  validateUrlInput()
-}
-// Validiert + normalisiert die Site-URL. Gibt null zurück, wenn ungültig —
-// verhindert, dass Schrott-Eingaben als Tab im Browser geöffnet werden.
+// ── Screen 1: Setup ─────────────────────────────────────────────────────────
 function normalizeUrl(raw) {
   let u = (raw || '').trim()
   if (!u) return null
   if (!/^https?:\/\//i.test(u)) u = 'https://' + u
   try {
-    const parsed = new URL(u)
-    if (!parsed.hostname || parsed.hostname.indexOf('.') === -1) return null
+    const p = new URL(u)
+    if (!p.hostname || p.hostname.indexOf('.') === -1) return null
     return u
   } catch (_) { return null }
 }
+function onNameInput() { validateUrlInput() }
 function validateUrlInput() {
-  const el = $('f-url'); const fb = $('url-feedback'); const btn = $('btn-create')
-  const v = (el.value || '').trim()
-  if (!v) { fb.textContent = ''; btn.disabled = true; return }
+  const urlEl  = $('f-url')
+  const icon   = $('url-icon')
+  const errEl  = $('url-err')
+  const btn    = $('btn-create')
+  const name   = ($('f-name').value || '').trim()
+  const v      = (urlEl.value || '').trim()
+
+  icon.style.display = 'none'
+  errEl.textContent = ''
+  errEl.classList.remove('vis')
+  btn.disabled = true
+
+  if (!v) return
   const ok = normalizeUrl(v)
-  if (ok) { fb.textContent = '✓ valid URL'; fb.style.color = '#15803d'; btn.disabled = false }
-  else { fb.textContent = '✗ needs a domain with a dot (e.g. mysite.com)'; fb.style.color = '#dc2626'; btn.disabled = true }
+  if (ok) {
+    icon.style.display = 'flex'
+    btn.disabled = false
+  } else {
+    errEl.textContent = 'Enter a valid URL with a domain (e.g. yoursite.com)'
+    errEl.classList.add('vis')
+  }
+}
+
+function newTest() {
+  state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
+  state.originalHtml = ''; state.goalCandidates = []
+  state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
+  $('f-name').value = ''; $('f-url').value = ''
+  $('url-icon').style.display = 'none'
+  $('url-err').textContent = ''; $('url-err').classList.remove('vis')
+  $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
+  $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
+  $('btn-el-next').disabled = true
+  $('btn-export').disabled = true
+  $('el-chip-wrap').innerHTML = ''
+  $('el-testid-val').textContent = '—'
+  hideUpgradeBanner()
+  navPush('setup')
+  populateDatalist('dl-url', 'url')
+  ;(function retry(n) {
+    var f = $('f-name')
+    if (f && document.activeElement !== f) { f.focus(); if (document.activeElement !== f && n < 10) setTimeout(retry, 100, n + 1) }
+  })(0)
+  validateUrlInput()
 }
 
 async function createTest() {
-  const name = $('f-name').value.trim()
-  const url = normalizeUrl($('f-url').value)
-  if (!name) { err('setup', 'Name is required.'); return }
-  if (!url) { err('setup', 'Please enter a valid URL, e.g. https://yoursite.com/pricing'); return }
-
-  $('l-setup').style.display = 'block'
+  const name = ($('f-name').value || '').trim()
+  const url  = normalizeUrl($('f-url').value)
+  if (!name) { err('setup', 'Test name is required.'); return }
+  if (!url)  { err('setup', 'Please enter a valid URL.'); return }
+  $('l-setup').style.display = 'flex'
   try {
     const res = await afetch(API + '/api/tests', {
       method: 'POST',
@@ -562,11 +1103,10 @@ async function createTest() {
       body: JSON.stringify({ name, site_url: url })
     })
     if (!res.ok) {
-      var errBody = {}
-      try { errBody = await res.json() } catch (_) {}
-      if (errBody.upgrade) {
-        showUpgradeBanner(errBody.message || 'Free plan allows 1 active experiment. Upgrade for unlimited tests.')
-        throw new Error(errBody.message || 'Free plan limit reached')
+      var eb = {}; try { eb = await res.json() } catch (_) {}
+      if (eb.upgrade) {
+        showUpgradeBanner(eb.message || 'Free plan allows 1 active experiment. Upgrade for unlimited.')
+        throw new Error(eb.message || 'Free plan limit reached')
       }
       throw new Error('API ' + res.status)
     }
@@ -576,7 +1116,7 @@ async function createTest() {
     state.snippetKey = data.snippet_key
     state.name = name; state.url = url
     saveInputHistory('url', url)
-    $('el-testid').textContent = data.id
+    $('el-testid-val').textContent = data.id
     navPush('element')
     startElementPoll()
     openSite('element')
@@ -587,7 +1127,7 @@ async function createTest() {
   }
 }
 
-// Opens the target site in the browser; mode 'element' (#ab_pick) or 'goal' (#ab_goal).
+// ── Site URL builder ─────────────────────────────────────────────────────────
 function siteTriggerUrl(mode) {
   if (!state.url) return ''
   const base = /^https?:\/\//i.test(state.url) ? state.url : 'https://' + state.url
@@ -596,7 +1136,7 @@ function siteTriggerUrl(mode) {
     '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
 }
 async function openSite(mode) {
-  const url = siteTriggerUrl(mode)
+  const url = siteTriggerUrl(mode || 'element')
   if (!url) { err(mode === 'goal' ? 'metric' : 'element', 'No site URL set.'); return }
   if (mode === 'goal') {
     try {
@@ -607,26 +1147,65 @@ async function openSite(mode) {
     } catch (_) {}
   }
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url } }, '*')
-  if (mode === 'goal') { $('m-waiting').style.display = 'block'; startMetricPoll() }
+  if (mode === 'goal') { $('m-waiting').style.display = 'flex'; startMetricPoll() }
+}
+function downloadExtension() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: API + '/chrome-extension.zip' } }, '*')
 }
 
-// --- Screen 2: Wait for capture + pick goal ---------------------------------
+// ── Screen 2: Element poll ───────────────────────────────────────────────────
+
+// Convert CSS selector + HTML → readable label {type, label}
+function makeElementLabel(selector, html) {
+  const TAG_NAMES = { button:'Button', a:'Link', h1:'Heading', h2:'Heading', h3:'Heading', h4:'Heading', h5:'Heading', p:'Paragraph', input:'Input', img:'Image', div:'Section', span:'Text', nav:'Navigation', header:'Header', section:'Section', form:'Form', textarea:'Textarea', select:'Select', li:'List item' }
+  if (html) {
+    try {
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      const el = doc.body.firstElementChild
+      if (el) {
+        const tag = el.tagName.toLowerCase()
+        const type = TAG_NAMES[tag] || cap(tag)
+        const text = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 40)
+        if (text) return { type, label: text }
+        const alt = el.getAttribute('alt') || el.getAttribute('placeholder') || el.getAttribute('aria-label') || el.getAttribute('title')
+        if (alt) return { type, label: alt }
+        return { type, label: selector.slice(0, 30) }
+      }
+    } catch (_) {}
+  }
+  // Fallback: parse selector
+  const tagM = selector.match(/^([a-zA-Z]+)/)
+  const idM  = selector.match(/#([\w-]+)/)
+  const clsM = selector.match(/\.([\w-]+)/)
+  const tag  = tagM ? tagM[1] : 'element'
+  const name = idM ? idM[1].replace(/-/g, ' ') : clsM ? clsM[1].replace(/-/g, ' ') : selector.slice(0, 30)
+  return { type: TAG_NAMES[tag] || cap(tag), label: name }
+}
+
+function renderElementChip(selector, html) {
+  const { type, label } = makeElementLabel(selector, html)
+  $('el-chip-wrap').innerHTML =
+    '<div class="el-chip"><span class="el-chip-type">' + escapeHtml(type) + '</span>' +
+    '<span style="opacity:.4">:</span>' +
+    '<span class="el-chip-text">' + escapeHtml(cap(label)) + '</span></div>'
+}
+
 function startElementPoll() {
   stopElementPoll()
-  let n = 0
-  dotTimer = setInterval(() => { n = (n + 1) % 4; $('el-dots').textContent = '.'.repeat(n) }, 500)
   const poll = async () => {
     try {
       const res = await afetch(API + '/api/tests/' + state.testId)
       if (res.ok) {
         const t = await res.json()
         if (t.selector) {
-          state.selector = t.selector
-          state.originalHtml = t.original_html || ''
+          state.selector      = t.selector
+          state.originalHtml  = t.original_html || ''
           state.goalCandidates = t.goal_candidates || []
-          $('el-selector').textContent = t.selector
+          $('el-testid-val').textContent = state.testId || '—'
+          renderElementChip(t.selector, state.originalHtml)
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
+          $('btn-el-next').disabled = false
           stopElementPoll()
         }
       }
@@ -636,12 +1215,14 @@ function startElementPoll() {
   elTimer = setInterval(poll, 5000)
 }
 function stopElementPoll() {
-  if (elTimer) { clearInterval(elTimer); elTimer = null }
+  if (elTimer)  { clearInterval(elTimer);  elTimer  = null }
   if (dotTimer) { clearInterval(dotTimer); dotTimer = null }
 }
 async function reselectElement() {
   $('el-done').style.display = 'none'
   $('el-waiting').style.display = 'block'
+  $('btn-el-next').disabled = true
+  $('el-chip-wrap').innerHTML = ''
   try {
     await afetch(API + '/api/tests/' + state.testId, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -654,7 +1235,23 @@ async function reselectElement() {
 }
 function goToDesign() { navPush('design'); requestSelection() }
 
-// --- Screen 3b: Conversion goal --------------------------------------------
+// ── Screen 3: Variant B in Figma ────────────────────────────────────────────
+function requestSelection() {
+  parent.postMessage({ pluginMessage: { type: 'GET_SELECTION' } }, '*')
+}
+function exportSelection() {
+  const btn = $('btn-export')
+  if (btn) btn.disabled = true
+  $('l-design').style.display = 'flex'
+  parent.postMessage({ pluginMessage: { type: 'EXPORT_SELECTION' } }, '*')
+}
+function reselectDesign() {
+  $('d-done').style.display = 'none'
+  $('d-waiting').style.display = 'block'
+  $('btn-export').disabled = true
+}
+
+// ── Screen 4: Conversion goal ────────────────────────────────────────────────
 function isClickable(html) {
   if (!html) return false
   try {
@@ -668,12 +1265,12 @@ function isClickable(html) {
     return false
   } catch (_) { return false }
 }
-function fillMetricDropdown(clickable) {
+
+function fillMetricDropdown() {
   const sel = $('m-goalsel')
   sel.innerHTML = ''
   const first = document.createElement('option')
-  if (clickable) { first.value = state.selector; first.textContent = 'The tested element (default)' }
-  else { first.value = ''; first.textContent = '— pick a goal —' }
+  first.value = ''; first.textContent = '— select an element —'
   sel.appendChild(first)
   ;(state.goalCandidates || []).forEach(c => {
     if (!c || !c.selector || c.selector === state.selector) return
@@ -683,47 +1280,108 @@ function fillMetricDropdown(clickable) {
     sel.appendChild(o)
   })
 }
-async function enterMetric() {
-  navPush('metric')
-  $('m-waiting').style.display = 'none'
-  let t = {}
-  try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
-  state.originalHtml = t.original_html || state.originalHtml
-  state.goalCandidates = t.goal_candidates || state.goalCandidates || []
-  const clickable = isClickable(state.originalHtml)
-  fillMetricDropdown(clickable)
-  if (clickable) {
-    state.goal = state.selector
-    $('m-current').textContent = 'Test element (default)'
-    $('m-sub').textContent = 'Optional: By default, a click on the tested element counts as a conversion.'
-    $('m-generate').disabled = false
+
+function updateGoalDisplay() {
+  const wrap = $('m-goal-display')
+  if (state.goal && state.goal !== state.selector) {
+    $('m-current').textContent = state.goal
+    wrap.style.display = 'block'
   } else {
-    state.goal = ''
-    $('m-current').textContent = '— not selected yet —'
-    $('m-sub').textContent = 'Required: For text elements, select a clickable goal (e.g. the button) whose clicks will be measured.'
-    $('m-generate').disabled = true
+    wrap.style.display = 'none'
   }
 }
-function onMetricSelect() {
-  const v = $('m-goalsel').value
-  if (!v) {
-    state.goal = ''
-    $('m-current').textContent = '— not selected yet —'
-    $('m-generate').disabled = true
-    return
-  }
-  state.goal = v
-  $('m-current').textContent = v
+
+function selectDefaultMetric() {
+  const clickable = isClickable(state.originalHtml)
+  if (!clickable) return
+  $('m-default-opt').classList.add('m-selected')
+  $('m-pick-opt').classList.remove('m-selected')
+  $('m-pick-wrap').style.display = 'none'
+  state.goal = state.selector
   $('m-generate').disabled = false
+  updateGoalDisplay()
+}
+
+function selectPickMetric() {
+  $('m-default-opt').classList.remove('m-selected')
+  $('m-pick-opt').classList.add('m-selected')
+  $('m-pick-wrap').style.display = 'block'
+  const v = $('m-goalsel').value || ''
+  state.goal = v
+  $('m-generate').disabled = !v
+  updateGoalDisplay()
+}
+
+function onMetricSelect() {
+  const v = $('m-goalsel').value || ''
+  state.goal = v
+  $('m-generate').disabled = !v
+  updateGoalDisplay()
+  if (v) {
+    afetch(API + '/api/tests/' + state.testId, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal: v })
+    }).catch(() => {})
+  }
+}
+
+function applyCustomSelector() {
+  const v = ($('m-custom-selector').value || '').trim()
+  if (!v) { err('metric', 'Enter a CSS selector.'); return }
+  state.goal = v
+  $('m-generate').disabled = false
+  $('m-current').textContent = v
+  $('m-goal-display').style.display = 'block'
   afetch(API + '/api/tests/' + state.testId, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ goal: v })
   }).catch(() => {})
 }
+
+function toggleAdvanced() {
+  const t = $('adv-toggle'), s = $('adv-section')
+  t.classList.toggle('open'); s.classList.toggle('open')
+}
+
+async function enterMetric() {
+  navPush('metric')
+  $('m-waiting').style.display = 'none'
+  $('m-goal-display').style.display = 'none'
+  let t = {}
+  try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
+  state.originalHtml   = t.original_html    || state.originalHtml
+  state.goalCandidates = t.goal_candidates  || state.goalCandidates || []
+
+  const clickable = isClickable(state.originalHtml)
+  const hasCandidates = (state.goalCandidates || []).filter(c => c && c.selector && c.selector !== state.selector).length > 0
+
+  fillMetricDropdown()
+
+  // Show candidates section if there are page elements OR if tested element is not clickable (must pick one)
+  $('m-candidates-section').style.display = (hasCandidates || !clickable) ? 'block' : 'none'
+
+  if (clickable) {
+    // Pre-select default
+    state.goal = state.selector
+    $('m-default-opt').classList.add('m-selected')
+    $('m-default-opt').classList.remove('m-disabled')
+    $('m-default-opt').style.opacity = ''
+    $('m-default-desc').textContent = 'Counts when a visitor clicks the tested element.'
+    $('m-generate').disabled = false
+  } else {
+    // Default unavailable — tested element is not clickable
+    state.goal = ''
+    $('m-default-opt').classList.remove('m-selected')
+    $('m-default-opt').classList.add('m-disabled')
+    $('m-default-desc').textContent = 'Not available — the tested element is not directly clickable (e.g., a heading or paragraph).'
+    $('m-hint').textContent = 'The tested element is not clickable. Pick a different conversion goal.'
+    $('m-generate').disabled = true
+    $('m-candidates-section').style.display = 'block'
+  }
+}
+
 function startMetricPoll() {
   stopMetricPoll()
-  let n = 0
-  mDotTimer = setInterval(() => { n = (n + 1) % 4; $('m-dots').textContent = '.'.repeat(n) }, 500)
   const poll = async () => {
     try {
       const res = await afetch(API + '/api/tests/' + state.testId)
@@ -731,9 +1389,10 @@ function startMetricPoll() {
         const t = await res.json()
         if (t.goal) {
           state.goal = t.goal
-          $('m-current').textContent = t.goal
-          $('m-generate').disabled = false
           $('m-waiting').style.display = 'none'
+          $('m-generate').disabled = false
+          $('m-current').textContent = t.goal
+          $('m-goal-display').style.display = 'block'
           stopMetricPoll()
         }
       }
@@ -743,7 +1402,7 @@ function startMetricPoll() {
   mTimer = setInterval(poll, 4000)
 }
 function stopMetricPoll() {
-  if (mTimer) { clearInterval(mTimer); mTimer = null }
+  if (mTimer)    { clearInterval(mTimer);    mTimer    = null }
   if (mDotTimer) { clearInterval(mDotTimer); mDotTimer = null }
 }
 function goGenerate() {
@@ -751,20 +1410,7 @@ function goGenerate() {
   navPush('generate'); generate()
 }
 
-// --- Screen 3: Export Variant B via Figma selection -------------------------
-function requestSelection() {
-  parent.postMessage({ pluginMessage: { type: 'GET_SELECTION' } }, '*')
-}
-function exportSelection() {
-  $('l-design').style.display = 'block'
-  parent.postMessage({ pluginMessage: { type: 'EXPORT_SELECTION' } }, '*')
-}
-function reselectDesign() {
-  $('d-done').style.display = 'none'
-  $('d-waiting').style.display = 'block'
-}
-
-// --- Screen 4: AI generation ------------------------------------------------
+// ── Screen 5: AI generation ──────────────────────────────────────────────────
 function getScope() { const el = $('gen-scope'); return el ? el.value : 'all' }
 
 function fillPreviews(html) {
@@ -774,7 +1420,8 @@ function fillPreviews(html) {
 
 async function generate() {
   $('gen-result').style.display = 'none'
-  $('l-generate').style.display = 'block'
+  $('gen-ftr').style.display = 'none'
+  $('l-generate').style.display = 'flex'
   hideUpgradeBanner()
   try {
     const res = await afetch(API + '/api/generate', {
@@ -783,21 +1430,21 @@ async function generate() {
       body: JSON.stringify({ testId: state.testId, screenshot: state.screenshot, frameContent: state.frameContent, scope: getScope() })
     })
     if (!res.ok) {
-      var errBody = {}
-      try { errBody = await res.json() } catch (_) {}
-      if (errBody.upgrade) {
-        showUpgradeBanner(errBody.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
-        throw new Error(errBody.message || 'Generation limit reached')
+      var eb = {}; try { eb = await res.json() } catch (_) {}
+      if (eb.upgrade) {
+        showUpgradeBanner(eb.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
+        throw new Error(eb.message || 'Generation limit reached')
       }
       throw new Error('Generation failed (' + res.status + ')')
     }
     const data = await res.json()
     state.html = data.html
-    $('gen-ref').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div class="muted">—</div>'
-    $('gen-ref-dark').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div class="muted">—</div>'
+    $('gen-ref').innerHTML      = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
+    $('gen-ref-dark').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
+    $('gen-ftr').style.display = 'block'
   } catch (e) {
     err('generate', e.message)
   } finally {
@@ -805,25 +1452,24 @@ async function generate() {
   }
 }
 
-// Iterative Verfeinerung: zweiter DeepSeek-Call mit dem bisherigen Output als Kontext.
 async function refine() {
   const feedback = ($('gen-feedback').value || '').trim()
-  if (!feedback) { err('generate', 'Please describe what should be changed.'); return }
+  if (!feedback) { err('generate', 'Describe what should change.'); return }
   $('gen-result').style.display = 'none'
-  $('l-generate').style.display = 'block'
+  $('gen-ftr').style.display = 'none'
+  $('l-generate').style.display = 'flex'
   hideUpgradeBanner()
   try {
     const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ testId: state.testId, frameContent: state.frameContent, feedback: feedback, previousHtml: state.html, scope: getScope() })
+      body: JSON.stringify({ testId: state.testId, frameContent: state.frameContent, feedback, previousHtml: state.html, scope: getScope() })
     })
     if (!res.ok) {
-      var errBody = {}
-      try { errBody = await res.json() } catch (_) {}
-      if (errBody.upgrade) {
-        showUpgradeBanner(errBody.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
-        throw new Error(errBody.message || 'Generation limit reached')
+      var eb = {}; try { eb = await res.json() } catch (_) {}
+      if (eb.upgrade) {
+        showUpgradeBanner(eb.message || 'Generation limit reached.')
+        throw new Error(eb.message || 'Generation limit reached')
       }
       throw new Error('Refine failed (' + res.status + ')')
     }
@@ -833,6 +1479,7 @@ async function refine() {
     $('gen-html').textContent = state.html || ''
     $('gen-feedback').value = ''
     $('gen-result').style.display = 'block'
+    $('gen-ftr').style.display = 'block'
   } catch (e) {
     err('generate', e.message)
   } finally {
@@ -840,19 +1487,39 @@ async function refine() {
   }
 }
 
-// --- Screen 5: Build universal snippet --------------------------------------
+// ── Screen 6: Snippet ────────────────────────────────────────────────────────
 function buildSnippet() {
   const code =
-    '<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->\n' +
+    '<!-- variante A/B — paste in <head> on every page -->\n' +
     '<link rel="preconnect" href="' + API + '">\n' +
     '<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n' +
     '<script>document.documentElement.classList.add("__ab_pending");' +
-    '(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n' +
+    '(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();' +
+    'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n' +
     '<script async src="' + API + '/ab.js"><\/script>'
   $('snippet-code').textContent = code
 }
+function copySnippet() {
+  const text = $('snippet-code').textContent
+  const ta = document.createElement('textarea')
+  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
+  document.body.appendChild(ta); ta.focus(); ta.select()
+  try { document.execCommand('copy') } catch (_) {}
+  document.body.removeChild(ta)
+  const c = $('cp-snippet'); c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
+}
+// kept for backward compat with any existing calls
+function copyEl(id) {
+  if (id === 'snippet-code') { copySnippet(); return }
+  const text = $(id).textContent
+  const ta = document.createElement('textarea')
+  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
+  document.body.appendChild(ta); ta.focus(); ta.select()
+  try { document.execCommand('copy') } catch (_) {}
+  document.body.removeChild(ta)
+}
 
-// --- Screen 6: Poll results -------------------------------------------------
+// ── Results ──────────────────────────────────────────────────────────────────
 function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '—' }
 function startResults() {
   const poll = async () => {
@@ -860,13 +1527,15 @@ function startResults() {
       const res = await afetch(API + '/api/tests/' + state.testId)
       if (!res.ok) return
       const t = await res.json()
-      $('res-va').textContent = t.visitors_a || 0
-      $('res-vb').textContent = t.visitors_b || 0
-      $('res-ca').textContent = t.conversions_a || 0
-      $('res-cb').textContent = t.conversions_b || 0
+      $('res-va').textContent  = t.visitors_a    || 0
+      $('res-vb').textContent  = t.visitors_b    || 0
+      $('res-ca').textContent  = t.conversions_a || 0
+      $('res-cb').textContent  = t.conversions_b || 0
       $('res-cra').textContent = pct(t.visitors_a || 0, t.conversions_a || 0)
       $('res-crb').textContent = pct(t.visitors_b || 0, t.conversions_b || 0)
-      $('res-sig').textContent = Math.round((t.significance || 0) * 100) + '%'
+      const sigPct = Math.round((t.significance || 0) * 100)
+      $('res-sig').textContent = sigPct + '%'
+      $('res-sig-fill').style.width = Math.min(sigPct, 100) + '%'
 
       const hasWinner = t.status === 'done' && !!t.winner
       $('res-winner').style.display = hasWinner ? 'block' : 'none'
@@ -876,15 +1545,14 @@ function startResults() {
       $('res-nodata').style.display = noData ? 'block' : 'none'
       $('res-status').textContent = t.status
 
-      // Preview A/B — jede Variante auf weißem + schwarzem Grund
-      const css = t.site_css ? '<style>' + t.site_css + '</style>' : ''
-      const hasA = !!t.original_html
-      const hasB = !!t.variant_b_html
-      ;['a', 'b'].forEach(function(k) {
+      const css   = t.site_css ? '<style>' + t.site_css + '</style>' : ''
+      const hasA  = !!t.original_html
+      const hasB  = !!t.variant_b_html
+      ;['a','b'].forEach(k => {
         const html = k === 'a' ? t.original_html : t.variant_b_html
-        const has = k === 'a' ? hasA : hasB
-        $('res-preview-' + k + '-white').innerHTML = has ? css + html : '<span class="muted">—</span>'
-        $('res-preview-' + k + '-black').innerHTML = has ? css + html : '<span class="muted">—</span>'
+        const has  = k === 'a' ? hasA : hasB
+        $('res-preview-' + k + '-white').innerHTML = has ? css + html : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
+        $('res-preview-' + k + '-black').innerHTML = has ? css + html : '<span style="font-size:11px;color:#888">—</span>'
       })
       $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'
     } catch (_) {}
@@ -892,14 +1560,34 @@ function startResults() {
   poll()
   resTimer = setInterval(poll, 30000)
 }
-function stopResultsPoll() {
-  if (resTimer) { clearInterval(resTimer); resTimer = null }
+function stopResultsPoll() { if (resTimer) { clearInterval(resTimer); resTimer = null } }
+
+// ── Toggle pause / delete ────────────────────────────────────────────────────
+function togglePause(id, currentStatus) {
+  const next = currentStatus === 'paused' ? 'active' : 'paused'
+  afetch(API + '/api/tests/' + id, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: next })
+  })
+    .then(r => { if (!r.ok) throw new Error('API ' + r.status); showDashboard() })
+    .catch(e => err('dashboard', 'Error: ' + (e.message || e)))
+}
+async function deleteTest(id) {
+  if (!confirm('Delete this test?')) return
+  try {
+    const res = await afetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
+    if (!res.ok) throw new Error('API ' + res.status)
+    showDashboard()
+  } catch (e) {
+    err('dashboard', 'Error: ' + (e.message || e))
+  }
 }
 
-// --- Messages from code.ts --------------------------------------------------
+// ── Messages from code.ts ────────────────────────────────────────────────────
 window.onmessage = (event) => {
   const msg = event.data.pluginMessage
   if (!msg) return
+
   if (msg.type === 'TOKEN') {
     tokenReceived = true
     API_TOKEN = msg.token || ''
@@ -907,58 +1595,49 @@ window.onmessage = (event) => {
     else go('connect')
     return
   }
+
   if (msg.type === 'SELECTION') {
     const s = msg.selection || { count: 0 }
     const valid = s.count === 1 && s.exportable
+    const exportBtn = $('btn-export')
     if (valid) {
       $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
       $('d-waiting').style.display = 'none'
       $('d-done').style.display = 'block'
+      if (exportBtn) exportBtn.disabled = false
     } else {
       let hint = ''
-      if (s.count > 1) hint = '(' + s.count + ' selected — please pick exactly one)'
-      else if (s.count === 1 && !s.exportable) hint = '(not exportable)'
-      $('d-info').textContent = hint
+      if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
+      else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
+      $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
       $('d-waiting').style.display = 'block'
       $('d-done').style.display = 'none'
+      if (exportBtn) exportBtn.disabled = true
     }
+    return
   }
+
   if (msg.type === 'FRAME_PNG') {
-    state.screenshot = msg.base64
+    state.screenshot  = msg.base64
     state.frameContent = msg.content || null
     $('l-design').style.display = 'none'
+    const exportBtn = $('btn-export')
+    if (exportBtn) exportBtn.disabled = false
     enterMetric()
+    return
   }
+
   if (msg.type === 'ERROR') {
     $('l-design').style.display = 'none'
+    const exportBtn = $('btn-export')
+    if (exportBtn) exportBtn.disabled = false
     err('design', msg.message)
+    return
   }
 }
 
-// Toggle Pause/Resume and Delete from dashboard
-function togglePause(id, currentStatus) {
-  const newStatus = currentStatus === 'paused' ? 'active' : 'paused'
-  afetch(API + '/api/tests/' + id, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: newStatus })
-  })
-    .then(r => { if (!r.ok) throw new Error('API ' + r.status); showDashboard() })
-    .catch(e => err('dashboard', 'Error updating: ' + (e.message || e)))
-}
-
-async function deleteTest(id) {
-  if (!confirm('Really delete this test?')) return
-  try {
-    const res = await afetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
-    if (!res.ok) throw new Error('API ' + res.status)
-    showDashboard()
-  } catch (e) {
-    err('dashboard', 'Error deleting: ' + (e.message || e))
-  }
-}
-
-// Boot: auf den Token von code.ts warten; Fallback → Connect-Screen.
-setTimeout(function () { if (!tokenReceived) go('connect') }, 1500)
+// Boot: wait for token from code.ts; fallback → Connect screen after 1.5s
+setTimeout(function() { if (!tokenReceived) go('connect') }, 1500)
 </script>
 </body>
 </html>

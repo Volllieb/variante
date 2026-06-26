@@ -143,6 +143,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 26.06.2026 | **Figma-Plugin UI-Redesign:** Figma-natives Design System (Inter, #0D99FF, Figma CSS-Tokens). Fester Footer mit primärem CTA (disabled bis Voraussetzung erfüllt). Back-Button als reines Chevron-Icon. 6-Screen-Progress-Bar. URL-Feld: nur Checkmark-Icon bei Valid, kein Text. Element-Screen: lesbares Label `[Typ]: [Beschriftung]` statt CSS-Selektor, Test-ID sichtbar. Screen 3 CTA umbenannt zu „Weiter zur Metrik →". Metrik-Screen: Standard-Metrik prominent als Radio-Option, Advanced Settings (Chrome-Picker + Custom Selector) ausklappbar, keine rohe HTML-Struktur. |
 | 26.06.2026 | **Figma-Plugin AI-Generierung:** Vier-Fenster-Layout statt drei — Figma auf weiß + schwarz, Variant B auf weiß + schwarz. `gen-ref-dark` neu, `gen-preview` entfernt (war doppelt auf weiß). |
 | 26.06.2026 | **Ponytail-Review:** `'use client'` aus VariantPreview entfernt (Server Component). Leere Grid-Spalte gefixt (jede Vorschau einzeln bedingt rendern). PROJEKT.md §3 aktualisiert. |
 | 26.06.2026 | **Variant-Preview im Dashboard:** Results-Seite zeigt jetzt Preview-Ansicht beider Varianten (Original + B) als Miniatur-iframe nebeneinander unter den Statistiken. `getExperimentStats` liefert `originalHtml`/`variantBHtml`/`siteCss`. Neue Komponente `VariantPreview.tsx`. |
