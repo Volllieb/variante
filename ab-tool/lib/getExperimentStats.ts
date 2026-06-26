@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabase'
 import { determineWinner } from '@/lib/significance'
 
+// ponytail: original_html/variant_b_html/site_css werden mitgeliefert
+// für die Preview-Komponente auf der Results-Seite. Kein Extra-Request nötig.
+
 export type VariantStats = {
   id: string
   label: string
