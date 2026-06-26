@@ -8,11 +8,13 @@ export function OnboardingClient({
   apiToken,
   plan,
   source,
+  upgraded,
 }: {
   email: string
   apiToken: string
   plan: string
   source: string
+  upgraded?: boolean
 }) {
   const router = useRouter()
   const [tokenCopied, setTokenCopied] = useState(false)
@@ -39,6 +41,12 @@ export function OnboardingClient({
 
   return (
     <div className="mx-auto max-w-xl px-6 py-16">
+      {upgraded && (
+        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800 text-center">
+          🎉 You&apos;re now on <strong>Pro</strong> — welcome to unlimited experiments, full statistics, and no badge.
+        </div>
+      )}
+
       {/* ── Section 1: Welcome ── */}
       <div className="mb-10 text-center">
         <h1 className="text-3xl font-bold tracking-tight">You&apos;re all set!</h1>

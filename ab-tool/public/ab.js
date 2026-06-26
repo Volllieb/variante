@@ -165,10 +165,13 @@
       // Goal-Selektor nach B-Tausch IMMER auf data-ab-el umstellen, damit
       // auch abweichende Goal-Selektoren (z. B. Button in getestetem Container)
       // nach dem outerHTML-Tausch noch matchen.
-      var gsel = goalSel
-      if (variant === 'B' && applied) {
-        gsel = '[data-ab-el="' + key + '"]'
-      }
+      // IMMER data-ab-el für B verwenden — nicht nur wenn applyDom erfolgreich war.
+      // Der MutationObserver kann nach applyDom reobserve() triggern, active leeren
+      // und finish erneut aufrufen. Dann ist das Original-Element bereits weg und
+      // applyDom schlägt fehl, aber data-ab-el steckt noch im DOM vom ersten Durchlauf.
+      // Ohne diesen Guard würde der originale CSS-Selektor als goalSel dienen, der
+      // auf dem KI-generierten B-HTML nicht matched → 0 Conversions für B.
+      var gsel = variant === 'B' ? '[data-ab-el="' + key + '"]' : goalSel
       active.push({ key: key, variant: variant, goalSel: gsel })
     }
 

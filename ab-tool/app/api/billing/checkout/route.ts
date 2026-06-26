@@ -37,8 +37,8 @@ export async function POST() {
     mode: 'subscription',
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${SITE_URL}/dashboard?upgraded=1`,
-    cancel_url: `${SITE_URL}/dashboard`,
+    success_url: `${SITE_URL}/onboarding?upgraded=1`,
+    cancel_url: `${SITE_URL}/signup`,
     client_reference_id: user.id,
   })
 

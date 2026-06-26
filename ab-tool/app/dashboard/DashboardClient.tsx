@@ -20,11 +20,13 @@ export function DashboardClient({
   plan,
   apiToken,
   tests,
+  upgraded,
 }: {
   email: string
   plan: string
   apiToken: string
   tests: TestRow[]
+  upgraded?: boolean
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -59,6 +61,12 @@ export function DashboardClient({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
+      {upgraded && (
+        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800">
+          🎉 You&apos;re now on <strong>Pro</strong> — unlimited experiments, full statistics, no badge.
+        </div>
+      )}
+
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>

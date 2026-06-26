@@ -9,6 +9,7 @@ export default async function OnboardingPage(props: { searchParams: Promise<Reco
 
   const searchParams = await props.searchParams
   const source = searchParams.source || ''
+  const upgraded = searchParams.upgraded === '1'
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -22,6 +23,7 @@ export default async function OnboardingPage(props: { searchParams: Promise<Reco
       apiToken={profile?.api_token ?? ''}
       plan={profile?.plan ?? 'free'}
       source={source}
+      upgraded={upgraded}
     />
   )
 }

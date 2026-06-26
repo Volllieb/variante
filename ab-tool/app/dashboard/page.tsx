@@ -3,9 +3,12 @@ import { supabase } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './DashboardClient'
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
   const user = await getSessionUser()
   if (!user) redirect('/login')
+
+  const searchParams = await props.searchParams
+  const upgraded = searchParams.upgraded === '1'
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -25,6 +28,7 @@ export default async function DashboardPage() {
       plan={profile?.plan ?? 'free'}
       apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
+      upgraded={upgraded}
     />
   )
 }

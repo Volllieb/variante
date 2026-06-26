@@ -290,7 +290,9 @@ function saveToken() {
   if (!v) { err('connect', 'Please paste your token.'); return }
   API_TOKEN = v
   parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
-  showDashboard()
+  const btn = document.querySelector('#c-token .btn-primary')
+  if (btn) { btn.textContent = '✅ Connected!'; btn.disabled = true }
+  setTimeout(showDashboard, 1200)
 }
 
 function $(id) { return document.getElementById(id) }
