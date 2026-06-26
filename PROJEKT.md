@@ -143,7 +143,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
-| 26.06.2026 | **Figma-Plugin Preview:** Ergebnisse-Screen zeigt A/B-Vorschau nebeneinander. Nutzt `original_html`/`variant_b_html`/`site_css` aus der API. Gleiches Pattern wie Web-Dashboard. |
+| 26.06.2026 | **Figma-Plugin AI-Generierung:** Vier-Fenster-Layout statt drei — Figma auf weiß + schwarz, Variant B auf weiß + schwarz. `gen-ref-dark` neu, `gen-preview` entfernt (war doppelt auf weiß). |
 | 26.06.2026 | **Ponytail-Review:** `'use client'` aus VariantPreview entfernt (Server Component). Leere Grid-Spalte gefixt (jede Vorschau einzeln bedingt rendern). PROJEKT.md §3 aktualisiert. |
 | 26.06.2026 | **Variant-Preview im Dashboard:** Results-Seite zeigt jetzt Preview-Ansicht beider Varianten (Original + B) als Miniatur-iframe nebeneinander unter den Statistiken. `getExperimentStats` liefert `originalHtml`/`variantBHtml`/`siteCss`. Neue Komponente `VariantPreview.tsx`. |
 | 26.06.2026 | **Anti-Flicker fix:** 3 Probleme — (1) 3000ms-Fallback zu kurz für langsame Netze → 10000ms. (2) Kein early Connection-Hint → `preconnect` ins Snippet. (3) Blindes Timeout revealed bevor ab.js fertig → **Polling auf `window.__ab_pending_resolve`**: Inline-Script wartet auf reveal()-Signal von ab.js, 10s-Hard-Ceiling als Netz. Alle Snippet-Templates (Dashboard, Figma-Plugin, ab-spike) aktualisiert. |
