@@ -311,9 +311,9 @@
 </div>
 
 <script>
-;['keydown','keyup','keypress'].forEach(function(ev){
-  window.addEventListener(ev,function(e){e.stopPropagation()},true)
-})
+/* ponytail: removed global keydown/keyup/keypress stopPropagation (capture mode) —
+   blockierte Tastatureingaben in Input-Feldern, weil Events nie das Ziel erreichten.
+   Figma-Host-Frame wird durch stopPropagation im iFrame ohnehin nicht beeinflusst. */
 const API = 'https://www.getvariante.com'
 const state = { testId: '', snippetKey: '', name: '', url: '', goal: '', selector: '', originalHtml: '', goalCandidates: [], frameId: '', screenshot: '', frameContent: null, html: '' }
 let elTimer = null, resTimer = null, dotTimer = null, mTimer = null, mDotTimer = null
