@@ -31,6 +31,7 @@ export default function RootLayout({
         {/* AB-Testing V2.1 — universeller Snippet (auf jeder Seite identisch).
             Anti-Flicker versteckt die Seite, bis ab.js die aktive Variante auflöst.
             Selektor & Ziel kommen serverseitig über /api/resolve. */}
+        <link rel="preconnect" href="https://ab-tool-pied.vercel.app" />
         <style
           id="__ab_hide"
           dangerouslySetInnerHTML={{ __html: `html.__ab_pending{opacity:0!important}` }}
@@ -39,7 +40,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html:
               `document.documentElement.classList.add("__ab_pending");` +
-              `setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)`,
+              `(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();` +
+              `setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)`,
           }}
         />
         <script async src="https://ab-tool-pied.vercel.app/ab.js" />

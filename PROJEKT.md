@@ -143,6 +143,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 26.06.2026 | **Anti-Flicker fix:** 3 Probleme — (1) 3000ms-Fallback zu kurz für langsame Netze → 10000ms. (2) Kein early Connection-Hint → `preconnect` ins Snippet. (3) Blindes Timeout revealed bevor ab.js fertig → **Polling auf `window.__ab_pending_resolve`**: Inline-Script wartet auf reveal()-Signal von ab.js, 10s-Hard-Ceiling als Netz. Alle Snippet-Templates (Dashboard, Figma-Plugin, ab-spike) aktualisiert. |
 | 25.06.2026 | Landingpage für getvariante.com gebaut (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify/Waitlist). Privacy-/Imprint-Seiten, Waitlist-API, SQL-Migration 006. `lib/supabase.ts` auf Proxy umgestellt (lazy init für Build ohne Env-Vars). Domain-Verweis auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | **Deployment** — Landingpage auf `www.getvariante.com` deployed (Vercel `vercel deploy --prod`). Root `getvariante.com` redirectet auf `www`. Landingpage, Privacy, Imprint alle 200. |
 | 25.06.2026 | Figma-Plugin "Failed to Fetch" final fix: `Authorization` fehlte in CORS-Allow-Headers → Preflight blockte alle authentifizierten Requests. + openDashboard URL auf www.getvariante.com vereinheitlicht. |

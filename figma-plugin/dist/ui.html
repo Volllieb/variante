@@ -639,9 +639,10 @@ async function refine() {
 function buildSnippet() {
   const code =
     '<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->\n' +
+    '<link rel="preconnect" href="' + API + '">\n' +
     '<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n' +
     '<script>document.documentElement.classList.add("__ab_pending");' +
-    'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},3000)<\/script>\n' +
+    '(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n' +
     '<script async src="' + API + '/ab.js"><\/script>'
   $('snippet-code').textContent = code
 }

@@ -142,7 +142,7 @@ export default async function HomePage({
       </header>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden py-24 sm:py-32">
+      <section id="main-content" className="relative overflow-hidden py-24 sm:py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-violet-50 to-background" />
         <div aria-hidden="true" className="absolute left-1/2 top-0 -translate-x-1/2">
           <div className="h-[500px] w-[500px] rounded-full bg-violet-200/40 blur-3xl sm:h-[700px] sm:w-[700px]" />
@@ -160,7 +160,7 @@ export default async function HomePage({
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="group">
               <a href="#notify">
                 Install Figma Plugin
                 <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -180,7 +180,7 @@ export default async function HomePage({
       </section>
 
       {/* ── How It Works ── */}
-      <section className="bg-muted/50 py-20">
+      <section id="how-it-works" className="scroll-mt-20 bg-muted/50 py-20">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-3xl font-bold text-foreground">
             How it works
@@ -192,9 +192,9 @@ export default async function HomePage({
           <div className="mt-16 flex flex-col items-center gap-8 md:flex-row md:gap-0">
             {steps.map((s, i) => (
               <div key={s.title} className="flex w-full items-center md:flex-1">
-                <Card className="w-full transition-shadow hover:shadow-md">
+                <Card className="w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
                   <CardContent className="p-6">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 transition-transform duration-200 group-hover:scale-110">
                       <s.icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground">{s.title}</h3>
@@ -219,7 +219,7 @@ export default async function HomePage({
       </section>
 
       {/* ── Use Cases ── */}
-      <section className="bg-violet-50 py-20">
+      <section id="use-cases" className="scroll-mt-20 bg-violet-50 py-20">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-3xl font-bold text-foreground">
             For whom is this?
@@ -230,7 +230,7 @@ export default async function HomePage({
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {useCases.map((uc) => (
-              <Card key={uc.title} className="p-6 transition-shadow hover:shadow-md">
+              <Card key={uc.title} className="p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                   <uc.icon className="h-5 w-5 text-primary" />
                 </div>
@@ -244,7 +244,7 @@ export default async function HomePage({
       </section>
 
       {/* ── Pricing ── */}
-      <section className="bg-background py-20">
+      <section id="pricing" className="scroll-mt-20 bg-background py-20">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-3xl font-bold text-foreground">
             Pricing
@@ -257,7 +257,7 @@ export default async function HomePage({
             {tiers.map((tier) => (
               <Card
                 key={tier.name}
-                className={`relative flex flex-col p-8 ${tier.recommended ? 'border-primary shadow-md' : ''}`}
+                className={`relative flex flex-col p-8 transition-all duration-200 hover:-translate-y-1 ${tier.recommended ? 'border-primary shadow-md' : 'hover:shadow-md'}`}
               >
                 {tier.recommended && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1">
@@ -335,6 +335,16 @@ export default async function HomePage({
           </div>
         </div>
       </footer>
+
+      {/* ── Floating CTA ── */}
+      <Link
+        href="#notify"
+        className="fixed bottom-6 right-6 z-40 hidden h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 sm:flex"
+        aria-label="Install Figma Plugin"
+      >
+        Install plugin
+        <ArrowRight className="h-4 w-4" />
+      </Link>
     </>
   )
 }

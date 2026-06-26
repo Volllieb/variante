@@ -27,6 +27,7 @@
 
   // Anti-Flicker: Klasse auf <html> entfernen (vom Snippet gesetzt). Idempotent.
   function reveal() {
+    window.__ab_pending_resolve = true // inline fallback: hör auf zu polln
     try {
       document.documentElement.classList.remove('__ab_pending')
     } catch (_) {}
