@@ -9,6 +9,13 @@
   --brand-hover:    #0B87E0;
   --brand-subtle:   rgba(13,153,255,.08);
   --brand-border:   rgba(13,153,255,.25);
+  /* Halbtransparente Status-Farben: funktionieren auf Light- UND Dark-Canvas */
+  --ok:             #14AE5C;
+  --ok-subtle:      rgba(20,174,92,.10);
+  --ok-border:      rgba(20,174,92,.30);
+  --warn:           #B36B00;
+  --warn-subtle:    rgba(245,158,11,.14);
+  --warn-border:    rgba(245,158,11,.35);
   --r:   6px;
   --rsm: 4px;
 }
@@ -92,31 +99,61 @@ body {
 .section-gap { height: 12px; }
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
+/* Figma-natives Feld: grauer Fill, kein Ruhe-Border. Border erst bei Fokus. */
 input, select, textarea {
   width: 100%; padding: 7px 9px;
-  border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  border: 1px solid transparent; border-radius: var(--r);
   font-size: 12px; font-family: inherit;
-  color: var(--figma-color-text); background: var(--figma-color-bg);
-  outline: none; transition: border-color .15s, box-shadow .15s;
+  color: var(--figma-color-text); background: var(--figma-color-bg-secondary);
+  outline: none; transition: border-color .15s, box-shadow .15s, background .15s;
 }
+input:hover, select:hover, textarea:hover { border-color: var(--figma-color-border); }
 input:focus, select:focus, textarea:focus {
   border-color: var(--brand);
+  background: var(--figma-color-bg);
   box-shadow: 0 0 0 2px var(--brand-subtle);
 }
 textarea { resize: vertical; }
 
 .input-wrap { position: relative; margin-bottom: 4px; }
+/* Rechtes Icon (z.B. Validierungs-Checkmark) */
 .input-wrap input { padding-right: 30px; }
 .input-icon {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   pointer-events: none; display: none;
 }
+/* Linkes Prefix-Icon (Figma W/H-Feld-Stil) */
+.input-wrap.has-prefix input { padding-left: 30px; }
+.input-icon-left {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; display: flex;
+  color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary));
+}
 
 .field-err {
-  font-size: 11px; color: #dc2626;
+  font-size: 11px; color: var(--figma-color-text-danger, #dc2626);
   min-height: 15px; display: none; padding: 2px 0 8px;
 }
 .field-err.vis { display: block; }
+
+/* ── Segmented control (Figma-Toggle-Leiste) ───────────────────────────────── */
+.seg {
+  display: flex; gap: 2px; padding: 2px;
+  background: var(--figma-color-bg-secondary);
+  border-radius: var(--r);
+}
+.seg-btn {
+  flex: 1; padding: 5px 6px; border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 11px; font-weight: 500;
+  color: var(--figma-color-text-secondary);
+  border-radius: var(--rsm); transition: background .12s, color .12s;
+}
+.seg-btn:hover { color: var(--figma-color-text); }
+.seg-btn.on {
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,.12);
+}
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
@@ -145,10 +182,9 @@ textarea { resize: vertical; }
 .btn-secondary:hover { background: var(--figma-color-bg-hover); }
 .btn-sm { width: auto; padding: 5px 10px; font-size: 11px; }
 
-/* ── Info card ───────────────────────────────────────────────────────────── */
+/* ── Info card → Figma-Property-Row (Fill, kein Border) ────────────────────── */
 .card {
   background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
   border-radius: var(--r); padding: 9px 11px; margin-bottom: 10px;
 }
 .card-lbl {
@@ -161,14 +197,12 @@ textarea { resize: vertical; }
 .notice {
   border-radius: var(--r); padding: 9px 11px; margin-bottom: 12px;
 }
-.notice-blue { background: #eff6ff; border: 1px solid #bfdbfe; }
-.notice-green { background: #f0fdf4; border: 1px solid #86efac; }
+.notice-blue { background: var(--brand-subtle); border: 1px solid var(--brand-border); }
+.notice-green { background: var(--ok-subtle); border: 1px solid var(--ok-border); }
 .notice-title { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
-.notice-blue .notice-title { color: #1d4ed8; }
-.notice-green .notice-title { color: #15803d; }
-.notice-body { font-size: 11px; line-height: 1.5; margin-bottom: 8px; }
-.notice-blue .notice-body { color: #3b5fa0; }
-.notice-green .notice-body { color: #166534; }
+.notice-blue .notice-title { color: var(--brand); }
+.notice-green .notice-title { color: var(--figma-color-text-success, var(--ok)); }
+.notice-body { font-size: 11px; line-height: 1.5; margin-bottom: 8px; color: var(--figma-color-text-secondary); }
 
 /* ── Element chip ────────────────────────────────────────────────────────── */
 .el-chip {
@@ -192,7 +226,6 @@ textarea { resize: vertical; }
 .testid-row {
   display: flex; align-items: center; gap: 7px;
   background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
   border-radius: var(--r); padding: 6px 10px; margin-bottom: 12px;
 }
 .testid-lbl {
@@ -271,12 +304,12 @@ textarea { resize: vertical; }
   display: inline-flex; align-items: center;
   padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
 }
-.ba { background: #dbeafe; color: #1d4ed8; }
-.bb { background: #dcfce7; color: #15803d; }
+.ba { background: var(--brand-subtle); color: var(--brand); }
+.bb { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
 .bs-draft   { background: var(--figma-color-bg-secondary); color: var(--figma-color-text-secondary); border: 1px solid var(--figma-color-border); }
-.bs-active  { background: #dbeafe; color: #1d4ed8; }
-.bs-done    { background: #dcfce7; color: #15803d; }
-.bs-paused  { background: #fef3c7; color: #92400e; }
+.bs-active  { background: var(--brand-subtle); color: var(--brand); }
+.bs-done    { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
+.bs-paused  { background: var(--warn-subtle); color: var(--figma-color-text-warning, var(--warn)); }
 
 /* ── Code pre ────────────────────────────────────────────────────────────── */
 pre {
@@ -296,17 +329,17 @@ code {
 /* ── Upgrade banner ──────────────────────────────────────────────────────── */
 .upgrade-banner {
   display: none;
-  background: #fef3c7; border: 1px solid #f59e0b;
+  background: var(--warn-subtle); border: 1px solid var(--warn-border);
   border-radius: var(--r); padding: 11px; margin-bottom: 12px; text-align: center;
 }
-.ub-title { font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 4px; }
-.ub-sub   { font-size: 11px; color: #92400e; margin-bottom: 10px; }
+.ub-title { font-size: 13px; font-weight: 700; color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 4px; }
+.ub-sub   { font-size: 11px; color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 10px; }
 .btn-upgrade {
-  background: #f59e0b; color: #fff; padding: 7px 14px;
+  background: #F5A623; color: #fff; padding: 7px 14px;
   border-radius: var(--r); font-size: 12px; font-weight: 600;
   cursor: pointer; border: none;
 }
-.btn-upgrade:hover { background: #d97706; }
+.btn-upgrade:hover { background: #DB8E0A; }
 
 /* ── Winner ──────────────────────────────────────────────────────────────── */
 .winner {
@@ -354,8 +387,8 @@ code {
 .frame img, .frame-dark img { max-width: 100%; display: block; }
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
-.err { color: #dc2626; font-size: 11px; min-height: 15px; padding: 3px 0; }
-.ok  { color: #15803d; font-size: 11px; padding: 3px 0; }
+.err { color: var(--figma-color-text-danger, #dc2626); font-size: 11px; min-height: 15px; padding: 3px 0; }
+.ok  { color: var(--figma-color-text-success, var(--ok)); font-size: 11px; padding: 3px 0; }
 .copy-ok { display: none; }
 .copy-ok.vis { display: inline; }
 
@@ -494,7 +527,13 @@ code {
     <input id="f-name" placeholder="e.g. Hero CTA" oninput="onNameInput()" style="margin-bottom:12px"/>
 
     <span class="lbl">Site URL</span>
-    <div class="input-wrap" style="margin-bottom:0">
+    <div class="input-wrap has-prefix" style="margin-bottom:0">
+      <div class="input-icon-left">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.1"/>
+          <path d="M1.5 7h11M7 1.5c1.6 1.5 2.4 3.4 2.4 5.5S8.6 11 7 12.5C5.4 11 4.6 9.1 4.6 7S5.4 3 7 1.5z" stroke="currentColor" stroke-width="1.1"/>
+        </svg>
+      </div>
       <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url"/>
       <datalist id="dl-url"></datalist>
       <div class="input-icon" id="url-icon">
@@ -692,7 +731,14 @@ code {
       <div class="adv-group">
         <div class="adv-group-title">Custom CSS selector</div>
         <div class="adv-group-desc">Enter any CSS selector as the conversion event trigger.</div>
-        <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:11px;font-family:'SF Mono',monospace;margin-bottom:6px"/>
+        <div class="input-wrap has-prefix" style="margin-bottom:6px">
+          <div class="input-icon-left">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M5 4L2 7l3 3M9 4l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:11px;font-family:'SF Mono',monospace"/>
+        </div>
         <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()">Apply selector</button>
       </div>
     </div>
@@ -764,11 +810,11 @@ code {
       <span class="lbl">Refine (optional)</span>
       <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback" style="margin-bottom:8px"></textarea>
       <span class="lbl">Scope — what may the AI change?</span>
-      <select id="gen-scope" style="margin-bottom:8px">
-        <option value="all">Everything</option>
-        <option value="text">Text only</option>
-        <option value="color">Colors only</option>
-      </select>
+      <div class="seg" id="gen-scope" data-scope="all" style="margin-bottom:8px">
+        <button type="button" class="seg-btn on" data-val="all"   onclick="setScope('all')">Everything</button>
+        <button type="button" class="seg-btn"    data-val="text"  onclick="setScope('text')">Text</button>
+        <button type="button" class="seg-btn"    data-val="color" onclick="setScope('color')">Colors</button>
+      </div>
       <button class="btn btn-secondary" onclick="refine()" style="margin-bottom:5px">↻ Refine with AI</button>
       <button class="btn btn-secondary" onclick="generate()">Regenerate</button>
     </div>
@@ -1449,7 +1495,12 @@ function goGenerate() {
 }
 
 // ── Screen 5: AI generation ──────────────────────────────────────────────────
-function getScope() { const el = $('gen-scope'); return el ? el.value : 'all' }
+function getScope() { const el = $('gen-scope'); return el ? (el.getAttribute('data-scope') || 'all') : 'all' }
+function setScope(val) {
+  const el = $('gen-scope'); if (!el) return
+  el.setAttribute('data-scope', val)
+  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+}
 
 function fillPreviews(html) {
   $('gen-preview-white').innerHTML = html || ''
