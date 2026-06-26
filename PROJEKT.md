@@ -144,6 +144,7 @@ c:\dev\variante/
 | Datum | Eintrag |
 |---|---|
 | 26.06.2026 | **Variant-Preview im Dashboard:** Results-Seite zeigt jetzt Preview-Ansicht beider Varianten (Original + B) als Miniatur-iframe nebeneinander unter den Statistiken. `getExperimentStats` liefert `originalHtml`/`variantBHtml`/`siteCss`. Neue Komponente `VariantPreview.tsx`. |
+| 26.06.2026 | **Ponytail-Review:** `'use client'` aus VariantPreview entfernt (Server Component). Leere Grid-Spalte gefixt (jede Vorschau einzeln bedingt rendern). PROJEKT.md §3 aktualisiert. |
 | 26.06.2026 | **Anti-Flicker fix:** 3 Probleme — (1) 3000ms-Fallback zu kurz für langsame Netze → 10000ms. (2) Kein early Connection-Hint → `preconnect` ins Snippet. (3) Blindes Timeout revealed bevor ab.js fertig → **Polling auf `window.__ab_pending_resolve`**: Inline-Script wartet auf reveal()-Signal von ab.js, 10s-Hard-Ceiling als Netz. Alle Snippet-Templates (Dashboard, Figma-Plugin, ab-spike) aktualisiert. |
 | 25.06.2026 | Landingpage für getvariante.com gebaut (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify/Waitlist). Privacy-/Imprint-Seiten, Waitlist-API, SQL-Migration 006. `lib/supabase.ts` auf Proxy umgestellt (lazy init für Build ohne Env-Vars). Domain-Verweis auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | **Deployment** — Landingpage auf `www.getvariante.com` deployed (Vercel `vercel deploy --prod`). Root `getvariante.com` redirectet auf `www`. Landingpage, Privacy, Imprint alle 200. |
@@ -158,7 +159,7 @@ c:\dev\variante/
 | 25.06.2026 | Währungsentscheidung: EUR statt USD. Fazit in §11 ergänzt. |
 | 25.06.2026 | **Bugfix (ab.js):** 0 Conversions für Variante B — MutationObserver-Trigger löschte `active` nach `applyDom()` → `finish()` erneut → applyDom fehlschlagend → goalSel fiel auf original CSS-Selektor zurück → matched nie auf B-HTML. Fix: `data-ab-el`-Selektor immer für B, nicht nur bei erfolgreichem applyDom. |
 | 26.06.2026 | **Bugfix (ab.js):** 0 Conversions für Variante B bei **explizitem Goal**. `finish()` setzte für B immer `[data-ab-el="<key>"]` als Goal-Selektor — auch wenn User separates Goal (z.B. `#cta-button` außerhalb des getesteten Containers) gewählt hatte. `.closest()` fand `data-ab-el` nie im Elternbaum → 0 Conversions. Fix: `data-ab-el` nur wenn **kein** separates Goal existiert; bei explizitem Goal den originalen Goal-Selektor behalten. |
-| 25.06.2026 | **Phase A (Bugfixes):** Goal-Selector-Migration fix, SPA-Support, Anti-Flicker 3000ms. **Phase B (English):** Alle UI-Seiten, API-Fehlermeldungen, Extension, Figma-Plugin, ab.js-Header übersetzt. **Phase C:** Snippet-Installations-Sektion im Dashboard. |
+| 26.06.2026 | **Phase A (Bugfixes + UI):** Goal-Konflikt gelöst (ab.js `finish()` überschrieb Goal-Selektor für B → 0 Conversions). VariantPreview-Import-Path gefixt (`@/components/` → `@/app/components/`). Black-Preview-Box für Light/Dark-Theme-Check. Upgrade-Banner bei Free-Limit. Figma-Plugin Navigation: `navPush` statt `go` für korrekte Zurück-Historie. Input-History: `<datalist>` mit localStorage (URL + Token) und chrome.storage (testId). |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |
@@ -198,7 +199,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 25.06.2026 (Landingpage live auf www.getvariante.com)*
+*DSO — zuletzt geprüft: 26.06.2026 (Input-History + Bugfixes)*
 
 ---
 
