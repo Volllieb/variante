@@ -155,6 +155,7 @@ c:\dev\variante/
 | 25.06.2026 | Steuerfragen beantwortet und §7 aufgeräumt. Ergebnis: Kein Berater vor Launch nötig, Stripe Tax aktivieren, Kleinunternehmer-Regelung bleibt erstmal. |
 | 25.06.2026 | Währungsentscheidung: EUR statt USD. Fazit in §11 ergänzt. |
 | 25.06.2026 | **Bugfix (ab.js):** 0 Conversions für Variante B — MutationObserver-Trigger löschte `active` nach `applyDom()` → `finish()` erneut → applyDom fehlschlagend → goalSel fiel auf original CSS-Selektor zurück → matched nie auf B-HTML. Fix: `data-ab-el`-Selektor immer für B, nicht nur bei erfolgreichem applyDom. |
+| 26.06.2026 | **Bugfix (ab.js):** 0 Conversions für Variante B bei **explizitem Goal**. `finish()` setzte für B immer `[data-ab-el="<key>"]` als Goal-Selektor — auch wenn User separates Goal (z.B. `#cta-button` außerhalb des getesteten Containers) gewählt hatte. `.closest()` fand `data-ab-el` nie im Elternbaum → 0 Conversions. Fix: `data-ab-el` nur wenn **kein** separates Goal existiert; bei explizitem Goal den originalen Goal-Selektor behalten. |
 | 25.06.2026 | **Phase A (Bugfixes):** Goal-Selector-Migration fix, SPA-Support, Anti-Flicker 3000ms. **Phase B (English):** Alle UI-Seiten, API-Fehlermeldungen, Extension, Figma-Plugin, ab.js-Header übersetzt. **Phase C:** Snippet-Installations-Sektion im Dashboard. |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
