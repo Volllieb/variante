@@ -163,16 +163,24 @@
 
     function finish(variant, html) {
       var applied = applyDom(selector, variant, html, key)
-      // Goal-Selektor nach B-Tausch IMMER auf data-ab-el umstellen, damit
-      // auch abweichende Goal-Selektoren (z. B. Button in getestetem Container)
-      // nach dem outerHTML-Tausch noch matchen.
-      // IMMER data-ab-el für B verwenden — nicht nur wenn applyDom erfolgreich war.
-      // Der MutationObserver kann nach applyDom reobserve() triggern, active leeren
-      // und finish erneut aufrufen. Dann ist das Original-Element bereits weg und
-      // applyDom schlägt fehl, aber data-ab-el steckt noch im DOM vom ersten Durchlauf.
-      // Ohne diesen Guard würde der originale CSS-Selektor als goalSel dienen, der
-      // auf dem KI-generierten B-HTML nicht matched → 0 Conversions für B.
-      var gsel = variant === 'B' ? '[data-ab-el="' + key + '"]' : goalSel
+      // Goal-Selektor für Variante B:
+      // 1. EXPLIZITES Goal (t.goal gesetzt, z.B. #signup-button) → goalSel behalten.
+      //    Das Goal-Element liegt außerhalb des ersetzten Containers, data-ab-el würde
+      //    im Elternbaum nie gefunden → 0 Conversions.
+      // 2. KEIN separates Goal (goal = Selektorelement) → data-ab-el, weil das
+      //    Original-Element durch B-HTML ersetzt wurde und der originale CSS-Selektor
+      //    auf dem KI-generierten B-HTML nicht matched.
+      // 3. MutationObserver-Race: applyDom schlägt fehl (Element bereits weg beim
+      //    zweiten finish-Aufruf), aber data-ab-el steckt noch im DOM vom ersten
+      //    Durchlauf → Fallback funktioniert.
+      var gsel
+      if (variant === 'B' && t.goal) {
+        gsel = goalSel          // explizites Goal → originaler Selektor
+      } else if (variant === 'B') {
+        gsel = '[data-ab-el="' + key + '"]'  // kein separates Goal → data-ab-el
+      } else {
+        gsel = goalSel
+      }
       active.push({ key: key, variant: variant, goalSel: gsel })
     }
 
