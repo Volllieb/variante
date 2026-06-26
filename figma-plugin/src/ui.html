@@ -163,6 +163,7 @@
       <pre id="el-testid"></pre>
       <button class="btn btn-secondary" onclick="copyEl('el-testid')">Copy testId</button>
     </details>
+    <button class="btn btn-secondary" onclick="navBack()" style="margin-top:8px">← Back</button>
   </div>
 
   <!-- Selected: Continue + Reselect -->
@@ -183,6 +184,7 @@
   <!-- Waiting: no button, just hint -->
   <div id="d-waiting">
     <div class="loading">Select an element in Figma… <span id="d-info"></span></div>
+    <button class="btn btn-secondary" onclick="navBack()" style="margin-top:12px">← Back</button>
   </div>
 
   <!-- Selected: Continue + Reselect -->
@@ -312,6 +314,8 @@ function createAccount() {
 function showTokenMode() {
   $('c-welcome').style.display = 'none'
   $('c-token').style.display = 'block'
+  populateDatalist('dl-token', 'token')
+  setTimeout(() => { var n = $('connect-token'); if (n) n.focus() }, 50)
 }
 function showWelcomeMode() {
   $('c-token').style.display = 'none'
@@ -328,6 +332,7 @@ function saveToken() {
   const v = ($('connect-token').value || '').trim()
   if (!v) { err('connect', 'Please paste your token.'); return }
   API_TOKEN = v
+  saveInputHistory('token', v)
   parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
   const btn = document.querySelector('#c-token .btn-primary')
   if (btn) { btn.textContent = '✅ Connected!'; btn.disabled = true }
@@ -336,6 +341,29 @@ function saveToken() {
 
 function $(id) { return document.getElementById(id) }
 function escapeHtml(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
+
+// ── Input History (localStorage) ─────────────────────────────────────────
+function saveInputHistory(key, value) {
+  if (!value) return
+  const k = 'ab_history_' + key
+  let arr = []
+  try { arr = JSON.parse(localStorage.getItem(k) || '[]') } catch (_) {}
+  arr = [value, ...arr.filter(v => v !== value)].slice(0, 10)
+  try { localStorage.setItem(k, JSON.stringify(arr)) } catch (_) {}
+}
+function loadInputHistory(key) {
+  try { return JSON.parse(localStorage.getItem('ab_history_' + key) || '[]') } catch (_) { return [] }
+}
+function populateDatalist(id, key) {
+  const dl = $(id)
+  if (!dl) return
+  dl.innerHTML = ''
+  loadInputHistory(key).forEach(v => {
+    const o = document.createElement('option')
+    o.value = v
+    dl.appendChild(o)
+  })
+}
 
 function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
@@ -462,6 +490,7 @@ function newTest() {
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
   hideUpgradeBanner()
   go('setup')
+  populateDatalist('dl-url', 'url')
   // Figma-Iframe-Fokus erzwingen, sonst schluckt Figma die ersten Tastenanschläge.
   setTimeout(function () { var n = $('f-name'); if (n) n.focus() }, 50)
 }
@@ -513,6 +542,7 @@ async function createTest() {
     state.testId = data.id
     state.snippetKey = data.snippet_key
     state.name = name; state.url = url
+    saveInputHistory('url', url)
     $('el-testid').textContent = data.id
     go('element')
     startElementPoll()
@@ -589,7 +619,7 @@ async function reselectElement() {
   openSite('element')
   startElementPoll()
 }
-function goToDesign() { go('design'); requestSelection() }
+function goToDesign() { navPush('design'); requestSelection() }
 
 // --- Screen 3b: Conversion goal --------------------------------------------
 function isClickable(html) {
