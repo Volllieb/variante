@@ -143,6 +143,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 26.06.2026 | **Variant-Preview im Dashboard:** Results-Seite zeigt jetzt Preview-Ansicht beider Varianten (Original + B) als Miniatur-iframe nebeneinander unter den Statistiken. `getExperimentStats` liefert `originalHtml`/`variantBHtml`/`siteCss`. Neue Komponente `VariantPreview.tsx`. |
 | 26.06.2026 | **Anti-Flicker fix:** 3 Probleme — (1) 3000ms-Fallback zu kurz für langsame Netze → 10000ms. (2) Kein early Connection-Hint → `preconnect` ins Snippet. (3) Blindes Timeout revealed bevor ab.js fertig → **Polling auf `window.__ab_pending_resolve`**: Inline-Script wartet auf reveal()-Signal von ab.js, 10s-Hard-Ceiling als Netz. Alle Snippet-Templates (Dashboard, Figma-Plugin, ab-spike) aktualisiert. |
 | 25.06.2026 | Landingpage für getvariante.com gebaut (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify/Waitlist). Privacy-/Imprint-Seiten, Waitlist-API, SQL-Migration 006. `lib/supabase.ts` auf Proxy umgestellt (lazy init für Build ohne Env-Vars). Domain-Verweis auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | **Deployment** — Landingpage auf `www.getvariante.com` deployed (Vercel `vercel deploy --prod`). Root `getvariante.com` redirectet auf `www`. Landingpage, Privacy, Imprint alle 200. |

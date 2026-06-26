@@ -1,6 +1,7 @@
 'use client'
 
 import { ExperimentData } from '@/lib/getExperimentStats'
+import { VariantPreview } from '@/components/VariantPreview'
 import { useEffect, useState } from 'react'
 
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
@@ -52,6 +53,27 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           </div>
         ))}
       </div>
+
+      {(data.originalHtml || data.variantBHtml) && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold">Preview</h2>
+          <div className="grid grid-cols-2 gap-6">
+            <VariantPreview
+              html={data.originalHtml}
+              css={data.siteCss}
+              label="A (Original)"
+              winner={winner === 'A'}
+            />
+            <VariantPreview
+              html={data.variantBHtml}
+              css={data.siteCss}
+              label="B (Variant)"
+              winner={winner === 'B'}
+            />
+          </div>
+        </div>
+      )}
+
       {pro ? (
         <p className="mt-6 text-sm text-gray-500">Significance: {Math.round(significance * 100)}%</p>
       ) : (
