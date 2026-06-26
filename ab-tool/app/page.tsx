@@ -98,7 +98,7 @@ const tiers = [
       'Multi-site support',
       'Team seats',
     ],
-    cta: { label: 'Contact', href: 'mailto:valentin@4wilhelm.de', variant: 'outline' as const },
+    cta: { label: 'Contact', href: 'mailto:hello@getvariante.com', variant: 'outline' as const },
     recommended: false,
   },
 ]
@@ -302,7 +302,7 @@ export default async function HomePage({
               <h2 className="mt-4 text-2xl font-bold text-foreground">Could not save your email</h2>
               <p className="mt-3 text-muted-foreground">
                 Please try again or email us directly at{' '}
-                <a href="mailto:valentin@4wilhelm.de" className="text-primary underline">valentin@4wilhelm.de</a>.
+                <a href="mailto:hello@getvariante.com" className="text-primary underline">hello@getvariante.com</a>.
               </p>
             </>
           ) : (
