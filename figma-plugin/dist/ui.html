@@ -335,11 +335,11 @@ code {
 .ub-title { font-size: 13px; font-weight: 700; color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 4px; }
 .ub-sub   { font-size: 11px; color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 10px; }
 .btn-upgrade {
-  background: #F5A623; color: #fff; padding: 7px 14px;
+  background: var(--warn); color: #fff; padding: 7px 14px;
   border-radius: var(--r); font-size: 12px; font-weight: 600;
   cursor: pointer; border: none;
 }
-.btn-upgrade:hover { background: #DB8E0A; }
+.btn-upgrade:hover { background: #B36B00; }
 
 /* ── Winner ──────────────────────────────────────────────────────────────── */
 .winner {
@@ -360,6 +360,7 @@ code {
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
   border-radius: var(--r); padding: 9px 11px; margin-bottom: 6px; cursor: pointer;
+  transition: border-color .12s;
 }
 .test-card:hover { border-color: var(--brand); }
 .test-card.paused { opacity: .6; filter: grayscale(30%); }
@@ -416,12 +417,12 @@ code {
 /* ── Results: compact upgrade banner in native Figma warning style ────────── */
 .upgrade-banner.ub-compact {
   display: none; flex-direction: row; align-items: center; justify-content: space-between;
-  gap: 8px; padding: 8px 10px; border: none; text-align: left;
-  background: var(--figma-color-bg-warning, #FFF4E5);
+  gap: 8px; padding: 8px 10px; border: 1px solid var(--warn-border); text-align: left;
+  background: var(--figma-color-bg-warning, rgba(245,158,11,.10));
 }
 .upgrade-banner.ub-compact.vis { display: flex; }
 .upgrade-banner.ub-compact .ub-title { font-size: 11px; font-weight: 700; margin-bottom: 0; color: var(--figma-color-text-warning, #7A4510); }
-.upgrade-banner.ub-compact .btn-upgrade { width: auto; padding: 5px 12px; font-size: 11px; background: var(--figma-color-text-warning, #f59e0b); }
+.upgrade-banner.ub-compact .btn-upgrade { width: auto; padding: 5px 12px; font-size: 11px; background: var(--warn); }
 
 /* ── Results: scaled mini preview (no scroll, single per variant) ─────────── */
 .frame-preview {
@@ -430,6 +431,15 @@ code {
   background: #fff; color: #111; margin-bottom: 4px;
 }
 .frame-preview .res-prev-inner { transform: scale(0.8); transform-origin: top left; }
+
+/* ── prefers-reduced-motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -491,7 +501,7 @@ code {
   </div>
   <div class="body">
     <div class="upgrade-banner" id="upgrade-banner-dash">
-      <div class="ub-title">⚡ Free limit reached</div>
+      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</div>
       <div class="ub-sub">Upgrade to Pro for unlimited tests and AI generations.</div>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
     </div>
@@ -538,15 +548,15 @@ code {
       <datalist id="dl-url"></datalist>
       <div class="input-icon" id="url-icon">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="6" stroke="#22c55e" stroke-width="1.3"/>
-          <path d="M4.5 7L6.3 8.8L9.5 5.2" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="7" cy="7" r="6" stroke="var(--ok)" stroke-width="1.3"/>
+          <path d="M4.5 7L6.3 8.8L9.5 5.2" stroke="var(--ok)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
     </div>
     <div class="field-err" id="url-err"></div>
 
     <div class="upgrade-banner" id="upgrade-banner-setup" style="margin-top:6px">
-      <div class="ub-title">⚡ Free limit reached</div>
+      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</div>
       <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
     </div>
@@ -782,7 +792,7 @@ code {
 
     <div id="gen-result" style="display:none">
       <div class="upgrade-banner" id="upgrade-banner">
-        <div class="ub-title">⚡ Free limit reached</div>
+        <div class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</div>
         <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
         <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
       </div>
@@ -881,7 +891,7 @@ code {
     <div class="winner" id="res-winner" style="display:none"></div>
 
     <div class="upgrade-banner ub-compact" id="upgrade-banner-results">
-      <span class="ub-title">⚡ Free limit reached</span>
+      <span class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</span>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
     </div>
 
@@ -1087,16 +1097,16 @@ function renderTestCard(t) {
   const minV = (t.min_visitors == null) ? 100 : t.min_visitors
   const minU = Math.round(((t.min_uplift == null) ? 0.05 : t.min_uplift) * 100)
   const st = t.status || 'draft'
-  const winner = t.winner && st === 'done' ? ' · 🏆 ' + t.winner : ''
-  const pauseLbl = st === 'paused' ? '▶' : '⏸'
+  const winner = t.winner && st === 'done' ? ' · <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px"><path d="M3.5 10.5h5M6 10.5v-2M3 2.5H2a1 1 0 00-1 1V4.5a1 1 0 001 1h1M9 2.5h1a1 1 0 011 1V4.5a1 1 0 01-1 1H9M3 2.5v1a3 3 0 006 0v-1H3z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + t.winner : ''
+  const pauseLbl = ''
   const card = document.createElement('div')
   card.className = 'test-card' + (st === 'paused' ? ' paused' : '')
   card.innerHTML =
     '<div class="tc-top">' +
     '<span class="tc-name">' + escapeHtml(t.name) + '</span>' +
     '<div class="tc-actions">' +
-    '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseLbl + '</button>' +
-    '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')">🗑</button>' +
+    '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + (st === 'paused' ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 1.5l6 3.5-6 3.5v-7z" fill="currentColor"/></svg>' : '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2.5" y="1.5" width="2" height="7" rx=".8" fill="currentColor"/><rect x="5.5" y="1.5" width="2" height="7" rx=".8" fill="currentColor"/></svg>') + '</button>' +
+    '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 3.5h7M4 3.5V2a1 1 0 011-1h2a1 1 0 011 1v1.5M9.5 3.5v6a1 1 0 01-1 1h-5a1 1 0 01-1-1v-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
     '<span class="badge bs-' + st + '" style="margin-left:2px">' + st + '</span>' +
     '</div></div>' +
     '<div class="tc-meta">' + (va + vb) + ' visitors · ' + (ca + cb) + ' conversions' + winner + '</div>' +
@@ -1637,7 +1647,7 @@ function startResults() {
 
       const hasWinner = t.status === 'done' && !!t.winner
       $('res-winner').style.display = hasWinner ? 'block' : 'none'
-      if (hasWinner) $('res-winner').innerHTML = '🏆 Winner: <strong>Variant ' + escapeHtml(t.winner) + '</strong>'
+      if (hasWinner) $('res-winner').innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M4 12h6M7 12v-2M4 3H2.5a1 1 0 00-1 1v1.5a1 1 0 001 1H4M10 3h1.5a1 1 0 011 1v1.5a1 1 0 01-1 1H10M4 3v1a3 3 0 006 0V3H4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Winner: <strong>Variant ' + escapeHtml(t.winner) + '</strong>'
 
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'
