@@ -476,7 +476,7 @@ function renderTestCard(t) {
 }
 function resumeTest(id) {
   state.testId = id
-  go('results')
+  navPush('results')
   startResults()
 }
 
@@ -489,7 +489,7 @@ function newTest() {
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
   hideUpgradeBanner()
-  go('setup')
+  navPush('setup')
   populateDatalist('dl-url', 'url')
   // Figma-Iframe-Fokus erzwingen, sonst schluckt Figma die ersten Tastenanschläge.
   setTimeout(function () { var n = $('f-name'); if (n) n.focus() }, 50)
@@ -544,7 +544,7 @@ async function createTest() {
     state.name = name; state.url = url
     saveInputHistory('url', url)
     $('el-testid').textContent = data.id
-    go('element')
+    navPush('element')
     startElementPoll()
     openSite('element')
   } catch (e) {
@@ -651,7 +651,7 @@ function fillMetricDropdown(clickable) {
   })
 }
 async function enterMetric() {
-  go('metric')
+  navPush('metric')
   $('m-waiting').style.display = 'none'
   let t = {}
   try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
