@@ -1345,8 +1345,16 @@ function toggleAdvanced() {
 
 async function enterMetric() {
   navPush('metric')
+  // Reset screen state — sonst leakt der Zustand zwischen mehreren Tests
+  // einer Session (Hint-Text, Pick-Radio, ausgeklapptes Advanced).
   $('m-waiting').style.display = 'none'
   $('m-goal-display').style.display = 'none'
+  $('m-pick-opt').classList.remove('m-selected')
+  $('m-pick-wrap').style.display = 'none'
+  $('m-hint').textContent = 'What counts as a conversion for this test?'
+  $('adv-toggle').classList.remove('open')
+  $('adv-section').classList.remove('open')
+  $('m-custom-selector').value = ''
   let t = {}
   try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
   state.originalHtml   = t.original_html    || state.originalHtml
