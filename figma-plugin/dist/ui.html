@@ -308,33 +308,14 @@ code {
 }
 .btn-upgrade:hover { background: #d97706; }
 
-/* ── Stats grid (results) ────────────────────────────────────────────────── */
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-.stat {
-  background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); padding: 8px 10px;
-}
-.stat-k { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 2px; }
-.stat-v { font-size: 18px; font-weight: 700; }
-
-/* ── Significance bar ────────────────────────────────────────────────────── */
-.sig-wrap {
-  background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); padding: 9px 11px; margin-bottom: 10px;
-}
-.sig-lbl { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 5px; }
-.sig-bar { height: 5px; background: var(--figma-color-border); border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
-.sig-fill { height: 100%; background: var(--brand); border-radius: 3px; transition: width .3s; }
-.sig-val  { font-size: 18px; font-weight: 700; }
-
 /* ── Winner ──────────────────────────────────────────────────────────────── */
 .winner {
-  background: #dcfce7; border: 1px solid #86efac;
-  border-radius: var(--r); padding: 8px 11px;
-  font-weight: 700; color: #15803d; text-align: center; margin-bottom: 10px;
+  background: var(--figma-color-bg-success, #E6F4EA);
+  border-radius: var(--r); padding: 10px 12px;
+  font-size: 13px; color: var(--figma-color-text-success, #1b5e20);
+  text-align: center; margin-bottom: 12px;
 }
+.winner strong { font-weight: 700; }
 
 /* ── Dashboard cards ─────────────────────────────────────────────────────── */
 .group-title {
@@ -371,15 +352,51 @@ code {
 .frame      { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #fff; color: #111; overflow: auto; max-height: 180px; }
 .frame-dark { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #111; color: #fff; overflow: auto; max-height: 180px; }
 .frame img, .frame-dark img { max-width: 100%; display: block; }
-.frame-sm      { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 5px; background: #fff; color: #111; overflow: hidden; max-height: 64px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
-.frame-sm-dark { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 5px; background: #111; color: #fff; overflow: hidden; max-height: 64px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
-.frame-sm img, .frame-sm-dark img { max-width: 100%; display: block; }
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
 .err { color: #dc2626; font-size: 11px; min-height: 15px; padding: 3px 0; }
 .ok  { color: #15803d; font-size: 11px; padding: 3px 0; }
 .copy-ok { display: none; }
 .copy-ok.vis { display: inline; }
+
+/* ── Results: header status + link button ────────────────────────────────── */
+.hdr-sub { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.hdr-sub .hdr-title { flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-btn {
+  background: none; border: none; padding: 6px 0 0; cursor: pointer;
+  font-size: 11px; color: var(--brand);
+}
+.link-btn:hover { text-decoration: underline; }
+.refresh-note { font-size: 11px; color: var(--figma-color-text-secondary); text-align: center; padding: 8px 0 0; }
+
+/* ── Results: A/B stats as a two-column table with a center divider ────────── */
+.ab-table { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 12px; }
+.ab-col { padding: 0 12px; }
+.ab-col:first-child { padding-left: 0; border-right: 1px solid var(--figma-color-border); }
+.ab-col:last-child  { padding-right: 0; }
+.ab-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.ab-metric { margin-bottom: 9px; }
+.ab-metric .ab-k { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--figma-color-text-secondary); }
+.ab-metric .ab-v { font-size: 16px; font-weight: 700; }
+.sig-line { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 4px; }
+
+/* ── Results: compact upgrade banner in native Figma warning style ────────── */
+.upgrade-banner.ub-compact {
+  display: none; flex-direction: row; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 8px 10px; border: none; text-align: left;
+  background: var(--figma-color-bg-warning, #FFF4E5);
+}
+.upgrade-banner.ub-compact.vis { display: flex; }
+.upgrade-banner.ub-compact .ub-title { font-size: 11px; font-weight: 700; margin-bottom: 0; color: var(--figma-color-text-warning, #7A4510); }
+.upgrade-banner.ub-compact .btn-upgrade { width: auto; padding: 5px 12px; font-size: 11px; background: var(--figma-color-text-warning, #f59e0b); }
+
+/* ── Results: scaled mini preview (no scroll, single per variant) ─────────── */
+.frame-preview {
+  border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  max-height: 64px; overflow: hidden; pointer-events: none;
+  background: #fff; color: #111; margin-bottom: 4px;
+}
+.frame-preview .res-prev-inner { transform: scale(0.8); transform-origin: top left; }
 </style>
 </head>
 <body>
@@ -809,48 +826,56 @@ code {
         <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
-    <span class="hdr-title">Results</span>
-    <span style="font-size:10px;color:var(--figma-color-text-secondary)">auto-refresh 30s</span>
+    <div class="hdr-sub">
+      <span class="hdr-title" id="res-title">Results</span>
+      <span class="badge bs-draft" id="res-badge" style="align-self:flex-start">draft</span>
+    </div>
   </div>
   <div class="body">
-    <div class="upgrade-banner" id="upgrade-banner-results">
-      <div class="ub-title">⚡ Free limit reached</div>
-      <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
-      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
-    </div>
-    <div id="res-nodata" class="card" style="display:none">
-      <div class="card-lbl">No data yet</div>
-      <div class="card-val" style="font-weight:400;font-size:11px">Snippet installed? Status: <strong id="res-status"></strong></div>
-    </div>
     <div class="winner" id="res-winner" style="display:none"></div>
-    <div class="stats-grid">
-      <div class="stat"><div class="stat-k"><span class="badge ba">A</span> Visitors</div><div class="stat-v" id="res-va">0</div></div>
-      <div class="stat"><div class="stat-k"><span class="badge bb">B</span> Visitors</div><div class="stat-v" id="res-vb">0</div></div>
-      <div class="stat"><div class="stat-k"><span class="badge ba">A</span> Conv.</div><div class="stat-v" id="res-ca">0</div></div>
-      <div class="stat"><div class="stat-k"><span class="badge bb">B</span> Conv.</div><div class="stat-v" id="res-cb">0</div></div>
-      <div class="stat"><div class="stat-k"><span class="badge ba">A</span> Rate</div><div class="stat-v" id="res-cra">—</div></div>
-      <div class="stat"><div class="stat-k"><span class="badge bb">B</span> Rate</div><div class="stat-v" id="res-crb">—</div></div>
+
+    <div class="upgrade-banner ub-compact" id="upgrade-banner-results">
+      <span class="ub-title">⚡ Free limit reached</span>
+      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
     </div>
-    <div class="sig-wrap">
-      <div class="sig-lbl">Statistical significance</div>
-      <div class="sig-bar"><div class="sig-fill" id="res-sig-fill" style="width:0%"></div></div>
-      <div class="sig-val" id="res-sig">0%</div>
+
+    <div id="res-nodata" class="card" style="display:none">
+      <div class="card-val" style="font-weight:400;font-size:11px">Waiting for first visitors.</div>
+      <button class="link-btn" onclick="navPush('snippet'); buildSnippet()">→ Snippet-Anleitung</button>
     </div>
+
+    <div class="ab-table">
+      <div class="ab-col">
+        <div class="ab-head"><span class="badge ba">A</span> Variant A</div>
+        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-va">0</div></div>
+        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-ca">0</div></div>
+        <div class="ab-metric"><div class="ab-k">CR</div><div class="ab-v" id="res-cra">—</div></div>
+      </div>
+      <div class="ab-col">
+        <div class="ab-head"><span class="badge bb">B</span> Variant B</div>
+        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-vb">0</div></div>
+        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-cb">0</div></div>
+        <div class="ab-metric"><div class="ab-k">CR</div><div class="ab-v" id="res-crb">—</div></div>
+      </div>
+    </div>
+
+    <div class="sig-line" id="res-sig">Significance: 0% — not significant yet</div>
+
     <div id="res-preview-section" style="display:none">
       <div class="divider"></div>
       <div class="prev-grid">
         <div>
           <div class="prev-lbl">A (Original)</div>
-          <div class="frame-sm"      id="res-preview-a-white"></div>
-          <div class="frame-sm-dark" id="res-preview-a-black"></div>
+          <div class="frame-preview" id="res-preview-a"></div>
         </div>
         <div>
           <div class="prev-lbl">B (Variant)</div>
-          <div class="frame-sm"      id="res-preview-b-white"></div>
-          <div class="frame-sm-dark" id="res-preview-b-black"></div>
+          <div class="frame-preview" id="res-preview-b"></div>
         </div>
       </div>
     </div>
+
+    <div class="refresh-note">↻ Refreshes every 30s</div>
   </div>
 </div>
 
@@ -938,12 +963,17 @@ function showUpgradeBanner(msg) {
   ids.forEach(function(id) {
     var b = $(id); if (!b) return
     if (msg) { var s = b.querySelector('.ub-sub'); if (s) s.textContent = msg }
-    b.style.display = 'block'
+    if (b.classList.contains('ub-compact')) b.classList.add('vis')
+    else b.style.display = 'block'
   })
 }
 function hideUpgradeBanner() {
   var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results']
-  ids.forEach(function(id) { var b = $(id); if (b) b.style.display = 'none' })
+  ids.forEach(function(id) {
+    var b = $(id); if (!b) return
+    if (b.classList.contains('ub-compact')) b.classList.remove('vis')
+    else b.style.display = 'none'
+  })
 }
 function goUpgrade() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?upgrade=true' } }, '*')
@@ -1535,32 +1565,42 @@ function startResults() {
       const res = await afetch(API + '/api/tests/' + state.testId)
       if (!res.ok) return
       const t = await res.json()
+
+      // Header: Testname + Status-Badge (state.name leer, wenn vom Dashboard gestartet)
+      state.name = state.name || t.name || ''
+      $('res-title').textContent = state.name || 'Results'
+      const st = t.status || 'draft'
+      const badge = $('res-badge')
+      badge.textContent = st
+      badge.className = 'badge bs-' + st
+
       $('res-va').textContent  = t.visitors_a    || 0
       $('res-vb').textContent  = t.visitors_b    || 0
       $('res-ca').textContent  = t.conversions_a || 0
       $('res-cb').textContent  = t.conversions_b || 0
       $('res-cra').textContent = pct(t.visitors_a || 0, t.conversions_a || 0)
       $('res-crb').textContent = pct(t.visitors_b || 0, t.conversions_b || 0)
+
       const sigPct = Math.round((t.significance || 0) * 100)
-      $('res-sig').textContent = sigPct + '%'
-      $('res-sig-fill').style.width = Math.min(sigPct, 100) + '%'
+      $('res-sig').textContent = 'Significance: ' + sigPct + '% — ' + (sigPct >= 95 ? 'significant' : 'not significant yet')
 
       const hasWinner = t.status === 'done' && !!t.winner
       $('res-winner').style.display = hasWinner ? 'block' : 'none'
-      if (hasWinner) $('res-winner').textContent = '🏆 Variant ' + t.winner + ' wins'
+      if (hasWinner) $('res-winner').innerHTML = '🏆 Winner: <strong>Variant ' + escapeHtml(t.winner) + '</strong>'
 
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'
-      $('res-status').textContent = t.status
 
-      const css   = t.site_css ? '<style>' + t.site_css + '</style>' : ''
-      const hasA  = !!t.original_html
-      const hasB  = !!t.variant_b_html
+      // Preview: nur weiß, skaliert, eine Vorschau pro Variante
+      const css  = t.site_css ? '<style>' + t.site_css + '</style>' : ''
+      const hasA = !!t.original_html
+      const hasB = !!t.variant_b_html
       ;['a','b'].forEach(k => {
         const html = k === 'a' ? t.original_html : t.variant_b_html
         const has  = k === 'a' ? hasA : hasB
-        $('res-preview-' + k + '-white').innerHTML = has ? css + html : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
-        $('res-preview-' + k + '-black').innerHTML = has ? css + html : '<span style="font-size:11px;color:#888">—</span>'
+        $('res-preview-' + k).innerHTML = has
+          ? css + '<div class="res-prev-inner">' + html + '</div>'
+          : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
       })
       $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'
     } catch (_) {}

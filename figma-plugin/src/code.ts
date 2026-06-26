@@ -1,4 +1,4 @@
-figma.showUI(__html__, { width: 360, height: 560, title: 'AB Figma' })
+figma.showUI(__html__, { width: 360, height: 560, title: 'Variante' })
 
 // Persistenten API-Token (Login) laden und an die UI schicken.
 figma.clientStorage.getAsync('ab_token').then((token) => {

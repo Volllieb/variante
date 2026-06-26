@@ -12,7 +12,7 @@
   // src/code.ts
   var require_code = __commonJS({
     "src/code.ts"() {
-      figma.showUI(__html__, { width: 360, height: 560, title: "AB Figma" });
+      figma.showUI(__html__, { width: 360, height: 560, title: "Variante" });
       figma.clientStorage.getAsync("ab_token").then((token) => {
         figma.ui.postMessage({ type: "TOKEN", token: typeof token === "string" ? token : "" });
       });

@@ -143,6 +143,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 26.06.2026 | **Figma-Plugin Results-Screen überarbeitet:** Header zeigt Testnamen (`state.name`) + Status-Badge (`bs-*`) statt statischem „Results". A/B-Stats von 6er-Kachel-Grid auf zweispaltige Tabelle (`1fr 1fr` mit mittiger Trennlinie, Spalten-Header „Variant A/B", Labels 10px uppercase, Werte 16px bold). Significance als einzelne Zeile (`Significance: X% — not/significant`) statt Box+Balken. Winner-Banner im nativen `--figma-color-bg-success`-Stil, Variantenname fett, oben nach Header. Upgrade-Banner kompakt (Titel + Button einzeilig) im Figma-Warning-Stil (`--figma-color-bg-warning`). „No data" → „Waiting for first visitors." + Link-Button „→ Snippet-Anleitung". Preview ohne Dark-Variante, skaliert (`scale(0.8)`, max-height 64px, kein Scroll), eine Vorschau pro Variante. „Refreshes every 30s" als zentrierter Footer-Hinweis. Plugin-Titel `code.ts`: „AB Figma" → „Variante". Tote CSS (`.stats-grid`, `.stat*`, `.sig-*`, `.frame-sm*`) entfernt. |
 | 26.06.2026 | **Figma-Plugin UI-Redesign:** Figma-natives Design System (Inter, #0D99FF, Figma CSS-Tokens). Fester Footer mit primärem CTA (disabled bis Voraussetzung erfüllt). Back-Button als reines Chevron-Icon. 6-Screen-Progress-Bar. URL-Feld: nur Checkmark-Icon bei Valid, kein Text. Element-Screen: lesbares Label `[Typ]: [Beschriftung]` statt CSS-Selektor, Test-ID sichtbar. Screen 3 CTA umbenannt zu „Weiter zur Metrik →". Metrik-Screen: Standard-Metrik prominent als Radio-Option, Advanced Settings (Chrome-Picker + Custom Selector) ausklappbar, keine rohe HTML-Struktur. |
 | 26.06.2026 | **Figma-Plugin AI-Generierung:** Vier-Fenster-Layout statt drei — Figma auf weiß + schwarz, Variant B auf weiß + schwarz. `gen-ref-dark` neu, `gen-preview` entfernt (war doppelt auf weiß). |
 | 26.06.2026 | **Ponytail-Review:** `'use client'` aus VariantPreview entfernt (Server Component). Leere Grid-Spalte gefixt (jede Vorschau einzeln bedingt rendern). PROJEKT.md §3 aktualisiert. |
@@ -199,7 +200,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 25.06.2026 (Landingpage live auf www.getvariante.com)*
+*DSO — zuletzt geprüft: 26.06.2026 (Figma-Plugin Results-Screen überarbeitet, Build grün)*
 
 ---
 
