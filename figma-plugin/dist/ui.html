@@ -76,6 +76,11 @@
   .frame-dark { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 8px; background: #000; color: #fff; overflow: auto; max-height: 220px; }
   .frame-dark img { max-width: 100%; display: block; }
 
+  /* Results preview — compact thumbnail, keine Überläufe */
+  .frame-preview { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 6px; overflow: hidden; max-height: 72px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; background: #fff; color: #111; }
+  .frame-preview-dark { border: 1px solid var(--figma-color-border); border-radius: 6px; padding: 6px; overflow: hidden; max-height: 72px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; background: #000; color: #fff; }
+  .frame-preview img, .frame-preview-dark img { max-width: 100%; display: block; }
+
   /* Upgrade banner */
   .upgrade-banner { display:none; background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; padding:12px; margin-bottom:12px; text-align:center; }
   .upgrade-banner .ub-title { font-size:13px; font-weight:700; color:#92400e; margin-bottom:4px; }
@@ -289,8 +294,16 @@
   <div id="res-preview-section" style="display:none">
     <div class="divider"></div>
     <div class="cmp">
-      <div><div class="muted">A (Original)</div><div class="frame" id="res-preview-a"></div></div>
-      <div><div class="muted">B (Variant)</div><div class="frame" id="res-preview-b"></div></div>
+      <div>
+        <div class="muted">A (Original)</div>
+        <div class="frame-preview" id="res-preview-a-white"></div>
+        <div class="frame-preview-dark" id="res-preview-a-black"></div>
+      </div>
+      <div>
+        <div class="muted">B (Variant)</div>
+        <div class="frame-preview" id="res-preview-b-white"></div>
+        <div class="frame-preview-dark" id="res-preview-b-black"></div>
+      </div>
     </div>
   </div>
 
@@ -853,12 +866,16 @@ function startResults() {
       $('res-nodata').style.display = noData ? 'block' : 'none'
       $('res-status').textContent = t.status
 
-      // Preview A/B
+      // Preview A/B — jede Variante auf weißem + schwarzem Grund
       const css = t.site_css ? '<style>' + t.site_css + '</style>' : ''
       const hasA = !!t.original_html
       const hasB = !!t.variant_b_html
-      $('res-preview-a').innerHTML = hasA ? css + t.original_html : '<div class="muted">—</div>'
-      $('res-preview-b').innerHTML = hasB ? css + t.variant_b_html : '<div class="muted">—</div>'
+      ;['a', 'b'].forEach(function(k) {
+        const html = k === 'a' ? t.original_html : t.variant_b_html
+        const has = k === 'a' ? hasA : hasB
+        $('res-preview-' + k + '-white').innerHTML = has ? css + html : '<span class="muted">—</span>'
+        $('res-preview-' + k + '-black').innerHTML = has ? css + html : '<span class="muted">—</span>'
+      })
       $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'
     } catch (_) {}
   }
