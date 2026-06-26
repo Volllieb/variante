@@ -226,11 +226,11 @@
   <div id="gen-result" style="display:none">
     <div class="cmp">
       <div><div class="muted">Figma reference</div><div class="frame" id="gen-ref"></div></div>
-      <div><div class="muted">Variant B (rendered)</div><div class="frame" id="gen-preview"></div></div>
+      <div><div class="muted">Figma reference (dark)</div><div class="frame-dark" id="gen-ref-dark"></div></div>
     </div>
     <div class="cmp">
-      <div><div class="muted">On white bg</div><div class="frame" id="gen-preview-white"></div></div>
-      <div><div class="muted">On black bg</div><div class="frame-dark" id="gen-preview-black"></div></div>
+      <div><div class="muted">Variant B (white)</div><div class="frame" id="gen-preview-white"></div></div>
+      <div><div class="muted">Variant B (dark)</div><div class="frame-dark" id="gen-preview-black"></div></div>
     </div>
     <div class="muted" style="font-size:10px; margin-bottom:8px">Preview without web fonts/site CSS — close approximation, not pixel-perfect.</div>
     <div class="upgrade-banner" id="upgrade-banner">
@@ -338,7 +338,10 @@ function showTokenMode() {
   $('c-welcome').style.display = 'none'
   $('c-token').style.display = 'block'
   populateDatalist('dl-token', 'token')
-  setTimeout(() => { var n = $('connect-token'); if (n) n.focus() }, 50)
+  ;(function retryFocus(attempt) {
+    var n = $('connect-token');
+    if (n && document.activeElement !== n) { n.focus(); if (document.activeElement !== n && attempt < 10) setTimeout(retryFocus, 100, attempt + 1) }
+  })(0)
 }
 function showWelcomeMode() {
   $('c-token').style.display = 'none'
@@ -514,8 +517,15 @@ function newTest() {
   hideUpgradeBanner()
   navPush('setup')
   populateDatalist('dl-url', 'url')
-  // Figma-Iframe-Fokus erzwingen, sonst schluckt Figma die ersten Tastenanschläge.
-  setTimeout(function () { var n = $('f-name'); if (n) n.focus() }, 50)
+  // Figma-Iframe-Fokus: Das Plugin-UI läuft in einem iFrame, Figma
+  // schluckt Tastaturevents wenn der Fokus nicht im Input liegt.
+  // Retry bis Focus gesetzt ist (DOM-Updates durch populateDatalist
+  // können initialen Fokus klauen).
+  ;(function retryFocus(attempt) {
+    var n = $('f-name');
+    if (n && document.activeElement !== n) { n.focus(); if (document.activeElement !== n && attempt < 10) setTimeout(retryFocus, 100, attempt + 1) }
+  })(0)
+  validateUrlInput()
 }
 // Validiert + normalisiert die Site-URL. Gibt null zurück, wenn ungültig —
 // verhindert, dass Schrott-Eingaben als Tab im Browser geöffnet werden.
@@ -758,7 +768,6 @@ function reselectDesign() {
 function getScope() { const el = $('gen-scope'); return el ? el.value : 'all' }
 
 function fillPreviews(html) {
-  $('gen-preview').innerHTML = html || ''
   $('gen-preview-white').innerHTML = html || ''
   $('gen-preview-black').innerHTML = html || ''
 }
@@ -785,6 +794,7 @@ async function generate() {
     const data = await res.json()
     state.html = data.html
     $('gen-ref').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div class="muted">—</div>'
+    $('gen-ref-dark').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div class="muted">—</div>'
     fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
@@ -946,16 +956,6 @@ async function deleteTest(id) {
     err('dashboard', 'Error deleting: ' + (e.message || e))
   }
 }
-
-// Disable create button when URL is empty
-;(function(){
-  const fUrlEl = $('f-url')
-  const btnCreate = $('btn-create')
-  if (!fUrlEl || !btnCreate) return
-  const updateCreateDisabled = () => { btnCreate.disabled = !fUrlEl.value.trim() }
-  fUrlEl.addEventListener('input', updateCreateDisabled)
-  updateCreateDisabled()
-})()
 
 // Boot: auf den Token von code.ts warten; Fallback → Connect-Screen.
 setTimeout(function () { if (!tokenReceived) go('connect') }, 1500)
