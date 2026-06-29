@@ -41,7 +41,7 @@
         if (p.type === "SOLID") {
           return { type: "solid", hex: rgbToHex(p.color), opacity: typeof p.opacity === "number" ? p.opacity : 1 };
         }
-        if (typeof p.type === "string" && p.type.indexOf("GRADIENT") === 0) {
+        if (typeof p.type === "string" && p.type.startsWith("GRADIENT")) {
           const stops = Array.isArray(p.gradientStops) ? p.gradientStops.map((s) => ({ hex: rgbToHex(s.color), pos: Math.round(s.position * 100) / 100 })) : [];
           return { type: p.type.toLowerCase(), stops };
         }
