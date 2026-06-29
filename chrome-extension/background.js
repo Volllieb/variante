@@ -5,14 +5,12 @@
 // dass die Extension zum variante-Figma-Plugin gehört und sich dort automatisch öffnet.
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
-    chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') }).catch(() => {})
+    chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') }).catch(() => {}) // ponytail: welcome page already open, silent fail
   }
 })
 
 chrome.runtime.onMessage.addListener((msg, sender) => {
   if (msg.type === 'CLOSE_TAB' && sender.tab && sender.tab.id) {
-    chrome.tabs.remove(sender.tab.id).catch(() => {
-      // Fallback: Tab konnte nicht geschlossen werden (z.B. letzter Tab im Fenster)
-    })
+    chrome.tabs.remove(sender.tab.id).catch(() => {}) // ponytail: last tab in window, closing impossible
   }
 })

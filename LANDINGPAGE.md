@@ -132,26 +132,26 @@ For whom is this?
 Pricing
 Simple, transparent. Start free, upgrade when you need more.
 
-┌────────────┬────────────┬──────────────┐
-│   Free     │   Pro      │   Agency     │
-│────────────│────────────│──────────────│
-│   $0       │   $35/mo   │   $99/mo     │
-│────────────│────────────│──────────────│
-│ 1 active   │ Unlimited  │ Unlimited    │
-│ experiment │ experiments│ experiments  │
-│ Badge ON   │ Badge OFF  │ Badge OFF    │
-│            │            │ White-label  │
-│            │            │ Multi-site   │
-│            │            │ Team seats   │
-│────────────│────────────│──────────────│
-│ [Install]  │ [Start     │ [Contact]   │
-│            │  free trial]│             │
-└────────────┴────────────┴──────────────┘
+┌────────────┬────────────┬──────────────────┐
+│   Free     │   Pro      │   Agency         │
+│────────────│────────────│──────────────────│
+│   $0       │   $35/mo   │   $99/mo         │
+│────────────│────────────│──────────────────│
+│ 1 active   │ Unlimited  │ Unlimited        │
+│ experiment │ experiments│ experiments      │
+│ Badge ON   │ Badge OFF  │ Badge OFF        │
+│            │            │ White-label ⏳   │
+│            │            │ Multi-site   ⏳   │
+│            │            │ Team seats   ⏳   │
+│────────────│────────────│──────────────────│
+│ [Install]  │ [Start     │ [Coming soon]   │
+│            │  free trial]│                  │
+└────────────┴────────────┴──────────────────┘
 ```
 
 - 3 Spalten, Free hervorgehoben oder Pro als "Recommended"-Tag
 - Feature-Check pro Tier aufgelistet
-- CTA: Free → Figma Plugin, Pro → Signup, Agency → `mailto:hello@getvariante.com`
+- CTA: Free → Figma Plugin, Pro → Signup, Agency → "Coming soon" (wartet auf erste Nachfrage)
 - Hintergrund: gleicher heller violet wie Seite
 
 ### 3.6 Footer — minimal

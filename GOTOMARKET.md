@@ -26,7 +26,7 @@ Vor jedem öffentlichen Launch fertig:
 
 ### Phase 1 — Soft-Launch / Design-Partner (Cold-Start lösen)
 Realität: aktuell nur 2 Designer im Umfeld → aktiver Schritt nötig.
-- Die 2 bekannten Designer + **3–5 handverlesene kleine Agenturen** als Design-Partner gewinnen: kostenlos Pro/Agency gegen Feedback + Testimonial + Case-Study.
+- Die 2 bekannten Designer + **3–5 handverlesene kleine Agenturen** als Design-Partner gewinnen: kostenlos Pro gegen Feedback + Testimonial + Case-Study.
 - Concierge-Onboarding (du machst den ersten Test mit ihnen).
 - **Output:** 3–5 echte Installs, **1–2 Case-Studies mit Before/After-Lift-Zahlen** → Munition für Phase 2.
 
@@ -38,18 +38,18 @@ Realität: aktuell nur 2 Designer im Umfeld → aktiver Schritt nötig.
 ### Phase 3 — Self-Serve-Aktivierung & Conversion
 - Funnel optimieren: Install → erster Live-Test so schnell wie möglich (das ist das Aha).
 - Viraler Loop läuft über das Badge.
-- Free→Pro-Trigger: unbegrenzte Experimente + Badge-aus. Free→Agency: White-Label (sie verkaufen es weiter).
+- Free→Pro-Trigger: unbegrenzte Experimente + Badge-aus. Agency-Tier (White-Label) — zurückgestellt, kommt wenn erste Nachfrage da ist.
 
-### Phase 4 — Content/SEO + Agency-Push (sekundär)
+### Phase 4 — Content/SEO (sekundär)
 - Erst wenn Plugin-Discovery läuft: Keywords „A/B test from Figma", „A/B testing for AI-generated websites". Posts in r/web_design, X-Design-Bubble, Designer-Slacks.
-- **Agency-Tier aktiv ausbauen** — hier sitzt der Umsatz (White-Label). Gezielte Ansprache kleiner CRO/Design-Agenturen.
+- **Agency-Tier** (White-Label, Multi-Site, Team-Seats) ist zurückgestellt. Aktivierung erst, wenn sich erste Nachfrage abzeichnet.
 
 ---
 
 ## Metriken
 - **North Star:** % der Installs, die einen **Live-Test starten** (Aktivierung).
-- Free→Pro-Conversion · Agency-Abschlüsse · Badge-getriebene Installs (viraler Koeffizient).
-- **Umsatzziel:** erste 10 zahlende (Pro/Agency) innerhalb 60–90 Tagen nach Public-Launch.
+- Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
+- **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte) → Phase 1 ist der kritische Schritt; Figma-Community skaliert, braucht aber Review + Ranking-Zeit.

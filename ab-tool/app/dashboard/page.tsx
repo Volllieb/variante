@@ -7,9 +7,6 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  const searchParams = await props.searchParams
-  const upgraded = searchParams.upgraded === '1'
-
   const { data: profile } = await supabase
     .from('profiles')
     .select('api_token, plan, plan_status')
@@ -28,7 +25,6 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       plan={profile?.plan ?? 'free'}
       apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
-      upgraded={upgraded}
     />
   )
 }

@@ -35,6 +35,7 @@ export async function GET(req: Request) {
     .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html, user_id')
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
+    .limit(200) // ponytail: vernünftiges Limit statt ALLER non-paused Tests
 
   if (error) {
     console.error('[resolve] db error:', error)

@@ -22,8 +22,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["scripting", "storage", "activeTab"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["storage", "activeTab"],
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],

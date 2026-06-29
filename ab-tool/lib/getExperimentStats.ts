@@ -22,6 +22,7 @@ export type ExperimentData = {
   winner: string | null
   minVisitors: number
   minUplift: number
+  userId: string | null
   pro: boolean // false → Free-Tier: Signifikanz + Auto-Gewinner gesperrt
   variants: VariantStats[]
   originalHtml: string | null
@@ -57,6 +58,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     pro = profile?.plan === 'pro' || profile?.plan === 'agency'
   }
 
+  const userId: string | null = test.user_id || null
   const minVisitors = test.min_visitors ?? 100
   const minUplift = test.min_uplift ?? 0.05
 
@@ -93,6 +95,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     winner,
     minVisitors,
     minUplift,
+    userId,
     pro,
     originalHtml: test.original_html ?? null,
     variantBHtml: test.variant_b_html ?? null,

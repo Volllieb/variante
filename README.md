@@ -10,7 +10,7 @@ Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI 
 
 | Ordner | Beschreibung | Deploy |
 |---|---|---|
-| `ab-tool/` | Next.js API + Dashboard | Vercel (`ab-tool-pied.vercel.app`) |
+| `ab-tool/` | Next.js API + Dashboard | Vercel (`www.getvariante.com`) |
 | `ab-spike/` | Demo-Client-Site | Vercel (`ab-spike.vercel.app`) |
 | `figma-plugin/` | Figma-Plugin | manuell laden |
 | `chrome-extension/` | Chrome-Extension | manuell laden |

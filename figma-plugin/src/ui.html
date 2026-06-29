@@ -496,7 +496,7 @@ code {
 <div id="s-dashboard" class="screen">
   <div class="hdr" style="padding:12px 12px 0">
     <span class="hdr-title">A/B Tests</span>
-    <button class="btn btn-secondary btn-sm" onclick="showDashboard()">Refresh</button>
+    <button class="icon-btn" onclick="showDashboard()" title="Refresh"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 014-4M10 6a4 4 0 01-4 4M8 2h2.5v2.5M4 10H1.5V7.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <button class="btn btn-secondary btn-sm" onclick="goToTokenMode()" style="margin-left:4px">Token</button>
   </div>
   <div class="body">
@@ -948,7 +948,8 @@ const state = {
   selector: '', originalHtml: '', goalCandidates: [],
   frameId: '', screenshot: '', frameContent: null, html: ''
 }
-let elTimer = null, resTimer = null, dotTimer = null, mTimer = null, mDotTimer = null
+let generating = false // ponytail: guard gegen Race generate/refine
+let elTimer = null, resTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
 let navHistory = []
@@ -1111,7 +1112,7 @@ function renderTestCard(t) {
     '</div></div>' +
     '<div class="tc-meta">' + (va + vb) + ' visitors · ' + (ca + cb) + ' conversions' + winner + '</div>' +
     '<div class="tc-bar"><div class="tc-fill" style="width:' + Math.min(sig, 100) + '%"></div></div>' +
-    '<div class="tc-sig">Significance ' + sig + '% · Target: ' + minV + ' visitors & +' + minU + '% uplift</div>'
+    // ponytail: removed sig/target line — takes space, rarely actionable from the list
   card.onclick = () => resumeTest(t.id)
   return card
 }
@@ -1301,7 +1302,6 @@ function startElementPoll() {
   elTimer = setInterval(poll, 5000)
 }
 function stopElementPoll() {
-  if (elTimer)  { clearInterval(elTimer);  elTimer  = null }
   if (dotTimer) { clearInterval(dotTimer); dotTimer = null }
 }
 async function reselectElement() {
@@ -1518,6 +1518,8 @@ function fillPreviews(html) {
 }
 
 async function generate() {
+  if (generating) return // ponytail: Race-Guard — doppelte Requests vermeiden
+  generating = true
   $('gen-result').style.display = 'none'
   $('gen-ftr').style.display = 'none'
   $('l-generate').style.display = 'flex'
@@ -1548,12 +1550,16 @@ async function generate() {
     err('generate', e.message)
   } finally {
     $('l-generate').style.display = 'none'
+    generating = false
   }
 }
 
+// ── Screen 5.1: Refine ───────────────────────────────────────────────
 async function refine() {
+  if (generating) return // ponytail: Race-Guard
+  generating = true
   const feedback = ($('gen-feedback').value || '').trim()
-  if (!feedback) { err('generate', 'Describe what should change.'); return }
+  if (!feedback) { generating = false; err('generate', 'Describe what should change.'); return }
   $('gen-result').style.display = 'none'
   $('gen-ftr').style.display = 'none'
   $('l-generate').style.display = 'flex'
@@ -1583,6 +1589,7 @@ async function refine() {
     err('generate', e.message)
   } finally {
     $('l-generate').style.display = 'none'
+    generating = false
   }
 }
 
@@ -1607,16 +1614,7 @@ function copySnippet() {
   document.body.removeChild(ta)
   const c = $('cp-snippet'); c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
 }
-// kept for backward compat with any existing calls
-function copyEl(id) {
-  if (id === 'snippet-code') { copySnippet(); return }
-  const text = $(id).textContent
-  const ta = document.createElement('textarea')
-  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
-  document.body.appendChild(ta); ta.focus(); ta.select()
-  try { document.execCommand('copy') } catch (_) {}
-  document.body.removeChild(ta)
-}
+// ponytail: copyEl removed — had no callers, only duplicated copySnippet logic
 
 // ── Results ──────────────────────────────────────────────────────────────────
 function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '—' }

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
   const { data: updated, error } = await supabase
     .from('tests')
-    .update({ selector, original_html, site_css, framework, goal_candidates: goal_candidates ?? null })
+    .update({ selector, original_html, site_css, framework, ...(goal_candidates !== undefined ? { goal_candidates } : {}) })
     .eq('id', testId)
     .eq('user_id', user.userId)
     .select('id')

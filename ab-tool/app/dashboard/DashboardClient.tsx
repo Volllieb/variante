@@ -20,13 +20,11 @@ export function DashboardClient({
   plan,
   apiToken,
   tests,
-  upgraded,
 }: {
   email: string
   plan: string
   apiToken: string
   tests: TestRow[]
-  upgraded?: boolean
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -61,12 +59,6 @@ export function DashboardClient({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      {upgraded && (
-        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800">
-          🎉 You&apos;re now on <strong>Pro</strong> — unlimited experiments, full statistics, no badge.
-        </div>
-      )}
-
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -138,14 +130,14 @@ export function DashboardClient({
         <div className="relative mb-3">
           <pre className="overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-xs text-green-400">
 {`<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
-<link rel="preconnect" href="https://ab-tool-pied.vercel.app">
+<link rel="preconnect" href="https://www.getvariante.com">
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://ab-tool-pied.vercel.app/ab.js"><\/script>`}
+<script async src="https://www.getvariante.com/ab.js"><\/script>`}
           </pre>
           <button
             onClick={() => {
-              const code = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->\n<link rel="preconnect" href="https://ab-tool-pied.vercel.app">\n<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n<script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n<script async src="https://ab-tool-pied.vercel.app/ab.js"><\/script>`
+              const code = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->\n<link rel="preconnect" href="https://www.getvariante.com">\n<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n<script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n<script async src="https://www.getvariante.com/ab.js"><\/script>`
               navigator.clipboard.writeText(code).then(() => {
                 setSnippetCopied(true)
                 setTimeout(() => setSnippetCopied(false), 2000)
@@ -167,12 +159,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://ab-tool-pied.vercel.app" />
+        <link rel="preconnect" href="https://www.getvariante.com" />
         <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://ab-tool-pied.vercel.app/ab.js" />
+        <script async src="https://www.getvariante.com/ab.js" />
       </head>
       <body>{children}</body>
     </html>
@@ -193,12 +185,12 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        <link rel="preconnect" href="https://ab-tool-pied.vercel.app" />
+        <link rel="preconnect" href="https://www.getvariante.com" />
         <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://ab-tool-pied.vercel.app/ab.js" />
+        <script async src="https://www.getvariante.com/ab.js" />
       </Head>
       <body>
         <Main />
@@ -219,10 +211,10 @@ export default function Document() {
 <html>
 <head>
   <!-- A/B Testing: universal snippet -->
-  <link rel="preconnect" href="https://ab-tool-pied.vercel.app">
+  <link rel="preconnect" href="https://www.getvariante.com">
   <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
   <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://ab-tool-pied.vercel.app/ab.js"><\/script>
+  <script async src="https://www.getvariante.com/ab.js"><\/script>
 </head>
 <body>
   <!-- your content -->
@@ -236,8 +228,8 @@ export default function Document() {
             Other frameworks (Vue, Svelte, Astro, etc.)
           </summary>
           <div className="mt-2 text-xs text-gray-500">
-            <p className="mb-1">Inject these elements into the <code className="bg-gray-100 px-1 rounded">{'<head>'}</code> of your root layout or template. The snippet is framework-agnostic — it works anywhere.</p>
-            <p>Make sure the <code className="bg-gray-100 px-1 rounded">{'<link rel="preconnect">'}</code>, anti-flicker <code className="bg-gray-100 px-1 rounded">{'<style>'}</code>, and inline <code className="bg-gray-100 px-1 rounded">{'<script>'}</code> come <strong>before</strong> the async <code className="bg-gray-100 px-1 rounded">ab.js</code> script tag.</p>
+            <p className="mb-1">Inject the three lines into the <code className="bg-gray-100 px-1 rounded">{'<head>'}</code> of your root layout or template. The snippet is framework-agnostic — it works anywhere.</p>
+            <p>Make sure the anti-flicker <code className="bg-gray-100 px-1 rounded">{'<style>'}</code> and inline <code className="bg-gray-100 px-1 rounded">{'<script>'}</code> come <strong>before</strong> the async <code className="bg-gray-100 px-1 rounded">ab.js</code> script tag.</p>
           </div>
         </details>
 
