@@ -13,16 +13,17 @@ export function calcSignificance(vA: number, cA: number, vB: number, cB: number)
   return 1 - Math.exp(-chi / 2)
 }
 
-export const WINNER_MIN_SIGNIFICANCE = 0.95
-export const DEFAULT_MIN_VISITORS = 100
-export const DEFAULT_MIN_UPLIFT = 0.05
+const WINNER_MIN_SIGNIFICANCE = 0.95
+const DEFAULT_MIN_VISITORS = 100
+const DEFAULT_MIN_UPLIFT = 0.05
 
-// Ermittelt, ob Variante B den Test gewinnt. B gewinnt, wenn ALLE Bedingungen
-// erfüllt sind:
-//   1. Mindest-Besucherzahl (A+B) erreicht                  (minVisitors)
-//   2. relativer Uplift von B gegenüber A >= Schwelle       (minUplift)
-//   3. statistische Signifikanz >= 95% (Sicherheitsguard)
-// Gibt 'B' zurück, sonst null (A-Sieg = kein Handlungsbedarf, Original bleibt).
+// Ermittelt den Test-Gewinner. Rückgabe:
+//   'B'    – B hat signifikant und praktisch besser abgeschnitten → B served to all
+//   'A'    – Signifikante Datenlage, aber A ist besser oder gleich → Test kann enden
+//   null   – Noch nicht genug Daten (Besucher/Signifikanz) oder B steigt noch Richtung Schwelle
+//
+// ponytail: null ≠ 'A'. Wenn B knapp unter minUplift liegt, läuft der Test weiter.
+// Erst wenn klar ist dass B NICHT besser ist (crB ≤ crA), wird A deklariert.
 export function determineWinner(
   significance: number,
   cA: number,
@@ -36,8 +37,8 @@ export function determineWinner(
   if (significance < WINNER_MIN_SIGNIFICANCE) return null
   const crA = vA > 0 ? cA / vA : 0
   const crB = vB > 0 ? cB / vB : 0
-  if (crB <= crA) return null
-  const uplift = crA > 0 ? (crB - crA) / crA : Infinity // crA=0 & crB>0 → unendlicher Uplift
-  if (uplift < minUplift) return null
+  if (crB <= crA) return 'A' // B ist nicht besser (oder gleich) → A gewinnt
+  const uplift = crA > 0 ? (crB - crA) / crA : Infinity
+  if (uplift < minUplift) return null // B ist besser aber unter Schwelle → weiterlaufen lassen
   return 'B'
 }

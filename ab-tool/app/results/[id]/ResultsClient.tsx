@@ -6,20 +6,23 @@ import { useEffect, useState } from 'react'
 
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
   const [data, setData] = useState(initial)
-  // Local input values for thresholds (decoupled from 5s poll so typing isn't overwritten).
+  // Local input values for thresholds (decoupled from poll so typing isn't overwritten).
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
   const [saved, setSaved] = useState(false)
 
+  async function refresh() {
+    try {
+      const res = await fetch(`/api/results/${experimentId}`)
+      if (res.ok) setData(await res.json())
+    } catch {}
+  }
+
   useEffect(() => {
-    const iv = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/results/${experimentId}`)
-        if (res.ok) setData(await res.json())
-      } catch {}
-    }, 5000)
+    const interval = data.pro ? 10000 : 30000
+    const iv = setInterval(refresh, interval)
     return () => clearInterval(iv)
-  }, [experimentId])
+  }, [experimentId, data.pro])
 
   const { name, status, significance, winner, variants, pro } = data
   const [a, b] = variants
@@ -39,10 +42,55 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     } catch {}
   }
 
+  const lift = a.views > 0 && a.conversions > 0
+    ? ((b.cr - a.cr) / a.cr) * 100
+    : null
+
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 font-sans">
-      <h1 className="mb-1 text-2xl font-bold">{name}</h1>
-      <p className="mb-8 text-sm text-gray-500">Status: {status}{winner ? ` · Winner: Variant ${winner}` : ''}</p>
+      <div className="mb-1 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">{name}</h1>
+        <button
+          onClick={refresh}
+          className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50"
+          title="Refresh now"
+        >
+          ↻ Refresh
+        </button>
+      </div>
+      <p className="mb-8 text-sm text-gray-500">
+        Status: {status}{winner ? ` · Winner: Variant ${winner}` : ''}
+        {status === 'active' && (
+          <button
+            onClick={async () => {
+              await fetch(`/api/tests/${experimentId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'paused' }),
+              })
+              refresh()
+            }}
+            className="ml-3 text-xs text-amber-600 hover:underline"
+          >
+            [Pause]
+          </button>
+        )}
+        {status === 'paused' && (
+          <button
+            onClick={async () => {
+              await fetch(`/api/tests/${experimentId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'active' }),
+              })
+              refresh()
+            }}
+            className="ml-3 text-xs text-green-600 hover:underline"
+          >
+            [Resume]
+          </button>
+        )}
+      </p>
       <div className="grid grid-cols-2 gap-6">
         {[a, b].map(v => (
           <div key={v.id} className={`rounded-xl border p-6 ${winner === v.id ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
@@ -50,6 +98,11 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
             <p className="mt-1 text-sm text-gray-500">Conversion Rate</p>
             <p className="mt-3 text-sm">Variant {v.label}</p>
             <p className="text-xs text-gray-400">{v.views} visitors · {v.conversions} conv.</p>
+            {lift !== null && v.id === 'B' && (
+              <p className={`mt-2 text-xs font-semibold ${lift > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                {lift > 0 ? '+' : ''}{lift.toFixed(1)}% vs A
+              </p>
+            )}
           </div>
         ))}
       </div>
