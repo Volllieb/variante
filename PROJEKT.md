@@ -138,13 +138,17 @@ c:\dev\variante/
 | 5 | **Polling-Intervall gaten** | Free/Pro | Free 30s, Pro 10s (vorher 5s für alle) |
 | 8 | **Auto-Winner verifizieren** | Pro | `determineWinner` gibt `'A'` bei A-Sieg; Self-Check `__tests__/significance-check.mjs` |
 
-### Ausstehende Phasen
+### ✅ Phase B — UX-Komplettierung (implementiert 29.06.2026)
 
-**Phase B — UX-Komplettierung (Free, ~12h):**
-1. Globales CSS in Figma-Preview ohne Rendering-Fehler
-2. KI-Prompt-Feld + variable Übertragungs-Genauigkeit
-3. Inline- → globales CSS bei Variante B
-4. Auto-Complete letzter Eingaben
+| # | Item | Tier | Änderungen |
+|---|---|---|---|
+| 14 | **Manual HTML-Editor für Variant B** | Free | `PATCH /api/tests/[id]` erlaubt `variant_b_html`; `ResultsClient.tsx` mit Textarea + Save/Cancel + „Edit HTML"-Button + „+ Add HTML"-Fallback |
+| 1 | **Globales CSS in Figma-Preview (iframe)** | Free | `fillPreviews()` in Plugin: `innerHTML` → `iframe srcdoc` mit `<style>`-Block aus `siteCss`. Results-Preview ebenfalls iframe-basiert. Generate-Route gibt `siteCss` im Response zurück. Plugin-State speichert `siteCss`. |
+| 2 | **KI-Prompt-Feld** | Free | Plugin-Generate-Screen: `gen-instructions`-Textarea → wird als `userInstructions` an Generate-Route gesendet → in `buildPrompt`/`buildRefinePrompt` als „Nutzer-Vorgabe" injiziert |
+| 4 | **Auto-Complete (localStorage)** | Free | Plugin speichert/setzt `gen-instructions` via `saveInputHistory('instructions')` / `loadInputHistory`. URL-History bereits über `dl-url`-Datalist + `populateDatalist` vorhanden. |
+| 3 | **Inline→global CSS extrahieren** | Free | **Entfällt** — Phase-B #1 (iframe+Css) macht Explizites Extract obsolet: `<style>` im HTML-Fragment wird via `srcdoc` korrekt isoliert gerendert. |
+
+### Ausstehende Phasen
 
 **Phase C — Monetarisierung & Erweiterung (gemischt, ~18h):**
 5. Schnelleres Dashboard-Update (Free 30s / Pro 10s — erledigt in Phase A)
@@ -166,10 +170,23 @@ c:\dev\variante/
 | **Refresh-Button** | Klick → Daten-Update ohne full Reload | ↻-Button löst Poll aus |
 | **Polling-Intervall** | Dashboard laden, Network-Tab checken | Free: 30s, Pro: 10s |
 
+### Testplan Phase B
+
+| Was | Wie | Erwartung |
+|---|---|---|
+| **HTML-Editor** | Results-Seite öffnen, "Edit HTML" klicken | Textarea erscheint mit aktuellem HTML, Save schreibt via PATCH, Preview refreshed |
+| **HTML-Editor — Add** | Test ohne variantBHtml → "+ Add Variant B HTML" | Button sichtbar, Klick öffnet Editor |
+| **HTML-Editor — Cancel** | Editor öffnen, Cancel klicken | Editor schließt ohne Änderung |
+| **CSS in Figma-Preview** | Plugin Generate-Screen nach Generation | Preview zeigt iframe statt innerHTML, siteCss eingebettet |
+| **CSS in Figma-Results** | Plugin Results-Screen | Preview zeigt iframe mit siteCss |
+| **KI-Prompt-Feld** | Instructions eingeben → Generate | Prompt enthält "Nutzer-Vorgabe: ..." |
+| **KI-Prompt — History** | Instructions speichern → neuen Test → Generate | Letzte Instructions wiederhergestellt |
+
 ## §9 Historie
 
 | Datum | Eintrag |
 |---|---|
+| 29.06.2026 | **Phase B UX-Komplettierung implementiert:** #14 Manual HTML-Editor für Variant B (Textarea + Preview in ResultsClient.tsx), #1 iframe-basierte CSS-Preview im Figma-Plugin (siteCss via srcdoc), #2 KI-Prompt-Feld (userInstructions → buildPrompt/buildRefinePrompt), #4 Auto-Complete für Instructions-Feld. #3 entfällt (durch #1 obsolet). |
 | 29.06.2026 | **Phase A Quick Wins implementiert:** #5 Polling-Gating (Free 30s/Pro 10s), #6 Pause/Resume-Button im Dashboard, #8 determineWinner gibt `'A'` bei statistisch klarem A-Sieg zurück + Self-Check (10 Tests), #11 Lift-Anzeige (relative Verbesserung in %), #12 Refresh-Button. Siehe Testplan in §8. |
 | 26.06.2026 | **Figma-Plugin Inspector-Patterns übernommen** (aus Analyse von Figmas eigenem Properties-Panel): (A) Inputs jetzt Figma-nativ — grauer `bg-secondary`-Fill, **kein** Ruhe-Border, Border erst bei Fokus. (B) Icon-Prefix links im Feld: Globe im URL-Feld, `< >`-Code-Icon im Custom-Selector (`.input-icon-left` + `.has-prefix`). (E) `.card`/`.testid-row` Border entfernt → ruhige Property-Rows. (F) Scope-`<select>` → Segmented Control (`.seg`/`.seg-btn`, `data-scope`-State, `setScope()`); `getScope()` liest jetzt `data-scope` statt `.value`. (Token) Hardcoded Hex in `.notice-*`/Badges/`.upgrade-banner`/`.err`/`.ok` → halbtransparente Status-Tokens (`--ok*`, `--warn*`) + `--figma-color-text-success/-warning/-danger` mit Fallback → Dark-Mode-safe. Bewusst NICHT: Sektions-Header mit Action-Icons (D). |
 | 26.06.2026 | **Figma-Plugin Results-Screen überarbeitet:** Header zeigt Testnamen (`state.name`) + Status-Badge (`bs-*`) statt statischem „Results". A/B-Stats von 6er-Kachel-Grid auf zweispaltige Tabelle (`1fr 1fr` mit mittiger Trennlinie, Spalten-Header „Variant A/B", Labels 10px uppercase, Werte 16px bold). Significance als einzelne Zeile (`Significance: X% — not/significant`) statt Box+Balken. Winner-Banner im nativen `--figma-color-bg-success`-Stil, Variantenname fett, oben nach Header. Upgrade-Banner kompakt (Titel + Button einzeilig) im Figma-Warning-Stil (`--figma-color-bg-warning`). „No data" → „Waiting for first visitors." + Link-Button „→ Snippet-Anleitung". Preview ohne Dark-Variante, skaliert (`scale(0.8)`, max-height 64px, kein Scroll), eine Vorschau pro Variante. „Refreshes every 30s" als zentrierter Footer-Hinweis. Plugin-Titel `code.ts`: „AB Figma" → „Variante". Tote CSS (`.stats-grid`, `.stat*`, `.sig-*`, `.frame-sm*`) entfernt. |
@@ -231,7 +248,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 29.06.2026 (Phase A implementiert)*
+*DSO — zuletzt geprüft: 29.06.2026 (Phase B implementiert)*
 
 ---
 

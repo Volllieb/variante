@@ -17,6 +17,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     selector?: string | null
     min_visitors?: number
     min_uplift?: number
+    variant_b_html?: string | null
   }
   try {
     body = await req.json()
@@ -30,12 +31,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     selector?: string | null
     min_visitors?: number
     min_uplift?: number
+    variant_b_html?: string | null
   } = {}
   if (typeof body.goal === 'string') patch.goal = body.goal
   if (body.status === 'draft' || body.status === 'active' || body.status === 'done' || body.status === 'paused') patch.status = body.status
   if (typeof body.selector === 'string' || body.selector === null) patch.selector = body.selector
   if (typeof body.min_visitors === 'number') patch.min_visitors = body.min_visitors
   if (typeof body.min_uplift === 'number') patch.min_uplift = body.min_uplift
+  if (typeof body.variant_b_html === 'string' || body.variant_b_html === null) patch.variant_b_html = body.variant_b_html
 
   if (Object.keys(patch).length === 0) {
     return Response.json({ error: 'nothing to update' }, { status: 400, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })

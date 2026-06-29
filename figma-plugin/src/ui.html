@@ -831,6 +831,12 @@ code {
 
       <div class="divider"></div>
 
+      <!-- User instructions for AI -->
+      <span class="lbl">Instructions for AI (optional)</span>
+      <textarea id="gen-instructions" rows="2" placeholder="e.g. different layout, more modern style, minimal design" style="margin-bottom:8px"></textarea>
+
+      <div class="divider"></div>
+
       <!-- Refine controls -->
       <span class="lbl">Refine (optional)</span>
       <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback" style="margin-bottom:8px"></textarea>
@@ -960,7 +966,7 @@ code {
 const API = 'https://www.getvariante.com'
 const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
-  selector: '', originalHtml: '', goalCandidates: [],
+  selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: ''
 }
 let generating = false // ponytail: guard gegen Race generate/refine
@@ -1173,7 +1179,7 @@ function validateUrlInput() {
 
 function newTest() {
   state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
-  state.originalHtml = ''; state.goalCandidates = []
+  state.originalHtml = ''; state.goalCandidates = []; state.siteCss = ''
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
   $('f-name').value = ''; $('f-url').value = ''
   $('url-icon').style.display = 'none'
@@ -1304,6 +1310,7 @@ function startElementPoll() {
         if (t.selector) {
           state.selector      = t.selector
           state.originalHtml  = t.original_html || ''
+          state.siteCss       = t.site_css || ''
           state.goalCandidates = t.goal_candidates || []
           $('el-testid-val').textContent = state.testId || '—'
           renderElementChip(t.selector, state.originalHtml)
@@ -1462,6 +1469,7 @@ async function enterMetric() {
   try { const r = await afetch(API + '/api/tests/' + state.testId); if (r.ok) t = await r.json() } catch (_) {}
   state.originalHtml   = t.original_html    || state.originalHtml
   state.goalCandidates = t.goal_candidates  || state.goalCandidates || []
+  state.siteCss        = t.site_css         || state.siteCss || ''
 
   const clickable = isClickable(state.originalHtml)
   const hasCandidates = (state.goalCandidates || []).filter(c => c && c.selector && c.selector !== state.selector).length > 0
@@ -1518,7 +1526,11 @@ function stopMetricPoll() {
 }
 function goGenerate() {
   if ($('m-generate').disabled) return
-  navPush('generate'); generate()
+  navPush('generate')
+  // Restore last used instructions
+  const history = loadInputHistory('instructions')
+  if (history.length) $('gen-instructions').value = history[0]
+  generate()
 }
 
 // ── Screen 5: AI generation ──────────────────────────────────────────────────
@@ -1530,8 +1542,10 @@ function setScope(val) {
 }
 
 function fillPreviews(html) {
-  $('gen-preview-white').innerHTML = html || ''
-  $('gen-preview-black').innerHTML = html || ''
+  const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
+  const doc = css ? '<html><head>' + css + '</head><body>' + (html || '') + '</body></html>' : (html || '')
+  $('gen-preview-white').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;background:#fff"></iframe>'
+  $('gen-preview-black').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;background:#111"></iframe>'
 }
 
 async function generate() {
@@ -1545,7 +1559,7 @@ async function generate() {
     const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ testId: state.testId, screenshot: state.screenshot, frameContent: state.frameContent, scope: getScope() })
+      body: JSON.stringify({ testId: state.testId, screenshot: state.screenshot, frameContent: state.frameContent, scope: getScope(), userInstructions: ($('gen-instructions').value || '').trim() })
     })
     if (!res.ok) {
       var eb = {}; try { eb = await res.json() } catch (_) {}
@@ -1557,6 +1571,8 @@ async function generate() {
     }
     const data = await res.json()
     state.html = data.html
+    if (data.siteCss) state.siteCss = data.siteCss
+    saveInputHistory('instructions', $('gen-instructions').value)
     $('gen-ref').innerHTML      = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     $('gen-ref-dark').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     fillPreviews(state.html)
@@ -1585,7 +1601,7 @@ async function refine() {
     const res = await afetch(API + '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ testId: state.testId, frameContent: state.frameContent, feedback, previousHtml: state.html, scope: getScope() })
+      body: JSON.stringify({ testId: state.testId, frameContent: state.frameContent, feedback, previousHtml: state.html, scope: getScope(), userInstructions: ($('gen-instructions').value || '').trim() })
     })
     if (!res.ok) {
       var eb = {}; try { eb = await res.json() } catch (_) {}
@@ -1597,6 +1613,7 @@ async function refine() {
     }
     const data = await res.json()
     state.html = data.html
+    if (data.siteCss) state.siteCss = data.siteCss
     fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-feedback').value = ''
@@ -1667,15 +1684,14 @@ function startResults() {
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'
 
-      // Preview: nur weiß, skaliert, eine Vorschau pro Variante
-      const css  = t.site_css ? '<style>' + t.site_css + '</style>' : ''
+      // Preview: iframe srcdoc with site CSS
       const hasA = !!t.original_html
       const hasB = !!t.variant_b_html
       ;['a','b'].forEach(k => {
         const html = k === 'a' ? t.original_html : t.variant_b_html
         const has  = k === 'a' ? hasA : hasB
         $('res-preview-' + k).innerHTML = has
-          ? css + '<div class="res-prev-inner">' + html + '</div>'
+          ? '<iframe srcdoc="' + escapeHtml('<html><head>' + (t.site_css ? '<style>' + t.site_css + '</style>' : '') + '</head><body>' + html + '</body></html>') + '" style="width:100%;height:80px;border:none;background:#fff"></iframe>'
           : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
       })
       $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'

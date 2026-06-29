@@ -178,7 +178,8 @@ function buildPrompt(
   siteCss: string | null,
   framework: string | null,
   frameContent: unknown,
-  scope: string
+  scope: string,
+  userInstructions: string
 ): string {
   const fw = framework || 'custom'
   const hint = FRAMEWORK_HINTS[fw] ?? FRAMEWORK_HINTS.custom
@@ -201,6 +202,7 @@ function buildPrompt(
     '',
     outputRules(scope),
     hint,
+    userInstructions ? `Nutzer-Vorgabe: ${userInstructions}` : '',
     '',
     `WICHTIG - Output-Format: Deine Antwort muss mit ${DELIM_START} beginnen und mit ${DELIM_END} enden.`,
     `Dazwischen steht NUR das HTML-Fragment. Kein Text vor ${DELIM_START} oder nach ${DELIM_END}.`,
@@ -211,7 +213,7 @@ function buildPrompt(
 
 // Refine-Prompt: nimmt den vorigen Output + Freitext-Feedback und gibt das
 // komplette überarbeitete Fragment zurück.
-function buildRefinePrompt(previousHtml: string, feedback: string, scope: string): string {
+function buildRefinePrompt(previousHtml: string, feedback: string, scope: string, userInstructions: string): string {
   return [
     'Du verbesserst eine bestehende A/B-Test-Variante (HTML-Fragment).',
     '',
@@ -220,6 +222,8 @@ function buildRefinePrompt(previousHtml: string, feedback: string, scope: string
     '',
     'Änderungswunsch des Nutzers:',
     feedback,
+    '',
+    userInstructions ? `Zusätzliche Vorgabe: ${userInstructions}` : '',
     '',
     'Gib das KOMPLETTE überarbeitete Fragment zurück — selbe Regeln wie zuvor:',
     outputRules(scope),
@@ -233,6 +237,7 @@ export async function POST(req: Request) {
     feedback?: string
     previousHtml?: string
     scope?: string
+    userInstructions?: string
   }
   try {
     body = await req.json()
@@ -242,6 +247,7 @@ export async function POST(req: Request) {
 
   const { testId, frameContent, feedback, previousHtml } = body
   const scope = body.scope === 'text' || body.scope === 'color' ? body.scope : 'all'
+  const userInstructions = body.userInstructions || ''
   if (!testId) {
     return Response.json({ error: 'testId required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
@@ -264,8 +270,8 @@ export async function POST(req: Request) {
   const isRefinement = !!(feedback && previousHtml)
   const prompt =
     isRefinement
-      ? buildRefinePrompt(previousHtml, feedback, scope)
-      : FEW_SHOT_PROMPT + '\n\n' + buildPrompt(test.original_html, test.site_css, test.framework, frameContent, scope)
+      ? buildRefinePrompt(previousHtml, feedback, scope, userInstructions)
+      : FEW_SHOT_PROMPT + '\n\n' + buildPrompt(test.original_html, test.site_css, test.framework, frameContent, scope, userInstructions)
 
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {
@@ -319,7 +325,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  const response: Record<string, unknown> = { html: variantHtml }
+  const response: Record<string, unknown> = { html: variantHtml, siteCss: test.site_css || null }
   if (warnings.length) response.warnings = warnings
   response.filtered_css = isRefinement ? undefined : true // Signal ans Preview: CSS wurde gefiltert
   return Response.json(response, { headers: corsHeaders('POST, OPTIONS') })

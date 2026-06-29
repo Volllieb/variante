@@ -10,6 +10,9 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
   const [saved, setSaved] = useState(false)
+  // Manual HTML editor for variant B.
+  const [editingB, setEditingB] = useState(false)
+  const [draftB, setDraftB] = useState(initial.variantBHtml || '')
 
   async function refresh() {
     try {
@@ -39,6 +42,18 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+    } catch {}
+  }
+
+  async function saveVariantB() {
+    try {
+      await fetch(`/api/tests/${experimentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variant_b_html: draftB || null }),
+      })
+      setEditingB(false)
+      await refresh()
     } catch {}
   }
 
@@ -107,7 +122,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
         ))}
       </div>
 
-      {(data.originalHtml || data.variantBHtml) && (
+      {(data.originalHtml || data.variantBHtml || editingB) && (
         <div className="mt-8">
           <h2 className="mb-3 text-sm font-semibold">Preview</h2>
           <div className="grid grid-cols-2 gap-6">
@@ -119,13 +134,46 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 winner={winner === 'A'}
               />
             )}
-            {data.variantBHtml && (
-              <VariantPreview
-                html={data.variantBHtml}
-                css={data.siteCss}
-                label="B (Variant)"
-                winner={winner === 'B'}
-              />
+            {!editingB && data.variantBHtml && (
+              <div>
+                <VariantPreview
+                  html={data.variantBHtml}
+                  css={data.siteCss}
+                  label="B (Variant)"
+                  winner={winner === 'B'}
+                />
+                <button
+                  onClick={() => { setDraftB(data.variantBHtml || ''); setEditingB(true) }}
+                  className="mt-1 text-xs text-gray-400 hover:text-gray-600"
+                >
+                  ✎ Edit HTML
+                </button>
+              </div>
+            )}
+            {!editingB && !data.variantBHtml && data.originalHtml && (
+              <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-300 p-6">
+                <button
+                  onClick={() => { setDraftB('<div class="ab-v">\n  <style>\n    .ab-v { /* your styles */ }\n  </style>\n</div>'); setEditingB(true) }}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  + Add Variant B HTML
+                </button>
+              </div>
+            )}
+            {editingB && (
+              <div className="rounded-xl border border-gray-200 p-4">
+                <p className="mb-2 text-xs font-semibold text-gray-500">Edit Variant B HTML</p>
+                <textarea
+                  value={draftB}
+                  onChange={e => setDraftB(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs font-mono"
+                  rows={10}
+                />
+                <div className="mt-2 flex gap-2">
+                  <button onClick={saveVariantB} className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">Save</button>
+                  <button onClick={() => setEditingB(false)} className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50">Cancel</button>
+                </div>
+              </div>
             )}
           </div>
         </div>
