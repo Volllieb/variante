@@ -63,7 +63,7 @@ c:\dev\variante/
 │
 ├── chrome-extension/       # Chrome-Extension (MV3)
 │   ├── manifest.json
-│   ├── content-hash.js (minimal) + content-picker.js (on-demand) / background.js / popup.js / popup.html
+│   ├── content-picker.js (on-demand, kein content_scripts) / background.js / popup.js / popup.html
 │   ├── welcome.html
 │   └── icons/
 │
@@ -194,6 +194,7 @@ c:\dev\variante/
 |---|---|
 | 29.06.2026 | **Chrome Extension CWS-ready gemacht:** Store-Listing (`store-listing.md`) finalisiert mit Permission-Justifications, Data-Usage, Single-Purpose. `cws-assets/` als Ablage für Screenshots. `.gitignore` erweitert (ZIP + Assets raus). ZIP-Package (`variante-chrome-extension.zip`, 13 KB) erstellt. |
 | 29.06.2026 | **Chrome Extension Refactoring (Host Permissions Review):** `content.js` (~300 Zeilen) aufgeteilt in `content-hash.js` (~30 Zeilen, läuft permanent auf allen Seiten) + `content-picker.js` (~270 Zeilen, on-demand per `chrome.scripting.executeScript` injiziert). Manifest: `scripting`-Permission hinzugefügt, `activeTab` bleibt. Background: `AUTO_INJECT`-Handler für Auto-Flow aus Figma. Popup: injectet erst content-picker.js, dann sendMessage. Userflow unverändert. Grund: Chrome-Review-"erweiterte Hostberechtigungen"-Prüfung entschärfen. |
+| 30.06.2026 | **Chrome Extension: content_scripts komplett entfernt.** Kein Content Script läuft mehr automatisch auf irgendeiner Seite. `content-hash.js` gelöscht, Hash-Parsing in den Service Worker (`chrome.tabs.onUpdated`) verlagert. Auto-Flow: SW erkennt `#ab_pick=` beim Seiten-Laden, speichert Payload in `storage.local`, injectet `content-picker.js` via `scripting.executeScript`. `host_permissions` bleiben als Fallback für den Auto-Flow (Figma öffnet unbekannte Domain). Review-Position: „kein content_scripts = null automatischer Code auf irgendeiner Seite". |
 | 29.06.2026 | **Phase B UX-Komplettierung implementiert:** #14 Manual HTML-Editor für Variant B (Textarea + Preview in ResultsClient.tsx), #1 iframe-basierte CSS-Preview im Figma-Plugin (siteCss via srcdoc), #2 KI-Prompt-Feld (userInstructions → buildPrompt/buildRefinePrompt), #4 Auto-Complete für Instructions-Feld. #3 entfällt (durch #1 obsolet). |
 | 29.06.2026 | **Phase A Quick Wins implementiert:** #5 Polling-Gating (Free 30s/Pro 10s), #6 Pause/Resume-Button im Dashboard, #8 determineWinner gibt `'A'` bei statistisch klarem A-Sieg zurück + Self-Check (10 Tests), #11 Lift-Anzeige (relative Verbesserung in %), #12 Refresh-Button. Siehe Testplan in §8. |
 | 26.06.2026 | **Figma-Plugin Inspector-Patterns übernommen** (aus Analyse von Figmas eigenem Properties-Panel): (A) Inputs jetzt Figma-nativ — grauer `bg-secondary`-Fill, **kein** Ruhe-Border, Border erst bei Fokus. (B) Icon-Prefix links im Feld: Globe im URL-Feld, `< >`-Code-Icon im Custom-Selector (`.input-icon-left` + `.has-prefix`). (E) `.card`/`.testid-row` Border entfernt → ruhige Property-Rows. (F) Scope-`<select>` → Segmented Control (`.seg`/`.seg-btn`, `data-scope`-State, `setScope()`); `getScope()` liest jetzt `data-scope` statt `.value`. (Token) Hardcoded Hex in `.notice-*`/Badges/`.upgrade-banner`/`.err`/`.ok` → halbtransparente Status-Tokens (`--ok*`, `--warn*`) + `--figma-color-text-success/-warning/-danger` mit Fallback → Dark-Mode-safe. Bewusst NICHT: Sektions-Header mit Action-Icons (D). |

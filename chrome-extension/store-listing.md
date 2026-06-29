@@ -48,10 +48,10 @@ Privacy policy: https://www.getvariante.com/privacy
 Select an element on a live web page to use as the target for an A/B test created in the variante Figma plugin.
 
 ## Permission justifications (Pflicht im Dashboard)
-- **`activeTab`** — Used only when the user starts a pick: lets the extension inject and run the element-picker overlay on the page the user is actively on. No background or cross-tab access.
-- **`scripting`** — Required to inject the picker script (`content-picker.js`) on demand, instead of running it on every page load. The only permanent script (`content-hash.js`) is ~30 lines and only captures a URL hash.
-- **`storage`** — Stores the current `testId` and the user's last entries locally so the picker can hand the selection back to the plugin. No personal data, local only.
-- **Host permissions (`http://*/*`, `https://*/*`)** — The user tests their own site, whose URL isn't known in advance, so the picker must be available on any page the user chooses. It activates only on explicit user action. The only script that runs automatically on all pages (`content-hash.js`) is ~30 lines and only captures a URL hash from Figma's auto-open flow; the full picker (~270 lines) is loaded on demand via `scripting` API.
+- **`activeTab`** — Used only when the user clicks the popup to start a pick: injects the element-picker overlay into the active tab. No background or cross-tab access.
+- **`scripting`** — Required to inject the picker script (`content-picker.js`) on demand. No content scripts are declared in the manifest — the picker is loaded only when the service worker detects `#ab_pick=` in a URL (auto-flow from Figma) or when the user clicks the popup. Nothing runs automatically on page loads.
+- **`storage`** — Stores the current `testId` and user's last entries locally so the picker can hand the selection back to the plugin. No personal data, local only.
+- **Host permissions (`http://*/*`, `https://*/*`)** — The user tests their own site, whose URL isn't known in advance, so the picker must be available on any page the user chooses. No content scripts run automatically — the host permissions are used exclusively for the service worker to inject the picker via the `scripting` API after detecting `#ab_pick=` in the URL (auto-flow) or after the user clicks the popup (`activeTab`).
 
 ---
 

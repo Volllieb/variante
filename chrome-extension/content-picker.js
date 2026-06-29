@@ -275,9 +275,10 @@
     boot()
   }
 
-  // --- Auto-Start: Wenn content-hash.js hat testId in storage gespeichert ----
+  // --- Auto-Start: Vom Service Worker via storage.local + executeScript ----
   chrome.storage.local.get(['testId', 'abPickerMode'], function (cfg) {
-    if (cfg.testId && !window.__abPickerActive) {
+    if (cfg.testId && !window.__abPickerLoaded) {
+      window.__abPickerLoaded = true
       startPicker(cfg.abPickerMode || 'element')
     }
   })
