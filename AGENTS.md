@@ -1,4 +1,4 @@
-# CLAUDE.md — Arbeitsanweisungen variante
+# AGENTS.md — Arbeitsanweisungen variante
 
 Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` — dort fortschreiben, nicht hier.
 

@@ -134,11 +134,11 @@ export function OnboardingClient({
         </div>
       )}
 
-      {/* ── Section 4: Chrome Extension + Next Steps ── */}
+      {/* ── Section 4: Browser Extension + Next Steps ── */}
       <div className="mb-8 rounded-xl border border-gray-200 p-6">
-        <h2 className="text-sm font-semibold mb-1">🧩 One-time: Chrome Extension</h2>
+        <h2 className="text-sm font-semibold mb-1">🧩 One-time: Browser Extension</h2>
         <p className="text-xs text-gray-500 mb-4">
-          The element picker runs via a small Chrome Extension. Install it once — no updates needed.
+          The element picker runs via a small Browser Extension. Install it once — no updates needed.
         </p>
 
         <a
@@ -146,7 +146,7 @@ export function OnboardingClient({
           download
           className="inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 mb-4"
         >
-          ⬇ Download Chrome Extension
+          ⬇ Download Browser Extension
         </a>
 
         <ol className="text-xs text-gray-500 space-y-2 ml-4 list-decimal">

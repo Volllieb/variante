@@ -1,26 +1,9 @@
-// AB Element Picker — Content Script.
-// Runs persistently via manifest content_scripts on http/https pages.
-// Activates the picker on #ab_pick=<testId> (auto-flow from Figma plugin)
-// or via START_PICKER message from the popup.
+// AB Element Picker — Full Picker (dynamically injected via scripting API).
+// NOT declared in manifest content_scripts — injected on-demand only:
+//   - Auto-flow: background injects after AUTO_INJECT signal from content-hash.js
+//   - Popup flow: popup injects after user clicks "Start"
 // Hover-highlight + click capture: selector, outerHTML, filtered CSS,
 // framework, goal_candidates.
-
-// --- Hash-Snapshot SOFORT sichern (bevor SPA-Router ihn frisst) ---
-const __abHashSnapshot = (function () {
-  const src = location.hash + '&' + location.search
-  const mPick = src.match(/[#?&]ab_pick=([^&]+)/)
-  const mGoal = src.match(/[#?&]ab_goal=([^&]+)/)
-  const m = mPick || mGoal
-  if (!m) return null
-  const am = src.match(/[#?&]ab_api=([^&]+)/)
-  const tm = src.match(/[#?&]ab_token=([^&]+)/)
-  return {
-    testId: decodeURIComponent(m[1]),
-    apiBase: am ? decodeURIComponent(am[1]) : '',
-    token: tm ? decodeURIComponent(tm[1]) : '',
-    mode: mGoal ? 'goal' : 'element',
-  }
-})()
 
 ;(function () {
   const DEFAULT_API = 'https://www.getvariante.com'
@@ -159,7 +142,6 @@ const __abHashSnapshot = (function () {
       'padding:10px 40px;font:700 14px -apple-system,Segoe UI,sans-serif;color:#fff;' +
       'text-align:center;background:#2563eb;box-shadow:0 2px 12px rgba(0,0,0,.3);' +
       'letter-spacing:.3px;user-select:none;'
-    // Close button (X) on the right
     var closeBtn = document.createElement('span')
     closeBtn.textContent = '\u2716'
     closeBtn.style.cssText =
@@ -167,7 +149,6 @@ const __abHashSnapshot = (function () {
       'cursor:pointer;font-size:16px;opacity:.7'
     closeBtn.onclick = function (e) { e.stopPropagation(); hideBanner() }
     b.appendChild(closeBtn)
-    // Klick auf Banner → cleanup + ESC
     b.onclick = function () { if (window.__abCleanup) window.__abCleanup(); hideBanner() }
     document.body.appendChild(b)
     __abBanner = b
@@ -177,20 +158,19 @@ const __abHashSnapshot = (function () {
     if (__abBanner) { try { __abBanner.remove() } catch (_) {}; __abBanner = null }
   }
 
-  // --- Erfolgs-Overlay mit "Tab schließen" -----------------------------------
+  // --- Cleaner Overlay mit "Tab schließen" -----------------------------------
   function overlay(msg, ok) {
     hideBanner()
     var wrap = document.createElement('div')
-    wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);font-family:-apple-system,Segoe UI,sans-serif'
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);font-family:-apple-system,Segoe UI,sans-serif;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)'
     var card = document.createElement('div')
-    card.style.cssText = 'background:#fff;color:#111;padding:24px 28px;border-radius:14px;text-align:center;max-width:360px;box-shadow:0 12px 40px rgba(0,0,0,.3)'
+    card.style.cssText = 'background:#fff;color:#111;padding:32px 36px;border-radius:16px;text-align:center;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.25)'
     if (ok) {
       card.innerHTML =
-        '<div style="font-size:40px;margin-bottom:10px">\u2705</div>' +
-        '<div style="font-size:16px;font-weight:700;margin-bottom:4px">' + msg + ' \u2713</div>' +
-        '<div style="font-size:12px;color:#666;margin-bottom:16px">The tab will close. You\u2019ll land back in Figma automatically.</div>' +
-        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">Close tab \u2192 back to Figma</button>' +
-        '<div style="font-size:11px;color:#999">Click anywhere to dismiss.</div>'
+        '<div style="width:56px;height:56px;border-radius:28px;background:#e6f7e6;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">\u2713</div>' +
+        '<div style="font-size:17px;font-weight:700;margin-bottom:4px;line-height:1.4">' + msg + '</div>' +
+        '<div style="font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.5">The tab will close. You\u2019ll land back in Figma automatically.</div>' +
+        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#1d4ed8\'" onmouseout="this.style.background=\'#2563eb\'">Close tab \u2192 back to Figma</button>'
       setTimeout(function () {
         var btn = document.getElementById('__ab_close_btn')
         if (btn) {
@@ -204,12 +184,15 @@ const __abHashSnapshot = (function () {
         }
       }, 50)
     } else {
-      card.innerHTML = '<div style="font-size:34px;margin-bottom:8px">\u26A0\uFE0F</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">' + msg + '</div>'
+      card.innerHTML =
+        '<div style="width:56px;height:56px;border-radius:28px;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">!</div>' +
+        '<div style="font-size:16px;font-weight:600;margin-bottom:4px;line-height:1.4;color:#dc2626">' + msg + '</div>' +
+        '<div style="font-size:12px;color:#9ca3af;margin-top:14px">Dismissing in a moment\u2026</div>'
     }
     wrap.appendChild(card)
-    wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.remove() })
+    wrap.addEventListener('click', function (e) { if (e.target === wrap) { wrap.remove(); hideBanner() } })
     document.body.appendChild(wrap)
-    if (!ok) setTimeout(function () { wrap.remove() }, 3500)
+    if (!ok) setTimeout(function () { wrap.remove() }, 3200)
   }
 
   // --- Picker starten --------------------------------------------------------
@@ -217,7 +200,6 @@ const __abHashSnapshot = (function () {
     if (window.__abPickerActive) return
     window.__abPickerActive = true
 
-    // Warten bis DOM bereit ist für Banner (document_start läuft vor <body>).
     function boot() {
       if (!document.body) { setTimeout(boot, 50); return }
       showBanner(mode === 'goal' ? 'Click goal element (ESC cancels).' : 'Click element (ESC cancels).')
@@ -293,19 +275,12 @@ const __abHashSnapshot = (function () {
     boot()
   }
 
-  // --- Auto-Start aus Hash-Snapshot (vor SPA gerettet) -----------------------
-  if (__abHashSnapshot && __abHashSnapshot.testId) {
-    try {
-      var patch = { testId: __abHashSnapshot.testId }
-      if (__abHashSnapshot.apiBase) patch.apiBase = __abHashSnapshot.apiBase
-      if (__abHashSnapshot.token) patch.abToken = __abHashSnapshot.token
-      chrome.storage.local.set(patch)
-    } catch (_) {}
-    // KEIN history.replaceState — das kills den Hash für SPAs. Der Banner
-    // zeigt an, dass der Picker läuft. Ein Reload startet nicht erneut weil
-    // __abPickerActive dann true ist.
-    startPicker(__abHashSnapshot.mode)
-  }
+  // --- Auto-Start: Wenn content-hash.js hat testId in storage gespeichert ----
+  chrome.storage.local.get(['testId', 'abPickerMode'], function (cfg) {
+    if (cfg.testId && !window.__abPickerActive) {
+      startPicker(cfg.abPickerMode || 'element')
+    }
+  })
 
   // --- Message-basierter Start (Popup → content script) ----------------------
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {

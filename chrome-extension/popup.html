@@ -7,26 +7,43 @@
   h1 { font-size: 14px; margin: 0 0 4px; }
   p.sub { color: #666; font-size: 11px; margin: 0 0 14px; }
   label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: #444; }
-  input { width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; }
+  .input-wrap { position: relative; margin-bottom: 12px; }
+  input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; }
   input:focus { outline: none; border-color: #2563eb; }
+  input.err { border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
+  .input-msg { font-size: 11px; min-height: 16px; padding-top: 4px; }
+  .input-msg.err { color: #dc2626; }
+  .input-msg.ok { color: #16a34a; }
   button { width: 100%; padding: 9px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
   button:hover { background: #1d4ed8; }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: transparent; border: 1px solid #ccc; color: #1a1a1a; margin-top: 6px; }
+  .btn-secondary:hover { background: #f3f4f6; }
   .status { margin-top: 10px; font-size: 11px; min-height: 14px; }
   .status.ok { color: #16a34a; }
   .status.err { color: #dc2626; }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
   <h1>Pick Element</h1>
-  <p class="sub">The Figma plugin opens your site automatically. This popup is the manual fallback.</p>
+  <p class="sub">The Figma plugin opens your site automatically. This popup is the manual fallback for the Browser Extension.</p>
 
-  <label>testId</label>
-  <input id="test-id" placeholder="e.g. 3f9a…" list="dl-testid" />
-  <datalist id="dl-testid"></datalist>
+  <div id="view-pick">
+    <label>testId</label>
+    <div class="input-wrap">
+      <input id="test-id" placeholder="e.g. 3f9a…" list="dl-testid" />
+      <datalist id="dl-testid"></datalist>
+    </div>
+    <div class="input-msg" id="input-msg"></div>
 
-  <button id="start">Pick element on page</button>
-  <div class="status" id="status"></div>
+    <button id="start">Pick element on page</button>
+  </div>
+
+  <div id="view-done" class="hidden">
+    <p class="ok" style="font-size:12px;font-weight:600;margin-bottom:10px">✓ Element selected</p>
+    <button id="reselect-btn" class="btn-secondary">⟳ New selection</button>
+  </div>
 
   <script src="popup.js"></script>
 </body>

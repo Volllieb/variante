@@ -113,6 +113,7 @@ input:focus, select:focus, textarea:focus {
   background: var(--figma-color-bg);
   box-shadow: 0 0 0 2px var(--brand-subtle);
 }
+input.err { border-color: var(--figma-color-text-danger, #dc2626); box-shadow: 0 0 0 2px rgba(220,38,38,.15); }
 textarea { resize: vertical; }
 
 .input-wrap { position: relative; margin-bottom: 4px; }
@@ -613,23 +614,7 @@ code {
       </div>
       <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url"/>
       <datalist id="dl-url"></datalist>
-      <div class="input-icon" id="url-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="m9 12 2 2 4-4"/>
-        </svg>
-      </div>
-    </div>
-    <div class="field-err" id="url-err"></div>
 
-    <div class="upgrade-banner" id="upgrade-banner-setup" style="margin-top:6px">
-      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
-      <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
-      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
-    </div>
-    <div class="loading-row" id="l-setup" style="display:none">
-      <div class="dots"><span></span><span></span><span></span></div>
-      Creating test…
     </div>
     <div class="err" id="e-setup"></div>
   </div>
@@ -680,8 +665,8 @@ code {
           </svg>
         </span>
         <div>
-          <div class="notice-title">Chrome Extension required</div>
-          <div class="notice-body">The element picker runs in your browser. Install the extension once — it keeps working after plugin updates.</div>
+          <div class="notice-title">Browser Extension required</div>
+          <div class="notice-body">The element picker runs in your browser. Install the Browser Extension once — it keeps working after plugin updates.</div>
         </div>
       </div>
       <button class="btn btn-secondary btn-sm" onclick="downloadExtension()" style="width:100%">
@@ -734,7 +719,7 @@ code {
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div class="hint">Click any layer in Figma that represents Variant B — a single button, heading, or section. Just like the Chrome Extension, but in Figma.</div>
+    <div class="hint">Click any layer in Figma that represents Variant B — a single button, heading, or section. Just like the Browser Extension, but in Figma.</div>
 
     <!-- Waiting -->
     <div id="d-waiting">
@@ -816,7 +801,7 @@ code {
     <div class="adv-section" id="adv-section">
       <div class="adv-group">
         <div class="adv-group-title">Pick goal in browser</div>
-        <div class="adv-group-desc">Use the Chrome Extension to click any element on your live site as the conversion goal.</div>
+        <div class="adv-group-desc">Use the Browser Extension to click any element on your live site as the conversion goal.</div>
         <button class="btn btn-secondary btn-sm" onclick="openSite('goal')" style="margin-bottom:6px">Open in Chrome</button>
         <div class="loading-row" id="m-waiting" style="display:none">
           <div class="dots"><span></span><span></span><span></span></div>
@@ -883,16 +868,21 @@ code {
         <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
       </div>
 
-      <!-- 2×2 preview -->
-      <div class="prev-grid">
-        <div><div class="prev-lbl">Figma reference</div><div class="frame" id="gen-ref"></div></div>
-        <div><div class="prev-lbl">Reference (dark)</div><div class="frame-dark" id="gen-ref-dark"></div></div>
+      <!-- Single reference + toggleable variant preview -->
+      <div class="prev-grid" style="grid-template-columns:1fr">
+        <div>
+          <div class="prev-lbl" style="margin-bottom:4px">Figma reference</div>
+          <div class="frame" id="gen-ref"></div>
+        </div>
       </div>
-      <div class="prev-grid">
-        <div><div class="prev-lbl">Variant B (light)</div><div class="frame" id="gen-preview-white"></div></div>
-        <div><div class="prev-lbl">Variant B (dark)</div><div class="frame-dark" id="gen-preview-black"></div></div>
+      <div class="divider"></div>
+      <span class="lbl" style="margin-bottom:4px">Variant B</span>
+      <div class="seg" id="gen-bg-toggle" data-bg="light" style="margin-bottom:6px">
+        <button type="button" class="seg-btn on" data-val="light" onclick="setBg('light')">Light BG</button>
+        <button type="button" class="seg-btn" data-val="dark" onclick="setBg('dark')">Dark BG</button>
       </div>
-      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin-bottom:10px">Preview without site CSS — close approximation, not pixel-perfect.</div>
+      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background .2s"></div>
+      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin:6px 0 10px">Preview without site CSS — close approximation, not pixel-perfect.</div>
 
       <!-- HTML source (collapsed) -->
       <details style="margin-bottom:12px">
@@ -949,12 +939,10 @@ code {
     <!-- Empfohlen: KI-Integration -->
     <button class="btn btn-primary" onclick="copyAiPrompt()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-      Integrate via AI
+      Copy prompt
     </button>
-    <div class="hint" style="margin:6px 2px 2px">Copies a ready-made prompt — paste it into Cursor, Copilot, ChatGPT or Claude and it adds the snippet to your site's <code>&lt;head&gt;</code>.</div>
-    <div class="copy-ok ok" id="cp-ai" style="margin:0 2px 2px">✓ Prompt copied to clipboard</div>
-
-    <div class="divider"></div>
+    <div class="hint" style="margin:6px 2px 2px">Copies a ready-made prompt — paste it into Cursor, Copilot, ChatGPT or Claude and it adds the snippet to your site's <code>&lt;head&gt;</code>. The prompt includes your site URL: <strong id="cp-ai-url">—</strong>.</div>
+    <div class="copy-ok ok" id="cp-ai" style="margin:0 2px 2px">✓ Prompt copied</div>
 
     <!-- Manuell -->
     <button class="btn btn-secondary" onclick="copySnippet()">Copy snippet manually</button>
@@ -1027,6 +1015,10 @@ code {
           <div class="prev-lbl">B (Variant)</div>
           <div class="frame-preview" id="res-preview-b"></div>
         </div>
+      </div>
+      <div class="seg" id="res-bg-toggle" data-bg="light" style="margin-top:6px">
+        <button type="button" class="seg-btn on" data-val="light" onclick="setResBg('light')">Light BG</button>
+        <button type="button" class="seg-btn" data-val="dark" onclick="setResBg('dark')">Dark BG</button>
       </div>
     </div>
 
@@ -1270,13 +1262,12 @@ function normalizeUrl(raw) {
 function onNameInput() { validateUrlInput() }
 function validateUrlInput() {
   const urlEl  = $('f-url')
-  const icon   = $('url-icon')
   const errEl  = $('url-err')
   const btn    = $('btn-create')
   const name   = ($('f-name').value || '').trim()
   const v      = (urlEl.value || '').trim()
 
-  icon.style.display = 'none'
+  urlEl.classList.remove('err')
   errEl.textContent = ''
   errEl.classList.remove('vis')
   btn.disabled = true
@@ -1284,9 +1275,9 @@ function validateUrlInput() {
   if (!v) return
   const ok = normalizeUrl(v)
   if (ok) {
-    icon.style.display = 'flex'
     btn.disabled = false
   } else {
+    urlEl.classList.add('err')
     errEl.textContent = 'Enter a valid URL with a domain (e.g. yoursite.com)'
     errEl.classList.add('vis')
   }
@@ -1297,7 +1288,6 @@ function newTest() {
   state.originalHtml = ''; state.goalCandidates = []
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
   $('f-name').value = ''; $('f-url').value = ''
-  $('url-icon').style.display = 'none'
   $('url-err').textContent = ''; $('url-err').classList.remove('vis')
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
@@ -1666,8 +1656,21 @@ function setScope(val) {
 function fillPreviews(html) {
   const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
   const doc = css ? '<html><head>' + css + '</head><body>' + (html || '') + '</body></html>' : (html || '')
-  $('gen-preview-white').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;background:#fff"></iframe>'
-  $('gen-preview-black').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;background:#111"></iframe>'
+  renderVariantPreview(doc)
+}
+function renderVariantPreview(doc) {
+  const bg = ($('gen-bg-toggle') || {}).getAttribute('data-bg') || 'light'
+  const bgColor = bg === 'dark' ? '#1a1a1a' : '#fff'
+  $('gen-variant-preview').style.background = bgColor
+  $('gen-variant-preview').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
+}
+function setBg(val) {
+  const el = $('gen-bg-toggle'); if (!el) return
+  el.setAttribute('data-bg', val)
+  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+  const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
+  const doc = css ? '<html><head>' + css + '</head><body>' + (state.html || '') + '</body></html>' : (state.html || '')
+  renderVariantPreview(doc)
 }
 
 async function generate() {
@@ -1694,8 +1697,7 @@ async function generate() {
     const data = await res.json()
     state.html = data.html
     if (data.siteCss) state.siteCss = data.siteCss
-    $('gen-ref').innerHTML      = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
-    $('gen-ref-dark').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
+    $('gen-ref').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '" style="max-width:100%;display:block">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
@@ -1758,12 +1760,16 @@ function buildSnippetCode() {
     'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n' +
     '<script async src="' + API + '/ab.js"><\/script>'
 }
-function buildSnippet() { $('snippet-code').textContent = buildSnippetCode() }
+function buildSnippet() {
+  $('snippet-code').textContent = buildSnippetCode()
+  var urlEl = $('cp-ai-url'); if (urlEl) urlEl.textContent = state.url || '(your site URL)'
+}
 
 // KI-Prompt: fertige Anweisung, die der Nutzer in Cursor/Copilot/ChatGPT/Claude einfügt.
 function buildAiPrompt() {
+  const url = state.url || '(your site URL)'
   return [
-    'Add the following HTML snippet to the <head> of every page on my website. ' +
+    'Add the following HTML snippet to the <head> of every page on my website (' + url + '). ' +
       'It powers a Variante A/B test. Place it as early in the <head> as possible and include it only once per page. ' +
       'If my site uses a framework, add it to the shared head/layout (e.g. Next.js app/layout or <Head>, ' +
       'Nuxt app.head, Astro base layout, or the root HTML template). Do not modify the snippet.',
@@ -1787,6 +1793,16 @@ function flashCopied(id) {
 }
 function copySnippet() { copyText(buildSnippetCode()); flashCopied('cp-snippet') }
 function copyAiPrompt() { copyText(buildAiPrompt()); flashCopied('cp-ai') }
+function setResBg(val) {
+  const el = $('res-bg-toggle'); if (!el) return
+  el.setAttribute('data-bg', val)
+  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+  const bgColor = val === 'dark' ? '#1a1a1a' : '#fff'
+  ;['a','b'].forEach(k => {
+    const f = $('res-preview-' + k)
+    if (f) f.style.background = bgColor
+  })
+}
 
 // ── Results ──────────────────────────────────────────────────────────────────
 function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '—' }
@@ -1828,9 +1844,13 @@ function startResults() {
       ;['a','b'].forEach(k => {
         const html = k === 'a' ? t.original_html : t.variant_b_html
         const has  = k === 'a' ? hasA : hasB
+        const bgToggle = $('res-bg-toggle')
+        const bgVal = bgToggle ? bgToggle.getAttribute('data-bg') : 'light'
+        const bgColor = bgVal === 'dark' ? '#1a1a1a' : '#fff'
         $('res-preview-' + k).innerHTML = has
-          ? '<iframe srcdoc="' + escapeHtml('<html><head>' + (t.site_css ? '<style>' + t.site_css + '</style>' : '') + '</head><body>' + html + '</body></html>') + '" style="width:100%;height:80px;border:none;background:#fff"></iframe>'
+          ? '<iframe srcdoc="' + escapeHtml('<html><head>' + (t.site_css ? '<style>' + t.site_css + '</style>' : '') + '</head><body>' + html + '</body></html>') + '" style="width:100%;height:80px;border:none;background:' + bgColor + '"></iframe>'
           : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
+        if (has) $('res-preview-' + k).style.background = bgColor
       })
       $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'
     } catch (_) {}

@@ -1,4 +1,4 @@
-# Chrome Extension — AB-Testing
+# Browser Extension — A/B Element Picker
 
 Kein Build-Schritt nötig. Die Extension besteht aus Plain-JS-Dateien.
 

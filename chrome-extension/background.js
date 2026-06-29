@@ -13,4 +13,11 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
   if (msg.type === 'CLOSE_TAB' && sender.tab && sender.tab.id) {
     chrome.tabs.remove(sender.tab.id).catch(() => {}) // ponytail: last tab in window, closing impossible
   }
+
+  if (msg.type === 'AUTO_INJECT' && sender.tab && sender.tab.id) {
+    chrome.scripting.executeScript({
+      target: { tabId: sender.tab.id },
+      files: ['content-picker.js'],
+    }).catch(() => {})
+  }
 })

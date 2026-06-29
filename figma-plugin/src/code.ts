@@ -6,7 +6,7 @@ figma.clientStorage.getAsync('ab_token').then((token) => {
 })
 
 // Zusammenfassung der aktuellen Leinwand-Auswahl für die UI.
-// Variante B wird per Klick in Figma gewählt (analog zur Chrome Extension),
+// Variante B wird per Klick in Figma gewählt (analog zur Browser Extension),
 // damit auch Unter-Elemente wie ein einzelner Button exportiert werden können.
 function selectionSummary() {
   const sel = figma.currentPage.selection

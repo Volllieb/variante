@@ -64,7 +64,12 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 font-sans">
       <div className="mb-1 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{name}</h1>
+        <div className="flex items-center gap-3">
+          <a href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600 hover:underline">
+            ← Dashboard
+          </a>
+          <h1 className="text-2xl font-bold">{name}</h1>
+        </div>
         <button
           onClick={refresh}
           className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50"

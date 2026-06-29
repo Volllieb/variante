@@ -4,7 +4,7 @@ Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI 
 
 > **Ausführliche Projektdoku:** [`PROJEKT.md`](./PROJEKT.md) (DSO)  
 > **GTM-Strategie:** [`GOTOMARKET.md`](./GOTOMARKET.md)  
-> **Arbeitsanweisungen:** [`CLAUDE.md`](./CLAUDE.md)
+> **Arbeitsanweisungen:** [`AGENTS.md`](./AGENTS.md)
 
 ## Pakete
 

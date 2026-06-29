@@ -48,9 +48,10 @@ Privacy policy: https://www.getvariante.com/privacy
 Select an element on a live web page to use as the target for an A/B test created in the variante Figma plugin.
 
 ## Permission justifications (Pflicht im Dashboard)
-- **`activeTab`** — Used only when the user starts a pick: lets the extension run the element-picker overlay on the page the user is actively on. No background or cross-tab access.
+- **`activeTab`** — Used only when the user starts a pick: lets the extension inject and run the element-picker overlay on the page the user is actively on. No background or cross-tab access.
+- **`scripting`** — Required to inject the picker script (`content-picker.js`) on demand, instead of running it on every page load. The only permanent script (`content-hash.js`) is ~30 lines and only captures a URL hash.
 - **`storage`** — Stores the current `testId` and the user's last entries locally so the picker can hand the selection back to the plugin. No personal data, local only.
-- **Host permissions (`http://*/*`, `https://*/*`)** — The user tests their own site, whose URL isn't known in advance, so the picker must be available on any page the user chooses. It activates only on explicit user action.
+- **Host permissions (`http://*/*`, `https://*/*`)** — The user tests their own site, whose URL isn't known in advance, so the picker must be available on any page the user chooses. It activates only on explicit user action. The only script that runs automatically on all pages (`content-hash.js`) is ~30 lines and only captures a URL hash from Figma's auto-open flow; the full picker (~270 lines) is loaded on demand via `scripting` API.
 
 ---
 
@@ -59,8 +60,8 @@ Select an element on a live web page to use as the target for an A/B test create
 | Asset | Format | Datei | Hochladen im Dashboard |
 |---|---|---|---|
 | **Store-Icon** | 128×128 PNG | `icons/icon128.png` | ✅ |
-| **Screenshot(s)** | 1280×800 PNG | `cws-assets/screenshot-1.png`, `screenshot-2.png` | ✅ |
-| **Promo-Tile** (optional) | 440×280 PNG | `cws-assets/promo-title.png` | ✅ |
+| **Screenshot(s)** | 1280×800 oder 640×400 PNG | `cws-assets/screenshot-1.png` | ✅ |
+| **Promo-Tile** (optional) | 440×280 PNG | `cws-assets/promo-tile.png` | ✅ |
 | **Privacy-URL** | — | https://www.getvariante.com/privacy | ✅ eintragen |
 | **Data Usage** | — | — | Keine PII, keine Weitergabe/Verkauf |
 

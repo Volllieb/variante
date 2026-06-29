@@ -1,6 +1,9 @@
 const idInput = document.getElementById('test-id')
 const startBtn = document.getElementById('start')
-const statusEl = document.getElementById('status')
+const reselectBtn = document.getElementById('reselect-btn')
+const inputMsg = document.getElementById('input-msg')
+const viewPick = document.getElementById('view-pick')
+const viewDone = document.getElementById('view-done')
 
 // testId-History (letzte 10) in chrome.storage pflegen.
 function saveTestIdHistory(value) {
@@ -28,6 +31,9 @@ function populateTestIdDatalist(arr) {
 idInput.addEventListener('input', () => {
   const val = idInput.value.trim()
   chrome.storage.local.set({ testId: val })
+  idInput.classList.remove('err')
+  inputMsg.className = 'input-msg'
+  inputMsg.textContent = ''
 })
 
 // Gespeicherte testId + History wiederherstellen.
@@ -36,27 +42,51 @@ chrome.storage.local.get(['testId', 'testIdHistory'], (v) => {
   if (v.testIdHistory) populateTestIdDatalist(v.testIdHistory)
 })
 
-function setStatus(msg, cls) {
-  statusEl.textContent = msg
-  statusEl.className = 'status' + (cls ? ' ' + cls : '')
+function showInputErr(msg) {
+  idInput.classList.add('err')
+  inputMsg.className = 'input-msg err'
+  inputMsg.textContent = msg
+}
+
+function showDone() {
+  viewPick.classList.add('hidden')
+  viewDone.classList.remove('hidden')
+}
+
+function showPick() {
+  viewDone.classList.add('hidden')
+  viewPick.classList.remove('hidden')
 }
 
 startBtn.addEventListener('click', async () => {
   const testId = idInput.value.trim()
 
-  if (!testId) { setStatus('Please enter a testId.', 'err'); return }
+  if (!testId) { showInputErr('Please enter a testId.'); return }
 
   await chrome.storage.local.set({ testId })
   saveTestIdHistory(testId)
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  if (!tab || !tab.id) { setStatus('No active tab found.', 'err'); return }
+  if (!tab || !tab.id) { showInputErr('No active tab found.'); return }
 
   try {
+    // Inject the picker script first (content-hash.js is always present but
+    // content-picker.js is loaded on-demand to minimize host permissions impact)
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content-picker.js'],
+    })
+
     const resp = await chrome.tabs.sendMessage(tab.id, { type: 'START_PICKER', testId, mode: 'element' })
     if (resp && resp.ok) window.close()
-    else setStatus('Picker did not start.', 'err')
+    else showInputErr('Picker did not start.')
   } catch (e) {
-    setStatus('Open a web page first, then try again.', 'err')
+    showInputErr('Open a web page first, then try again.')
   }
+})
+
+// Reselect: neuen testId-Input erlauben
+reselectBtn.addEventListener('click', () => {
+  showPick()
+  idInput.focus()
 })

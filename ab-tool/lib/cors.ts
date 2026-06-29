@@ -1,5 +1,5 @@
 // Zentrale CORS-Header für alle API-Routen.
-// ab.js, Chrome Extension und Figma Plugin rufen die Routen cross-origin auf.
+// ab.js, Browser Extension und Figma Plugin rufen die Routen cross-origin auf.
 
 export function corsHeaders(methods = 'GET, POST, OPTIONS'): HeadersInit {
   return {
