@@ -245,8 +245,8 @@ export default function Document() {
         const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
         const running = tests.filter(t => t.status === 'active').length
         const won = tests.filter(t => t.winner === 'B').length
-        const lost = tests.filter(t => t.winner === 'A').length
         const done = tests.filter(t => t.status === 'done').length
+        const inconclusive = done - tests.filter(t => t.winner === 'B').length - tests.filter(t => t.winner === 'A').length
         const lifts = tests
           .map(t => {
             const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
@@ -273,9 +273,9 @@ export default function Document() {
                 <span className="text-green-500">won</span>
               </div>
             )}
-            {(done - won - lost) > 0 && (
+            {inconclusive > 0 && (
               <div className="rounded-lg border border-gray-200 px-4 py-3">
-                <span className="font-semibold">{done - won - lost}</span>{' '}
+                <span className="font-semibold">{inconclusive}</span>{' '}
                 <span className="text-gray-500">ended</span>
               </div>
             )}
