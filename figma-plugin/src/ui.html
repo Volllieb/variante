@@ -529,7 +529,7 @@ code {
   </div>
   <div class="body">
     <div class="upgrade-banner" id="upgrade-banner-dash">
-      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</div>
+      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
       <div class="ub-sub">Upgrade to Pro for unlimited tests and AI generations.</div>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
     </div>
@@ -547,8 +547,8 @@ code {
 <div id="s-setup" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <span class="hdr-title">Test Details</span>
@@ -567,24 +567,25 @@ code {
     <span class="lbl">Site URL</span>
     <div class="input-wrap has-prefix" style="margin-bottom:0">
       <div class="input-icon-left">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.1"/>
-          <path d="M1.5 7h11M7 1.5c1.6 1.5 2.4 3.4 2.4 5.5S8.6 11 7 12.5C5.4 11 4.6 9.1 4.6 7S5.4 3 7 1.5z" stroke="currentColor" stroke-width="1.1"/>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+          <path d="M2 12h20"/>
         </svg>
       </div>
       <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url"/>
       <datalist id="dl-url"></datalist>
       <div class="input-icon" id="url-icon">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="6" stroke="var(--ok)" stroke-width="1.3"/>
-          <path d="M4.5 7L6.3 8.8L9.5 5.2" stroke="var(--ok)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="m9 12 2 2 4-4"/>
         </svg>
       </div>
     </div>
     <div class="field-err" id="url-err"></div>
 
     <div class="upgrade-banner" id="upgrade-banner-setup" style="margin-top:6px">
-      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</div>
+      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
       <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
     </div>
@@ -606,8 +607,8 @@ code {
 <div id="s-element" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <span class="hdr-title">Pick Element</span>
@@ -624,9 +625,9 @@ code {
       <span class="testid-lbl">Test ID</span>
       <span class="testid-val" id="el-testid-val">—</span>
       <span class="testid-copy" id="el-testid-copy">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <rect x="3.5" y="3.5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.1"/>
-          <path d="M2.5 7.5A1 1 0 011.5 6.5v-4a1 1 0 011-1h4a1 1 0 011 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="14" height="14" x="8" y="8" rx="2"/>
+          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
         </svg>
       </span>
       <span class="testid-copied" id="el-testid-copied">✓ Copied</span>
@@ -669,8 +670,8 @@ code {
 <div id="s-design" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <span class="hdr-title">Variant B in Figma</span>
@@ -716,8 +717,8 @@ code {
 <div id="s-metric" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <span class="hdr-title">Conversion Goal</span>
@@ -755,8 +756,8 @@ code {
 
     <!-- Advanced -->
     <div class="adv-toggle" id="adv-toggle" onclick="toggleAdvanced()">
-      <svg class="adv-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path d="M3.5 2L6.5 5l-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg class="adv-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m9 18 6-6-6-6"/>
       </svg>
       Advanced settings
     </div>
@@ -775,8 +776,9 @@ code {
         <div class="adv-group-desc">Enter any CSS selector as the conversion event trigger.</div>
         <div class="input-wrap has-prefix" style="margin-bottom:6px">
           <div class="input-icon-left">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M5 4L2 7l3 3M9 4l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m16 18 6-6-6-6"/>
+              <path d="m8 6-6 6 6 6"/>
             </svg>
           </div>
           <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:11px;font-family:'SF Mono',monospace"/>
@@ -805,8 +807,8 @@ code {
 <div id="s-generate" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <span class="hdr-title">Generate Variant B</span>
@@ -824,7 +826,7 @@ code {
 
     <div id="gen-result" style="display:none">
       <div class="upgrade-banner" id="upgrade-banner">
-        <div class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</div>
+        <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
         <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
         <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
       </div>
@@ -875,8 +877,8 @@ code {
 <div id="s-snippet" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <span class="hdr-title">Install Snippet</span>
@@ -910,8 +912,8 @@ code {
 <div id="s-results" class="screen">
   <div class="hdr">
     <button class="back-btn" onclick="navBack()">
-      <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
     <div class="hdr-sub">
@@ -923,7 +925,7 @@ code {
     <div class="winner" id="res-winner" style="display:none"></div>
 
     <div class="upgrade-banner ub-compact" id="upgrade-banner-results">
-      <span class="ub-title"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M5.5 1l-3 5h2.5L4 11l5-5.5H6L7 1H5.5z" fill="currentColor"/></svg>Free limit reached</span>
+      <span class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</span>
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
     </div>
 
@@ -1116,7 +1118,7 @@ async function showDashboard() {
     list.innerHTML = ''
     Object.keys(groups).forEach(url => {
       const h = document.createElement('div'); h.className = 'group-title'
-      h.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width=".8"/><path d="M1.5 5h7M5 1.5C6 2.8 6.5 4 6.5 5S6 7.2 5 8.5C4 7.2 3.5 6 3.5 5S4 2.8 5 1.5z" stroke="currentColor" stroke-width=".8"/></svg>' + escapeHtml(url)
+      h.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>' + escapeHtml(url)
       list.appendChild(h)
       groups[url].forEach(t => list.appendChild(renderTestCard(t)))
     })
@@ -1139,13 +1141,13 @@ function renderTestCard(t) {
     '<span class="badge bs-' + st + ' tc-badge">' + st + '</span>' +
     '</div>' +
     '<div class="tc-metrics">' +
-    '<span class="tc-metric"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="3.5" r="1.5" stroke="currentColor" stroke-width=".9"/><path d="M2 8.5v-.5a2 2 0 012-2h2a2 2 0 012 2v.5" stroke="currentColor" stroke-width=".9" fill="none"/></svg><strong>' + totalV + '</strong> visitors</span>' +
-    '<span class="tc-metric"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>' + totalC + '</strong> conversions</span>' +
-    (winner ? '<span class="tc-metric"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 8.5h5M5 8.5v-1.5M2.5 2H2a.5.5 0 00-.5.5V3.5A.5.5 0 002 4h.5M7.5 2H8a.5.5 0 01.5.5V3.5A.5.5 0 018 4h-.5M2.5 2v.5a2.5 2.5 0 005 0V2h-5z" stroke="var(--ok)" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="highlight">' + escapeHtml(winner) + '</span></span>' : '') +
+    '<span class="tc-metric"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><strong>' + totalV + '</strong> visitors</span>' +
+    '<span class="tc-metric"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><strong>' + totalC + '</strong> conversions</span>' +
+    (winner ? '<span class="tc-metric"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span class="highlight">' + escapeHtml(winner) + '</span></span>' : '') +
     '</div>' +
     '<div class="tc-actions">' +
-    '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + (st === 'paused' ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 1.5l6 3.5-6 3.5v-7z" fill="currentColor"/></svg>' : '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2.5" y="1.5" width="2" height="7" rx=".8" fill="currentColor"/><rect x="5.5" y="1.5" width="2" height="7" rx=".8" fill="currentColor"/></svg>') + '</button>' +
-    '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3h6M3.5 3V2a1 1 0 011-1h1a1 1 0 011 1v1M7.5 3v4.5a1 1 0 01-1 1h-3a1 1 0 01-1-1V3" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+    '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + (st === 'paused' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>') + '</button>' +
+    '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
     '</div>'
   card.onclick = () => resumeTest(t.id)
   return card
@@ -1696,7 +1698,7 @@ function startResults() {
 
       const hasWinner = t.status === 'done' && !!t.winner
       $('res-winner').style.display = hasWinner ? 'block' : 'none'
-      if (hasWinner) $('res-winner').innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M4 12h6M7 12v-2M4 3H2.5a1 1 0 00-1 1v1.5a1 1 0 001 1H4M10 3h1.5a1 1 0 011 1v1.5a1 1 0 01-1 1H10M4 3v1a3 3 0 006 0V3H4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Winner: <strong>Variant ' + escapeHtml(t.winner) + '</strong>'
+      if (hasWinner) $('res-winner').innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Winner: <strong>Variant ' + escapeHtml(t.winner) + '</strong>'
 
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'
