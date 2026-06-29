@@ -35,7 +35,7 @@
 
 ```
 c:\dev\variante/
-├── CLAUDE.md              # Meta-Anweisungen + Prüfregeln
+├── AGENTS.md              # Meta-Anweisungen + Prüfregeln
 ├── GOTOMARKET.md           # GTM-Strategie & Phasen
 ├── PROJEKT.md              # ← DSO (diese Datei)
 ├── README.md               # Kurzübersicht + Schnellstart
@@ -192,7 +192,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
-| 30.06.2026 | **Phase C (#7 Gesamt-Übersicht) implementiert:** Dashboard-Badges erweitert — Running/Won/Ended/Avg Lift. `winner`-Feld in page.tsx-API-Select ergänzt. #9 als bereits erledigt markiert. #10 auf Post-Launch verschoben. PROJEKT.md §8 aktualisiert. |
+| 29.06.2026 | **Chrome Extension CWS-ready gemacht:** Store-Listing (`store-listing.md`) finalisiert mit Permission-Justifications, Data-Usage, Single-Purpose. `cws-assets/` als Ablage für Screenshots. `.gitignore` erweitert (ZIP + Assets raus). ZIP-Package (`variante-chrome-extension.zip`, 13 KB) erstellt. |
 | 29.06.2026 | **Phase B UX-Komplettierung implementiert:** #14 Manual HTML-Editor für Variant B (Textarea + Preview in ResultsClient.tsx), #1 iframe-basierte CSS-Preview im Figma-Plugin (siteCss via srcdoc), #2 KI-Prompt-Feld (userInstructions → buildPrompt/buildRefinePrompt), #4 Auto-Complete für Instructions-Feld. #3 entfällt (durch #1 obsolet). |
 | 29.06.2026 | **Phase A Quick Wins implementiert:** #5 Polling-Gating (Free 30s/Pro 10s), #6 Pause/Resume-Button im Dashboard, #8 determineWinner gibt `'A'` bei statistisch klarem A-Sieg zurück + Self-Check (10 Tests), #11 Lift-Anzeige (relative Verbesserung in %), #12 Refresh-Button. Siehe Testplan in §8. |
 | 26.06.2026 | **Figma-Plugin Inspector-Patterns übernommen** (aus Analyse von Figmas eigenem Properties-Panel): (A) Inputs jetzt Figma-nativ — grauer `bg-secondary`-Fill, **kein** Ruhe-Border, Border erst bei Fokus. (B) Icon-Prefix links im Feld: Globe im URL-Feld, `< >`-Code-Icon im Custom-Selector (`.input-icon-left` + `.has-prefix`). (E) `.card`/`.testid-row` Border entfernt → ruhige Property-Rows. (F) Scope-`<select>` → Segmented Control (`.seg`/`.seg-btn`, `data-scope`-State, `setScope()`); `getScope()` liest jetzt `data-scope` statt `.value`. (Token) Hardcoded Hex in `.notice-*`/Badges/`.upgrade-banner`/`.err`/`.ok` → halbtransparente Status-Tokens (`--ok*`, `--warn*`) + `--figma-color-text-success/-warning/-danger` mit Fallback → Dark-Mode-safe. Bewusst NICHT: Sektions-Header mit Action-Icons (D). |
@@ -255,7 +255,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 30.06.2026 (Phase C #7 implementiert)*
+*DSO — zuletzt geprüft: 29.06.2026 (Chrome Extension CWS-ready)*
 
 ---
 
