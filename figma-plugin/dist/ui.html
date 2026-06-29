@@ -556,9 +556,14 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-dashboard" class="screen">
   <div class="hdr" style="padding:12px 12px 0">
-    <span class="hdr-title">A/B Tests</span>
+    <div style="flex:1;display:flex;align-items:center;gap:7px">
+      <div style="width:20px;height:20px;background:var(--brand);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="11" height="11" fill="none" viewBox="0 0 14 14"><rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/><rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/></svg>
+      </div>
+      <span style="font-size:12px;font-weight:700">Variante</span>
+    </div>
     <button class="icon-btn" onclick="showDashboard()" title="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
-    <button class="btn btn-secondary btn-sm" onclick="goToTokenMode()" style="margin-left:4px">Token</button>
+    <button class="icon-btn" onclick="goToTokenMode()" title="Account" style="margin-left:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
   </div>
   <div class="body">
     <div class="upgrade-banner" id="upgrade-banner-dash">
@@ -938,15 +943,28 @@ code {
   <div class="body">
     <div class="notice notice-green">
       <div class="notice-title">One snippet — every page</div>
-      <div class="notice-body">Paste this once in the <code>&lt;head&gt;</code> on every page of your site. Selector and goal load from the server automatically. Do <strong>not</strong> add it multiple times.</div>
+      <div class="notice-body">Add it once in the <code>&lt;head&gt;</code> of every page. Selector and goal load from the server automatically — don't add it more than once.</div>
     </div>
 
-    <pre id="snippet-code"></pre>
+    <!-- Empfohlen: KI-Integration -->
+    <button class="btn btn-primary" onclick="copyAiPrompt()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+      Integrate via AI
+    </button>
+    <div class="hint" style="margin:6px 2px 2px">Copies a ready-made prompt — paste it into Cursor, Copilot, ChatGPT or Claude and it adds the snippet to your site's <code>&lt;head&gt;</code>.</div>
+    <div class="copy-ok ok" id="cp-ai" style="margin:0 2px 2px">✓ Prompt copied to clipboard</div>
 
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-      <button class="btn btn-primary" onclick="copySnippet()" style="flex:1">Copy snippet</button>
-      <span class="copy-ok ok" id="cp-snippet">✓ Copied</span>
-    </div>
+    <div class="divider"></div>
+
+    <!-- Manuell -->
+    <button class="btn btn-secondary" onclick="copySnippet()">Copy snippet manually</button>
+    <span class="copy-ok ok" id="cp-snippet" style="margin:6px 0 0 2px">✓ Copied</span>
+    <details style="margin:8px 0 0">
+      <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer;user-select:none">Show snippet code</summary>
+      <pre id="snippet-code" style="margin-top:6px"></pre>
+    </details>
+
+    <div class="divider"></div>
 
     <button class="btn btn-secondary" onclick="navPush('results'); startResults()">View Results →</button>
   </div>
@@ -1731,27 +1749,44 @@ async function refine() {
 }
 
 // ── Screen 6: Snippet ────────────────────────────────────────────────────────
-function buildSnippet() {
-  const code =
-    '<!-- variante A/B — paste in <head> on every page -->\n' +
+function buildSnippetCode() {
+  return '<!-- variante A/B — paste in <head> on every page -->\n' +
     '<link rel="preconnect" href="' + API + '">\n' +
     '<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n' +
     '<script>document.documentElement.classList.add("__ab_pending");' +
     '(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();' +
     'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n' +
     '<script async src="' + API + '/ab.js"><\/script>'
-  $('snippet-code').textContent = code
 }
-function copySnippet() {
-  const text = $('snippet-code').textContent
+function buildSnippet() { $('snippet-code').textContent = buildSnippetCode() }
+
+// KI-Prompt: fertige Anweisung, die der Nutzer in Cursor/Copilot/ChatGPT/Claude einfügt.
+function buildAiPrompt() {
+  return [
+    'Add the following HTML snippet to the <head> of every page on my website. ' +
+      'It powers a Variante A/B test. Place it as early in the <head> as possible and include it only once per page. ' +
+      'If my site uses a framework, add it to the shared head/layout (e.g. Next.js app/layout or <Head>, ' +
+      'Nuxt app.head, Astro base layout, or the root HTML template). Do not modify the snippet.',
+    '',
+    buildSnippetCode(),
+    '',
+    'When you are done, tell me which file(s) you changed.'
+  ].join('\n')
+}
+
+function copyText(text) {
   const ta = document.createElement('textarea')
   ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
   document.body.appendChild(ta); ta.focus(); ta.select()
   try { document.execCommand('copy') } catch (_) {}
   document.body.removeChild(ta)
-  const c = $('cp-snippet'); c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
 }
-// ponytail: copyEl removed — had no callers, only duplicated copySnippet logic
+function flashCopied(id) {
+  const c = $(id); if (!c) return
+  c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
+}
+function copySnippet() { copyText(buildSnippetCode()); flashCopied('cp-snippet') }
+function copyAiPrompt() { copyText(buildAiPrompt()); flashCopied('cp-ai') }
 
 // ── Results ──────────────────────────────────────────────────────────────────
 function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '—' }
