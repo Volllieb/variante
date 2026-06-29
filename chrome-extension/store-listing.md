@@ -59,8 +59,8 @@ Select an element on a live web page to use as the target for an A/B test create
 | Asset | Format | Datei | Hochladen im Dashboard |
 |---|---|---|---|
 | **Store-Icon** | 128×128 PNG | `icons/icon128.png` | ✅ |
-| **Screenshot(s)** | 1280×800 oder 640×400 PNG | `cws-assets/screenshot-1.png` | ✅ |
-| **Promo-Tile** (optional) | 440×280 PNG | `cws-assets/promo-tile.png` | ✅ |
+| **Screenshot(s)** | 1280×800 PNG | `cws-assets/screenshot-1.png`, `screenshot-2.png` | ✅ |
+| **Promo-Tile** (optional) | 440×280 PNG | `cws-assets/promo-title.png` | ✅ |
 | **Privacy-URL** | — | https://www.getvariante.com/privacy | ✅ eintragen |
 | **Data Usage** | — | — | Keine PII, keine Weitergabe/Verkauf |
 
