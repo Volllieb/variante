@@ -227,7 +227,9 @@ textarea { resize: vertical; }
   display: flex; align-items: center; gap: 7px;
   background: var(--figma-color-bg-secondary);
   border-radius: var(--r); padding: 6px 10px; margin-bottom: 12px;
+  cursor: pointer; transition: background .12s;
 }
+.testid-row:hover { background: var(--figma-color-bg-hover); }
 .testid-lbl {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .4px; color: var(--figma-color-text-secondary); flex-shrink: 0;
@@ -237,6 +239,17 @@ textarea { resize: vertical; }
   color: var(--figma-color-text); flex: 1;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.testid-copy {
+  flex-shrink: 0; display: flex; align-items: center;
+  color: var(--figma-color-text-secondary);
+}
+.testid-row:hover .testid-copy { color: var(--brand); }
+.testid-copied {
+  flex-shrink: 0; font-size: 10px; font-weight: 700;
+  color: var(--figma-color-text-success, var(--ok)); display: none;
+}
+.testid-row.copied .testid-copy { display: none; }
+.testid-row.copied .testid-copied { display: inline; }
 
 /* ── Metric options ──────────────────────────────────────────────────────── */
 .m-opt {
@@ -606,10 +619,17 @@ code {
   </div>
   <div class="body">
 
-    <!-- Test-ID always visible -->
-    <div class="testid-row" id="el-testid-row">
+    <!-- Test-ID always visible — click to copy -->
+    <div class="testid-row" id="el-testid-row" onclick="copyTestId()" title="Click to copy">
       <span class="testid-lbl">Test ID</span>
       <span class="testid-val" id="el-testid-val">—</span>
+      <span class="testid-copy" id="el-testid-copy">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect x="3.5" y="3.5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.1"/>
+          <path d="M2.5 7.5A1 1 0 011.5 6.5v-4a1 1 0 011-1h4a1 1 0 011 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="testid-copied" id="el-testid-copied">✓ Copied</span>
     </div>
 
     <!-- Extension notice -->
@@ -625,10 +645,7 @@ code {
         <div class="dots"><span></span><span></span><span></span></div>
         <span>Waiting for element selection in browser…</span>
       </div>
-      <details style="margin-top:4px">
-        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer;user-select:none">Browser not opening?</summary>
-        <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:6px">Open site manually</button>
-      </details>
+      <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:8px">↗ Open site again</button>
     </div>
 
     <!-- Done state -->
@@ -1255,6 +1272,19 @@ async function openSite(mode) {
 }
 function downloadExtension() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: API + '/chrome-extension.zip' } }, '*')
+}
+// Test-ID per Klick in die Zwischenablage kopieren (für manuelles Picker-Setup).
+function copyTestId() {
+  const id = state.testId
+  if (!id) return
+  const ta = document.createElement('textarea')
+  ta.value = id; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
+  document.body.appendChild(ta); ta.focus(); ta.select()
+  try { document.execCommand('copy') } catch (_) {}
+  document.body.removeChild(ta)
+  const row = $('el-testid-row'); if (!row) return
+  row.classList.add('copied')
+  setTimeout(() => row.classList.remove('copied'), 1600)
 }
 
 // ── Screen 2: Element poll ───────────────────────────────────────────────────
