@@ -372,42 +372,66 @@ code {
 }
 .winner strong { font-weight: 700; }
 
-/* ── Dashboard cards ─────────────────────────────────────────────────────── */
-.group-title {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .4px; color: var(--figma-color-text-secondary);
-  margin: 14px 0 6px; word-break: break-all;
+/* ── Dashboard: Projekt-Header (oberste Hierarchie-Ebene) ──────────────────── */
+.proj-head {
+  display: flex; align-items: center; gap: 7px;
+  margin: 16px 2px 8px;
 }
+.proj-head.first { margin-top: 2px; }
+.proj-icon { display: flex; flex-shrink: 0; color: var(--figma-color-text-secondary); }
+.proj-url {
+  flex: 1; min-width: 0;
+  font-size: 12px; font-weight: 600; color: var(--figma-color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.proj-count {
+  flex-shrink: 0; font-size: 10px; font-weight: 600;
+  color: var(--figma-color-text-secondary);
+  background: var(--figma-color-bg-secondary);
+  border-radius: 10px; padding: 1px 8px;
+}
+
+/* ── Dashboard: Test-Karte ───────────────────────────────────────────────── */
 .test-card {
+  position: relative;
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); padding: 9px 11px; margin-bottom: 5px; cursor: pointer;
-  transition: border-color .12s;
+  border-radius: var(--r);
+  padding: 10px 12px 10px 15px; margin-bottom: 6px; cursor: pointer;
+  transition: border-color .12s, background .12s;
 }
-.test-card:hover { border-color: var(--brand); }
-.test-card.paused { opacity: .55; }
-.tc-top  { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-.tc-name { font-weight: 600; font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tc-badge { flex-shrink: 0; }
-.tc-status-dot {
-  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+/* Farbiger Status-Akzent links — auf einen Blick scanbar */
+.test-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: var(--r) 0 0 var(--r);
+  background: var(--figma-color-border);
 }
-.tc-status-dot.draft  { background: var(--figma-color-border); }
-.tc-status-dot.active { background: var(--brand); }
-.tc-status-dot.done   { background: var(--ok); }
-.tc-status-dot.paused { background: var(--warn); }
-.tc-metrics {
-  display: flex; gap: 10px; align-items: center; margin-bottom: 5px;
+.test-card.st-active::before { background: var(--brand); }
+.test-card.st-done::before   { background: var(--ok); }
+.test-card.st-paused::before { background: var(--warn); }
+.test-card:hover { border-color: var(--brand); background: var(--figma-color-bg); }
+.test-card.paused { opacity: .6; }
+
+/* Ebene 1: Name + Status */
+.tc-top { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.tc-name {
+  flex: 1; min-width: 0;
+  font-weight: 600; font-size: 12.5px; color: var(--figma-color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.tc-metric {
-  display: flex; align-items: center; gap: 3px;
-  font-size: 11px; color: var(--figma-color-text-secondary);
-}
-.tc-metric svg { flex-shrink: 0; }
-.tc-metric strong { font-weight: 600; color: var(--figma-color-text); }
-.tc-metric .highlight { color: var(--figma-color-text-success, var(--ok)); font-weight: 600; }
-.tc-actions { display: flex; gap: 3px; flex-shrink: 0; }
+
+/* Ebene 2: Kennzahlen (Icon + Wert) + Aktionen */
+.tc-bottom { display: flex; align-items: center; gap: 8px; }
+.tc-stats { display: flex; gap: 13px; align-items: center; flex: 1; min-width: 0; }
+.tc-stat { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--figma-color-text); }
+.tc-stat svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
+.tc-stat b { font-weight: 600; }
+.tc-stat.pos, .tc-stat.pos svg { color: var(--figma-color-text-success, var(--ok)); }
+.tc-stat.neg, .tc-stat.neg svg { color: var(--figma-color-text-danger, #dc2626); }
+.tc-stat.win, .tc-stat.win svg { color: var(--figma-color-text-success, var(--ok)); font-weight: 600; }
+
+.tc-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity .12s; }
+.test-card:hover .tc-actions { opacity: 1; }
 .icon-btn {
   width: 22px; height: 22px; font-size: 12px;
   border: 1px solid var(--figma-color-border); border-radius: var(--rsm);
@@ -1139,9 +1163,16 @@ async function showDashboard() {
     const groups = {}
     tests.forEach(t => { const k = t.site_url || '(no URL)'; (groups[k] = groups[k] || []).push(t) })
     list.innerHTML = ''
-    Object.keys(groups).forEach(url => {
-      const h = document.createElement('div'); h.className = 'group-title'
-      h.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>' + escapeHtml(url)
+    Object.keys(groups).forEach((url, i) => {
+      const display = url.replace(/^https?:\/\//, '').replace(/\/+$/, '') || url
+      const n = groups[url].length
+      const h = document.createElement('div')
+      h.className = 'proj-head' + (i === 0 ? ' first' : '')
+      h.title = url
+      h.innerHTML =
+        '<span class="proj-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>' +
+        '<span class="proj-url">' + escapeHtml(display) + '</span>' +
+        '<span class="proj-count" title="' + n + (n === 1 ? ' test' : ' tests') + '">' + n + '</span>'
       list.appendChild(h)
       groups[url].forEach(t => list.appendChild(renderTestCard(t)))
     })
@@ -1149,28 +1180,58 @@ async function showDashboard() {
     list.innerHTML = '<div class="err" style="padding:8px 0">' + e.message + '</div>'
   }
 }
+function fmtNum(n) { return (n || 0).toLocaleString('en-US') }
+
+// Icons (24er viewBox, currentColor-Stroke)
+const IC_USER  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>'
+const IC_CHECK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+const IC_UP    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+const IC_DOWN  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>'
+const IC_TROPHY = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>'
+
 function renderTestCard(t) {
   const va = t.visitors_a || 0, vb = t.visitors_b || 0
   const ca = t.conversions_a || 0, cb = t.conversions_b || 0
   const totalV = va + vb, totalC = ca + cb
   const st = t.status || 'draft'
   const winner = t.winner && st === 'done' ? t.winner : ''
+
+  // Drittes Signal: Gewinner (done) ODER Lift B vs. A (relativ) — das wichtigste Maß
+  let signal = ''
+  if (winner) {
+    signal = '<span class="tc-stat win" title="Winner">' + IC_TROPHY + '<b>Variant ' + escapeHtml(winner) + '</b></span>'
+  } else if (va > 0 && vb > 0) {
+    const crA = ca / va, crB = cb / vb
+    if (crA > 0) {
+      const lift = Math.round(((crB - crA) / crA) * 100)
+      const cls  = lift > 0 ? 'pos' : lift < 0 ? 'neg' : ''
+      const sign = lift > 0 ? '+' : ''
+      const ic   = lift < 0 ? IC_DOWN : IC_UP
+      signal = '<span class="tc-stat ' + cls + '" title="Lift Variant B vs A">' + ic + '<b>' + sign + lift + '%</b></span>'
+    }
+  }
+
+  const pauseBtn = st === 'paused'
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>'
+    : '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+
   const card = document.createElement('div')
-  card.className = 'test-card' + (st === 'paused' ? ' paused' : '')
+  card.className = 'test-card st-' + st + (st === 'paused' ? ' paused' : '')
   card.innerHTML =
     '<div class="tc-top">' +
-    '<span class="tc-status-dot ' + st + '"></span>' +
-    '<span class="tc-name">' + escapeHtml(t.name) + '</span>' +
-    '<span class="badge bs-' + st + ' tc-badge">' + st + '</span>' +
+      '<span class="tc-name">' + escapeHtml(t.name) + '</span>' +
+      '<span class="badge bs-' + st + '">' + st + '</span>' +
     '</div>' +
-    '<div class="tc-metrics">' +
-    '<span class="tc-metric"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><strong>' + totalV + '</strong> visitors</span>' +
-    '<span class="tc-metric"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><strong>' + totalC + '</strong> conversions</span>' +
-    (winner ? '<span class="tc-metric"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span class="highlight">' + escapeHtml(winner) + '</span></span>' : '') +
-    '</div>' +
-    '<div class="tc-actions">' +
-    '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + (st === 'paused' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>') + '</button>' +
-    '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
+    '<div class="tc-bottom">' +
+      '<div class="tc-stats">' +
+        '<span class="tc-stat" title="Total visitors">' + IC_USER + '<b>' + fmtNum(totalV) + '</b></span>' +
+        '<span class="tc-stat" title="Total conversions">' + IC_CHECK + '<b>' + fmtNum(totalC) + '</b></span>' +
+        signal +
+      '</div>' +
+      '<div class="tc-actions">' +
+        '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseBtn + '</button>' +
+        '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
+      '</div>' +
     '</div>'
   card.onclick = () => resumeTest(t.id)
   return card
