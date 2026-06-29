@@ -14,7 +14,7 @@
 | **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 29.06.2026 |
+| **Stand** | 25.06.2026 |
 | **Leitziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community PLG), nicht Produkt. |
 
 ## §2 Stack
@@ -55,6 +55,7 @@ c:\dev\variante/
 │   │   ├── layout.tsx      # Root-Layout
 │   │   └── page.tsx        # Landing-Page (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify)
 │   ├── lib/                # Server-Logik (auth, cors, stats, significance, stripe, supabase)
+│   ├── __tests__/          # Lightweight Self-Checks (kein Test-Framework)
 │   └── public/ab.js        # Das Snippet
 │
 ├── ab-spike/               # Demo-Client-Site (E2E-Tests)
@@ -77,7 +78,7 @@ c:\dev\variante/
 
 | Projekt | URL | Vercel-Name | Deploy-Methode |
 |---|---|---|---|
-| ab-tool | `ab-tool-pied.vercel.app` → **`www.getvariante.com`** | `ab-tool` | `vercel deploy` (CLI) |
+| ab-tool | `www.getvariante.com` | `ab-tool` | `vercel deploy` (CLI) |
 | ab-spike | `ab-spike.vercel.app` | — | `vercel deploy` (CLI) |
 
 **Git-Remote:** `origin` → `github.com/Volllieb/variante.git` (`master`)  
@@ -90,7 +91,7 @@ c:\dev\variante/
 |---|---|---|---|
 | **Free** | 0 € | 1 aktives Experiment, Badge **an** | Figma-Discovery + viraler Loop |
 | **Pro** | 35€/Monat | Unbegrenzt, Badge **aus**, volle Statistik | Solo-Monetarisierung |
-| **Agency** | 99€/Monat | Multi-Site, White-Label, Team-Seats | **Hauptumsatz** |
+| **Agency** | 99€/Monat (Coming Soon) | Multi-Site, White-Label, Team-Seats | **Später — aktuell auf Eis** |
 
 **KI-Kosten:** ~0,3 ct/Call → Marge praktisch 100 %.  
 **Free-Tier AI-Gen:** ✅ **Entschieden — ja.** AI-Gen auch im Free-Tier (1 Experiment). Begründung: Aha-Moment > Kosten; Kosten vernachlässigbar. Monetarisierung über *unbegrenzt + Badge-aus*, nicht über das KI-Feature selbst.
@@ -127,71 +128,49 @@ c:\dev\variante/
 
 ## §8 v4-Backlog — Umsetzungsplan
 
-> **Stand 29.06.2026 — Plan basiert auf Codebase-Analyse.**
-> **Empfehlung:** Phase A (Quick Wins) + Phase B (UX) zuerst — User-sichtbare Verbesserungen vor Big Features.
+### ✅ Phase A — Quick Wins (implementiert 29.06.2026)
 
-### Abhängigkeiten
+| # | Item | Tier | Änderungen |
+|---|---|---|---|
+| 11 | **Lift prominenter zeigen** | Free | `ResultsClient.tsx`: relative Verbesserung B vs. A in % unter B-Wert |
+| 6 | **Pause/Resume-Button** | Free | `ResultsClient.tsx`: `[Pause]` bei active, `[Resume]` bei paused |
+| 12 | **Refresh-Button + Polling** | Free | ↻-Button neben Titel, `refresh()` extrahiert aus useEffect |
+| 5 | **Polling-Intervall gaten** | Free/Pro | Free 30s, Pro 10s (vorher 5s für alle) |
+| 8 | **Auto-Winner verifizieren** | Pro | `determineWinner` gibt `'A'` bei A-Sieg; Self-Check `__tests__/significance-check.mjs` |
 
-```
-#14 manuelles HTML    ──── unabhängig
-#13 Brand Guide       ──── unabhängig
-#4  Auto-Complete     ──── unabhängig
-#6  Pause-Button      ──── unabhängig (PATCH status existiert)
-#11 Lift anzeigen     ──── unabhängig (1 Zeile Dashboard)
-#8  Auto-Winner       ──── unabhängig (Logik da, Test/Polish)
-#1  CSS in Preview    ──── unabhängig (Figma-Plugin only)
-#2  KI-Prompt-Feld    ──── unabhängig (#13 optional kombinierbar)
-#9  Winner-Kriterien  ──── baut auf #8
-#7  Gesamt-Übersicht  ──── unabhängig
-#12 Refresh+Polling   ──── unabhängig
-#5  Polling-Intervall ──── unabhängig
+### Ausstehende Phasen
 
-#10 Multi-Metric      ──── GROSS: DB + ab.js + Event + Dashboard + Extension
-#3  Inline→global CSS ──── nur falls #1 iframe-Lösung nicht reicht
-```
+**Phase B — UX-Komplettierung (Free, ~12h):**
+1. Globales CSS in Figma-Preview ohne Rendering-Fehler
+2. KI-Prompt-Feld + variable Übertragungs-Genauigkeit
+3. Inline- → globales CSS bei Variante B
+4. Auto-Complete letzter Eingaben
 
-### Phase A — Quick Wins (Free, ~5h)
+**Phase C — Monetarisierung & Erweiterung (gemischt, ~18h):**
+5. Schnelleres Dashboard-Update (Free 30s / Pro 10s — erledigt in Phase A)
+6. Pause-Button (Snapshot bei viel Traffic) — erledigt in Phase A
+7. Gesamt-Übersicht (kumulierte Besucher/Verbesserung) — **Free**
+8. Auto-Auswahl Gewinner (verifizieren) — erledigt in Phase A
+9. Konfigurierbare Gewinn-Kriterien — **Pro** (baut auf #8)
+10. Mehrere Metriken parallel — **Free** (max 2) / **Pro** (unbegrenzt)
 
-| # | Item | Tier | Aufwand | Umsetzung |
-|---|---|---|---|---|
-| 11 | **Lift prominenter zeigen** | Free | ~0,5h | 1 Relativ-Berechnung + Badge in ResultsClient |
-| 6 | **Pause-Button im Dashboard** | Free | ~1h | `PATCH status:'paused'` via Button, Pause-/Resume-Icon |
-| 12 | **Refresh-Button + konfigurierbares Polling** | Free/Pro | ~1h | Manueller Refresh-Button + konfigurierbares Intervall (UI-Setting) |
-| 5 | **Polling-Intervall gaten** | Free/Pro | ~1h | Aktuell 5s für alle → Free 30s / Pro 10s. Geringer Code-Aufwand. |
-| 8 | **Auto-Winner verifizieren + Edge-Cases** | Pro | ~2h | Tests für Edge-Cases (0-Conversions, gleichstand, etc.) + ggf. Fix |
+### Testplan Phase A
 
-### Phase B — UX-Komplettierung (Free, ~12h)
-
-| # | Item | Tier | Aufwand | Umsetzung |
-|---|---|---|---|---|
-| 14 | **Manuelles HTML für Variante B** | Free | ~4h | `PATCH variant_b_html` in Route + einfacher HTML-Editor im Dashboard (textarea + Vorschau) |
-| 1 | **CSS in Figma-Preview** | Free | ~4h | `<iframe srcdoc="">` statt `innerHTML` im Figma-Plugin + `site_css` einbetten → Style-Isolation |
-| 4 | **Auto-Complete letzter Eingaben** | Free | ~2h | `localStorage`-Cache für zuletzt eingegebene URLs/Selektoren im Figma-Plugin |
-| 2 | **KI-Prompt-Feld + variable Übertragungs-Genauigkeit** | Free | ~6h | Input-Feld für User-Instruktionen → in Generate-Prompt einspielen; Scope-Steuerung (accuracy/speed-Slider ↔ Temperature) |
-
-### Phase C — Monetarisierung & Erweiterung (gemischt, ~18h)
-
-| # | Item | Tier | Aufwand | Umsetzung |
-|---|---|---|---|---|
-| 13 | **Brand Guide in KI-Generierung** | Pro | ~8h | DB-Feld `brand_guide` (jsonb mit colors, fonts, logos, etc.) + UI zum Hochladen/Edit + Prompt-Injection |
-| 7 | **Gesamt-Übersicht (kumuliert)** | Free | ~6h | Neue Dashboard-Sektion: aggregate stats über alle Tests (total visitors, avg improvement, active tests) |
-| 9 | **Konfigurierbare Gewinn-Kriterien** | Pro | ~3h | Erweitert existierende `min_visitors`/`min_uplift`-Config um Significance-Schwelle, Zeitfenster, A-Sieg möglich |
-| 3 | **Inline → globales CSS bei Variante B** | Free | ~4h | Backup-Plan falls iframe-Lösung in #1 nicht reicht: extrahiere `<style>` aus variant_b_html bei Generate |
-
-### Phase D — Multi-Metric (Free/Pro, ~20h+)
-
-| # | Item | Tier | Aufwand | Umsetzung |
-|---|---|---|---|---|
-| 10 | **Mehrere Metriken parallel** | Free/Pro | 20h+ | DB: `goals`-Tabelle (test_id, name, selector, type) + per-goal Counters; ab.js: Goal-Array + goalId in Conversion; Event-Route: goal-disambiguiertes Counting; Dashboard: per-Metric-Statistiken. **Auf Launch warten — kein User-Bedarf vorher.** |
-
-### Nächste Schritte
-
-Phase A als erstes: **#11 → #6 → #12 → #5 → #8.** Kein externes Feedback nötig, alle Änderungen isoliert im `ab-tool/`-Verzeichnis. Nach Phase A: erneute Priorisierung mit User-Feedback.
+| Was | Wie | Erwartung |
+|---|---|---|
+| **Winner-Logik** | `node __tests__/significance-check.mjs` | 10/10 Tests green |
+| **Winner-Logik** | Branch-Analyse: `resolve/route.ts` filtert `done+A` | Keine forced-A-Auslieferung |
+| **Winner-Logik** | Edge-Case: A-Sieg wird persistiert + Dashboard zeigt Winner A | Test via Supabase Row-Insert |
+| **Lift-Anzeige** | Dashboard mit Testdaten laden | Prozentwert unter B, Vorzeichen+Farbe korrekt |
+| **Pause/Resume** | Button-Klick → PATCH → Status-Wechsel sichtbar | UI-Switch active↔paused ohne Reload |
+| **Refresh-Button** | Klick → Daten-Update ohne full Reload | ↻-Button löst Poll aus |
+| **Polling-Intervall** | Dashboard laden, Network-Tab checken | Free: 30s, Pro: 10s |
 
 ## §9 Historie
 
 | Datum | Eintrag |
 |---|---|
+| 29.06.2026 | **Phase A Quick Wins implementiert:** #5 Polling-Gating (Free 30s/Pro 10s), #6 Pause/Resume-Button im Dashboard, #8 determineWinner gibt `'A'` bei statistisch klarem A-Sieg zurück + Self-Check (10 Tests), #11 Lift-Anzeige (relative Verbesserung in %), #12 Refresh-Button. Siehe Testplan in §8. |
 | 26.06.2026 | **Figma-Plugin Inspector-Patterns übernommen** (aus Analyse von Figmas eigenem Properties-Panel): (A) Inputs jetzt Figma-nativ — grauer `bg-secondary`-Fill, **kein** Ruhe-Border, Border erst bei Fokus. (B) Icon-Prefix links im Feld: Globe im URL-Feld, `< >`-Code-Icon im Custom-Selector (`.input-icon-left` + `.has-prefix`). (E) `.card`/`.testid-row` Border entfernt → ruhige Property-Rows. (F) Scope-`<select>` → Segmented Control (`.seg`/`.seg-btn`, `data-scope`-State, `setScope()`); `getScope()` liest jetzt `data-scope` statt `.value`. (Token) Hardcoded Hex in `.notice-*`/Badges/`.upgrade-banner`/`.err`/`.ok` → halbtransparente Status-Tokens (`--ok*`, `--warn*`) + `--figma-color-text-success/-warning/-danger` mit Fallback → Dark-Mode-safe. Bewusst NICHT: Sektions-Header mit Action-Icons (D). |
 | 26.06.2026 | **Figma-Plugin Results-Screen überarbeitet:** Header zeigt Testnamen (`state.name`) + Status-Badge (`bs-*`) statt statischem „Results". A/B-Stats von 6er-Kachel-Grid auf zweispaltige Tabelle (`1fr 1fr` mit mittiger Trennlinie, Spalten-Header „Variant A/B", Labels 10px uppercase, Werte 16px bold). Significance als einzelne Zeile (`Significance: X% — not/significant`) statt Box+Balken. Winner-Banner im nativen `--figma-color-bg-success`-Stil, Variantenname fett, oben nach Header. Upgrade-Banner kompakt (Titel + Button einzeilig) im Figma-Warning-Stil (`--figma-color-bg-warning`). „No data" → „Waiting for first visitors." + Link-Button „→ Snippet-Anleitung". Preview ohne Dark-Variante, skaliert (`scale(0.8)`, max-height 64px, kein Scroll), eine Vorschau pro Variante. „Refreshes every 30s" als zentrierter Footer-Hinweis. Plugin-Titel `code.ts`: „AB Figma" → „Variante". Tote CSS (`.stats-grid`, `.stat*`, `.sig-*`, `.frame-sm*`) entfernt. |
 | 26.06.2026 | **Figma-Plugin UI-Redesign:** Figma-natives Design System (Inter, #0D99FF, Figma CSS-Tokens). Fester Footer mit primärem CTA (disabled bis Voraussetzung erfüllt). Back-Button als reines Chevron-Icon. 6-Screen-Progress-Bar. URL-Feld: nur Checkmark-Icon bei Valid, kein Text. Element-Screen: lesbares Label `[Typ]: [Beschriftung]` statt CSS-Selektor, Test-ID sichtbar. Screen 3 CTA umbenannt zu „Weiter zur Metrik →". Metrik-Screen: Standard-Metrik prominent als Radio-Option, Advanced Settings (Chrome-Picker + Custom Selector) ausklappbar, keine rohe HTML-Struktur. |
@@ -213,7 +192,6 @@ Phase A als erstes: **#11 → #6 → #12 → #5 → #8.** Kein externes Feedback
 | 25.06.2026 | **Bugfix (ab.js):** 0 Conversions für Variante B — MutationObserver-Trigger löschte `active` nach `applyDom()` → `finish()` erneut → applyDom fehlschlagend → goalSel fiel auf original CSS-Selektor zurück → matched nie auf B-HTML. Fix: `data-ab-el`-Selektor immer für B, nicht nur bei erfolgreichem applyDom. |
 | 25.06.2026 | **Phase A (Bugfixes):** Goal-Selector-Migration fix, SPA-Support, Anti-Flicker 3000ms. **Phase B (English):** Alle UI-Seiten, API-Fehlermeldungen, Extension, Figma-Plugin, ab.js-Header übersetzt. **Phase C:** Snippet-Installations-Sektion im Dashboard. |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
-| 29.06.2026 | **v4-Backlog priorisiert** — 14 Items in 4 Phasen eingeteilt (Quick Wins → UX → Monetarisierung → Multi-Metric). Codebase-Analyse für Abhängigkeiten. Empfehlung: Phase A zuerst (Lift, Pause, Refresh, Polling, Auto-Winner). Multi-Metric (#10) auf Post-Launch verschoben. Plan in §8 dokumentiert. |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |
 
@@ -252,7 +230,7 @@ Phase A als erstes: **#11 → #6 → #12 → #5 → #8.** Kein externes Feedback
 
 ---
 
-*DSO — zuletzt geprüft: 29.06.2026 (v4-Backlog priorisiert, Plan steht)*
+*DSO — zuletzt geprüft: 29.06.2026 (Phase A implementiert)*
 
 ---
 
@@ -269,6 +247,6 @@ Phase A als erstes: **#11 → #6 → #12 → #5 → #8.** Kein externes Feedback
 
 **Währungsentscheidung:** Abrechnung in **EUR**. Begründung: Sitz in DE, Kosten in EUR, erste Kunden aus DACH. USD-Komplexität (Wechselkurs-Doku, Stripe-Tax-Gebühr) spart man sich. Bei US-Dominanz (>60 % Kunden) später wechseln — reines Stripe-Setting, kein Produkt-Entscheid.
 
-**Bis Mitte August 2026** sollte der öffentliche Launch stehen. Danach: Conversion-Funnel optimieren, Free→Pro und vor allem Free→Agency (White-Label = wo das Geld sitzt).
+**Bis Mitte August 2026** sollte der öffentliche Launch stehen. Danach: Conversion-Funnel optimieren, Free→Pro. Das Agency-Tier (White-Label, Multi-Site, Team-Seats) ist zurückgestellt — kommt später, wenn sich erste Nachfrage abzeichnet.
 
 > **Ein Satz:** Gebaut ist es — jetzt muss es raus zu den Leuten.
