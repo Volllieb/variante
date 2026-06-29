@@ -14,7 +14,7 @@
 | **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 25.06.2026 |
+| **Stand** | 29.06.2026 |
 | **Leitziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community PLG), nicht Produkt. |
 
 ## §2 Stack
@@ -125,19 +125,68 @@ c:\dev\variante/
 - [x] Steuerfragen geklärt (siehe Tabelle oben)
 - [ ] MVP E2E auf echter Fremd-Site getestet?
 
-## §8 v4-Backlog
+## §8 v4-Backlog — Umsetzungsplan
 
-1. Globales CSS in Figma-Preview ohne Rendering-Fehler
-2. KI-Prompt-Feld + variable Übertragungs-Genauigkeit
-3. Inline- → globales CSS bei Variante B
-4. Auto-Complete letzter Eingaben
-5. Schnelleres Dashboard-Update
-6. Pause-Button (Snapshot bei viel Traffic)
-7. Gesamt-Übersicht (kumulierte Besucher/Verbesserung)
-8. Auto-Auswahl Gewinner (verifizieren)
-9. Konfigurierbare Gewinn-Kriterien
-10. Mehrere Metriken parallel
-11. Relative Verbesserung (Lift) prominenter zeigen
+> **Stand 29.06.2026 — Plan basiert auf Codebase-Analyse.**
+> **Empfehlung:** Phase A (Quick Wins) + Phase B (UX) zuerst — User-sichtbare Verbesserungen vor Big Features.
+
+### Abhängigkeiten
+
+```
+#14 manuelles HTML    ──── unabhängig
+#13 Brand Guide       ──── unabhängig
+#4  Auto-Complete     ──── unabhängig
+#6  Pause-Button      ──── unabhängig (PATCH status existiert)
+#11 Lift anzeigen     ──── unabhängig (1 Zeile Dashboard)
+#8  Auto-Winner       ──── unabhängig (Logik da, Test/Polish)
+#1  CSS in Preview    ──── unabhängig (Figma-Plugin only)
+#2  KI-Prompt-Feld    ──── unabhängig (#13 optional kombinierbar)
+#9  Winner-Kriterien  ──── baut auf #8
+#7  Gesamt-Übersicht  ──── unabhängig
+#12 Refresh+Polling   ──── unabhängig
+#5  Polling-Intervall ──── unabhängig
+
+#10 Multi-Metric      ──── GROSS: DB + ab.js + Event + Dashboard + Extension
+#3  Inline→global CSS ──── nur falls #1 iframe-Lösung nicht reicht
+```
+
+### Phase A — Quick Wins (Free, ~5h)
+
+| # | Item | Tier | Aufwand | Umsetzung |
+|---|---|---|---|---|
+| 11 | **Lift prominenter zeigen** | Free | ~0,5h | 1 Relativ-Berechnung + Badge in ResultsClient |
+| 6 | **Pause-Button im Dashboard** | Free | ~1h | `PATCH status:'paused'` via Button, Pause-/Resume-Icon |
+| 12 | **Refresh-Button + konfigurierbares Polling** | Free/Pro | ~1h | Manueller Refresh-Button + konfigurierbares Intervall (UI-Setting) |
+| 5 | **Polling-Intervall gaten** | Free/Pro | ~1h | Aktuell 5s für alle → Free 30s / Pro 10s. Geringer Code-Aufwand. |
+| 8 | **Auto-Winner verifizieren + Edge-Cases** | Pro | ~2h | Tests für Edge-Cases (0-Conversions, gleichstand, etc.) + ggf. Fix |
+
+### Phase B — UX-Komplettierung (Free, ~12h)
+
+| # | Item | Tier | Aufwand | Umsetzung |
+|---|---|---|---|---|
+| 14 | **Manuelles HTML für Variante B** | Free | ~4h | `PATCH variant_b_html` in Route + einfacher HTML-Editor im Dashboard (textarea + Vorschau) |
+| 1 | **CSS in Figma-Preview** | Free | ~4h | `<iframe srcdoc="">` statt `innerHTML` im Figma-Plugin + `site_css` einbetten → Style-Isolation |
+| 4 | **Auto-Complete letzter Eingaben** | Free | ~2h | `localStorage`-Cache für zuletzt eingegebene URLs/Selektoren im Figma-Plugin |
+| 2 | **KI-Prompt-Feld + variable Übertragungs-Genauigkeit** | Free | ~6h | Input-Feld für User-Instruktionen → in Generate-Prompt einspielen; Scope-Steuerung (accuracy/speed-Slider ↔ Temperature) |
+
+### Phase C — Monetarisierung & Erweiterung (gemischt, ~18h)
+
+| # | Item | Tier | Aufwand | Umsetzung |
+|---|---|---|---|---|
+| 13 | **Brand Guide in KI-Generierung** | Pro | ~8h | DB-Feld `brand_guide` (jsonb mit colors, fonts, logos, etc.) + UI zum Hochladen/Edit + Prompt-Injection |
+| 7 | **Gesamt-Übersicht (kumuliert)** | Free | ~6h | Neue Dashboard-Sektion: aggregate stats über alle Tests (total visitors, avg improvement, active tests) |
+| 9 | **Konfigurierbare Gewinn-Kriterien** | Pro | ~3h | Erweitert existierende `min_visitors`/`min_uplift`-Config um Significance-Schwelle, Zeitfenster, A-Sieg möglich |
+| 3 | **Inline → globales CSS bei Variante B** | Free | ~4h | Backup-Plan falls iframe-Lösung in #1 nicht reicht: extrahiere `<style>` aus variant_b_html bei Generate |
+
+### Phase D — Multi-Metric (Free/Pro, ~20h+)
+
+| # | Item | Tier | Aufwand | Umsetzung |
+|---|---|---|---|---|
+| 10 | **Mehrere Metriken parallel** | Free/Pro | 20h+ | DB: `goals`-Tabelle (test_id, name, selector, type) + per-goal Counters; ab.js: Goal-Array + goalId in Conversion; Event-Route: goal-disambiguiertes Counting; Dashboard: per-Metric-Statistiken. **Auf Launch warten — kein User-Bedarf vorher.** |
+
+### Nächste Schritte
+
+Phase A als erstes: **#11 → #6 → #12 → #5 → #8.** Kein externes Feedback nötig, alle Änderungen isoliert im `ab-tool/`-Verzeichnis. Nach Phase A: erneute Priorisierung mit User-Feedback.
 
 ## §9 Historie
 
@@ -164,6 +213,7 @@ c:\dev\variante/
 | 25.06.2026 | **Bugfix (ab.js):** 0 Conversions für Variante B — MutationObserver-Trigger löschte `active` nach `applyDom()` → `finish()` erneut → applyDom fehlschlagend → goalSel fiel auf original CSS-Selektor zurück → matched nie auf B-HTML. Fix: `data-ab-el`-Selektor immer für B, nicht nur bei erfolgreichem applyDom. |
 | 25.06.2026 | **Phase A (Bugfixes):** Goal-Selector-Migration fix, SPA-Support, Anti-Flicker 3000ms. **Phase B (English):** Alle UI-Seiten, API-Fehlermeldungen, Extension, Figma-Plugin, ab.js-Header übersetzt. **Phase C:** Snippet-Installations-Sektion im Dashboard. |
 | 24.06.2026 | GTM-Strategie dokumentiert (GOTOMARKET.md). |
+| 29.06.2026 | **v4-Backlog priorisiert** — 14 Items in 4 Phasen eingeteilt (Quick Wins → UX → Monetarisierung → Multi-Metric). Codebase-Analyse für Abhängigkeiten. Empfehlung: Phase A zuerst (Lift, Pause, Refresh, Polling, Auto-Winner). Multi-Metric (#10) auf Post-Launch verschoben. Plan in §8 dokumentiert. |
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |
 
@@ -202,7 +252,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 26.06.2026 (Figma-Plugin Results-Screen überarbeitet, Build grün)*
+*DSO — zuletzt geprüft: 29.06.2026 (v4-Backlog priorisiert, Plan steht)*
 
 ---
 
