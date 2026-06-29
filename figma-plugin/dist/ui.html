@@ -960,7 +960,7 @@ code {
 const API = 'https://www.getvariante.com'
 const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
-  selector: '', originalHtml: '', goalCandidates: [],
+  selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: ''
 }
 let generating = false // ponytail: guard gegen Race generate/refine
@@ -1319,7 +1319,7 @@ function startElementPoll() {
   elTimer = setInterval(poll, 5000)
 }
 function stopElementPoll() {
-  if (dotTimer) { clearInterval(dotTimer); dotTimer = null }
+  if (elTimer) { clearInterval(elTimer); elTimer = null }
 }
 async function reselectElement() {
   $('el-done').style.display = 'none'
@@ -1530,8 +1530,10 @@ function setScope(val) {
 }
 
 function fillPreviews(html) {
-  $('gen-preview-white').innerHTML = html || ''
-  $('gen-preview-black').innerHTML = html || ''
+  const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
+  const doc = css ? '<html><head>' + css + '</head><body>' + (html || '') + '</body></html>' : (html || '')
+  $('gen-preview-white').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;background:#fff"></iframe>'
+  $('gen-preview-black').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;background:#111"></iframe>'
 }
 
 async function generate() {
@@ -1557,6 +1559,7 @@ async function generate() {
     }
     const data = await res.json()
     state.html = data.html
+    if (data.siteCss) state.siteCss = data.siteCss
     $('gen-ref').innerHTML      = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     $('gen-ref-dark').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     fillPreviews(state.html)
@@ -1597,6 +1600,7 @@ async function refine() {
     }
     const data = await res.json()
     state.html = data.html
+    if (data.siteCss) state.siteCss = data.siteCss
     fillPreviews(state.html)
     $('gen-html').textContent = state.html || ''
     $('gen-feedback').value = ''
@@ -1667,15 +1671,14 @@ function startResults() {
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'
 
-      // Preview: nur weiß, skaliert, eine Vorschau pro Variante
-      const css  = t.site_css ? '<style>' + t.site_css + '</style>' : ''
+      // Preview: iframe srcdoc with site CSS
       const hasA = !!t.original_html
       const hasB = !!t.variant_b_html
       ;['a','b'].forEach(k => {
         const html = k === 'a' ? t.original_html : t.variant_b_html
         const has  = k === 'a' ? hasA : hasB
         $('res-preview-' + k).innerHTML = has
-          ? css + '<div class="res-prev-inner">' + html + '</div>'
+          ? '<iframe srcdoc="' + escapeHtml('<html><head>' + (t.site_css ? '<style>' + t.site_css + '</style>' : '') + '</head><body>' + html + '</body></html>') + '" style="width:100%;height:80px;border:none;background:#fff"></iframe>'
           : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
       })
       $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'
