@@ -13,6 +13,7 @@ type TestRow = {
   visitors_b: number
   conversions_a: number
   conversions_b: number
+  winner: string | null
 }
 
 export function DashboardClient({
@@ -239,26 +240,64 @@ export default function Document() {
       </div>
 
       {/* Stats Summary */}
-      {tests.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-4 text-sm">
-          <div className="rounded-lg border border-gray-200 px-4 py-3">
-            <span className="font-semibold">{tests.length}</span>{' '}
-            <span className="text-gray-500">experiments</span>
+      {tests.length > 0 && (() => {
+        const totalVisitors = tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
+        const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
+        const running = tests.filter(t => t.status === 'active').length
+        const won = tests.filter(t => t.winner === 'B').length
+        const lost = tests.filter(t => t.winner === 'A').length
+        const done = tests.filter(t => t.status === 'done').length
+        const lifts = tests
+          .map(t => {
+            const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
+            const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
+            return crA > 0 ? (crB - crA) / crA : null
+          })
+          .filter((l): l is number => l !== null && isFinite(l))
+        const avgLift = lifts.length > 0 ? (lifts.reduce((s, l) => s + l, 0) / lifts.length) : null
+        return (
+          <div className="mb-4 flex flex-wrap gap-2 text-sm">
+            <div className="rounded-lg border border-gray-200 px-4 py-3">
+              <span className="font-semibold">{tests.length}</span>{' '}
+              <span className="text-gray-500">experiments</span>
+            </div>
+            {running > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                <span className="font-semibold text-blue-700">{running}</span>{' '}
+                <span className="text-blue-500">running</span>
+              </div>
+            )}
+            {won > 0 && (
+              <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                <span className="font-semibold text-green-700">{won}</span>{' '}
+                <span className="text-green-500">won</span>
+              </div>
+            )}
+            {(done - won - lost) > 0 && (
+              <div className="rounded-lg border border-gray-200 px-4 py-3">
+                <span className="font-semibold">{done - won - lost}</span>{' '}
+                <span className="text-gray-500">ended</span>
+              </div>
+            )}
+            <div className="rounded-lg border border-gray-200 px-4 py-3">
+              <span className="font-semibold">{totalVisitors.toLocaleString()}</span>{' '}
+              <span className="text-gray-500">visitors</span>
+            </div>
+            <div className="rounded-lg border border-gray-200 px-4 py-3">
+              <span className="font-semibold">{totalConversions.toLocaleString()}</span>{' '}
+              <span className="text-gray-500">conversions</span>
+            </div>
+            {avgLift !== null && (
+              <div className="rounded-lg border border-gray-200 px-4 py-3">
+                <span className={`font-semibold ${avgLift > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  {avgLift > 0 ? '+' : ''}{(avgLift * 100).toFixed(1)}%
+                </span>{' '}
+                <span className="text-gray-500">avg lift</span>
+              </div>
+            )}
           </div>
-          <div className="rounded-lg border border-gray-200 px-4 py-3">
-            <span className="font-semibold">
-              {tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0).toLocaleString()}
-            </span>{' '}
-            <span className="text-gray-500">total visitors</span>
-          </div>
-          <div className="rounded-lg border border-gray-200 px-4 py-3">
-            <span className="font-semibold">
-              {tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0).toLocaleString()}
-            </span>{' '}
-            <span className="text-gray-500">total conversions</span>
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Tests */}
       <h2 className="mb-3 text-sm font-semibold">Your Experiments</h2>

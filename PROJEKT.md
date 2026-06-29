@@ -14,7 +14,7 @@
 | **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 25.06.2026 |
+| **Stand** | 30.06.2026 |
 | **Leitziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community PLG), nicht Produkt. |
 
 ## §2 Stack
@@ -148,15 +148,21 @@ c:\dev\variante/
 | 4 | **Auto-Complete (localStorage)** | Free | Plugin speichert/setzt `gen-instructions` via `saveInputHistory('instructions')` / `loadInputHistory`. URL-History bereits über `dl-url`-Datalist + `populateDatalist` vorhanden. |
 | 3 | **Inline→global CSS extrahieren** | Free | **Entfällt** — Phase-B #1 (iframe+Css) macht Explizites Extract obsolet: `<style>` im HTML-Fragment wird via `srcdoc` korrekt isoliert gerendert. |
 
-### Ausstehende Phasen
+### ✅ Phase C — Gesamt-Übersicht (implementiert 30.06.2026)
 
-**Phase C — Monetarisierung & Erweiterung (gemischt, ~18h):**
-5. Schnelleres Dashboard-Update (Free 30s / Pro 10s — erledigt in Phase A)
-6. Pause-Button (Snapshot bei viel Traffic) — erledigt in Phase A
-7. Gesamt-Übersicht (kumulierte Besucher/Verbesserung) — **Free**
-8. Auto-Auswahl Gewinner (verifizieren) — erledigt in Phase A
-9. Konfigurierbare Gewinn-Kriterien — **Pro** (baut auf #8)
-10. Mehrere Metriken parallel — **Free** (max 2) / **Pro** (unbegrenzt)
+#7 ist implementiert, #9 war bereits in Phase A erledigt, #10 zurückgestellt.
+
+| # | Item | Tier | Änderungen | Status |
+|---|---|---|---|---|
+| 7 | **Gesamt-Übersicht** | Free | `DashboardClient.tsx`: Running-/Won-/Ended-Badges + avg Lift + winner aus API geladen. `page.tsx`: winner in Select ergänzt. | ✅ Heute |
+| 9 | **Konfigurierbare Gewinn-Kriterien** | Pro | Bereits in Phase A (#8) mitimplementiert: min_visitors/min_uplift Inputs in ResultsClient, determineWinner-Parameter, PATCH-Route, Event-Route. | ✅ Phase A |
+| 10 | **Mehrere Metriken parallel** | Free/Pro | Zurückgestellt — Invasion aller Schichten (Schema, RPC, ab.js, event, significance, UI). JSONB wäre sauberster Weg (~6-10h). | ⏳ Post-Launch |
+
+### ⏳ Phase D — Post-Launch (zurückgestellt)
+
+- #10 Mehrere Metriken parallel
+- Agency-Tier (White-Label, Multi-Site, Team-Seats)
+- E-Mail-Benachrichtigung bei Winner
 
 ### Testplan Phase A
 
@@ -186,6 +192,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 30.06.2026 | **Phase C (#7 Gesamt-Übersicht) implementiert:** Dashboard-Badges erweitert — Running/Won/Ended/Avg Lift. `winner`-Feld in page.tsx-API-Select ergänzt. #9 als bereits erledigt markiert. #10 auf Post-Launch verschoben. PROJEKT.md §8 aktualisiert. |
 | 29.06.2026 | **Phase B UX-Komplettierung implementiert:** #14 Manual HTML-Editor für Variant B (Textarea + Preview in ResultsClient.tsx), #1 iframe-basierte CSS-Preview im Figma-Plugin (siteCss via srcdoc), #2 KI-Prompt-Feld (userInstructions → buildPrompt/buildRefinePrompt), #4 Auto-Complete für Instructions-Feld. #3 entfällt (durch #1 obsolet). |
 | 29.06.2026 | **Phase A Quick Wins implementiert:** #5 Polling-Gating (Free 30s/Pro 10s), #6 Pause/Resume-Button im Dashboard, #8 determineWinner gibt `'A'` bei statistisch klarem A-Sieg zurück + Self-Check (10 Tests), #11 Lift-Anzeige (relative Verbesserung in %), #12 Refresh-Button. Siehe Testplan in §8. |
 | 26.06.2026 | **Figma-Plugin Inspector-Patterns übernommen** (aus Analyse von Figmas eigenem Properties-Panel): (A) Inputs jetzt Figma-nativ — grauer `bg-secondary`-Fill, **kein** Ruhe-Border, Border erst bei Fokus. (B) Icon-Prefix links im Feld: Globe im URL-Feld, `< >`-Code-Icon im Custom-Selector (`.input-icon-left` + `.has-prefix`). (E) `.card`/`.testid-row` Border entfernt → ruhige Property-Rows. (F) Scope-`<select>` → Segmented Control (`.seg`/`.seg-btn`, `data-scope`-State, `setScope()`); `getScope()` liest jetzt `data-scope` statt `.value`. (Token) Hardcoded Hex in `.notice-*`/Badges/`.upgrade-banner`/`.err`/`.ok` → halbtransparente Status-Tokens (`--ok*`, `--warn*`) + `--figma-color-text-success/-warning/-danger` mit Fallback → Dark-Mode-safe. Bewusst NICHT: Sektions-Header mit Action-Icons (D). |
@@ -248,7 +255,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 29.06.2026 (Phase B implementiert)*
+*DSO — zuletzt geprüft: 30.06.2026 (Phase C #7 implementiert)*
 
 ---
 
