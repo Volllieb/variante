@@ -1,6 +1,6 @@
 # GOTOMARKET.md — variante
 
-Stand: 24.06.2026. Post-MVP, Markt validiert. Ziel: zahlende Kunden über PLG.
+Stand: 29.06.2026. Phase A+B+C deployed auf www.getvariante.com. E2E-Test steht unmittelbar bevor.
 
 ## Strategie in einem Satz
 **Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
@@ -16,33 +16,48 @@ Free-Tier trägt **„powered by variante"-Badge** auf der Kundenseite → deren
 
 ## Phasen
 
-### Phase 0 — Pre-Launch-Fundament (parallel zu v3-Bau)
-Vor jedem öffentlichen Launch fertig:
-- Domain `variante.com` gekauft, minimale Marke (Logo, Wortmarke, 1 Farbe).
-- Landing-Page live:  Hero, Demo-GIF, 6-Schritt-Erklärung, Pricing, Sign-up + Stripe, **Impressum + Datenschutz**.
-- Stripe scharf (Einzelunternehmen), Steuer-Setup geklärt.
-- Plugin-Listing-Assets (Icon, Cover, Beschreibung EN, 3–5 Screenshots/GIF) + Chrome-Web-Store-Assets (inkl. Privacy-Policy-URL) → **früh einreichen** (Review-Zeit ist der Engpass).
-- **Dogfooding:** variante auf dem eigenen Portfolio/der Landing-Page laufen lassen → erster Proof + Demo-Material.
+### ✅ Phase 0 — Pre-Launch-Fundament (abgeschlossen 29.06.2026)
+
+| Item | Status |
+|---|---|
+| Domain `getvariante.com` gesichert | ✅ |
+| Landing-Page live (Hero, How It Works, Use Cases, Pricing, Notify) | ✅ |
+| Signup + Login + Dashboard + Stripe scharf | ✅ |
+| Steuer-Setup geklärt (Kleinunternehmer, Stripe Tax) | ✅ |
+| Figma-Plugin gebaut + Community-Listing vorbereitet | ✅ (im Review) |
+| Chrome-Extension gebaut + Web-Store-Assets vorbereitet | ✅ |
+| Phase A+B+C implementiert (Quick Wins, UX, Gesamt-Übersicht) | ✅ |
+| Produktion auf `www.getvariante.com` deployed | ✅ |
+| E2E-Test auf echter Site | ⏳ **Heute** |
+| Dogfooding: variante auf eigener Landing-Page | ⏳ **offen** |
 
 ### Phase 1 — Soft-Launch / Design-Partner (Cold-Start lösen)
-Realität: aktuell nur 2 Designer im Umfeld → aktiver Schritt nötig.
-- Die 2 bekannten Designer + **3–5 handverlesene kleine Agenturen** als Design-Partner gewinnen: kostenlos Pro gegen Feedback + Testimonial + Case-Study.
-- Concierge-Onboarding (du machst den ersten Test mit ihnen).
+**Start: 29.06.2026 — Ziel: 1. August 2026**
+
+Engpass: Figma-Plugin-Review + Chrome-Web-Store-Review. Aktiv Schritte bevor die Reviews durch sind:
+
+- **Store-Listings früh einreichen** — heute oder morgen. Review-Zeiten sind unberechenbar (1–14 Tage).
+- **Die 2 bekannten Designer + 3–5 handverlesene kleine Agenturen** als Design-Partner gewinnen: kostenlos Pro gegen Feedback + Testimonial + Case-Study.
+- **Concierge-Onboarding**: du machst den ersten Test mit ihnen via `ab-spike` oder deren echter Site.
 - **Output:** 3–5 echte Installs, **1–2 Case-Studies mit Before/After-Lift-Zahlen** → Munition für Phase 2.
 
-### Phase 2 — Public-Launch-Spike
+### Phase 2 — Public-Launch-Spike (nach Store-Freigabe)
+
+Erst wenn Figma-Plugin LIVE im Community Store ist:
 - **Figma Community** veröffentlichen (der Burggraben).
 - **Product Hunt** in derselben Woche (Dienstag) — Reichweiten-Spike. Demo-GIF + Case-Studies aus Phase 1 als Aufhänger. Design-Partner + Hockey-Netz für Upvotes/Kommentare mobilisieren.
 - Ziel: Top-Plugin-Sichtbarkeit in der Figma-Suche für „A/B test".
+- **Aktueller Haken:** Phase-A/B/C-Features sind deployed, aber erst nach Store-Freigabe nutzbar.
 
 ### Phase 3 — Self-Serve-Aktivierung & Conversion
 - Funnel optimieren: Install → erster Live-Test so schnell wie möglich (das ist das Aha).
 - Viraler Loop läuft über das Badge.
-- Free→Pro-Trigger: unbegrenzte Experimente + Badge-aus. Agency-Tier (White-Label) — zurückgestellt, kommt wenn erste Nachfrage da ist.
+- Free→Pro-Trigger: unbegrenzte Experimente + Badge-aus.
+- Agency-Tier (White-Label) — zurückgestellt, kommt wenn erste Nachfrage da ist.
 
 ### Phase 4 — Content/SEO (sekundär)
 - Erst wenn Plugin-Discovery läuft: Keywords „A/B test from Figma", „A/B testing for AI-generated websites". Posts in r/web_design, X-Design-Bubble, Designer-Slacks.
-- **Agency-Tier** (White-Label, Multi-Site, Team-Seats) ist zurückgestellt. Aktivierung erst, wenn sich erste Nachfrage abzeichnet.
+- Agency-Tier (White-Label, Multi-Site, Team-Seats) zurückgestellt.
 
 ---
 
@@ -50,6 +65,17 @@ Realität: aktuell nur 2 Designer im Umfeld → aktiver Schritt nötig.
 - **North Star:** % der Installs, die einen **Live-Test starten** (Aktivierung).
 - Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
 - **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
+
+## Aktueller Status (29.06.2026)
+
+- ✅ **Produkt fertig**: Phase A+B+C auf `www.getvariante.com` deployed
+- ⏳ **E2E-Test**: Heute — Account erstellen, Loop durchspielen
+- ⏳ **Figma-Plugin-Review**: Nicht eingereicht
+- ⏳ **Chrome-Extension-Review**: Nicht eingereicht
+- ⏳ **Dogfooding**: variante auf eigener Landing-Page — offen
+- ⏳ **Design-Partner**: 0 von 5 an Bord
+
+**Nächster Schritt:** heute E2E absolvieren, dann Stores einreichen.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte) → Phase 1 ist der kritische Schritt; Figma-Community skaliert, braucht aber Review + Ranking-Zeit.
