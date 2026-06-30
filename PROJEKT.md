@@ -224,16 +224,19 @@ c:\dev\variante/
 
 ## §7 Security Disclosure (Figma Plugin — Publish Dialog)
 
-> Antworten für den Figma Publish Security Disclosure Form.
+> Finale Antworten — eingetragen am 30.06.2026.
 
 | Frage | Antwort |
 |---|---|
-| **Backend-Hosting?** | `www.getvariante.com` auf Vercel (us-east, USA). DPA + SCCs (EU-US DPF) vorhanden. |
-| **Vulnerability-Management?** | Report per Email an `hello@getvariante.com`. Reaktionsziel: 30 Tage (DSGVO-konform). Security-Updates laufen über Vercel-Deployment (kein autom. CI/CD). |
-| **Auth-Methode?** | API-Token via Supabase Auth (JWT). Token wird im `Authorization: Bearer`-Header gesendet. Gespeichert in Figma-`clientStorage`. |
-| **Datenspeicherung?** | Figma-Node-Daten (HTML/CSS-Snapshots, Export-PNGs) + Experiment-Daten → Supabase Postgres (Frankfurt, DE). Hosting-Logs → Vercel (us-east, 7 Tage). AI-Gen-Daten → DeepSeek API (kein Storage). |
-| **Zugriffskontrolle?** | Supabase Row-Level Security (RLS) — jeder User sieht nur eigene Tests. Plugin-Token ist ein Supabase-API-Key mit eingeschränkten Rechten. |
-| **Data-Usage (Figma-Content)?** | Das Plugin extrahiert nur das vom User angeklickte Figma-Element (Name, Text, Farben, Typografie, Geometrie). Kein Scannen der gesamten Datei. Kein Teilen mit Dritten außer DeepSeek (AI-Gen). |
+| **1. Backend-Hosting?** | Yes, and data derived from Figma Plugins API is sent to this backend. — `www.getvariante.com` auf Vercel (us-east, USA). DPA + SCCs (EU-US DPF) vorhanden. |
+| **2. Fremde Network-Requests?** | My plugin makes requests not captured by the above. — Keine CDN/Statics/ Analytics-Drittanbieter. Einzige Ausnahme: DeepSeek API (AI-Gen, kein Storage). |
+| **3. User Authentication?** | Yes, handled via a site that I host. — Supabase Auth auf `getvariante.com`. |
+| **4. Storage of Figma-Read Data?** | Yes, locally — Auth-Token via `figma.clientStorage`. |
+| **5. Vulnerability-Management?** | Report per Email an `hello@getvariante.com`, 24h-Eingangsbestätigung, 30d-Fix-Ziel. Keine formellen Zertifikate (SOC2 etc.) als Solo-Projekt; Infrastruktur (Supabase, Stripe, Vercel) ist auditiert. |
+| **6. Credential-Security?** | Passwörter bcrypt (Supabase Auth). HTTP-only Secure Cookies. API-Token (UUID v4) in `clientStorage`. Stripe direkt (keine Kreditkarten auf eigenem Server). |
+| **7. Data Flow (Elaboration)?** | Nur selektiertes Figma-Element → `api.getvariante.com/generate` → DeepSeek API (kein Storage). Kein Full-File-Scan. Kein Analytics. Kein Third-Party-Sharing außer DeepSeek. |
+| **Zugriffskontrolle?** | Supabase Row-Level Security (RLS) — jeder User sieht nur eigene Tests. Plugin-Token ist ein UUID-API-Key mit eingeschränkten Rechten. |
+| **Datenspeicherung?** | Test-Konfiguration + Conversion-Events → Supabase Postgres (Frankfurt, DE). Hosting-Logs → Vercel (us-east, 7 Tage). Kein dauerhafter Storage außerhalb dieser Pfade. |
 | **Support-Kontakt?** | `hello@getvariante.com` — auch in der Privacy Policy unter §7. |
 
 ---

@@ -46,7 +46,46 @@ Privacy: we only store the element you pick, your variant, the page URL, and the
 
 ---
 
-## Assets-Checklist (im Publish-Dialog hochladen) — TODO du
-- [ ] **Plugin-Icon** (Figma empfiehlt 128×128 PNG, quadratisch) — Brand-Mark auf `#0D99FF`
-- [ ] **Cover-Art 1920×960** — Plugin-UI + Tagline
+## Security Disclosure (Publish-Pflichtfeld)
+
+### 1. Do you host a backend server for your plugin?
+**Yes, and data derived from Figma Plugins API is sent to this backend.**
+The plugin sends the user-selected Figma layer (text, colors, geometry) to `api.getvariante.com` to generate Variant B via the DeepSeek API (no storage).
+
+### 2. Does your plugin widget make any network requests to servers you do not host?
+**My plugin makes requests not captured by the above.**
+The plugin only communicates with `getvariante.com` (our own server). No static assets from CDNs, no analytics tools, no third-party trackers. The only exception is the AI generation step, which hits DeepSeek's API (no data stored there).
+
+### 3. Does your plugin widget use any user authentication?
+**Yes, my plugin widget has user authentication. This is handled via a site that I host.**
+Login flows through `getvariante.com` (Supabase Auth). The plugin stores an API token (UUID v4) in Figma's sandboxed `clientStorage` and sends it via `Authorization: Bearer` header.
+
+### 4. Do you store any data read derived from Figma's Plugin API?
+**Yes, my plugin widget stores data read derived from Figma's plugin API locally.**
+The plugin stores an authentication token via `figma.clientStorage`. Apart from that, Figma selection data is sent to the backend in real time and not cached locally beyond the current session.
+
+### 5. Vulnerability management & security standards
+Vulnerability reports: `hello@getvariante.com` — 24h acknowledgment, 30-day fix target. No formal certifications as a solo pre-launch project, but the infrastructure stack is SOC 2-audited: Supabase (database), Stripe (payments, PCI DSS Level 1), Vercel (hosting). GDPR-compliant (Germany-based, data in Frankfurt).
+
+### 6. Credential security
+Passwords hashed via Supabase Auth (bcrypt). HTTP-only Secure cookies for dashboard sessions. API tokens (UUID v4) stored in Figma sandboxed `clientStorage`, sent via Bearer header. Stripe handles all payment data directly — no card data touches our server. Server secrets encrypted in Vercel environment variables.
+
+### 7. Data flow (elaboration)
+The plugin extracts only the user-selected Figma element (layer type, name, text, fill colors, strokes, geometry). No full-file scan. Data flow: Figma selection → `api.getvariante.com/generate` → DeepSeek API (AI gen, no storage). Test config + conversion events → Supabase Postgres (Frankfurt, DE). No analytics (GA, Amplitude, Sentry). No third-party data sharing beyond the AI generation step.
+
+---
+
+## Publish-Dialog Einstellungen
+
+| Feld | Wert |
+|---|---|
+| **Category** | Design tools |
+| **Subcategory** | Other |
+| **Support contact** | `hello@getvariante.com` |
+| **Privacy Policy URL** | `https://www.getvariante.com/privacy` |
+| **Manage updates** | I'm a solo developer. I manage and update my plugin myself. |
+
+## Assets-Checklist (im Publish-Dialog hochladen)
+- [ ] **Plugin-Icon** (128×128 PNG, quadratisch) — Brand-Mark auf `#0D99FF`
+- [ ] **Cover-Art** (1920×960 PNG) — Plugin-UI + Tagline
 - [ ] **3–5 Screenshots** der Plugin-Screens (Onboarding, Variant-Editor, Dashboard/Results)
