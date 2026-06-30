@@ -231,7 +231,7 @@ c:\dev\variante/
 | **1. Backend-Hosting?** | Yes, and data derived from Figma Plugins API is sent to this backend. — `www.getvariante.com` auf Vercel (us-east, USA). DPA + SCCs (EU-US DPF) vorhanden. |
 | **2. Fremde Network-Requests?** | My plugin makes requests not captured by the above. — Keine CDN/Statics/ Analytics-Drittanbieter. Einzige Ausnahme: OpenAI API (AI-Gen, kein Storage). |
 | **3. User Authentication?** | Yes, handled via a site that I host. — Supabase Auth auf `getvariante.com`. |
-| **4. Storage of Figma-Read Data?** | Yes, locally — Auth-Token via `figma.clientStorage`. |
+| **4. Storage of Figma-Read Data?** | No — Auth-Token in `figma.clientStorage` is user input, not derived from Figma Plugin API. Selection data is transient (RAM only). |
 | **5. Vulnerability-Management?** | Report per Email an `hello@getvariante.com`, 24h-Eingangsbestätigung, 30d-Fix-Ziel. Keine formellen Zertifikate (SOC2 etc.) als Solo-Projekt; Infrastruktur (Supabase, Stripe, Vercel) ist auditiert. |
 | **6. Credential-Security?** | Passwörter bcrypt (Supabase Auth). HTTP-only Secure Cookies. API-Token (UUID v4) in `clientStorage`. Stripe direkt (keine Kreditkarten auf eigenem Server). |
 | **7. Data Flow (Elaboration)?** | Nur selektiertes Figma-Element → `api.getvariante.com/generate` → OpenAI API (kein Storage). Kein Full-File-Scan. Kein Analytics. Kein Third-Party-Sharing außer OpenAI. |

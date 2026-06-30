@@ -61,8 +61,8 @@ The plugin only communicates with `getvariante.com` (our own server). No static 
 Login flows through `getvariante.com` (Supabase Auth). The plugin stores an API token (UUID v4) in Figma's sandboxed `clientStorage` and sends it via `Authorization: Bearer` header.
 
 ### 4. Do you store any data read derived from Figma's Plugin API?
-**Yes, my plugin widget stores data read derived from Figma's plugin API locally.**
-The plugin stores an authentication token via `figma.clientStorage`. Apart from that, Figma selection data is sent to the backend in real time and not cached locally beyond the current session.
+**No, my plugin widget does not store any data derived from Figma's Plugin API.**
+The authentication token stored in `figma.clientStorage` is user input (pasted from the dashboard), not derived from Figma's Plugin API. Figma selection data is only held in memory for the current request and sent directly to the backend — no local persistence.
 
 ### 5. Vulnerability management & security standards
 Vulnerability reports: `hello@getvariante.com` — 24h acknowledgment, 30-day fix target. No formal certifications as a solo pre-launch project, but the infrastructure stack is SOC 2-audited: Supabase (database), Stripe (payments, PCI DSS Level 1), Vercel (hosting). GDPR-compliant (Germany-based, data in Frankfurt).
