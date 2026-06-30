@@ -8,7 +8,7 @@ export async function OPTIONS() {
   return preflight('POST, OPTIONS')
 }
 
-const MODEL = 'deepseek-chat'
+const MODEL = 'gpt-4o-mini'
 
 // Stabiler System-Prompt: rollt die Role aus, ohne dass das Modell raten muss.
 const SYSTEM_PROMPT =
@@ -273,9 +273,9 @@ export async function POST(req: Request) {
       ? buildRefinePrompt(previousHtml, feedback, scope, userInstructions)
       : FEW_SHOT_PROMPT + '\n\n' + buildPrompt(test.original_html, test.site_css, test.framework, frameContent, scope, userInstructions)
 
-  const apiKey = process.env.DEEPSEEK_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
-    return Response.json({ error: 'DEEPSEEK_API_KEY missing' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'OPENAI_API_KEY missing' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
   // Dynamische Temperatur: Text braucht etwas Kreativität für natürliche
@@ -285,7 +285,7 @@ export async function POST(req: Request) {
   let variantHtml: string
   let warnings: string[] = []
   try {
-    const res = await fetch('https://api.deepseek.com/chat/completions', {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
@@ -297,7 +297,7 @@ export async function POST(req: Request) {
         temperature,
       }),
     })
-    if (!res.ok) throw new Error(`deepseek ${res.status}`)
+    if (!res.ok) throw new Error(`openai ${res.status}`)
     const json = await res.json()
     variantHtml = parseStructuredOutput(json.choices?.[0]?.message?.content ?? '')
 
@@ -306,7 +306,7 @@ export async function POST(req: Request) {
     warnings = check.warnings
     if (!variantHtml) throw new Error('empty response after stripFences')
   } catch (e) {
-    console.error('[generate] deepseek error:', e)
+    console.error('[generate] openai error:', e)
     return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
   }
 

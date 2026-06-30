@@ -26,7 +26,7 @@
 | Datenbank | Supabase (Postgres) | Tests, Events, User |
 | Auth | Supabase Auth (JWT) | Login + API-Gate |
 | Billing | Stripe | Abos + Checkout |
-| KI-Generierung | DeepSeek API | HTML-Varianten (~0,3 ct/Call) |
+| KI-Generierung | OpenAI API | HTML-Varianten (~0,3 ct/Call) |
 | Snippet | `ab.js` (Vanilla JS) | Läuft auf Kundenseite |
 | Chrome-Extension | MV3 (Vanilla JS) | Element + Goal Picker |
 | Figma-Plugin | TypeScript + HTML | Plugin-UI (8 Screens) |
@@ -229,12 +229,12 @@ c:\dev\variante/
 | Frage | Antwort |
 |---|---|
 | **1. Backend-Hosting?** | Yes, and data derived from Figma Plugins API is sent to this backend. — `www.getvariante.com` auf Vercel (us-east, USA). DPA + SCCs (EU-US DPF) vorhanden. |
-| **2. Fremde Network-Requests?** | My plugin makes requests not captured by the above. — Keine CDN/Statics/ Analytics-Drittanbieter. Einzige Ausnahme: DeepSeek API (AI-Gen, kein Storage). |
+| **2. Fremde Network-Requests?** | My plugin makes requests not captured by the above. — Keine CDN/Statics/ Analytics-Drittanbieter. Einzige Ausnahme: OpenAI API (AI-Gen, kein Storage). |
 | **3. User Authentication?** | Yes, handled via a site that I host. — Supabase Auth auf `getvariante.com`. |
 | **4. Storage of Figma-Read Data?** | Yes, locally — Auth-Token via `figma.clientStorage`. |
 | **5. Vulnerability-Management?** | Report per Email an `hello@getvariante.com`, 24h-Eingangsbestätigung, 30d-Fix-Ziel. Keine formellen Zertifikate (SOC2 etc.) als Solo-Projekt; Infrastruktur (Supabase, Stripe, Vercel) ist auditiert. |
 | **6. Credential-Security?** | Passwörter bcrypt (Supabase Auth). HTTP-only Secure Cookies. API-Token (UUID v4) in `clientStorage`. Stripe direkt (keine Kreditkarten auf eigenem Server). |
-| **7. Data Flow (Elaboration)?** | Nur selektiertes Figma-Element → `api.getvariante.com/generate` → DeepSeek API (kein Storage). Kein Full-File-Scan. Kein Analytics. Kein Third-Party-Sharing außer DeepSeek. |
+| **7. Data Flow (Elaboration)?** | Nur selektiertes Figma-Element → `api.getvariante.com/generate` → OpenAI API (kein Storage). Kein Full-File-Scan. Kein Analytics. Kein Third-Party-Sharing außer OpenAI. |
 | **Zugriffskontrolle?** | Supabase Row-Level Security (RLS) — jeder User sieht nur eigene Tests. Plugin-Token ist ein UUID-API-Key mit eingeschränkten Rechten. |
 | **Datenspeicherung?** | Test-Konfiguration + Conversion-Events → Supabase Postgres (Frankfurt, DE). Hosting-Logs → Vercel (us-east, 7 Tage). Kein dauerhafter Storage außerhalb dieser Pfade. |
 | **Support-Kontakt?** | `hello@getvariante.com` — auch in der Privacy Policy unter §7. |
@@ -272,7 +272,7 @@ c:\dev\variante/
 - [ ] Läuft der komplette Loop? → Extension → Plugin → API → Snippet → Event-Tracking
 - [ ] Ist der Badge-Mechanismus intakt? → Free-Tier zeigt Badge, Pro nicht
 - [ ] Funktionieren Auth + Gating? → Login, Trial, Paywall
-- [ ] Sind die DeepSeek-Calls günstig? → Kosten < 1 ct/Generierung
+- [ ] Sind die OpenAI-Calls günstig? → Kosten < 1 ct/Generierung
 
 ---
 

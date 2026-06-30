@@ -28,10 +28,10 @@ export default function PrivacyPage() {
               content is not analyzed or read beyond the element you selected.
             </li>
             <li>
-              <strong>AI generation (DeepSeek):</strong> When you generate a
+              <strong>AI generation (OpenAI):</strong> When you generate a
               variant, the extracted HTML/CSS context of the original element
-              and the Figma export data are sent to DeepSeek&apos;s API. The
-              data is used only for generation and is not stored by DeepSeek.
+              and the Figma export data are sent to OpenAI&apos;s API. The
+              data is used only for generation and is not stored by OpenAI.
               Do not submit personal data in prompts or designs.
             </li>
             <li>
@@ -132,9 +132,9 @@ export default function PrivacyPage() {
                   <td className="py-2 align-top">DPF certified</td>
                 </tr>
                 <tr>
-                  <td className="py-2 pr-3 align-top">DeepSeek</td>
+                  <td className="py-2 pr-3 align-top">OpenAI</td>
                   <td className="py-2 pr-3 align-top">AI generation</td>
-                  <td className="py-2 pr-3 align-top">China / DE</td>
+                  <td className="py-2 pr-3 align-top">US</td>
                   <td className="py-2 align-top">API only, no storage</td>
                 </tr>
               </tbody>

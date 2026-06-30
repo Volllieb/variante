@@ -50,11 +50,11 @@ Privacy: we only store the element you pick, your variant, the page URL, and the
 
 ### 1. Do you host a backend server for your plugin?
 **Yes, and data derived from Figma Plugins API is sent to this backend.**
-The plugin sends the user-selected Figma layer (text, colors, geometry) to `api.getvariante.com` to generate Variant B via the DeepSeek API (no storage).
+The plugin sends the user-selected Figma layer (text, colors, geometry) to `api.getvariante.com` to generate Variant B via the OpenAI API (no storage).
 
 ### 2. Does your plugin widget make any network requests to servers you do not host?
 **My plugin makes requests not captured by the above.**
-The plugin only communicates with `getvariante.com` (our own server). No static assets from CDNs, no analytics tools, no third-party trackers. The only exception is the AI generation step, which hits DeepSeek's API (no data stored there).
+The plugin only communicates with `getvariante.com` (our own server). No static assets from CDNs, no analytics tools, no third-party trackers. The only exception is the AI generation step, which hits OpenAI's API (no data stored there).
 
 ### 3. Does your plugin widget use any user authentication?
 **Yes, my plugin widget has user authentication. This is handled via a site that I host.**
@@ -71,7 +71,7 @@ Vulnerability reports: `hello@getvariante.com` — 24h acknowledgment, 30-day fi
 Passwords hashed via Supabase Auth (bcrypt). HTTP-only Secure cookies for dashboard sessions. API tokens (UUID v4) stored in Figma sandboxed `clientStorage`, sent via Bearer header. Stripe handles all payment data directly — no card data touches our server. Server secrets encrypted in Vercel environment variables.
 
 ### 7. Data flow (elaboration)
-The plugin extracts only the user-selected Figma element (layer type, name, text, fill colors, strokes, geometry). No full-file scan. Data flow: Figma selection → `api.getvariante.com/generate` → DeepSeek API (AI gen, no storage). Test config + conversion events → Supabase Postgres (Frankfurt, DE). No analytics (GA, Amplitude, Sentry). No third-party data sharing beyond the AI generation step.
+The plugin extracts only the user-selected Figma element (layer type, name, text, fill colors, strokes, geometry). No full-file scan. Data flow: Figma selection → `api.getvariante.com/generate` → OpenAI API (AI gen, no storage). Test config + conversion events → Supabase Postgres (Frankfurt, DE). No analytics (GA, Amplitude, Sentry). No third-party data sharing beyond the AI generation step.
 
 ---
 
