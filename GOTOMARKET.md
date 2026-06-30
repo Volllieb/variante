@@ -24,12 +24,12 @@ Free-Tier trägt **„powered by variante"-Badge** auf der Kundenseite → deren
 | Landing-Page live (Hero, How It Works, Use Cases, Pricing, Notify) | ✅ |
 | Signup + Login + Dashboard + Stripe scharf | ✅ |
 | Steuer-Setup geklärt (Kleinunternehmer, Stripe Tax) | ✅ |
-| Figma-Plugin gebaut + Community-Listing vorbereitet | ✅ (im Review) |
-| Chrome-Extension gebaut + Web-Store-Assets vorbereitet | ✅ |
+| Figma-Plugin gebaut + Community-Listing eingereicht | ✅ (im Review) |
+| Chrome-Extension gebaut + CWS-Listing eingereicht | ✅ (im Review) |
 | Phase A+B+C implementiert (Quick Wins, UX, Gesamt-Übersicht) | ✅ |
 | Produktion auf `www.getvariante.com` deployed | ✅ |
-| E2E-Test auf echter Site | ⏳ **Heute** |
-| Dogfooding: variante auf eigener Landing-Page | ⏳ **offen** |
+| E2E-Test auf echter Site | ⏳ **Nächster** |
+| Dogfooding: variante auf eigener Landing-Page | ⏳ **Danach** |
 
 ### Phase 1 — Soft-Launch / Design-Partner (Cold-Start lösen)
 **Start: 29.06.2026 — Ziel: 1. August 2026**
