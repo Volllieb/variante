@@ -217,10 +217,10 @@ export default function PrivacyPage() {
           <p className="mt-2">
             To exercise any of these rights, email{' '}
             <a
-              href="mailto:valentin@4wilhelm.de"
+              href="mailto:hello@getvariante.com"
               className="text-violet-600 underline"
             >
-              valentin@4wilhelm.de
+              hello@getvariante.com
             </a>{' '}
             and we&apos;ll respond within 30 days.
           </p>
@@ -250,10 +250,10 @@ export default function PrivacyPage() {
           <p className="mt-2">
             Email:{' '}
             <a
-              href="mailto:valentin@4wilhelm.de"
+              href="mailto:hello@getvariante.com"
               className="text-violet-600 underline"
             >
-              valentin@4wilhelm.de
+              hello@getvariante.com
             </a>
           </p>
         </section>
