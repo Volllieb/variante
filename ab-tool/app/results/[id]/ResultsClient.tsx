@@ -3,22 +3,37 @@
 import { ExperimentData } from '@/lib/getExperimentStats'
 import { VariantPreview } from '@/app/components/VariantPreview'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import {
+  ArrowLeft,
+  RefreshCw,
+  TrendingUp,
+  Users,
+  Target,
+  Lock,
+  Check,
+  Pause,
+  Play,
+  Pencil,
+  X,
+} from 'lucide-react'
 
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
   const [data, setData] = useState(initial)
-  // Local input values for thresholds (decoupled from poll so typing isn't overwritten).
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
   const [saved, setSaved] = useState(false)
-  // Manual HTML editor for variant B.
   const [editingB, setEditingB] = useState(false)
   const [draftB, setDraftB] = useState(initial.variantBHtml || '')
+  const [refreshing, setRefreshing] = useState(false)
 
   async function refresh() {
+    setRefreshing(true)
     try {
       const res = await fetch(`/api/results/${experimentId}`)
       if (res.ok) setData(await res.json())
     } catch {}
+    setRefreshing(false)
   }
 
   useEffect(() => {
@@ -32,6 +47,10 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const totalVisitors = a.views + b.views
   const done = status === 'done' || !!winner
   const visitorPct = Math.min(100, Math.round((totalVisitors / Math.max(1, minVisitors)) * 100))
+
+  const lift = a.views > 0 && a.conversions > 0
+    ? ((b.cr - a.cr) / a.cr) * 100
+    : null
 
   async function saveConfig() {
     try {
@@ -57,208 +76,324 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     } catch {}
   }
 
-  const lift = a.views > 0 && a.conversions > 0
-    ? ((b.cr - a.cr) / a.cr) * 100
-    : null
+  async function toggleStatus(next: 'active' | 'paused') {
+    await fetch(`/api/tests/${experimentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: next }),
+    })
+    refresh()
+  }
+
+  const statusColor =
+    status === 'active'
+      ? 'bg-emerald-400/15 text-emerald-300'
+      : status === 'paused'
+      ? 'bg-amber-400/15 text-amber-300'
+      : 'bg-white/[0.07] text-white/50'
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12 font-sans">
-      <div className="mb-1 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <a href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600 hover:underline">
-            ← Dashboard
-          </a>
-          <h1 className="text-2xl font-bold">{name}</h1>
-        </div>
-        <button
-          onClick={refresh}
-          className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50"
-          title="Refresh now"
-        >
-          ↻ Refresh
-        </button>
-      </div>
-      <p className="mb-8 text-sm text-gray-500">
-        Status: {status}{winner ? ` · Winner: Variant ${winner}` : ''}
-        {status === 'active' && (
-          <button
-            onClick={async () => {
-              await fetch(`/api/tests/${experimentId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'paused' }),
-              })
-              refresh()
-            }}
-            className="ml-3 text-xs text-amber-600 hover:underline"
-          >
-            [Pause]
-          </button>
-        )}
-        {status === 'paused' && (
-          <button
-            onClick={async () => {
-              await fetch(`/api/tests/${experimentId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'active' }),
-              })
-              refresh()
-            }}
-            className="ml-3 text-xs text-green-600 hover:underline"
-          >
-            [Resume]
-          </button>
-        )}
-      </p>
-      <div className="grid grid-cols-2 gap-6">
-        {[a, b].map(v => (
-          <div key={v.id} className={`rounded-xl border p-6 ${winner === v.id ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
-            <p className="text-4xl font-bold">{v.cr}%</p>
-            <p className="mt-1 text-sm text-gray-500">Conversion Rate</p>
-            <p className="mt-3 text-sm">Variant {v.label}</p>
-            <p className="text-xs text-gray-400">{v.views} visitors · {v.conversions} conv.</p>
-            {lift !== null && v.id === 'B' && (
-              <p className={`mt-2 text-xs font-semibold ${lift > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                {lift > 0 ? '+' : ''}{lift.toFixed(1)}% vs A
-              </p>
-            )}
-          </div>
-        ))}
+    <div className="relative min-h-screen bg-[#06050f] font-[family-name:var(--font-sans)] text-white/80 antialiased">
+      {/* Aurora */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute -left-32 top-0 h-[32rem] w-[32rem] rounded-full bg-violet-700/12 blur-[130px]" />
+        <div className="absolute -right-20 bottom-0 h-[28rem] w-[28rem] rounded-full bg-fuchsia-600/08 blur-[100px]" />
+        <div
+          className="absolute inset-0 opacity-[0.09]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.28) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
+        />
       </div>
 
-      {(data.originalHtml || data.variantBHtml || editingB) && (
-        <div className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold">Preview</h2>
-          <div className="grid grid-cols-2 gap-6">
-            {data.originalHtml && (
-              <VariantPreview
-                html={data.originalHtml}
-                css={data.siteCss}
-                label="A (Original)"
-                winner={winner === 'A'}
-              />
-            )}
-            {!editingB && data.variantBHtml && (
-              <div>
-                <VariantPreview
-                  html={data.variantBHtml}
-                  css={data.siteCss}
-                  label="B (Variant)"
-                  winner={winner === 'B'}
-                />
+      <div className="relative z-10">
+        {/* Top bar */}
+        <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#06050f]/80 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-3.5">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/50 transition-all duration-200 hover:border-white/20 hover:text-white"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Dashboard
+              </Link>
+              <h1 className="font-[family-name:var(--font-display)] text-base font-bold text-white">
+                {name}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${statusColor}`}>
+                {winner ? `${winner} won` : status}
+              </span>
+              {status === 'active' && (
                 <button
-                  onClick={() => { setDraftB(data.variantBHtml || ''); setEditingB(true) }}
-                  className="mt-1 text-xs text-gray-400 hover:text-gray-600"
+                  onClick={() => toggleStatus('paused')}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/[0.07] px-3 py-1.5 text-xs text-amber-300 transition-all hover:bg-amber-400/10"
                 >
-                  ✎ Edit HTML
+                  <Pause className="h-3 w-3" /> Pause
                 </button>
-              </div>
-            )}
-            {!editingB && !data.variantBHtml && data.originalHtml && (
-              <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-300 p-6">
+              )}
+              {status === 'paused' && (
                 <button
-                  onClick={() => { setDraftB('<div class="ab-v">\n  <style>\n    .ab-v { /* your styles */ }\n  </style>\n</div>'); setEditingB(true) }}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  onClick={() => toggleStatus('active')}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-xs text-emerald-300 transition-all hover:bg-emerald-400/10"
                 >
-                  + Add Variant B HTML
+                  <Play className="h-3 w-3" /> Resume
                 </button>
-              </div>
-            )}
-            {editingB && (
-              <div className="rounded-xl border border-gray-200 p-4">
-                <p className="mb-2 text-xs font-semibold text-gray-500">Edit Variant B HTML</p>
-                <textarea
-                  value={draftB}
-                  onChange={e => setDraftB(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs font-mono"
-                  rows={10}
-                />
-                <div className="mt-2 flex gap-2">
-                  <button onClick={saveVariantB} className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">Save</button>
-                  <button onClick={() => setEditingB(false)} className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50">Cancel</button>
+              )}
+              <button
+                onClick={refresh}
+                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all hover:border-white/20 hover:text-white"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-2xl px-6 py-8 space-y-5">
+
+          {/* A/B Stats cards */}
+          <div className="grid grid-cols-2 gap-4">
+            {[a, b].map((v, i) => {
+              const isWinner = winner === v.id
+              const isVariantB = i === 1
+              return (
+                <div
+                  key={v.id}
+                  className={`rounded-2xl border p-6 backdrop-blur-md transition-all ${
+                    isWinner
+                      ? 'border-emerald-400/30 bg-emerald-400/[0.05]'
+                      : 'border-white/[0.08] bg-white/[0.025]'
+                  }`}
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
+                      isVariantB
+                        ? 'bg-fuchsia-400/15 text-fuchsia-300'
+                        : 'bg-white/[0.07] text-white/50'
+                    }`}>
+                      Variant {v.label}
+                    </span>
+                    {isWinner && (
+                      <span className="flex items-center gap-1 rounded-full bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
+                        <Check className="h-3 w-3" /> Winner
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-white">
+                    {v.cr}%
+                  </p>
+                  <p className="mt-0.5 text-xs text-white/40">Conversion Rate</p>
+
+                  <div className="mt-4 space-y-1.5 text-xs text-white/40">
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      {v.views.toLocaleString()} visitors
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5" />
+                      {v.conversions.toLocaleString()} conversions
+                    </div>
+                  </div>
+
+                  {lift !== null && isVariantB && (
+                    <div className={`mt-4 rounded-xl px-3 py-2 text-xs font-bold ${
+                      lift > 0
+                        ? 'bg-emerald-400/10 text-emerald-300'
+                        : 'bg-rose-400/10 text-rose-300'
+                    }`}>
+                      {lift > 0 ? '+' : ''}{lift.toFixed(1)}% vs A
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              )
+            })}
           </div>
-        </div>
-      )}
 
-      {pro ? (
-        <p className="mt-6 text-sm text-gray-500">Significance: {Math.round(significance * 100)}%</p>
-      ) : (
-        <p className="mt-6 text-sm text-gray-400">🔒 Significance &amp; auto-winner are Pro features.</p>
-      )}
+          {/* Significance */}
+          {pro ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-5 py-4 backdrop-blur-md">
+              <TrendingUp className="h-4 w-4 shrink-0 text-violet-300" />
+              <span className="text-sm text-white/60">
+                Statistical significance:{' '}
+                <strong className={`font-bold ${significance >= 0.95 ? 'text-emerald-300' : 'text-white/80'}`}>
+                  {Math.round(significance * 100)}%
+                </strong>
+                {significance >= 0.95 && <span className="ml-2 text-xs text-emerald-300/70">— result is reliable</span>}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-5 py-4 backdrop-blur-md">
+              <Lock className="h-4 w-4 shrink-0 text-white/30" />
+              <span className="text-sm text-white/40">Significance &amp; auto-winner are Pro features.</span>
+              <Link
+                href="/dashboard"
+                className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1.5 text-xs font-bold text-white"
+              >
+                Upgrade
+              </Link>
+            </div>
+          )}
 
-      {/* Auto-winner panel — Pro only */}
-      {!pro ? (
-        <div className="mt-8 rounded-xl border border-dashed border-gray-300 p-6 text-center">
-          <h2 className="text-sm font-semibold">Auto Winner</h2>
-          <p className="mt-2 text-xs text-gray-500">
-            Statistical significance and the auto-winner are available from the Pro plan onward.
-          </p>
-          <a
-            href="/dashboard"
-            className="mt-4 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-          >
-            Upgrade to Pro
-          </a>
-        </div>
-      ) : (
-      <div className="mt-8 rounded-xl border border-gray-200 p-6">
-        <h2 className="text-sm font-semibold">Auto Winner</h2>
-        {done ? (
-          <p className="mt-2 text-sm text-green-700">
-            ✓ Test complete — {winner ? `Variant ${winner} wins and is now served to all visitors.` : 'no winner.'}
-          </p>
-        ) : (
-          <>
-            <p className="mt-1 mb-4 text-xs text-gray-500">
-              Once both thresholds are met, Variant B automatically becomes the winner and is served to all new visitors.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block text-xs font-medium text-gray-600">
-                Min Visitors
-                <input
-                  type="number"
-                  min={1}
-                  value={minVisitors}
-                  onChange={e => setMinVisitors(Number(e.target.value))}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
-                />
-              </label>
-              <label className="block text-xs font-medium text-gray-600">
-                Min Uplift B (%)
-                <input
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={Math.round(minUplift * 100)}
-                  onChange={e => setMinUplift(Number(e.target.value) / 100)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
-                />
-              </label>
-            </div>
-            <div className="mt-4">
-              <div className="mb-1 flex justify-between text-xs text-gray-500">
-                <span>Visitor threshold</span>
-                <span>{totalVisitors} / {minVisitors}</span>
+          {/* Preview */}
+          {(data.originalHtml || data.variantBHtml || editingB) && (
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-md">
+              <h2 className="mb-4 font-[family-name:var(--font-display)] text-sm font-bold text-white">Preview</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {data.originalHtml && (
+                  <VariantPreview
+                    html={data.originalHtml}
+                    css={data.siteCss}
+                    label="A (Original)"
+                    winner={winner === 'A'}
+                  />
+                )}
+                {!editingB && data.variantBHtml && (
+                  <div>
+                    <VariantPreview
+                      html={data.variantBHtml}
+                      css={data.siteCss}
+                      label="B (Variant)"
+                      winner={winner === 'B'}
+                    />
+                    <button
+                      onClick={() => { setDraftB(data.variantBHtml || ''); setEditingB(true) }}
+                      className="mt-2 flex cursor-pointer items-center gap-1 text-xs text-white/30 transition-colors hover:text-white/60"
+                    >
+                      <Pencil className="h-3 w-3" /> Edit HTML
+                    </button>
+                  </div>
+                )}
+                {!editingB && !data.variantBHtml && data.originalHtml && (
+                  <div className="flex items-center justify-center rounded-xl border border-dashed border-white/[0.10] p-6">
+                    <button
+                      onClick={() => { setDraftB('<div class="ab-v">\n  <style>\n    .ab-v { /* your styles */ }\n  </style>\n</div>'); setEditingB(true) }}
+                      className="cursor-pointer text-xs text-white/30 transition-colors hover:text-white/60"
+                    >
+                      + Add Variant B HTML
+                    </button>
+                  </div>
+                )}
+                {editingB && (
+                  <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
+                    <p className="mb-2 text-xs font-semibold text-white/50">Edit Variant B HTML</p>
+                    <textarea
+                      value={draftB}
+                      onChange={e => setDraftB(e.target.value)}
+                      className="w-full rounded-xl border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-emerald-300 focus:border-fuchsia-400/30 focus:outline-none focus:ring-1 focus:ring-fuchsia-400/20"
+                      rows={10}
+                    />
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={saveVariantB}
+                        className="cursor-pointer rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1.5 text-xs font-bold text-white"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingB(false)}
+                        className="cursor-pointer rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/50 hover:text-white"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                <div className="h-full rounded-full bg-blue-500" style={{ width: `${visitorPct}%` }} />
-              </div>
             </div>
-            <button
-              onClick={saveConfig}
-              className="mt-4 rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
-            >
-              Save
-            </button>
-            {saved && <span className="ml-3 text-xs text-green-600">✓ Saved</span>}
-          </>
-        )}
+          )}
+
+          {/* Auto-winner */}
+          {pro && (
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-md">
+              <h2 className="mb-1 font-[family-name:var(--font-display)] text-sm font-bold text-white">Auto Winner</h2>
+              {done ? (
+                <p className="mt-2 text-sm text-emerald-300">
+                  ✓ Test complete —{' '}
+                  {winner
+                    ? `Variant ${winner} wins and is now served to all visitors.`
+                    : 'no winner declared.'}
+                </p>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-white/40 leading-relaxed">
+                    Once both thresholds are met, Variant B automatically becomes the winner and is served to all new visitors.
+                  </p>
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-semibold text-white/50">Min Visitors</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={minVisitors}
+                        onChange={e => setMinVisitors(Number(e.target.value))}
+                        className="w-full rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2 text-sm text-white focus:border-fuchsia-400/30 focus:outline-none focus:ring-1 focus:ring-fuchsia-400/20"
+                      />
+                    </label>
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-semibold text-white/50">Min Uplift B (%)</span>
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={Math.round(minUplift * 100)}
+                        onChange={e => setMinUplift(Number(e.target.value) / 100)}
+                        className="w-full rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2 text-sm text-white focus:border-fuchsia-400/30 focus:outline-none focus:ring-1 focus:ring-fuchsia-400/20"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="mb-1.5 flex justify-between text-xs text-white/35">
+                      <span>Visitor threshold</span>
+                      <span>{totalVisitors.toLocaleString()} / {minVisitors.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-500"
+                        style={{ width: `${visitorPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-3">
+                    <button
+                      onClick={saveConfig}
+                      className="cursor-pointer rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-fuchsia-500/20 transition-all hover:scale-[1.02]"
+                    >
+                      Save
+                    </button>
+                    {saved && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-400">
+                        <Check className="h-3.5 w-3.5" /> Saved
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {!pro && (
+            <div className="rounded-2xl border border-dashed border-white/[0.10] p-6 text-center">
+              <h2 className="font-[family-name:var(--font-display)] text-sm font-bold text-white">Auto Winner</h2>
+              <p className="mt-2 text-xs text-white/35">
+                Statistical significance and the auto-winner are available from the Pro plan onward.
+              </p>
+              <Link
+                href="/dashboard"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-md shadow-fuchsia-500/20"
+              >
+                Upgrade to Pro
+              </Link>
+            </div>
+          )}
+        </main>
       </div>
-      )}
     </div>
   )
 }
