@@ -31,7 +31,8 @@ export default function SignupPage() {
     )
     setLoading(false)
     if (error) {
-      setErr(error.message)
+      const msg = typeof error === 'string' ? error : error.message || JSON.stringify(error)
+      setErr(typeof msg === 'string' ? msg : JSON.stringify(msg))
       return
     }
     if (data.session) {
