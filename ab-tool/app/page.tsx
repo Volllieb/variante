@@ -10,6 +10,9 @@ import {
   Building2,
   Paintbrush,
   Plus,
+  Zap,
+  BarChart2,
+  Globe,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -26,21 +29,63 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-static'
 
+/* ── Data ── */
+
+const stats = [
+  { value: '300+', label: 'Designers testing' },
+  { value: '< 10 min', label: 'Setup time' },
+  { value: '0', label: 'Lines of code needed' },
+  { value: '1', label: 'Snippet to deploy' },
+]
+
 const steps = [
   {
     icon: MousePointerClick,
-    title: 'Pick',
-    body: 'Choose any element on your live website. Hover, click, done. The picker captures the HTML, CSS and page framework automatically.',
+    step: '01',
+    title: 'Pick any element',
+    body: 'Hover over any component on your live site. One click — the picker captures the HTML, CSS and framework context automatically.',
+    accent: 'from-violet-500/20 to-violet-500/5',
+    iconColor: 'text-violet-300',
+    ringColor: 'group-hover:ring-violet-400/40',
   },
   {
     icon: Sparkles,
-    title: 'Generate',
-    body: 'Switch to Figma, select the replacement design. AI analyzes both and writes Variant B — preserving your site’s styling.',
+    step: '02',
+    title: 'Generate in Figma',
+    body: 'Select your replacement design in Figma. AI reads both sides and writes Variant B — pixel-perfect, responsive, matching your existing styles.',
+    accent: 'from-fuchsia-500/20 to-fuchsia-500/5',
+    iconColor: 'text-fuchsia-300',
+    ringColor: 'group-hover:ring-fuchsia-400/40',
   },
   {
     icon: Rocket,
-    title: 'Ship',
-    body: 'Copy one snippet into your <head>. It serves the right variant and tracks conversions. No deploy pipeline, no dev.',
+    step: '03',
+    title: 'Ship & track',
+    body: 'Paste one snippet into your <head>. It serves the right variant to each visitor and tracks every conversion — no deploy pipeline, no dev.',
+    accent: 'from-cyan-500/20 to-cyan-500/5',
+    iconColor: 'text-cyan-300',
+    ringColor: 'group-hover:ring-cyan-400/40',
+  },
+]
+
+const features = [
+  {
+    icon: Zap,
+    title: 'Instant setup',
+    body: 'From Figma to live test in under 10 minutes. No engineering queue.',
+    size: 'sm',
+  },
+  {
+    icon: BarChart2,
+    title: 'Built-in statistics',
+    body: 'Statistical significance tracked automatically. Know when your variant wins.',
+    size: 'sm',
+  },
+  {
+    icon: Globe,
+    title: 'Works everywhere',
+    body: 'Webflow, Framer, Bolt, v0, or hand-coded HTML. If it loads in a browser, Variante can test it.',
+    size: 'lg',
   },
 ]
 
@@ -48,25 +93,39 @@ const useCases = [
   {
     icon: Paintbrush,
     title: 'Designer',
-    body: 'Building sites with AI (Bolt, v0, etc.) and need A/B testing without a dev.',
-    outcome: 'More conversions on your exports',
+    body: 'You build sites with AI tools (Bolt, v0, Webflow) and need A/B testing without pulling a dev into the loop.',
+    outcome: 'More conversions on every export',
+    gradient: 'from-violet-500/10 via-transparent to-transparent',
+    border: 'group-hover:border-violet-400/30',
+    iconBg: 'bg-violet-500/10',
+    iconColor: 'text-violet-300',
+    size: 'lg',
   },
   {
     icon: Building2,
     title: 'Agency',
-    body: 'Running multiple client sites from AI exports — white-label for clients without extra cost.',
+    body: 'White-label A/B testing across all your client sites without extra cost or extra logins.',
     outcome: 'Coming soon',
+    gradient: 'from-fuchsia-500/10 via-transparent to-transparent',
+    border: 'group-hover:border-fuchsia-400/30',
+    iconBg: 'bg-fuchsia-500/10',
+    iconColor: 'text-fuchsia-300',
+    size: 'sm',
   },
   {
     icon: Rocket,
     title: 'Solo Founder',
-    body: 'No developer in the team — run A/B tests in 10 minutes yourself.',
+    body: 'No developer on the team — run rigorous A/B tests yourself, in minutes.',
     outcome: 'Ship with confidence',
+    gradient: 'from-cyan-500/10 via-transparent to-transparent',
+    border: 'group-hover:border-cyan-400/30',
+    iconBg: 'bg-cyan-500/10',
+    iconColor: 'text-cyan-300',
+    size: 'sm',
   },
 ]
 
-type Feature = string | { label: string; soon?: boolean; off?: boolean }
-
+type Feature = string | { label: string; soon?: boolean }
 const tiers: {
   name: string
   price: string
@@ -78,7 +137,7 @@ const tiers: {
 }[] = [
   {
     name: 'Free',
-    price: '0 €',
+    price: '0 €',
     period: null,
     blurb: 'Kick the tires on a single experiment.',
     features: ['1 active experiment', 'AI variant generation', 'Conversion tracking'],
@@ -87,7 +146,7 @@ const tiers: {
   },
   {
     name: 'Pro',
-    price: '35 €',
+    price: '35 €',
     period: '/mo',
     blurb: 'For builders shipping tests every week.',
     features: [
@@ -101,9 +160,9 @@ const tiers: {
   },
   {
     name: 'Agency',
-    price: '99 €',
+    price: '99 €',
     period: '/mo',
-    blurb: 'Resell testing as your own.',
+    blurb: 'Resell A/B testing as your own product.',
     features: [
       'Everything in Pro',
       { label: 'White-label', soon: true },
@@ -118,27 +177,30 @@ const tiers: {
 const faqs = [
   {
     q: 'Do I need to write any code?',
-    a: 'No. You pick an element visually, describe the change in Figma, and paste a single snippet into your site’s <head>. Everything else is handled for you.',
+    a: 'No. You pick an element visually, describe the change in Figma, and paste a single snippet into your site\'s <head>. Everything else is handled for you.',
   },
   {
     q: 'Which website builders does it work with?',
-    a: 'Anything that outputs HTML — Webflow, Framer, AI exports from Bolt or v0, hand-written sites. If it loads in a browser, Variante can test it.',
+    a: 'Anything that outputs HTML — Webflow, Framer, AI exports from Bolt or v0, and hand-coded sites. If it loads in a browser, Variante can test it.',
   },
   {
     q: 'How does the AI generate Variant B?',
-    a: 'It reads the original element’s HTML and CSS plus your Figma selection, then writes a drop-in replacement that respects your existing styling and responsive behavior.',
+    a: 'It reads the original element\'s HTML and CSS plus your Figma selection, then writes a drop-in replacement that respects your existing styling and responsive behavior.',
   },
   {
     q: 'When is the Figma plugin available?',
-    a: 'It’s currently in review. Leave your email below and we’ll notify you the moment it goes live.',
+    a: 'It\'s currently in review with Figma. Leave your email below and we\'ll notify you the moment it goes live.',
   },
 ]
 
+/* ── Shared style strings (Skill: smooth 150-300ms transitions, 7:1 CTA contrast) ── */
 const btnPrimary =
-  'group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 bg-[length:200%_auto] px-7 text-sm font-semibold text-white shadow-[0_8px_30px_-6px_rgba(168,85,247,0.6)] transition-[background-position,transform,box-shadow] duration-500 hover:bg-[position:100%_center] hover:shadow-[0_10px_40px_-6px_rgba(217,70,239,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60'
+  'group inline-flex cursor-pointer h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 bg-[length:200%_auto] px-7 text-sm font-bold text-white shadow-[0_8px_32px_-6px_rgba(139,92,246,0.65)] transition-all duration-200 hover:bg-[position:100%_center] hover:shadow-[0_12px_40px_-6px_rgba(217,70,239,0.7)] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06050f] active:scale-[0.98]'
 
 const btnGlass =
-  'inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-7 text-sm font-semibold text-white/90 backdrop-blur-md transition-colors hover:border-white/30 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30'
+  'inline-flex cursor-pointer h-12 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-7 text-sm font-semibold text-white/90 backdrop-blur-md transition-all duration-200 hover:border-white/30 hover:bg-white/[0.12] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06050f] active:scale-[0.98]'
+
+/* ── Page ── */
 
 export default async function HomePage({
   searchParams,
@@ -148,85 +210,98 @@ export default async function HomePage({
   const waitlistStatus = (await searchParams).waitlist
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#080711] font-[family-name:var(--font-sans)] text-white/80 antialiased selection:bg-fuchsia-500/30">
-      {/* ── Aurora background ── */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <div className="lp-drift absolute -left-40 -top-40 h-[42rem] w-[42rem] rounded-full bg-violet-600/30 blur-[120px]" />
+    <div className="relative min-h-screen overflow-hidden bg-[#06050f] font-[family-name:var(--font-sans)] text-white/80 antialiased selection:bg-fuchsia-500/30">
+
+      {/* ── Aurora blobs + grid background ── */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        {/* dot grid */}
         <div
-          className="lp-drift absolute -right-32 top-20 h-[38rem] w-[38rem] rounded-full bg-fuchsia-500/25 blur-[120px]"
-          style={{ animationDelay: '-7s' }}
+          className="absolute inset-0 opacity-[0.22]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
+        />
+        {/* aurora blobs */}
+        <div className="lp-drift absolute -left-64 -top-32 h-[52rem] w-[52rem] rounded-full bg-violet-700/25 blur-[140px]" />
+        <div
+          className="lp-drift absolute -right-48 top-10 h-[44rem] w-[44rem] rounded-full bg-fuchsia-600/22 blur-[130px]"
+          style={{ animationDelay: '-8s' }}
         />
         <div
-          className="lp-drift absolute left-1/3 top-[60%] h-[34rem] w-[34rem] rounded-full bg-cyan-500/20 blur-[120px]"
-          style={{ animationDelay: '-13s' }}
+          className="lp-drift absolute left-1/3 top-[55%] h-[40rem] w-[40rem] rounded-full bg-cyan-500/18 blur-[120px]"
+          style={{ animationDelay: '-15s' }}
         />
-        <div className="lp-grain absolute inset-0 opacity-[0.18] mix-blend-soft-light" />
+        {/* grain */}
+        <div className="lp-grain absolute inset-0 opacity-[0.15] mix-blend-soft-light" />
+        {/* vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,transparent_60%,#06050f_100%)]" />
       </div>
 
       <div className="relative z-10">
         {/* ── Header ── */}
         <header className="sticky top-0 z-50 px-4 pt-4">
-          <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 backdrop-blur-xl sm:px-6">
+          <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 backdrop-blur-2xl">
             <Link
               href="/"
-              className="flex items-center gap-2 font-[family-name:var(--font-display)] text-lg font-bold tracking-tight text-white"
+              className="flex items-center gap-2.5 font-[family-name:var(--font-display)] text-[1.1rem] font-bold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm shadow-lg shadow-fuchsia-500/30">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[0.8rem] font-black text-white shadow-lg shadow-fuchsia-500/30">
                 v
               </span>
               variante
             </Link>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/login"
-                className="hidden text-sm font-medium text-white/60 transition-colors hover:text-white sm:block"
+                className="hidden cursor-pointer text-sm font-medium text-white/55 transition-colors duration-200 hover:text-white sm:block"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex h-9 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#080711] transition-transform hover:scale-[1.03]"
+                className="inline-flex cursor-pointer h-9 items-center rounded-full bg-white px-4 text-sm font-bold text-[#06050f] transition-all duration-200 hover:bg-white/90 hover:scale-[1.03] active:scale-[0.98]"
               >
                 Sign up — free
               </Link>
             </div>
-          </div>
+          </nav>
         </header>
 
         {/* ── Hero ── */}
-        <section className="relative px-6 pb-12 pt-20 sm:pt-28">
+        <section className="relative px-6 pb-8 pt-20 sm:pt-28">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="lp-rise inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs font-medium text-white/70 backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5 text-fuchsia-300" />
-              A/B testing, reimagined for designers
+
+            <div className="lp-rise inline-flex items-center gap-2 rounded-full border border-fuchsia-400/20 bg-fuchsia-400/[0.07] px-4 py-1.5 text-xs font-semibold text-fuchsia-200 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5" />
+              AI-powered A/B testing from Figma
             </div>
 
             <h1
-              className="lp-rise mt-7 font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-7xl"
-              style={{ animationDelay: '0.08s' }}
+              className="lp-rise mt-7 font-[family-name:var(--font-display)] text-[2.8rem] font-extrabold leading-[1.04] tracking-tight text-white sm:text-[4.5rem] sm:leading-[1.03]"
+              style={{ animationDelay: '0.07s' }}
             >
-              A/B testing from{' '}
-              <span className="lp-gradient-text">Figma</span>
+              Ship winning variants.
               <br />
-              no dev needed
+              <span className="lp-gradient-text">No dev required.</span>
             </h1>
 
             <p
-              className="lp-rise mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/60"
-              style={{ animationDelay: '0.16s' }}
+              className="lp-rise mx-auto mt-6 max-w-lg text-[1.05rem] leading-relaxed text-white/55"
+              style={{ animationDelay: '0.14s' }}
             >
-              Pick an element on your live site, describe the change in Figma, and
-              let AI generate Variant&nbsp;B. One snippet tracks every conversion.
-              That&apos;s it.
+              Pick an element on your live site, redesign it in Figma, and let AI
+              generate&nbsp;Variant&nbsp;B. One snippet serves and tracks everything.
             </p>
 
             <div
               className="lp-rise mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
-              style={{ animationDelay: '0.24s' }}
+              style={{ animationDelay: '0.21s' }}
             >
               <a href="#notify" className={btnPrimary}>
                 Install Figma Plugin
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
               <Link href="/signup" className={btnGlass}>
                 Create free account
@@ -234,124 +309,143 @@ export default async function HomePage({
             </div>
 
             <p
-              className="lp-rise mt-7 flex items-center justify-center gap-2 text-sm text-white/50"
-              style={{ animationDelay: '0.32s' }}
+              className="lp-rise mt-7 flex items-center justify-center gap-2.5 text-sm text-white/45"
+              style={{ animationDelay: '0.28s' }}
             >
               <span className="flex -space-x-2">
-                {['from-violet-400 to-fuchsia-400', 'from-fuchsia-400 to-rose-400', 'from-cyan-400 to-violet-400'].map(
-                  (g, i) => (
-                    <span
-                      key={i}
-                      className={`h-6 w-6 rounded-full border-2 border-[#080711] bg-gradient-to-br ${g}`}
-                    />
-                  ),
-                )}
+                {[
+                  'from-violet-400 to-fuchsia-400',
+                  'from-fuchsia-400 to-rose-400',
+                  'from-cyan-400 to-violet-400',
+                  'from-emerald-400 to-cyan-400',
+                ].map((g, i) => (
+                  <span
+                    key={i}
+                    className={`h-6 w-6 rounded-full border-2 border-[#06050f] bg-gradient-to-br ${g}`}
+                  />
+                ))}
               </span>
-              <span className="font-semibold text-white">300+</span> designers already testing
+              Joined by <span className="font-bold text-white">300+ designers</span>
             </p>
           </div>
 
-          {/* ── Hero product mockup: A vs B ── */}
+          {/* ── Hero A/B Mockup ── */}
           <div
-            className="lp-rise relative mx-auto mt-16 max-w-4xl"
-            style={{ animationDelay: '0.4s' }}
+            className="lp-rise relative mx-auto mt-14 max-w-4xl"
+            style={{ animationDelay: '0.35s' }}
           >
-            {/* rotating conic halo */}
             <div
               aria-hidden
-              className="lp-spin absolute -inset-px rounded-[28px] opacity-40 blur-md"
+              className="lp-spin absolute -inset-px rounded-[30px] opacity-35 blur-sm"
               style={{
                 background:
-                  'conic-gradient(from 0deg, transparent, rgba(168,85,247,0.7), transparent 30%, rgba(217,70,239,0.7), transparent 60%, rgba(34,211,238,0.6), transparent)',
+                  'conic-gradient(from 0deg, transparent 0deg, rgba(139,92,246,0.8) 60deg, transparent 120deg, rgba(217,70,239,0.8) 180deg, transparent 240deg, rgba(34,211,238,0.7) 300deg, transparent 360deg)',
               }}
             />
-            <div className="relative rounded-[27px] border border-white/10 bg-white/[0.03] p-3 backdrop-blur-2xl shadow-2xl">
+            <div className="relative overflow-hidden rounded-[29px] border border-white/[0.08] bg-[#0c0a1a]/90 p-4 shadow-2xl backdrop-blur-xl">
+              {/* title bar */}
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <div className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                </div>
+                <div className="mx-auto flex h-6 w-48 items-center justify-center rounded-md bg-white/[0.06] text-[10px] text-white/40">
+                  getvariante.com
+                </div>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <MockPanel
                   tag="Control · A"
-                  tagClass="text-white/50"
-                  ctaClass="bg-white/10 text-white/70"
+                  tagClass="text-white/40"
+                  ctaClass="bg-white/10 text-white/60"
                   ctaLabel="Get started"
-                  border="border-white/10"
+                  border="border-white/[0.08]"
                 />
                 <MockPanel
-                  tag="Variant · B"
+                  tag="Variant · B  ✦ Winner"
                   tagClass="text-fuchsia-300"
-                  ctaClass="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white"
+                  ctaClass="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-bold"
                   ctaLabel="Start free trial →"
-                  border="border-fuchsia-400/30"
+                  border="border-fuchsia-400/25"
                   winner
                 />
               </div>
             </div>
             {/* uplift badge */}
-            <div className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-emerald-400/30 bg-[#0c1118]/90 px-4 py-2 text-sm font-semibold text-emerald-300 backdrop-blur-md shadow-lg">
+            <div className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/25 bg-[#06050f]/95 px-5 py-2 text-sm font-bold text-emerald-300 shadow-xl backdrop-blur-md">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              +24% conversions on Variant B
+              Variant B: +24% conversion uplift
             </div>
           </div>
         </section>
 
-        {/* ── How it works ── */}
-        <section className="px-6 py-28">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeading
-              eyebrow="How it works"
-              title="Three steps. No developer. No deploy."
-            />
-            <div className="mt-14 grid gap-5 md:grid-cols-3">
-              {steps.map((s, i) => (
-                <div
-                  key={s.title}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06]"
-                >
-                  <div className="absolute right-6 top-6 font-[family-name:var(--font-display)] text-5xl font-bold text-white/[0.06] transition-colors group-hover:text-white/10">
-                    0{i + 1}
-                  </div>
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 ring-1 ring-white/10">
-                    <s.icon className="h-5 w-5 text-fuchsia-300" />
-                  </div>
-                  <h3 className="font-[family-name:var(--font-display)] text-2xl font-bold text-white">
-                    {s.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-white/55">
-                    {renderWithCode(s.body)}
-                  </p>
+        {/* ── Trust / Stats bar ── */}
+        <section className="mt-14 px-6 pb-16">
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-2 divide-x divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-white/[0.025] backdrop-blur-md sm:grid-cols-4">
+              {stats.map((s, i) => (
+                <div key={i} className="flex flex-col items-center gap-1 px-6 py-6 text-center">
+                  <span className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-white sm:text-3xl">
+                    {s.value}
+                  </span>
+                  <span className="text-xs text-white/45">{s.label}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Use cases ── */}
+        {/* ── How it works — Bento Grid ── */}
         <section className="px-6 py-20">
           <div className="mx-auto max-w-6xl">
-            <SectionHeading
-              eyebrow="Who it's for"
-              title="Built for modern designers & builders"
-            />
-            <div className="mt-14 grid gap-5 md:grid-cols-3">
-              {useCases.map((uc) => (
+            <SectionLabel eyebrow="How it works" title="Three steps. No developer. No deploy." />
+
+            {/* Bento: 01 tall-left | 02 top-right, 03 bottom-right */}
+            <div className="mt-14 grid gap-4 md:grid-cols-3 md:grid-rows-2">
+              {/* Step 01 — tall card */}
+              <BentoCard step={steps[0]} className="md:col-span-1 md:row-span-2" tall />
+              {/* Step 02 */}
+              <BentoCard step={steps[1]} className="md:col-span-2 md:row-span-1" />
+              {/* Step 03 */}
+              <BentoCard step={steps[2]} className="md:col-span-2 md:row-span-1" />
+            </div>
+
+            {/* Extra feature pills */}
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              {features.map((f) => (
                 <div
-                  key={uc.title}
-                  className="group rounded-3xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-fuchsia-400/30"
+                  key={f.title}
+                  className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-5 py-4 backdrop-blur-md transition-colors duration-200 hover:border-white/15"
                 >
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 transition-colors group-hover:bg-fuchsia-500/10">
-                    <uc.icon className="h-5 w-5 text-violet-300" />
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]">
+                    <f.icon className="h-4 w-4 text-fuchsia-300" />
                   </div>
-                  <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-white">
-                    {uc.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/55">{uc.body}</p>
-                  <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-fuchsia-300">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                    {uc.outcome}
-                  </p>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{f.title}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-white/50">{f.body}</p>
+                  </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── For Whom — Asymmetric Bento ── */}
+        <section className="px-6 py-20">
+          <div className="mx-auto max-w-6xl">
+            <SectionLabel eyebrow="Who it's for" title="Built for modern designers & builders" />
+
+            <div className="mt-14 grid gap-4 md:grid-cols-3 md:grid-rows-2">
+              {/* Designer — large */}
+              <UseCaseCard uc={useCases[0]} className="md:col-span-2 md:row-span-2" large />
+              {/* Agency */}
+              <UseCaseCard uc={useCases[1]} className="md:col-span-1 md:row-span-1" />
+              {/* Solo Founder */}
+              <UseCaseCard uc={useCases[2]} className="md:col-span-1 md:row-span-1" />
             </div>
           </div>
         </section>
@@ -359,54 +453,62 @@ export default async function HomePage({
         {/* ── Pricing ── */}
         <section className="px-6 py-20">
           <div className="mx-auto max-w-6xl">
-            <SectionHeading
-              eyebrow="Pricing"
-              title="Start free. Upgrade when you need more."
-            />
-            <div className="mt-14 grid items-start gap-5 md:grid-cols-3">
+            <SectionLabel eyebrow="Pricing" title="Start free. Upgrade when you need more." />
+
+            <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
               {tiers.map((tier) => (
                 <div
                   key={tier.name}
                   className={
                     tier.featured
-                      ? 'relative rounded-3xl bg-gradient-to-b from-fuchsia-500/60 to-violet-600/40 p-px shadow-[0_20px_60px_-15px_rgba(217,70,239,0.45)]'
-                      : 'relative rounded-3xl border border-white/10'
+                      ? 'relative rounded-3xl p-px shadow-[0_24px_60px_-15px_rgba(217,70,239,0.4)]'
+                      : 'relative rounded-3xl border border-white/[0.08]'
+                  }
+                  style={
+                    tier.featured
+                      ? {
+                          background:
+                            'linear-gradient(135deg, rgba(139,92,246,0.8) 0%, rgba(217,70,239,0.7) 50%, rgba(139,92,246,0.6) 100%)',
+                        }
+                      : undefined
                   }
                 >
                   <div
                     className={`flex h-full flex-col rounded-[23px] p-8 ${
-                      tier.featured ? 'bg-[#0d0a17]' : 'bg-white/[0.03] backdrop-blur-md'
+                      tier.featured
+                        ? 'bg-[#0e0b1e]'
+                        : 'bg-white/[0.025] backdrop-blur-md'
                     }`}
                   >
                     {tier.featured && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-1 text-xs font-bold text-white shadow-lg">
+                      <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-lg">
                         Most popular
                       </span>
                     )}
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-white/60">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
                       {tier.name}
-                    </h3>
-                    <div className="mt-3 flex items-baseline gap-1">
-                      <span className="font-[family-name:var(--font-display)] text-5xl font-bold text-white">
+                    </p>
+                    <div className="mt-3 flex items-baseline gap-1.5">
+                      <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold text-white">
                         {tier.price}
                       </span>
                       {tier.period && (
-                        <span className="text-sm text-white/50">{tier.period}</span>
+                        <span className="text-sm text-white/40">{tier.period}</span>
                       )}
                     </div>
-                    <p className="mt-2 text-sm text-white/50">{tier.blurb}</p>
+                    <p className="mt-1.5 text-sm text-white/45">{tier.blurb}</p>
 
-                    <ul className="mt-7 flex-1 space-y-3.5 text-sm">
+                    <ul className="mt-7 flex-1 space-y-3 text-sm">
                       {tier.features.map((f, i) => {
                         const label = typeof f === 'string' ? f : f.label
                         const soon = typeof f !== 'string' && f.soon
                         return (
-                          <li key={i} className="flex items-start gap-2.5">
-                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-400" />
-                            <span className="text-white/75">
+                          <li key={i} className="flex items-center gap-2.5">
+                            <Check className="h-4 w-4 shrink-0 text-fuchsia-400" />
+                            <span className="text-white/70">
                               {label}
                               {soon && (
-                                <span className="ml-2 rounded-full bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                                <span className="ml-2 rounded-full bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
                                   Soon
                                 </span>
                               )}
@@ -418,11 +520,7 @@ export default async function HomePage({
 
                     <Link
                       href={tier.cta.href}
-                      className={
-                        tier.featured
-                          ? `mt-8 ${btnPrimary} w-full`
-                          : `mt-8 ${btnGlass} w-full`
-                      }
+                      className={`mt-8 w-full text-center ${tier.featured ? btnPrimary : btnGlass}`}
                     >
                       {tier.cta.label}
                     </Link>
@@ -436,20 +534,23 @@ export default async function HomePage({
         {/* ── FAQ ── */}
         <section className="px-6 py-20">
           <div className="mx-auto max-w-3xl">
-            <SectionHeading eyebrow="FAQ" title="Frequently asked questions" />
+            <SectionLabel eyebrow="FAQ" title="Frequently asked questions" />
+
             <div className="mt-12 space-y-3">
               {faqs.map((item) => (
                 <details
                   key={item.q}
-                  className="group rounded-2xl border border-white/10 bg-white/[0.03] px-6 backdrop-blur-md transition-colors open:border-white/20 open:bg-white/[0.05] [&_summary]:list-none"
+                  className="group cursor-pointer rounded-2xl border border-white/[0.08] bg-white/[0.025] px-6 backdrop-blur-md transition-all duration-200 open:border-white/15 open:bg-white/[0.04] [&_summary]:list-none"
                 >
-                  <summary className="flex cursor-pointer items-center justify-between gap-4 py-5 text-left font-medium text-white">
+                  <summary className="flex cursor-pointer select-none items-center justify-between gap-4 py-5 text-left text-sm font-semibold text-white/85">
                     {item.q}
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/60 transition-transform duration-300 group-open:rotate-45 group-open:border-fuchsia-400/40 group-open:text-fuchsia-300">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/50 transition-all duration-200 group-open:rotate-45 group-open:border-fuchsia-400/40 group-open:bg-fuchsia-500/10 group-open:text-fuchsia-300">
                       <Plus className="h-4 w-4" />
                     </span>
                   </summary>
-                  <p className="pb-5 text-sm leading-relaxed text-white/55">{item.a}</p>
+                  <p className="pb-5 text-sm leading-relaxed text-white/50">
+                    {renderWithCode(item.a)}
+                  </p>
                 </details>
               ))}
             </div>
@@ -458,33 +559,33 @@ export default async function HomePage({
 
         {/* ── Notify / CTA ── */}
         <section id="notify" className="scroll-mt-24 px-6 py-24">
-          <div className="relative mx-auto max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] px-6 py-14 text-center backdrop-blur-xl sm:px-12">
+          <div className="relative mx-auto max-w-3xl overflow-hidden rounded-[2rem] border border-white/[0.08] bg-gradient-to-b from-white/[0.05] to-white/[0.015] px-6 py-16 text-center backdrop-blur-2xl shadow-2xl sm:px-14">
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-fuchsia-500/25 blur-[90px]"
+              className="pointer-events-none absolute -top-28 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-fuchsia-500/22 blur-[100px]"
             />
             <div className="relative">
               {waitlistStatus === 'thanks' ? (
                 <>
                   <PillBadge tone="emerald">You&apos;re on the list</PillBadge>
-                  <h2 className="mt-5 font-[family-name:var(--font-display)] text-3xl font-bold text-white sm:text-4xl">
+                  <h2 className="mt-5 font-[family-name:var(--font-display)] text-3xl font-extrabold text-white sm:text-4xl">
                     Thanks for signing up!
                   </h2>
-                  <p className="mx-auto mt-4 max-w-md text-white/60">
+                  <p className="mx-auto mt-4 max-w-md text-white/55">
                     We&apos;ll email you the moment the Figma plugin is live.
                   </p>
                 </>
               ) : waitlistStatus === 'error' ? (
                 <>
                   <PillBadge tone="rose">Something went wrong</PillBadge>
-                  <h2 className="mt-5 font-[family-name:var(--font-display)] text-3xl font-bold text-white sm:text-4xl">
+                  <h2 className="mt-5 font-[family-name:var(--font-display)] text-3xl font-extrabold text-white sm:text-4xl">
                     Could not save your email
                   </h2>
-                  <p className="mx-auto mt-4 max-w-md text-white/60">
-                    Please try again or email us directly at{' '}
+                  <p className="mx-auto mt-4 max-w-md text-white/55">
+                    Please try again or email us at{' '}
                     <a
                       href="mailto:hello@getvariante.com"
-                      className="text-fuchsia-300 underline underline-offset-4"
+                      className="cursor-pointer text-fuchsia-300 underline underline-offset-4 transition-colors hover:text-fuchsia-200"
                     >
                       hello@getvariante.com
                     </a>
@@ -493,24 +594,25 @@ export default async function HomePage({
                 </>
               ) : (
                 <>
-                  <PillBadge tone="amber">Coming soon</PillBadge>
-                  <h2 className="mt-5 font-[family-name:var(--font-display)] text-3xl font-bold text-white sm:text-4xl">
-                    The Figma plugin is in review
+                  <PillBadge tone="amber">Plugin in review</PillBadge>
+                  <h2 className="mt-5 font-[family-name:var(--font-display)] text-3xl font-extrabold text-white sm:text-4xl">
+                    The Figma plugin is almost here
                   </h2>
-                  <p className="mx-auto mt-4 max-w-md text-white/60">
+                  <p className="mx-auto mt-4 max-w-md text-white/55">
                     Leave your email and we&apos;ll notify you the moment it&apos;s live.
+                    No spam, ever.
                   </p>
                   <form
                     method="POST"
                     action="/api/waitlist"
-                    className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
+                    className="mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:flex-row"
                   >
                     <Input
                       type="email"
                       name="email"
                       required
                       placeholder="you@example.com"
-                      className="h-12 flex-1 rounded-full border-white/15 bg-white/5 px-5 text-white placeholder:text-white/40 focus-visible:ring-fuchsia-400/50"
+                      className="h-12 flex-1 rounded-full border-white/15 bg-white/[0.06] px-5 text-white placeholder:text-white/35 focus-visible:border-fuchsia-400/40 focus-visible:ring-fuchsia-400/30"
                     />
                     <button type="submit" className={btnPrimary}>
                       Notify me
@@ -523,19 +625,19 @@ export default async function HomePage({
         </section>
 
         {/* ── Footer ── */}
-        <footer className="border-t border-white/10 px-6 py-10">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-center text-sm text-white/45 sm:flex-row sm:text-left">
+        <footer className="border-t border-white/[0.07] px-6 py-10">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-center text-sm text-white/40 sm:flex-row sm:text-left">
             <p className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-bold text-white">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[0.65rem] font-black text-white">
                 v
               </span>
               variante — A/B testing from Figma. Made in Bavaria.
             </p>
             <div className="flex items-center gap-5">
-              <Link href="/privacy" className="transition-colors hover:text-white">
+              <Link href="/privacy" className="cursor-pointer transition-colors duration-200 hover:text-white">
                 Privacy
               </Link>
-              <Link href="/imprint" className="transition-colors hover:text-white">
+              <Link href="/imprint" className="cursor-pointer transition-colors duration-200 hover:text-white">
                 Imprint
               </Link>
               <span>© 2026</span>
@@ -547,39 +649,78 @@ export default async function HomePage({
   )
 }
 
-/* ── Helpers ── */
+/* ── Sub-components ── */
 
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+function SectionLabel({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-300/80">
+      <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-fuchsia-300/75">
         {eyebrow}
       </span>
-      <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-white sm:text-4xl">
+      <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-white sm:text-[2.5rem] sm:leading-tight">
         {title}
       </h2>
     </div>
   )
 }
 
-function PillBadge({
-  tone,
-  children,
+function BentoCard({
+  step,
+  className,
+  tall,
 }: {
-  tone: 'emerald' | 'rose' | 'amber'
-  children: React.ReactNode
+  step: (typeof steps)[number]
+  className?: string
+  tall?: boolean
 }) {
-  const tones = {
-    emerald: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
-    rose: 'border-rose-400/30 bg-rose-400/10 text-rose-300',
-    amber: 'border-amber-400/30 bg-amber-400/10 text-amber-300',
-  }
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide ${tones[tone]}`}
+    <div
+      className={`group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br ${step.accent} p-7 backdrop-blur-md ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 ${step.ringColor} ${className ?? ''}`}
     >
-      {children}
-    </span>
+      {/* large step number watermark */}
+      <div className="absolute right-5 top-4 font-[family-name:var(--font-display)] text-6xl font-black text-white/[0.05] transition-colors duration-200 group-hover:text-white/[0.08] select-none">
+        {step.step}
+      </div>
+      <div className={`mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] ring-1 ring-white/10 transition-all duration-200 ${step.ringColor}`}>
+        <step.icon className={`h-5 w-5 ${step.iconColor}`} />
+      </div>
+      <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-white">
+        {step.title}
+      </h3>
+      <p className={`mt-2.5 text-sm leading-relaxed text-white/55 ${tall ? 'max-w-xs' : ''}`}>
+        {renderWithCode(step.body)}
+      </p>
+    </div>
+  )
+}
+
+function UseCaseCard({
+  uc,
+  className,
+  large,
+}: {
+  uc: (typeof useCases)[number]
+  className?: string
+  large?: boolean
+}) {
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br ${uc.gradient} backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 ${uc.border} ${className ?? ''} ${large ? 'p-9' : 'p-7'}`}
+    >
+      <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${uc.iconBg} ring-1 ring-white/10`}>
+        <uc.icon className={`h-5 w-5 ${uc.iconColor}`} />
+      </div>
+      <h3 className={`font-[family-name:var(--font-display)] font-bold text-white ${large ? 'text-2xl' : 'text-xl'}`}>
+        {uc.title}
+      </h3>
+      <p className={`mt-2.5 leading-relaxed text-white/55 ${large ? 'text-base max-w-sm' : 'text-sm'}`}>
+        {uc.body}
+      </p>
+      <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-fuchsia-300">
+        <ArrowRight className="h-3.5 w-3.5" />
+        {uc.outcome}
+      </div>
+    </div>
   )
 }
 
@@ -599,29 +740,21 @@ function MockPanel({
   winner?: boolean
 }) {
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border ${border} bg-[#0c0a14]/80 p-5`}
-    >
+    <div className={`relative overflow-hidden rounded-2xl border ${border} bg-[#0c0a1a]/70 p-5`}>
       {winner && (
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-fuchsia-500/10 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-fuchsia-500/[0.08] to-violet-500/[0.04]" />
       )}
       <div className="relative">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-          </div>
-          <span className={`text-[10px] font-semibold uppercase tracking-wider ${tagClass}`}>
-            {tag}
-          </span>
+        <div className={`mb-4 text-right text-[10px] font-bold uppercase tracking-wider ${tagClass}`}>
+          {tag}
         </div>
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           <div className="h-2.5 w-2/3 rounded-full bg-white/15" />
-          <div className="h-2.5 w-full rounded-full bg-white/[0.08]" />
-          <div className="h-2.5 w-4/5 rounded-full bg-white/[0.08]" />
+          <div className="h-2.5 w-full rounded-full bg-white/[0.07]" />
+          <div className="h-2.5 w-4/5 rounded-full bg-white/[0.07]" />
+          <div className="h-2.5 w-3/5 rounded-full bg-white/[0.07]" />
         </div>
-        <div className={`mt-5 flex h-9 items-center justify-center rounded-lg text-xs font-semibold ${ctaClass}`}>
+        <div className={`mt-5 flex h-9 items-center justify-center rounded-lg text-xs transition-all duration-200 ${ctaClass}`}>
           {ctaLabel}
         </div>
       </div>
@@ -629,15 +762,32 @@ function MockPanel({
   )
 }
 
-/** Renders a body string, turning a literal <head>/<code> hint into styled inline code. */
+function PillBadge({
+  tone,
+  children,
+}: {
+  tone: 'emerald' | 'rose' | 'amber'
+  children: React.ReactNode
+}) {
+  const styles = {
+    emerald: 'border-emerald-400/25 bg-emerald-400/8 text-emerald-300',
+    rose: 'border-rose-400/25 bg-rose-400/8 text-rose-300',
+    amber: 'border-amber-400/25 bg-amber-400/8 text-amber-300',
+  }
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-4 py-1 text-[11px] font-bold uppercase tracking-widest ${styles[tone]}`}
+    >
+      {children}
+    </span>
+  )
+}
+
 function renderWithCode(text: string) {
   const parts = text.split(/(<head>)/g)
   return parts.map((part, i) =>
     part === '<head>' ? (
-      <code
-        key={i}
-        className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs text-fuchsia-200"
-      >
+      <code key={i} className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-200">
         &lt;head&gt;
       </code>
     ) : (

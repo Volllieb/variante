@@ -1,11 +1,12 @@
 import './globals.css'
 import type { ReactNode } from 'react'
-import { Bricolage_Grotesque, Manrope } from 'next/font/google'
+import { Syne, Manrope } from 'next/font/google'
 
-const display = Bricolage_Grotesque({
+const display = Syne({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
 })
 
 const sans = Manrope({
