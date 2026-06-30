@@ -25,7 +25,10 @@ export default function SignupPage() {
     setInfo('')
     setLoading(true)
     const supabase = getBrowserSupabase()
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp(
+      { email, password },
+      { emailRedirectTo: `${window.location.origin}/login` }
+    )
     setLoading(false)
     if (error) {
       setErr(error.message)

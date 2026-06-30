@@ -192,6 +192,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 30.06.2026 | **Auth-Fix: E-Mail-Bestätigung ging auf localhost:3000.** Ursache: Supabase Site URL stand auf localhost statt `www.getvariante.com`. Fix: (1) Supabase Dashboard → Site URL auf `https://www.getvariante.com` ändern, Redirect URLs ergänzen. (2) `signup/page.tsx`: `emailRedirectTo` explizit auf `${origin}/login` gesetzt. |---|
 | 29.06.2026 | **Chrome Extension CWS-ready gemacht:** Store-Listing (`store-listing.md`) finalisiert mit Permission-Justifications, Data-Usage, Single-Purpose. `cws-assets/` als Ablage für Screenshots. `.gitignore` erweitert (ZIP + Assets raus). ZIP-Package (`variante-chrome-extension.zip`, 13 KB) erstellt. |
 | 29.06.2026 | **Chrome Extension Refactoring (Host Permissions Review):** `content.js` (~300 Zeilen) aufgeteilt in `content-hash.js` (~30 Zeilen, läuft permanent auf allen Seiten) + `content-picker.js` (~270 Zeilen, on-demand per `chrome.scripting.executeScript` injiziert). Manifest: `scripting`-Permission hinzugefügt, `activeTab` bleibt. Background: `AUTO_INJECT`-Handler für Auto-Flow aus Figma. Popup: injectet erst content-picker.js, dann sendMessage. Userflow unverändert. Grund: Chrome-Review-"erweiterte Hostberechtigungen"-Prüfung entschärfen. |
 | 30.06.2026 | **Chrome Extension: content_scripts komplett entfernt.** Kein Content Script läuft mehr automatisch auf irgendeiner Seite. `content-hash.js` gelöscht, Hash-Parsing in den Service Worker (`chrome.tabs.onUpdated`) verlagert. Auto-Flow: SW erkennt `#ab_pick=` beim Seiten-Laden, speichert Payload in `storage.local`, injectet `content-picker.js` via `scripting.executeScript`. `host_permissions` bleiben als Fallback für den Auto-Flow (Figma öffnet unbekannte Domain). Review-Position: „kein content_scripts = null automatischer Code auf irgendeiner Seite". |
@@ -278,7 +279,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 30.06.2026 (Chrome Extension Refactoring Host Permissions)*
+*DSO — zuletzt geprüft: 30.06.2026 (Auth-Fix: E-Mail-Confirmation-Redirect)*
 
 ---
 
