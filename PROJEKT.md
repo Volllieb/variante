@@ -222,6 +222,22 @@ c:\dev\variante/
 | 19.06.2026 | Phase 0 bestanden — Markt validiert. |
 | — | MVP gebaut (Auth-Lücke). v3 Launch-Vorbereitung gestartet. |
 
+## §7 Security Disclosure (Figma Plugin — Publish Dialog)
+
+> Antworten für den Figma Publish Security Disclosure Form.
+
+| Frage | Antwort |
+|---|---|
+| **Backend-Hosting?** | `www.getvariante.com` auf Vercel (us-east, USA). DPA + SCCs (EU-US DPF) vorhanden. |
+| **Vulnerability-Management?** | Report per Email an `valentin@4wilhelm.de`. Reaktionsziel: 30 Tage (DSGVO-konform). Security-Updates laufen über Vercel-Deployment (kein autom. CI/CD). |
+| **Auth-Methode?** | API-Token via Supabase Auth (JWT). Token wird im `Authorization: Bearer`-Header gesendet. Gespeichert in Figma-`clientStorage`. |
+| **Datenspeicherung?** | Figma-Node-Daten (HTML/CSS-Snapshots, Export-PNGs) + Experiment-Daten → Supabase Postgres (Frankfurt, DE). Hosting-Logs → Vercel (us-east, 7 Tage). AI-Gen-Daten → DeepSeek API (kein Storage). |
+| **Zugriffskontrolle?** | Supabase Row-Level Security (RLS) — jeder User sieht nur eigene Tests. Plugin-Token ist ein Supabase-API-Key mit eingeschränkten Rechten. |
+| **Data-Usage (Figma-Content)?** | Das Plugin extrahiert nur das vom User angeklickte Figma-Element (Name, Text, Farben, Typografie, Geometrie). Kein Scannen der gesamten Datei. Kein Teilen mit Dritten außer DeepSeek (AI-Gen). |
+| **Support-Kontakt?** | `valentin@4wilhelm.de` — auch in der Privacy Policy unter §7. |
+
+---
+
 ## §10 Selbstprüfung
 
 > **Bei JEDER Änderung an diesem Projekt prüfen:**

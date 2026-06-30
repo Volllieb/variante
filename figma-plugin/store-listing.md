@@ -3,6 +3,8 @@
 > Texte zum Einfügen in den Figma-„Publish"-Dialog.
 > Icon + Cover-Art werden **im Publish-Dialog hochgeladen**, nicht im manifest.
 > Brand-Farbe: `#0D99FF`. Privacy: https://www.getvariante.com/privacy
+> Kategorie im Publish-Dialog: **Design tools**
+> Support-Kontakt (Publish-Pflichtfeld): `valentin@4wilhelm.de` — steht auch in der Privacy Policy §7
 
 ---
 
