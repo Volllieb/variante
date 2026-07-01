@@ -18,6 +18,15 @@
   --warn-border:    rgba(245,158,11,.35);
   --r:   6px;
   --rsm: 4px;
+  /* Spacing-Skala (4px-Raster) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
+  /* Typo-Skala (bestehende De-facto-Größen) */
+  --fs-xs: 10px; --fs-sm: 11px; --fs-md: 12px; --fs-lg: 13px;
+  /* Motion */
+  --dur-fast: 120ms; --dur-med: 200ms; --ease-out: cubic-bezier(.2,.6,.2,1);
+  /* Elevation */
+  --elev-1: 0 1px 2px rgba(0,0,0,.12);
+  --elev-2: 0 2px 8px rgba(0,0,0,.16);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -59,7 +68,7 @@ body {
 
 /* ── Progress bar ──────────────────────────────────────────────────────── */
 .step-bar {
-  display: flex; gap: 3px;
+  display: flex; gap: var(--sp-1);
   padding: 8px 12px 0;
   flex-shrink: 0;
 }
@@ -144,7 +153,8 @@ textarea { resize: vertical; }
   border-radius: var(--r);
 }
 .seg-btn {
-  flex: 1; padding: 5px 6px; border: none; background: none; cursor: pointer;
+  flex: 1; padding: 5px 6px; min-width: 28px; min-height: 24px;
+  border: none; background: none; cursor: pointer;
   font-family: inherit; font-size: 11px; font-weight: 500;
   color: var(--figma-color-text-secondary);
   border-radius: var(--rsm); transition: background .12s, color .12s;
@@ -162,14 +172,16 @@ textarea { resize: vertical; }
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
   width: 100%; padding: 8px 14px;
+  min-height: 32px;
   border-radius: var(--r);
-  font-size: 12px; font-weight: 600;
+  font-size: var(--fs-md); font-weight: 600;
   cursor: pointer; border: none; font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 5px;
-  transition: background .12s, opacity .12s, color .12s;
+  transition: background .12s, opacity .12s, color .12s, transform var(--dur-fast) var(--ease-out);
   line-height: 1;
 }
-.btn + .btn { margin-top: 6px; }
+.btn:active:not(:disabled) { transform: translateY(0.5px); }
+.btn + .btn { margin-top: 8px; }
 .btn-primary { background: var(--brand); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--brand-hover); }
 .btn-primary:disabled {
@@ -184,12 +196,13 @@ textarea { resize: vertical; }
   color: var(--figma-color-text);
 }
 .btn-secondary:hover { background: var(--figma-color-bg-hover); }
-.btn-sm { width: auto; padding: 5px 10px; font-size: 11px; }
+.btn-secondary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-sm { width: auto; padding: 5px 10px; min-height: 26px; font-size: var(--fs-sm); }
 
 /* ── Info card → Figma-Property-Row (Fill, kein Border) ────────────────────── */
 .card {
   background: var(--figma-color-bg-secondary);
-  border-radius: var(--r); padding: 9px 11px; margin-bottom: 10px;
+  border-radius: var(--r); padding: var(--sp-2) var(--sp-3); margin-bottom: 10px;
 }
 .card-lbl {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -266,14 +279,17 @@ textarea { resize: vertical; }
 
 /* ── Metric options ──────────────────────────────────────────────────────── */
 .m-opt {
-  display: flex; align-items: flex-start; gap: 9px;
-  padding: 9px 11px;
+  display: flex; align-items: flex-start; gap: var(--sp-2);
+  padding: 10px 12px;
   border: 1px solid var(--figma-color-border);
   border-radius: var(--r); cursor: pointer; margin-bottom: 7px;
   transition: border-color .12s, background .12s;
 }
 .m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); }
-.m-opt.m-selected { border-color: var(--brand); background: var(--brand-subtle); }
+.m-opt.m-selected {
+  border-color: var(--brand); background: var(--brand-subtle);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
 .m-opt.m-disabled { opacity: .45; cursor: not-allowed; }
 .m-radio {
   width: 14px; height: 14px; border-radius: 50%;
@@ -295,6 +311,10 @@ textarea { resize: vertical; }
   display: flex; align-items: center; gap: 5px;
   font-size: 11px; font-weight: 500; color: var(--figma-color-text-secondary);
   cursor: pointer; margin-bottom: 8px; user-select: none; margin-top: 4px;
+  /* Button-Reset: Element ist ein <button> für Tastatur-Bedienbarkeit */
+  background: none; border: none; padding: 0;
+  font-family: inherit; width: 100%; text-align: left;
+  border-radius: var(--rsm); min-height: 24px;
 }
 .adv-toggle:hover { color: var(--figma-color-text); }
 .adv-toggle .adv-arrow { transition: transform .18s; }
@@ -308,7 +328,7 @@ textarea { resize: vertical; }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: var(--sp-2);
   font-size: 11px; color: var(--figma-color-text-secondary); padding: 8px 0;
 }
 .loading-center {
@@ -329,7 +349,8 @@ textarea { resize: vertical; }
 /* ── Badges ──────────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center;
-  padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 3px; font-size: var(--fs-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .2px; line-height: 1.6;
 }
 .ba { background: var(--brand-subtle); color: var(--brand); }
 .bb { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
@@ -427,7 +448,7 @@ code {
 
 /* Ebene 2: Kennzahlen (Icon + Wert) + Aktionen */
 .tc-bottom { display: flex; align-items: center; gap: 8px; }
-.tc-stats { display: flex; gap: 13px; align-items: center; flex: 1; min-width: 0; }
+.tc-stats { display: flex; gap: var(--sp-3); align-items: center; flex: 1; min-width: 0; }
 .tc-stat { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--figma-color-text); }
 .tc-stat svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
 .tc-stat b { font-weight: 600; }
@@ -436,7 +457,8 @@ code {
 .tc-stat.win, .tc-stat.win svg { color: var(--figma-color-text-success, var(--ok)); font-weight: 600; }
 
 .tc-actions { display: flex; gap: 8px; flex-shrink: 0; opacity: 0; transition: opacity .12s; }
-.test-card:hover .tc-actions { opacity: 1; }
+.test-card:hover .tc-actions,
+.test-card:focus-within .tc-actions { opacity: 1; }
 .icon-btn {
   width: 28px; height: 28px; font-size: 12px;
   border: 1px solid var(--figma-color-border); border-radius: var(--rsm);
@@ -497,6 +519,27 @@ code {
 }
 .frame-preview .res-prev-inner { transform: scale(0.8); transform-origin: top left; }
 
+/* ── Utilities: a11y + skeletons ────────────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.btn:focus-visible, .back-btn:focus-visible, .icon-btn:focus-visible,
+.seg-btn:focus-visible, .link-btn:focus-visible, summary:focus-visible,
+.adv-toggle:focus-visible, .m-opt:focus-visible, .testid-row:focus-visible,
+.test-card:focus-visible, .btn-upgrade:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 1px;
+}
+summary { padding: 4px 0; cursor: pointer; }
+@keyframes sk-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.sk {
+  background: var(--figma-color-bg-secondary);
+  border-radius: var(--rsm);
+  animation: sk-pulse 1.2s ease-in-out infinite;
+}
+.sk-card { height: 58px; border-radius: var(--r); margin-bottom: 6px; }
+.sk-line { height: 10px; }
+
 /* ── prefers-reduced-motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -551,10 +594,10 @@ code {
       <div style="font-size:12px;font-weight:600;margin-bottom:3px">Connect your account</div>
       <div class="hint" style="margin-bottom:14px">Paste the API token from your dashboard.</div>
       <label class="lbl" for="connect-token">API Token</label>
-      <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" style="margin-bottom:8px"/>
+      <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveToken()" style="margin-bottom:8px"/>
       <datalist id="dl-token"></datalist>
       <button class="btn btn-primary" onclick="saveToken()" style="margin-bottom:6px">Connect →</button>
-      <div class="err" id="e-connect" style="margin-top:6px"></div>
+      <div class="err" id="e-connect" role="alert" style="margin-top:6px"></div>
     </div>
 
   </div>
@@ -578,6 +621,7 @@ code {
     <div id="dash-list"></div>
   </div>
   <div class="ftr">
+    <div class="err" id="e-dashboard" role="alert" style="min-height:0;padding:0"></div>
     <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
   </div>
 </div>
@@ -596,7 +640,7 @@ code {
     <span class="hdr-title">Test Details</span>
     <span class="hdr-step">1 / 6</span>
   </div>
-  <div class="step-bar">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="Step 1 of 6">
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -614,7 +658,7 @@ code {
       </div>
       <input id="f-name" placeholder="e.g. Hero CTA" oninput="onNameInput()"/>
     </div>
-    <div class="field-err" id="name-err"></div>
+    <div class="field-err" id="name-err" role="alert"></div>
 
     <label class="lbl" for="f-url" style="margin-top:10px">Site URL</label>
     <div class="input-wrap has-prefix" style="margin-bottom:0">
@@ -625,17 +669,17 @@ code {
           <path d="M2 12h20"/>
         </svg>
       </div>
-      <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url"/>
+      <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url" onkeydown="if(event.key==='Enter')createTest()"/>
       <datalist id="dl-url"></datalist>
     </div>
     <div id="url-hint" style="font-size:10px;color:var(--figma-color-text-secondary);margin:4px 0 0">The exact page this test will run on.</div>
-    <div class="field-err" id="url-err"></div>
+    <div class="field-err" id="url-err" role="alert"></div>
 
-    <div class="loading-row" id="l-setup" style="display:none;margin-top:4px">
-      <div class="spinner"></div>
+    <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:4px">
+      <div class="spinner" aria-hidden="true"></div>
       Creating test…
     </div>
-    <div class="err" id="e-setup"></div>
+    <div class="err" id="e-setup" role="alert"></div>
   </div>
   <div class="ftr">
     <button id="btn-create" class="btn btn-primary" onclick="createTest()">Continue →</button>
@@ -656,14 +700,14 @@ code {
     <span class="hdr-title">Pick Element</span>
     <span class="hdr-step">2 / 6</span>
   </div>
-  <div class="step-bar">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="2" aria-label="Step 2 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
 
     <!-- Test-ID always visible — click to copy -->
-    <div class="testid-row" id="el-testid-row" onclick="copyTestId()" title="Click to copy">
+    <div class="testid-row" id="el-testid-row" onclick="copyTestId()" title="Click to copy" tabindex="0" role="button" aria-label="Copy test ID" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyTestId()}">
       <span class="testid-lbl">Test ID</span>
       <span class="testid-val" id="el-testid-val">—</span>
       <span class="testid-copy" id="el-testid-copy">
@@ -676,7 +720,7 @@ code {
     </div>
 
     <!-- Extension notice -->
-    <div class="notice notice-blue">
+    <div class="notice notice-blue" id="el-ext-notice">
       <div class="notice-head">
         <span class="notice-icon">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -698,8 +742,8 @@ code {
 
     <!-- Waiting state -->
     <div id="el-waiting">
-      <div class="loading-row">
-        <div class="spinner"></div>
+      <div class="loading-row" role="status">
+        <div class="spinner" aria-hidden="true"></div>
         <span>Waiting for element selection in browser…</span>
       </div>
       <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:8px">↗ Open site again</button>
@@ -712,7 +756,7 @@ code {
       <button class="btn btn-secondary btn-sm" onclick="reselectElement()">Reselect</button>
     </div>
 
-    <div class="err" id="e-element" style="margin-top:6px"></div>
+    <div class="err" id="e-element" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
     <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
@@ -733,7 +777,7 @@ code {
     <span class="hdr-title">Variant B in Figma</span>
     <span class="hdr-step">3 / 6</span>
   </div>
-  <div class="step-bar">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="3" aria-label="Step 3 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -742,8 +786,8 @@ code {
 
     <!-- Waiting -->
     <div id="d-waiting">
-      <div class="loading-row">
-        <div class="spinner"></div>
+      <div class="loading-row" role="status" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
         <span id="d-info">Click a layer in Figma to select it…</span>
       </div>
     </div>
@@ -755,11 +799,11 @@ code {
       <button class="btn btn-secondary btn-sm" onclick="reselectDesign()">Reselect</button>
     </div>
 
-    <div class="loading-row" id="l-design" style="display:none;margin-top:8px">
-      <div class="spinner"></div>
+    <div class="loading-row" id="l-design" role="status" style="display:none;margin-top:8px">
+      <div class="spinner" aria-hidden="true"></div>
       Exporting layer…
     </div>
-    <div class="err" id="e-design" style="margin-top:4px"></div>
+    <div class="err" id="e-design" role="alert" style="margin-top:4px"></div>
   </div>
   <div class="ftr">
     <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Goal →</button>
@@ -780,7 +824,7 @@ code {
     <span class="hdr-title">Conversion Goal</span>
     <span class="hdr-step">4 / 6</span>
   </div>
-  <div class="step-bar">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -793,38 +837,41 @@ code {
       <div id="m-goal-chip-wrap"></div>
     </div>
 
-    <!-- Default metric: click on tested element -->
-    <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()">
-      <div class="m-radio"></div>
-      <div>
-        <div class="m-title">Click on the tested element</div>
-        <div class="m-desc" id="m-default-desc" style="display:none"></div>
+    <span class="lbl">What counts as a conversion?</span>
+    <div role="radiogroup" aria-label="Conversion goal">
+      <!-- Default metric: click on tested element -->
+      <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()" role="radio" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDefaultMetric()}">
+        <div class="m-radio"></div>
+        <div>
+          <div class="m-title">Click on the tested element</div>
+          <div class="m-desc" id="m-default-desc" style="display:none"></div>
+        </div>
       </div>
-    </div>
 
-    <!-- Another element: picked live in the browser — same open-and-wait flow as Variant A -->
-    <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()">
-      <div class="m-radio"></div>
-      <div>
-        <div class="m-title">Another element on the page</div>
-        <div class="m-desc">Pick it in your browser.</div>
+      <!-- Another element: picked live in the browser — same open-and-wait flow as Variant A -->
+      <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPickMetric()}">
+        <div class="m-radio"></div>
+        <div>
+          <div class="m-title">Another element on the page</div>
+          <div class="m-desc">Pick it in your browser.</div>
+        </div>
       </div>
     </div>
     <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
       <button class="btn btn-secondary btn-sm" onclick="openSite('goal')">Open in Chrome</button>
-      <div class="loading-row" id="m-waiting" style="display:none;margin-top:6px">
-        <div class="spinner"></div>
+      <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:6px">
+        <div class="spinner" aria-hidden="true"></div>
         Waiting for goal selection…
       </div>
     </div>
 
     <!-- Advanced -->
-    <div class="adv-toggle" id="adv-toggle" onclick="toggleAdvanced()">
+    <button type="button" class="adv-toggle" id="adv-toggle" onclick="toggleAdvanced()" aria-expanded="false" aria-controls="adv-section">
       <svg class="adv-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m9 18 6-6-6-6"/>
       </svg>
       Advanced settings
-    </div>
+    </button>
     <div class="adv-section" id="adv-section">
       <div class="adv-group">
         <label class="adv-group-title" for="m-custom-selector">
@@ -845,7 +892,7 @@ code {
       </div>
     </div>
 
-    <div class="err" id="e-metric" style="margin-top:4px"></div>
+    <div class="err" id="e-metric" role="alert" style="margin-top:4px"></div>
   </div>
   <div class="ftr">
     <button class="btn btn-primary" id="m-generate" onclick="goGenerate()" disabled>Generate HTML →</button>
@@ -866,13 +913,13 @@ code {
     <span class="hdr-title">Generate Variant B</span>
     <span class="hdr-step">5 / 6</span>
   </div>
-  <div class="step-bar">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="5" aria-label="Step 5 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div class="loading-row loading-center" id="l-generate" style="display:none">
-      <div class="spinner"></div>
+    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
+      <div class="spinner" aria-hidden="true"></div>
       <span>AI generating Variant B… (up to 30s)</span>
     </div>
 
@@ -886,14 +933,14 @@ code {
       <!-- Live preview: switch between rendered Original (A) and Variant (B) -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <div class="seg seg-icon" id="gen-variant-toggle" data-variant="b">
-          <button type="button" class="seg-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" title="Original (A)">A</button>
-          <button type="button" class="seg-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" title="Variant (B)">B</button>
+          <button type="button" class="seg-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
+          <button type="button" class="seg-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
         </div>
         <div class="seg seg-icon" id="gen-bg-toggle" data-bg="light">
-          <button type="button" class="seg-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" title="Light background">
+          <button type="button" class="seg-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
           </button>
-          <button type="button" class="seg-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" title="Dark background">
+          <button type="button" class="seg-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
           </button>
         </div>
@@ -922,7 +969,7 @@ code {
       </details>
     </div>
 
-    <div class="err" id="e-generate" style="margin-top:4px"></div>
+    <div class="err" id="e-generate" role="alert" style="margin-top:4px"></div>
   </div>
   <div class="ftr" id="gen-ftr" style="display:none">
     <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good — Install Snippet →</button>
@@ -943,7 +990,7 @@ code {
     <span class="hdr-title">Install Snippet</span>
     <span class="hdr-step">6 / 6</span>
   </div>
-  <div class="step-bar">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="6" aria-label="Step 6 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
   </div>
@@ -954,16 +1001,16 @@ code {
     </div>
 
     <!-- Empfohlen: KI-Integration -->
-    <button class="btn btn-primary" onclick="copyAiPrompt()">
+    <button class="btn btn-primary" onclick="copyAiPrompt(this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
       Copy prompt
     </button>
     <div class="hint" style="margin:6px 2px 2px">Copies a ready-made prompt — paste it into Cursor, Copilot, ChatGPT or Claude and it adds the snippet to your site's <code>&lt;head&gt;</code>. The prompt includes your site URL: <strong id="cp-ai-url">—</strong>.</div>
-    <div class="copy-ok ok" id="cp-ai" style="margin:0 2px 2px">✓ Prompt copied</div>
+    <div class="copy-ok ok" id="cp-ai" aria-live="polite" style="margin:0 2px 2px;font-size:10px;font-weight:700">✓ Prompt copied</div>
 
     <!-- Manuell -->
-    <button class="btn btn-secondary" onclick="copySnippet()">Copy snippet manually</button>
-    <span class="copy-ok ok" id="cp-snippet" style="margin:6px 0 0 2px">✓ Copied</span>
+    <button class="btn btn-secondary" onclick="copySnippet(this)">Copy snippet manually</button>
+    <span class="copy-ok ok" id="cp-snippet" aria-live="polite" style="margin:6px 0 0 2px;font-size:10px;font-weight:700">✓ Copied</span>
     <details style="margin:8px 0 0">
       <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer;user-select:none">Show snippet code</summary>
       <pre id="snippet-code" style="margin-top:6px"></pre>
@@ -992,7 +1039,7 @@ code {
     </div>
   </div>
   <div class="body">
-    <div class="winner" id="res-winner" style="display:none"></div>
+    <div class="winner" id="res-winner" aria-live="polite" style="display:none"></div>
 
     <div class="upgrade-banner ub-compact" id="upgrade-banner-results">
       <span class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</span>
@@ -1000,36 +1047,36 @@ code {
     </div>
 
     <div id="res-nodata" class="card" style="display:none">
-      <div class="card-val" style="font-weight:400;font-size:11px">Waiting for first visitors.</div>
+      <div class="card-val" style="font-weight:400;font-size:11px">Waiting for first visitors — data refreshes every 30 s.</div>
       <button class="link-btn" onclick="navPush('snippet'); buildSnippet()">→ View snippet instructions</button>
     </div>
 
     <div class="ab-table">
       <div class="ab-col">
         <div class="ab-head"><span class="badge ba">A</span> Variant A</div>
-        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-va">0</div></div>
-        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-ca">0</div></div>
+        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-va">—</div></div>
+        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-ca">—</div></div>
         <div class="ab-metric"><div class="ab-k">CR</div><div class="ab-v" id="res-cra">—</div></div>
       </div>
       <div class="ab-col">
         <div class="ab-head"><span class="badge bb">B</span> Variant B</div>
-        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-vb">0</div></div>
-        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-cb">0</div></div>
+        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-vb">—</div></div>
+        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-cb">—</div></div>
         <div class="ab-metric"><div class="ab-k">CR</div><div class="ab-v" id="res-crb">—</div></div>
       </div>
     </div>
 
-    <div class="sig-line" id="res-sig">Significance: 0% — not significant yet</div>
+    <div class="sig-line" id="res-sig" aria-live="polite">Significance: 0% — not significant yet</div>
 
     <div id="res-preview-section" style="display:none">
       <div class="divider"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <span class="lbl" style="margin-bottom:0">Live preview</span>
         <div class="seg seg-icon" id="res-bg-toggle" data-bg="light">
-          <button type="button" class="seg-btn on" data-val="light" onclick="setResBg('light')" aria-label="Light background" title="Light background">
+          <button type="button" class="seg-btn on" data-val="light" onclick="setResBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
           </button>
-          <button type="button" class="seg-btn" data-val="dark" onclick="setResBg('dark')" aria-label="Dark background" title="Dark background">
+          <button type="button" class="seg-btn" data-val="dark" onclick="setResBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
           </button>
         </div>
@@ -1192,7 +1239,10 @@ async function showDashboard() {
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
-  list.innerHTML = '<div class="loading-row loading-center" style="padding:32px 0"><div class="spinner"></div>Loading tests…</div>'
+  list.innerHTML = '<div role="status"><span class="sr-only">Loading tests…</span>' +
+    '<div class="sk sk-card" aria-hidden="true"></div>' +
+    '<div class="sk sk-card" aria-hidden="true"></div>' +
+    '<div class="sk sk-card" aria-hidden="true"></div></div>'
   try {
     const res = await afetch(API + '/api/tests')
     if (!res.ok) throw new Error('API ' + res.status)
@@ -1205,7 +1255,7 @@ async function showDashboard() {
           '</div>' +
           '<div style="font-size:12px;font-weight:600;margin-bottom:3px">No tests yet</div>' +
           '<div style="font-size:11px;color:var(--figma-color-text-secondary);margin-bottom:10px">Run your first A/B test to see how a change performs.</div>' +
-          '<button class="link-btn" onclick="newTest()">+ Create your first test</button>' +
+          '<button class="btn btn-secondary btn-sm" onclick="newTest()" style="margin:0 auto">+ Create your first test</button>' +
         '</div>'
       return
     }
@@ -1226,9 +1276,10 @@ async function showDashboard() {
       groups[url].forEach(t => list.appendChild(renderTestCard(t)))
     })
   } catch (e) {
-    list.innerHTML = '<div class="err" style="display:flex;align-items:center;gap:5px;padding:8px 0">' +
+    list.innerHTML = '<div class="err" role="alert" style="display:flex;align-items:center;gap:5px;padding:8px 0">' +
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>' +
-      escapeHtml(e.message) + '</div>'
+      'Couldn\'t load your tests. <span style="opacity:.75">(' + escapeHtml(e.message) + ')</span></div>' +
+      '<button class="btn btn-secondary btn-sm" onclick="showDashboard()" style="margin-top:4px">↻ Retry</button>'
   }
 }
 function fmtNum(n) { return (n || 0).toLocaleString('en-US') }
@@ -1285,6 +1336,12 @@ function renderTestCard(t) {
       '</div>' +
     '</div>'
   card.onclick = () => resumeTest(t.id)
+  card.tabIndex = 0
+  card.setAttribute('role', 'button')
+  card.setAttribute('aria-label', 'Open results for ' + (t.name || 'test'))
+  card.onkeydown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resumeTest(t.id) }
+  }
   return card
 }
 function resumeTest(id) { state.testId = id; navPush('results'); startResults() }
@@ -1327,6 +1384,7 @@ function newTest() {
   $('f-name').value = ''; $('f-url').value = ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
+  var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
   $('btn-el-next').disabled = true
   $('btn-export').disabled = true
@@ -1482,6 +1540,8 @@ function startElementPoll() {
           renderElementChip(t.selector, state.originalHtml)
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
+          // Extension-Hinweis ausblenden, sobald das Element gewählt ist — dann ist er nur noch Rauschen
+          var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = 'none'
           $('btn-el-next').disabled = false
           stopElementPoll()
         }
@@ -1497,6 +1557,7 @@ function stopElementPoll() {
 async function reselectElement() {
   $('el-done').style.display = 'none'
   $('el-waiting').style.display = 'block'
+  var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
   $('btn-el-next').disabled = true
   $('el-chip-wrap').innerHTML = ''
   try {
@@ -1544,7 +1605,19 @@ function isClickable(html) {
 
 // Renders the current goal (state.goal) at the top of the screen as a chip,
 // styled exactly like the Variant-A element chip — never a raw CSS selector.
+// Spiegelt den visuellen m-selected/m-disabled-Zustand in ARIA-Attribute —
+// wird von allen Auswahl-Pfaden über renderGoalChip() mitgezogen.
+function syncMetricAria() {
+  ;['m-default-opt', 'm-pick-opt'].forEach(id => {
+    const el = $(id); if (!el) return
+    el.setAttribute('aria-checked', el.classList.contains('m-selected') ? 'true' : 'false')
+    if (el.classList.contains('m-disabled')) el.setAttribute('aria-disabled', 'true')
+    else el.removeAttribute('aria-disabled')
+  })
+}
+
 function renderGoalChip() {
+  syncMetricAria()
   const wrap = $('m-goal-display')
   if (!state.goal) { wrap.style.display = 'none'; return }
   let html = null
@@ -1601,6 +1674,7 @@ function applyCustomSelector() {
 function toggleAdvanced() {
   const t = $('adv-toggle'), s = $('adv-section')
   t.classList.toggle('open'); s.classList.toggle('open')
+  t.setAttribute('aria-expanded', t.classList.contains('open') ? 'true' : 'false')
 }
 
 async function enterMetric() {
@@ -1613,6 +1687,7 @@ async function enterMetric() {
   $('m-pick-wrap').style.display = 'none'
   $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
   $('adv-toggle').classList.remove('open')
+  $('adv-toggle').setAttribute('aria-expanded', 'false')
   $('adv-section').classList.remove('open')
   $('m-custom-selector').value = ''
   let t = {}
@@ -1697,7 +1772,11 @@ function fillPreviews() {
   const t = $('gen-variant-toggle')
   if (t) {
     t.setAttribute('data-variant', 'b')
-    t.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === 'b'))
+    t.querySelectorAll('.seg-btn').forEach(b => {
+      const on = b.getAttribute('data-val') === 'b'
+      b.classList.toggle('on', on)
+      b.setAttribute('aria-pressed', on ? 'true' : 'false')
+    })
   }
   renderVariantPreview()
 }
@@ -1711,17 +1790,24 @@ function renderVariantPreview() {
     ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bg)) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
     : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">No preview available.</div>'
 }
+function syncSegBtns(el, val) {
+  el.querySelectorAll('.seg-btn').forEach(b => {
+    const on = b.getAttribute('data-val') === val
+    b.classList.toggle('on', on)
+    b.setAttribute('aria-pressed', on ? 'true' : 'false')
+  })
+}
 function setBg(val) {
   const el = $('gen-bg-toggle'); if (!el) return
   el.setAttribute('data-bg', val)
-  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+  syncSegBtns(el, val)
   renderVariantPreview()
 }
 function setPreviewVariant(val) {
   previewVariant = val
   const el = $('gen-variant-toggle'); if (!el) return
   el.setAttribute('data-variant', val)
-  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+  syncSegBtns(el, val)
   renderVariantPreview()
 }
 
@@ -1865,12 +1951,18 @@ function flashCopied(id) {
   const c = $(id); if (!c) return
   c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
 }
-function copySnippet() { copyText(buildSnippetCode()); flashCopied('cp-snippet') }
-function copyAiPrompt() { copyText(buildAiPrompt()); flashCopied('cp-ai') }
+// Button kurz sperren — verhindert Doppel-Klick-Verwirrung beim Kopieren
+function lockCopyBtn(btn) {
+  if (!btn) return
+  btn.disabled = true
+  setTimeout(() => { btn.disabled = false }, 1500)
+}
+function copySnippet(btn) { copyText(buildSnippetCode()); flashCopied('cp-snippet'); lockCopyBtn(btn) }
+function copyAiPrompt(btn) { copyText(buildAiPrompt()); flashCopied('cp-ai'); lockCopyBtn(btn) }
 function setResBg(val) {
   const el = $('res-bg-toggle'); if (!el) return
   el.setAttribute('data-bg', val)
-  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+  syncSegBtns(el, val)
   const bgColor = val === 'dark' ? '#1a1a1a' : '#fff'
   ;['a','b'].forEach(k => {
     const f = $('res-preview-' + k)
@@ -1956,6 +2048,15 @@ async function deleteTest(id) {
 }
 
 // ── Messages from code.ts ────────────────────────────────────────────────────
+// code.ts liefert Fehlermeldungen auf Deutsch — die UI ist englisch.
+// UI-seitiger Shim statt code.ts-Änderung (Protokoll bleibt unangetastet).
+const DE_ERRORS = {
+  'Bitte genau ein Element in Figma auswählen.': 'Please select exactly one element in Figma.',
+  'Dieses Element kann nicht exportiert werden.': 'This element cannot be exported.',
+  'Export fehlgeschlagen': 'Export failed'
+}
+function translateErr(m) { return DE_ERRORS[m] || m }
+
 window.onmessage = (event) => {
   const msg = event.data.pluginMessage
   if (!msg) return
@@ -2003,7 +2104,7 @@ window.onmessage = (event) => {
     $('l-design').style.display = 'none'
     const exportBtn = $('btn-export')
     if (exportBtn) exportBtn.disabled = false
-    err('design', msg.message)
+    err('design', translateErr(msg.message))
     return
   }
 }
