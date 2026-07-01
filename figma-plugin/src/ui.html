@@ -787,12 +787,34 @@ code {
   <div class="body">
     <div class="hint" id="m-hint" style="display:none"></div>
 
+    <!-- Active goal — always reflects the current choice, styled exactly like the Variant-A chip -->
+    <div id="m-goal-display" style="display:none;margin-bottom:12px">
+      <span class="lbl" style="margin-bottom:5px">Active goal</span>
+      <div id="m-goal-chip-wrap"></div>
+    </div>
+
     <!-- Default metric: click on tested element -->
     <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()">
       <div class="m-radio"></div>
       <div>
         <div class="m-title">Click on the tested element</div>
         <div class="m-desc" id="m-default-desc" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Another element: picked live in the browser — same open-and-wait flow as Variant A -->
+    <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()">
+      <div class="m-radio"></div>
+      <div>
+        <div class="m-title">Another element on the page</div>
+        <div class="m-desc">Pick it in your browser.</div>
+      </div>
+    </div>
+    <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
+      <button class="btn btn-secondary btn-sm" onclick="openSite('goal')">Open in Chrome</button>
+      <div class="loading-row" id="m-waiting" style="display:none;margin-top:6px">
+        <div class="spinner"></div>
+        Waiting for goal selection…
       </div>
     </div>
 
@@ -804,37 +826,6 @@ code {
       Advanced settings
     </div>
     <div class="adv-section" id="adv-section">
-      <!-- Candidates (other page elements) — a secondary path; forced open when the default goal isn't available -->
-      <div class="adv-group" id="m-candidates-section" style="display:none">
-        <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()">
-          <div class="m-radio"></div>
-          <div>
-            <div class="m-title">Another element on the page</div>
-            <div class="m-desc">A different element as the goal.</div>
-          </div>
-        </div>
-        <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
-          <select id="m-goalsel" onchange="onMetricSelect()" aria-label="Goal element"></select>
-        </div>
-      </div>
-
-      <div class="divider" style="margin:10px 0"></div>
-
-      <div class="adv-group">
-        <div class="adv-group-title">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.1 12 6"/><path d="m5.1 8-2.9-.8"/><path d="m6 12-1.9 2"/><path d="M7.2 2.2 8 5.1"/><path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"/></svg>
-          Pick goal in browser
-        </div>
-        <div class="adv-group-desc">Click any element on your live site.</div>
-        <button class="btn btn-secondary btn-sm" onclick="openSite('goal')" style="margin-bottom:6px">Open in Chrome</button>
-        <div class="loading-row" id="m-waiting" style="display:none">
-          <div class="spinner"></div>
-          Waiting for goal selection…
-        </div>
-      </div>
-
-      <div class="divider" style="margin:10px 0"></div>
-
       <div class="adv-group">
         <label class="adv-group-title" for="m-custom-selector">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
@@ -852,12 +843,6 @@ code {
         </div>
         <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()">Apply selector</button>
       </div>
-    </div>
-
-    <!-- Current goal pill (shown when a non-default goal is active) -->
-    <div id="m-goal-display" style="display:none;margin-top:10px">
-      <span class="lbl">Active goal</span>
-      <div class="card"><div class="card-val" id="m-current">—</div></div>
     </div>
 
     <div class="err" id="e-metric" style="margin-top:4px"></div>
@@ -914,33 +899,27 @@ code {
         </div>
       </div>
       <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background .2s"></div>
-      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin:6px 0 10px">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
-
-      <!-- Figma reference screenshot (collapsed) -->
-      <details style="margin-bottom:12px">
-        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show Figma reference</summary>
-        <div class="frame" id="gen-ref" style="margin-top:6px"></div>
-      </details>
-
-      <!-- HTML source (collapsed) -->
-      <details style="margin-bottom:12px">
-        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show generated HTML</summary>
-        <pre id="gen-html" style="margin-top:6px"></pre>
-      </details>
+      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin:6px 0 12px">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
 
       <div class="divider"></div>
 
-      <!-- Refine controls -->
+      <!-- Refine: the main way to iterate, same flow as asking Claude to adjust a result -->
       <label class="lbl" for="gen-feedback">Refine (optional)</label>
       <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback" style="margin-bottom:8px"></textarea>
-      <span class="lbl">Scope — what may the AI change?</span>
-      <div class="seg" id="gen-scope" data-scope="all" style="margin-bottom:8px">
-        <button type="button" class="seg-btn on" data-val="all"   onclick="setScope('all')">Everything</button>
-        <button type="button" class="seg-btn"    data-val="text"  onclick="setScope('text')">Text</button>
-        <button type="button" class="seg-btn"    data-val="color" onclick="setScope('color')">Colors</button>
-      </div>
-      <button class="btn btn-secondary" onclick="refine()" style="margin-bottom:5px">↻ Refine with AI</button>
-      <button class="btn btn-secondary" onclick="generate()">Regenerate</button>
+      <button class="btn btn-secondary" onclick="refine()" style="margin-bottom:6px">↻ Refine with AI</button>
+      <button class="link-btn" onclick="generate()">Start over — regenerate from scratch</button>
+
+      <div class="divider"></div>
+
+      <!-- Secondary reference material, least important first, HTML source last -->
+      <details style="margin-bottom:8px">
+        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show Figma reference</summary>
+        <div class="frame" id="gen-ref" style="margin-top:6px"></div>
+      </details>
+      <details>
+        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show generated HTML</summary>
+        <pre id="gen-html" style="margin-top:6px"></pre>
+      </details>
     </div>
 
     <div class="err" id="e-generate" style="margin-top:4px"></div>
@@ -1478,12 +1457,14 @@ function makeElementLabel(selector, html) {
   return { type: TAG_NAMES[tag] || cap(tag), label: name }
 }
 
-function renderElementChip(selector, html) {
+function chipHtml(selector, html) {
   const { type, label } = makeElementLabel(selector, html)
-  $('el-chip-wrap').innerHTML =
-    '<div class="el-chip"><span class="el-chip-type">' + escapeHtml(type) + '</span>' +
+  return '<div class="el-chip"><span class="el-chip-type">' + escapeHtml(type) + '</span>' +
     '<span style="opacity:.4">:</span>' +
     '<span class="el-chip-text">' + escapeHtml(cap(label)) + '</span></div>'
+}
+function renderElementChip(selector, html) {
+  $('el-chip-wrap').innerHTML = chipHtml(selector, html)
 }
 
 function startElementPoll() {
@@ -1561,29 +1542,23 @@ function isClickable(html) {
   } catch (_) { return false }
 }
 
-function fillMetricDropdown() {
-  const sel = $('m-goalsel')
-  sel.innerHTML = ''
-  const first = document.createElement('option')
-  first.value = ''; first.textContent = '— select an element —'
-  sel.appendChild(first)
-  ;(state.goalCandidates || []).forEach(c => {
-    if (!c || !c.selector || c.selector === state.selector) return
-    const o = document.createElement('option')
-    o.value = c.selector
-    o.textContent = (c.text ? c.text + ' — ' : '') + c.selector
-    sel.appendChild(o)
-  })
-}
-
-function updateGoalDisplay() {
+// Renders the current goal (state.goal) at the top of the screen as a chip,
+// styled exactly like the Variant-A element chip — never a raw CSS selector.
+function renderGoalChip() {
   const wrap = $('m-goal-display')
-  if (state.goal && state.goal !== state.selector) {
-    $('m-current').textContent = state.goal
-    wrap.style.display = 'block'
+  if (!state.goal) { wrap.style.display = 'none'; return }
+  let html = null
+  if (state.goal === state.selector) {
+    html = state.originalHtml
   } else {
-    wrap.style.display = 'none'
+    const cand = (state.goalCandidates || []).find(c => c && c.selector === state.goal)
+    if (cand && cand.text) {
+      const tag = (state.goal.match(/^([a-zA-Z]+)/) || [,'div'])[1]
+      html = '<' + tag + '>' + escapeHtml(cand.text) + '</' + tag + '>'
+    }
   }
+  $('m-goal-chip-wrap').innerHTML = chipHtml(state.goal, html)
+  wrap.style.display = 'block'
 }
 
 function selectDefaultMetric() {
@@ -1594,39 +1569,29 @@ function selectDefaultMetric() {
   $('m-pick-wrap').style.display = 'none'
   state.goal = state.selector
   $('m-generate').disabled = false
-  updateGoalDisplay()
+  renderGoalChip()
 }
 
 function selectPickMetric() {
   $('m-default-opt').classList.remove('m-selected')
   $('m-pick-opt').classList.add('m-selected')
   $('m-pick-wrap').style.display = 'block'
-  const v = $('m-goalsel').value || ''
-  state.goal = v
-  $('m-generate').disabled = !v
-  updateGoalDisplay()
-}
-
-function onMetricSelect() {
-  const v = $('m-goalsel').value || ''
-  state.goal = v
-  $('m-generate').disabled = !v
-  updateGoalDisplay()
-  if (v) {
-    afetch(API + '/api/tests/' + state.testId, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ goal: v })
-    }).catch(() => {})
+  // Keep an already-resolved pick; otherwise there's no goal yet until the browser selection completes.
+  if (!(state.goal && state.goal !== state.selector)) {
+    state.goal = ''
+    $('m-generate').disabled = true
   }
+  renderGoalChip()
 }
 
 function applyCustomSelector() {
   const v = ($('m-custom-selector').value || '').trim()
   if (!v) { err('metric', 'Enter a CSS selector.'); return }
   state.goal = v
+  $('m-default-opt').classList.remove('m-selected')
+  $('m-pick-opt').classList.remove('m-selected')
   $('m-generate').disabled = false
-  $('m-current').textContent = v
-  $('m-goal-display').style.display = 'block'
+  renderGoalChip()
   afetch(API + '/api/tests/' + state.testId, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ goal: v })
@@ -1656,12 +1621,6 @@ async function enterMetric() {
   state.goalCandidates = t.goal_candidates  || state.goalCandidates || []
 
   const clickable = isClickable(state.originalHtml)
-  const hasCandidates = (state.goalCandidates || []).filter(c => c && c.selector && c.selector !== state.selector).length > 0
-
-  fillMetricDropdown()
-
-  // Show candidates section if there are page elements OR if tested element is not clickable (must pick one)
-  $('m-candidates-section').style.display = (hasCandidates || !clickable) ? 'block' : 'none'
 
   if (clickable) {
     // Pre-select default
@@ -1673,18 +1632,17 @@ async function enterMetric() {
     $('m-generate').disabled = false
   } else {
     // Default unavailable — tested element is not clickable.
-    // The "pick another element" control lives in Advanced, but it's now
-    // the only way forward — force that section open instead of hiding it.
+    // "Another element on the page" is now the only way forward — select it directly.
     state.goal = ''
     $('m-default-opt').classList.remove('m-selected')
     $('m-default-opt').classList.add('m-disabled')
     $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
     $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
     $('m-generate').disabled = true
-    $('m-candidates-section').style.display = 'block'
-    $('adv-toggle').classList.add('open')
-    $('adv-section').classList.add('open')
+    $('m-pick-opt').classList.add('m-selected')
+    $('m-pick-wrap').style.display = 'block'
   }
+  renderGoalChip()
 }
 
 function startMetricPoll() {
@@ -1698,8 +1656,9 @@ function startMetricPoll() {
           state.goal = t.goal
           $('m-waiting').style.display = 'none'
           $('m-generate').disabled = false
-          $('m-current').textContent = t.goal
-          $('m-goal-display').style.display = 'block'
+          $('m-default-opt').classList.remove('m-selected')
+          $('m-pick-opt').classList.add('m-selected')
+          renderGoalChip()
           stopMetricPoll()
         }
       }
@@ -1718,16 +1677,19 @@ function goGenerate() {
 }
 
 // ── Screen 5: AI generation ──────────────────────────────────────────────────
-function getScope() { const el = $('gen-scope'); return el ? (el.getAttribute('data-scope') || 'all') : 'all' }
-function setScope(val) {
-  const el = $('gen-scope'); if (!el) return
-  el.setAttribute('data-scope', val)
-  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
-}
+// Scope is always 'all' — like Claude, the user just describes what to change
+// in the Refine box instead of pre-restricting the AI via a separate toggle.
+function getScope() { return 'all' }
 
-function buildPreviewDoc(html) {
-  const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
-  return css ? '<html><head>' + css + '</head><body>' + (html || '') + '</body></html>' : (html || '')
+// bg forces the iframe's OWN background — setting it only on the outer
+// container is invisible, since the iframe document defaults to a white
+// page background that fully covers it. cssOverride lets callers (e.g. the
+// Results screen) pass freshly-polled site CSS instead of state.siteCss.
+function buildPreviewDoc(html, bg, cssOverride) {
+  const siteCss = cssOverride !== undefined ? cssOverride : state.siteCss
+  const css = siteCss ? '<style>' + siteCss + '</style>' : ''
+  const bgCss = '<style>html,body{background:' + (bg === 'dark' ? '#1a1a1a' : '#fff') + ' !important}</style>'
+  return '<html><head>' + bgCss + css + '</head><body>' + (html || '') + '</body></html>'
 }
 // Reset to Variant B (the side that just changed) and re-render.
 function fillPreviews() {
@@ -1746,7 +1708,7 @@ function renderVariantPreview() {
   const el = $('gen-variant-preview')
   el.style.background = bgColor
   el.innerHTML = html
-    ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html)) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
+    ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bg)) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
     : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">No preview available.</div>'
 }
 function setBg(val) {
@@ -1858,15 +1820,57 @@ function buildSnippet() {
 // KI-Prompt: fertige Anweisung, die der Nutzer in Cursor/Copilot/ChatGPT/Claude einfügt.
 function buildAiPrompt() {
   const url = state.url || '(your site URL)'
+  const snippet = buildSnippetCode()
   return [
-    'Add the following HTML snippet to the <head> of every page on my website (' + url + '). ' +
-      'It powers a Variante A/B test. Place it as early in the <head> as possible and include it only once per page. ' +
-      'If my site uses a framework, add it to the shared head/layout (e.g. Next.js app/layout or <Head>, ' +
-      'Nuxt app.head, Astro base layout, or the root HTML template). Do not modify the snippet.',
+    'You are adding a Variante A/B testing snippet to ' + url + '. Follow every step below — do not skip any.',
     '',
-    buildSnippetCode(),
+    '## 1. Idempotency check — do NOT insert twice',
+    'Before touching any file, search the entire codebase for `id="__ab_hide"` or `ab.js`. If either already exists, STOP and tell me: "The snippet is already installed." Do not insert it again.',
     '',
-    'When you are done, tell me which file(s) you changed.'
+    '## 2. Where to insert',
+    'Paste the snippet below into the `<head>`, BEFORE all other `<link rel="stylesheet">`, web-font loaders (Google Fonts, Adobe Fonts etc.), and analytics snippets (GA, GTM, etc.). It must execute before any render-blocking resource.',
+    '',
+    '## 3. Platform-specific instructions',
+    'Detect what my site runs on, then follow the matching rule:',
+    '- **Next.js**: `app/layout.tsx` or `pages/_document.tsx` (inside `<Head>`)',
+    '- **Nuxt**: `nuxt.config.ts` → `app.head.script`',
+    '- **Astro**: base layout in `src/layouts/`',
+    '- **WordPress**: `header.php` in the active theme, OR use `wp_head` action hook via `functions.php`',
+    '- **Shopify**: Online Store → Themes → Edit code → `theme.liquid`, inside `<head>`',
+    '- **Webflow**: Site settings → Custom Code → Head Code section',
+    '- **Squarespace**: Settings → Advanced → Code Injection → Header',
+    '- **Wix**: Settings → Custom Code → Add (choose "Load code on each page" → Head)',
+    '- **Static HTML / no framework**: the root HTML file(s) that contain the `<head>`',
+    '- If my site uses a platform not listed above, tell me which one you detected and ask where I want the snippet placed.',
+    '',
+    '## 4. NO Google Tag Manager',
+    'Do NOT insert this snippet via Google Tag Manager or any other tag manager. GTM loads asynchronously after first paint — that defeats the anti-flicker logic and makes flickering worse. The snippet MUST be hardcoded directly into the `<head>` at the source level.',
+    '',
+    '## 5. Cookie consent / CMP',
+    'Do NOT place this snippet behind any cookie-consent banner or consent management platform (CMP). It must load before and independently of any consent logic. The snippet uses localStorage/sessionStorage — whether that requires consent under GDPR is for the site owner to decide, but the AI must not gate the snippet behind consent on its own.',
+    '',
+    '## 6. Content Security Policy (CSP)',
+    'If the site has a Content-Security-Policy (header or `<meta>`), check that the snippet will not be blocked:',
+    '- Inline `<script>` and inline `<style>` require `\'unsafe-inline\'`, a nonce, or a hash in `script-src` / `style-src`',
+    '- The external script `' + API + '/ab.js` + '` must be allowed in `script-src`',
+    '- `connect-src` must allow `' + API + '` (the snippet makes fetch requests to this origin)',
+    'If any of these are missing, tell me exactly what CSP change is needed and ask before applying it.',
+    '',
+    '## 7. The snippet (do not modify)',
+    '```html',
+    snippet,
+    '```',
+    '',
+    '## 8. Verify on the live rendered output',
+    'After inserting, do NOT just check the source template. Open the actual live page in a browser and inspect `view-source:` (or the deployed HTML). Confirm the snippet appears in the rendered `<head>`. If you cannot verify the live page, tell me so I can check manually.',
+    '',
+    '## 9. Cache / CDN purge',
+    'If the site is behind Cloudflare, Vercel Edge Cache, Netlify CDN, or any other caching layer, purge/invalidate the cache after deploy. Otherwise cached pages will still serve the old HTML without the snippet.',
+    '',
+    '## 10. No central layout — fallback',
+    'If there is no shared layout file and the site has many independent HTML files (e.g. a static site without templates), do NOT edit them all individually. Instead, list the files that would need the snippet and ask me which ones to update.',
+    '',
+    'When you are done, tell me which file(s) you changed and confirm each step above was addressed.'
   ].join('\n')
 }
 
@@ -1938,7 +1942,7 @@ function startResults() {
         const bgVal = bgToggle ? bgToggle.getAttribute('data-bg') : 'light'
         const bgColor = bgVal === 'dark' ? '#1a1a1a' : '#fff'
         $('res-preview-' + k).innerHTML = has
-          ? '<iframe srcdoc="' + escapeHtml('<html><head>' + (t.site_css ? '<style>' + t.site_css + '</style>' : '') + '</head><body>' + html + '</body></html>') + '" style="width:100%;height:80px;border:none;background:' + bgColor + '"></iframe>'
+          ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bgVal, t.site_css)) + '" style="width:100%;height:80px;border:none;background:' + bgColor + '"></iframe>'
           : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
         if (has) $('res-preview-' + k).style.background = bgColor
       })
