@@ -27,6 +27,7 @@
 }
 
 @layer base {
+  .__ab_pending { visibility: hidden; }
   * {
     border-color: var(--color-border);
   }

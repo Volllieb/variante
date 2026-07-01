@@ -1,6 +1,6 @@
 # GOTOMARKET.md — variante
 
-Stand: 29.06.2026. Phase A+B+C deployed auf www.getvariante.com. E2E-Test steht unmittelbar bevor.
+Stand: 01.07.2026. Phase 0 abgeschlossen. Figma-Plugin + Chrome-Extension eingereicht. Dogfooding gestartet.
 
 ## Strategie in einem Satz
 **Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
@@ -24,12 +24,12 @@ Free-Tier trägt **„powered by variante"-Badge** auf der Kundenseite → deren
 | Landing-Page live (Hero, How It Works, Use Cases, Pricing, Notify) | ✅ |
 | Signup + Login + Dashboard + Stripe scharf | ✅ |
 | Steuer-Setup geklärt (Kleinunternehmer, Stripe Tax) | ✅ |
-| Figma-Plugin gebaut + Community-Listing eingereicht | ✅ (im Review) |
-| Chrome-Extension gebaut + CWS-Listing eingereicht | ✅ (im Review) |
+| Figma-Plugin gebaut + Community-Listing eingereicht | ✅ |
+| Chrome-Extension gebaut + CWS-Listing eingereicht | ✅ |
 | Phase A+B+C implementiert (Quick Wins, UX, Gesamt-Übersicht) | ✅ |
 | Produktion auf `www.getvariante.com` deployed | ✅ |
 | E2E-Test auf echter Site | ⏳ **Nächster** |
-| Dogfooding: variante auf eigener Landing-Page | ⏳ **Danach** |
+| Dogfooding: variante auf eigener Landing-Page | 🏗️ **In Arbeit** |
 
 ### Phase 1 — Soft-Launch / Design-Partner (Cold-Start lösen)
 **Start: 29.06.2026 — Ziel: 1. August 2026**
@@ -66,16 +66,16 @@ Erst wenn Figma-Plugin LIVE im Community Store ist:
 - Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
 - **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
 
-## Aktueller Status (29.06.2026)
+## Aktueller Status (01.07.2026)
 
 - ✅ **Produkt fertig**: Phase A+B+C auf `www.getvariante.com` deployed
-- ⏳ **E2E-Test**: Heute — Account erstellen, Loop durchspielen
-- ⏳ **Figma-Plugin-Review**: Nicht eingereicht
-- ⏳ **Chrome-Extension-Review**: Nicht eingereicht
-- ⏳ **Dogfooding**: variante auf eigener Landing-Page — offen
+- ⏳ **E2E-Test**: Offen
+- ✅ **Figma-Plugin-Review**: Eingereicht
+- ✅ **Chrome-Extension-Review**: Eingereicht
+- 🏗️ **Dogfooding**: variante-Script in Layout eingebaut, Test muss noch in DB angelegt werden (007_dogfooding.sql)
 - ⏳ **Design-Partner**: 0 von 5 an Bord
 
-**Nächster Schritt:** heute E2E absolvieren, dann Stores einreichen.
+**Nächster Schritt:** Dogfooding-Test in Supabase anlegen, dann E2E.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte) → Phase 1 ist der kritische Schritt; Figma-Community skaliert, braucht aber Review + Ranking-Zeit.
