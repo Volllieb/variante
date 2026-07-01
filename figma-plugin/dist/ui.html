@@ -49,7 +49,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 12px 0;
+  padding: 12px 14px 0;
   flex-shrink: 0;
 }
 .back-btn {
@@ -63,17 +63,23 @@ body {
 }
 .back-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
 .back-btn svg { display: block; }
-.hdr-title { flex: 1; font-size: 12px; font-weight: 600; }
-.hdr-step  { font-size: 11px; color: var(--figma-color-text-secondary); flex-shrink: 0; }
+.hdr-title { flex: 1; font-size: 13px; font-weight: 600; letter-spacing: -.1px; }
+.hdr-step  {
+  flex-shrink: 0;
+  font-size: 10px; font-weight: 600;
+  color: var(--figma-color-text-secondary);
+  background: var(--figma-color-bg-secondary);
+  padding: 3px 8px; border-radius: 999px;
+}
 
 /* ── Progress bar ──────────────────────────────────────────────────────── */
 .step-bar {
   display: flex; gap: var(--sp-1);
-  padding: 8px 12px 0;
+  padding: 10px 14px 0;
   flex-shrink: 0;
 }
 .step-dot {
-  flex: 1; height: 2px; border-radius: 1px;
+  flex: 1; height: 3px; border-radius: 2px;
   background: var(--figma-color-border);
   transition: background .25s;
 }
@@ -82,14 +88,14 @@ body {
 /* ── Content / scroll area ─────────────────────────────────────────────── */
 .body {
   flex: 1; overflow-y: auto;
-  padding: 14px 12px 6px;
+  padding: 16px 14px 8px;
 }
 .body::-webkit-scrollbar { width: 4px; }
 .body::-webkit-scrollbar-thumb { background: var(--figma-color-border); border-radius: 2px; }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 .ftr {
-  padding: 10px 12px;
+  padding: 12px 14px;
   flex-shrink: 0;
   border-top: 1px solid var(--figma-color-border);
 }
@@ -97,20 +103,21 @@ body {
 /* ── Typography ─────────────────────────────────────────────────────────── */
 .lbl {
   display: block;
-  font-size: 11px; font-weight: 500;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px;
   color: var(--figma-color-text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 .hint {
   font-size: 11px; color: var(--figma-color-text-secondary);
-  line-height: 1.55; margin-bottom: 14px;
+  line-height: 1.6; margin-bottom: 16px;
 }
 .section-gap { height: 12px; }
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
 /* Figma-natives Feld: grauer Fill, kein Ruhe-Border. Border erst bei Fokus. */
 input, select, textarea {
-  width: 100%; padding: 7px 9px;
+  width: 100%; padding: 8px 10px;
   border: 1px solid transparent; border-radius: var(--r);
   font-size: 12px; font-family: inherit;
   color: var(--figma-color-text); background: var(--figma-color-bg-secondary);
@@ -163,7 +170,7 @@ textarea { resize: vertical; }
 .seg-btn.on {
   background: var(--figma-color-bg);
   color: var(--figma-color-text);
-  box-shadow: 0 1px 2px rgba(0,0,0,.12);
+  box-shadow: var(--elev-1);
 }
 /* Compact icon-only variant (e.g. light/dark preview toggle) — fixed width, not stretched */
 .seg-icon { display: inline-flex; }
@@ -182,13 +189,14 @@ textarea { resize: vertical; }
 }
 .btn:active:not(:disabled) { transform: translateY(0.5px); }
 .btn + .btn { margin-top: 8px; }
-.btn-primary { background: var(--brand); color: #fff; }
-.btn-primary:hover:not(:disabled) { background: var(--brand-hover); }
+.btn-primary { background: var(--brand); color: #fff; box-shadow: var(--elev-1); }
+.btn-primary:hover:not(:disabled) { background: var(--brand-hover); box-shadow: var(--elev-2); }
 .btn-primary:disabled {
   background: var(--figma-color-bg-secondary);
   color: var(--figma-color-text-disabled, #aaa);
   border: 1px solid var(--figma-color-border);
   cursor: not-allowed;
+  box-shadow: none;
 }
 .btn-secondary {
   background: transparent;
@@ -202,7 +210,7 @@ textarea { resize: vertical; }
 /* ── Info card → Figma-Property-Row (Fill, kein Border) ────────────────────── */
 .card {
   background: var(--figma-color-bg-secondary);
-  border-radius: var(--r); padding: var(--sp-2) var(--sp-3); margin-bottom: 10px;
+  border-radius: var(--r); padding: 10px var(--sp-3); margin-bottom: 10px;
 }
 .card-lbl {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -226,6 +234,7 @@ textarea { resize: vertical; }
   width: 26px; height: 26px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: var(--brand); color: #fff; border-radius: var(--rsm);
+  box-shadow: var(--elev-1);
 }
 .notice-head .notice-title { margin-bottom: 2px; }
 .notice-head .notice-body { margin-bottom: 0; }
@@ -280,12 +289,12 @@ textarea { resize: vertical; }
 /* ── Metric options ──────────────────────────────────────────────────────── */
 .m-opt {
   display: flex; align-items: flex-start; gap: var(--sp-2);
-  padding: 10px 12px;
+  padding: 11px 12px;
   border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); cursor: pointer; margin-bottom: 7px;
-  transition: border-color .12s, background .12s;
+  border-radius: var(--r); cursor: pointer; margin-bottom: 8px;
+  transition: border-color .12s, background .12s, box-shadow .12s;
 }
-.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); }
+.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); box-shadow: var(--elev-1); }
 .m-opt.m-selected {
   border-color: var(--brand); background: var(--brand-subtle);
   box-shadow: inset 0 0 0 1px var(--brand);
@@ -303,7 +312,7 @@ textarea { resize: vertical; }
   content: ''; width: 6px; height: 6px;
   border-radius: 50%; background: var(--brand);
 }
-.m-title { font-size: 12px; font-weight: 500; }
+.m-title { font-size: 12px; font-weight: 600; }
 .m-desc { font-size: 11px; color: var(--figma-color-text-secondary); margin-top: 1px; line-height: 1.4; }
 
 /* ── Advanced toggle ─────────────────────────────────────────────────────── */
@@ -391,9 +400,10 @@ code {
 
 /* ── Winner ──────────────────────────────────────────────────────────────── */
 .winner {
-  background: var(--figma-color-bg-success, #E6F4EA);
-  border-radius: var(--r); padding: 10px 12px;
-  font-size: 13px; color: var(--figma-color-text-success, #1b5e20);
+  background: var(--ok-subtle);
+  border: 1px solid var(--ok-border);
+  border-radius: var(--r); padding: 12px;
+  font-size: 13px; color: var(--figma-color-text-success, var(--ok));
   text-align: center; margin-bottom: 12px;
 }
 .winner strong { font-weight: 700; }
@@ -423,8 +433,8 @@ code {
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
   border-radius: var(--r);
-  padding: 10px 12px 10px 15px; margin-bottom: 6px; cursor: pointer;
-  transition: border-color .12s, background .12s;
+  padding: 10px 12px 10px 15px; margin-bottom: 8px; cursor: pointer;
+  transition: border-color .12s, background .12s, box-shadow .12s;
 }
 /* Farbiger Status-Akzent links — auf einen Blick scanbar */
 .test-card::before {
@@ -435,7 +445,7 @@ code {
 .test-card.st-active::before { background: var(--brand); }
 .test-card.st-done::before   { background: var(--ok); }
 .test-card.st-paused::before { background: var(--warn); }
-.test-card:hover { border-color: var(--brand); background: var(--figma-color-bg); }
+.test-card:hover { border-color: var(--brand); background: var(--figma-color-bg); box-shadow: var(--elev-1); }
 .test-card.paused { opacity: .6; }
 
 /* Ebene 1: Name + Status */
@@ -451,7 +461,7 @@ code {
 .tc-stats { display: flex; gap: var(--sp-3); align-items: center; flex: 1; min-width: 0; }
 .tc-stat { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--figma-color-text); }
 .tc-stat svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
-.tc-stat b { font-weight: 600; }
+.tc-stat b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .tc-stat.pos, .tc-stat.pos svg { color: var(--figma-color-text-success, var(--ok)); }
 .tc-stat.neg, .tc-stat.neg svg { color: var(--figma-color-text-danger, #dc2626); }
 .tc-stat.win, .tc-stat.win svg { color: var(--figma-color-text-success, var(--ok)); font-weight: 600; }
@@ -498,7 +508,7 @@ code {
 .ab-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
 .ab-metric { margin-bottom: 9px; }
 .ab-metric .ab-k { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--figma-color-text-secondary); }
-.ab-metric .ab-v { font-size: 16px; font-weight: 700; }
+.ab-metric .ab-v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
 .sig-line { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 4px; }
 
 /* ── Results: compact upgrade banner in native Figma warning style ────────── */
@@ -565,20 +575,37 @@ summary { padding: 4px 0; cursor: pointer; }
   </div>
   <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:28px 20px">
 
-    <!-- Brand mark -->
-    <div style="margin-bottom:24px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div style="width:26px;height:26px;background:var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
-            <rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/>
-            <rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/>
-          </svg>
-        </div>
-        <span style="font-size:13px;font-weight:700">Variante</span>
+    <!-- Brand hero -->
+    <div style="text-align:center;margin-bottom:22px">
+      <div style="width:42px;height:42px;background:var(--brand);border-radius:11px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:var(--elev-2)">
+        <svg width="22" height="22" fill="none" viewBox="0 0 14 14">
+          <rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/>
+          <rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/>
+        </svg>
       </div>
-      <div style="font-size:11px;color:var(--figma-color-text-secondary);line-height:1.6">
-        A/B testing from Figma — no dev needed.<br>
-        Pick an element, AI generates Variant B.
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">Variante</div>
+      <div style="font-size:11px;color:var(--figma-color-text-secondary);margin-top:3px">A/B testing from Figma — no dev needed</div>
+    </div>
+
+    <!-- How it works -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:var(--brand-subtle);color:var(--brand);display:flex;align-items:center;justify-content:center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>
+        </div>
+        <span style="font-size:11px;line-height:1.5">Pick any element on your <strong>live site</strong></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:var(--brand-subtle);color:var(--brand);display:flex;align-items:center;justify-content:center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        </div>
+        <span style="font-size:11px;line-height:1.5">AI turns your <strong>Figma design</strong> into Variant B</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:var(--ok-subtle);color:var(--figma-color-text-success, var(--ok));display:flex;align-items:center;justify-content:center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <span style="font-size:11px;line-height:1.5">Ship it &amp; <strong>measure the lift</strong> — no code</span>
       </div>
     </div>
 
@@ -837,7 +864,7 @@ summary { padding: 4px 0; cursor: pointer; }
       <div id="m-goal-chip-wrap"></div>
     </div>
 
-    <span class="lbl">What counts as a conversion?</span>
+    <span class="lbl">Conversion goal</span>
     <div role="radiogroup" aria-label="Conversion goal">
       <!-- Default metric: click on tested element -->
       <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()" role="radio" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDefaultMetric()}">
@@ -857,7 +884,7 @@ summary { padding: 4px 0; cursor: pointer; }
         </div>
       </div>
     </div>
-    <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
+    <div id="m-pick-wrap" style="display:none;margin:4px 0 10px 35px">
       <button class="btn btn-secondary btn-sm" onclick="openSite('goal')">Open in Chrome</button>
       <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:6px">
         <div class="spinner" aria-hidden="true"></div>
@@ -1249,12 +1276,12 @@ async function showDashboard() {
     const { tests } = await res.json()
     if (!tests || !tests.length) {
       list.innerHTML =
-        '<div style="text-align:center;padding:36px 16px 8px">' +
-          '<div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--figma-color-text-secondary)">' +
-            '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.58 16.5h12.85"/></svg>' +
+        '<div style="text-align:center;padding:40px 16px 8px">' +
+          '<div style="width:48px;height:48px;border-radius:50%;background:var(--figma-color-bg-secondary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--figma-color-text-secondary)">' +
+            '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.58 16.5h12.85"/></svg>' +
           '</div>' +
-          '<div style="font-size:12px;font-weight:600;margin-bottom:3px">No tests yet</div>' +
-          '<div style="font-size:11px;color:var(--figma-color-text-secondary);margin-bottom:10px">Run your first A/B test to see how a change performs.</div>' +
+          '<div style="font-size:13px;font-weight:600;margin-bottom:4px">No tests yet</div>' +
+          '<div style="font-size:11px;color:var(--figma-color-text-secondary);line-height:1.55;margin-bottom:12px">Run your first A/B test to see<br>how a change performs.</div>' +
           '<button class="btn btn-secondary btn-sm" onclick="newTest()" style="margin:0 auto">+ Create your first test</button>' +
         '</div>'
       return
