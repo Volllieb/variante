@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { PandaLogo } from '@/components/PandaLogo'
 import {
   Copy,
   Check,
@@ -121,9 +122,7 @@ export function DashboardClient({
               href="/"
               className="flex items-center gap-2 font-[family-name:var(--font-display)] text-[1rem] font-bold text-white transition-opacity hover:opacity-75"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-black text-white shadow-md shadow-fuchsia-500/25">
-                v
-              </span>
+              <PandaLogo className="h-7 w-7 rounded-lg p-1 shadow-md shadow-fuchsia-500/25" />
               variante
             </Link>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { PandaLogo } from '@/components/PandaLogo'
 import { Copy, Check, ArrowRight, Zap, Puzzle, ChevronDown } from 'lucide-react'
 
 export function OnboardingClient({
@@ -66,9 +67,7 @@ export function OnboardingClient({
               href="/"
               className="flex items-center gap-2 font-[family-name:var(--font-display)] text-base font-bold text-white transition-opacity hover:opacity-75"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-black text-white shadow-md shadow-fuchsia-500/25">
-                v
-              </span>
+              <PandaLogo className="h-7 w-7 rounded-lg p-1 shadow-md shadow-fuchsia-500/25" />
               variante
             </Link>
             <span className="text-xs text-white/35">{email}</span>
@@ -96,10 +95,10 @@ export function OnboardingClient({
               Welcome to Variante.{source === 'figma-plugin' ? ' You came from Figma — you\'re in the right place.' : ''}
             </p>
             <p className="mt-4 mx-auto max-w-sm text-sm leading-relaxed text-white/40">
-              Pick any element on your live website, describe the change in Figma, and AI generates Variant&nbsp;B.
+              Pick any element on your live site, redesign it in Figma, and let AI generate Variant&nbsp;B.
               One snippet in{' '}
               <code className="rounded bg-white/[0.08] px-1.5 py-0.5 font-mono text-[11px] text-fuchsia-200">&lt;head&gt;</code>{' '}
-              tracks conversions. No dev pipeline needed.
+              tracks conversions — no dev pipeline needed.
             </p>
           </div>
 

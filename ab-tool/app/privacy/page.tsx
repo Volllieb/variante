@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { PandaLogo } from '@/components/PandaLogo'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -36,9 +37,7 @@ export default function PrivacyPage() {
               href="/"
               className="flex cursor-pointer items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-white/50 transition-colors duration-200 hover:text-white"
             >
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[0.6rem] font-black text-white">
-                v
-              </span>
+              <PandaLogo className="h-5 w-5 rounded-md p-0.5" />
               variante
             </Link>
           </div>

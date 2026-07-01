@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 
 function signupSource(): string {
@@ -44,7 +45,7 @@ export default function SignupPage() {
       router.push('/onboarding' + qs)
       router.refresh()
     } else {
-      setInfo('Fast geschafft — bestätige deine E-Mail-Adresse, dann kannst du dich anmelden.')
+      setInfo('Almost there — confirm your email address, then you can log in.')
     }
   }
 
@@ -70,9 +71,7 @@ export default function SignupPage() {
             href="/"
             className="flex items-center gap-2 font-[family-name:var(--font-display)] text-xl font-bold text-white transition-opacity hover:opacity-75"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-black text-white shadow-lg shadow-fuchsia-500/30">
-              v
-            </span>
+            <PandaLogo className="h-8 w-8 rounded-xl p-1 shadow-lg shadow-fuchsia-500/30" />
             variante
           </Link>
         </div>
@@ -82,7 +81,7 @@ export default function SignupPage() {
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-white">
             Create account
           </h1>
-          <p className="mt-1 text-sm text-white/45">Start free with Variante.</p>
+          <p className="mt-1 text-sm text-white/45">Start free — no credit card, no dev required.</p>
 
           <form onSubmit={submit} className="mt-7 space-y-4">
             <div className="space-y-1.5">

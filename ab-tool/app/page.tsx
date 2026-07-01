@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Input } from '@/components/ui/input'
+import { PandaLogo } from '@/components/PandaLogo'
 import {
   ArrowRight,
   Check,
@@ -16,11 +17,11 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Variante — A/B Testing from Figma, No Dev Needed',
+  title: 'Variante — A/B Testing for AI-Built Sites, No Dev Needed',
   description:
-    'Pick an element on your live site, describe the change in Figma, AI generates Variant B. One snippet tracks conversions.',
+    'Pick an element on your live site, redesign it in Figma, and let AI generate Variant B. One snippet serves and tracks everything — built for WordPress, Shopify, Next.js, and AI-generated sites with no native A/B testing.',
   openGraph: {
-    title: 'Variante — A/B Testing from Figma',
+    title: 'Variante — A/B Testing for AI-Built Sites',
     description: 'Pick → Generate → Ship. A/B testing without a developer.',
     url: 'https://www.getvariante.com',
     siteName: 'Variante',
@@ -84,7 +85,7 @@ const features = [
   {
     icon: Globe,
     title: 'Works everywhere',
-    body: 'Webflow, Framer, Bolt, v0, or hand-coded HTML. If it loads in a browser, Variante can test it.',
+    body: 'WordPress, Shopify, Next.js, custom HTML, or AI exports from Bolt, v0, and Lovable. If it loads in a browser, Variante can test it.',
     size: 'lg',
   },
 ]
@@ -93,7 +94,7 @@ const useCases = [
   {
     icon: Paintbrush,
     title: 'Designer',
-    body: 'You build sites with AI tools (Bolt, v0, Webflow) and need A/B testing without pulling a dev into the loop.',
+    body: 'You ship client sites with AI tools like Bolt, v0, and Lovable, or hand-coded HTML — and need to A/B test them without pulling a dev into the loop.',
     outcome: 'More conversions on every export',
     gradient: 'from-violet-500/10 via-transparent to-transparent',
     border: 'group-hover:border-violet-400/30',
@@ -181,7 +182,7 @@ const faqs = [
   },
   {
     q: 'Which website builders does it work with?',
-    a: 'Anything that outputs HTML — Webflow, Framer, AI exports from Bolt or v0, and hand-coded sites. If it loads in a browser, Variante can test it.',
+    a: 'Any site without built-in A/B testing — WordPress, Shopify, Next.js/React, custom HTML, or AI exports from Bolt, v0, and Lovable. Already on Webflow or Framer? They ship solid native A/B tools, so you likely don\'t need us there.',
   },
   {
     q: 'How does the AI generate Variant B?',
@@ -247,9 +248,7 @@ export default async function HomePage({
               href="/"
               className="flex items-center gap-2.5 font-[family-name:var(--font-display)] text-[1.1rem] font-bold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[0.8rem] font-black text-white shadow-lg shadow-fuchsia-500/30">
-                v
-              </span>
+              <PandaLogo className="h-7 w-7 rounded-lg p-1 shadow-lg shadow-fuchsia-500/30" />
               variante
             </Link>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -282,9 +281,9 @@ export default async function HomePage({
               className="lp-rise mt-7 font-[family-name:var(--font-display)] text-[2.8rem] font-extrabold leading-[1.04] tracking-tight text-white sm:text-[4.5rem] sm:leading-[1.03]"
               style={{ animationDelay: '0.07s' }}
             >
-              Ship winning variants.
+              Your AI built the site.
               <br />
-              <span className="lp-gradient-text">No dev required.</span>
+              <span className="lp-gradient-text">Now test what wins.</span>
             </h1>
 
             <p
@@ -292,7 +291,8 @@ export default async function HomePage({
               style={{ animationDelay: '0.14s' }}
             >
               Pick an element on your live site, redesign it in Figma, and let AI
-              generate&nbsp;Variant&nbsp;B. One snippet serves and tracks everything.
+              generate&nbsp;Variant&nbsp;B. One snippet serves and tracks everything —
+              no native A/B testing required.
             </p>
 
             <div
@@ -437,7 +437,7 @@ export default async function HomePage({
         {/* ── For Whom — Asymmetric Bento ── */}
         <section className="px-6 py-20">
           <div className="mx-auto max-w-6xl">
-            <SectionLabel eyebrow="Who it's for" title="Built for modern designers & builders" />
+            <SectionLabel eyebrow="Who it's for" title="Built for builders shipping without a dev team" />
 
             <div className="mt-14 grid gap-4 md:grid-cols-3 md:grid-rows-2">
               {/* Designer — large */}
@@ -628,9 +628,7 @@ export default async function HomePage({
         <footer className="border-t border-white/[0.07] px-6 py-10">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-center text-sm text-white/40 sm:flex-row sm:text-left">
             <p className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[0.65rem] font-black text-white">
-                v
-              </span>
+              <PandaLogo className="h-6 w-6 rounded-md p-0.5" />
               variante — A/B testing from Figma. Made in Bavaria.
             </p>
             <div className="flex items-center gap-5">
