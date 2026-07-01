@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "variante-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "ab-tool",
+      "port": 3000
+    },
+    {
+      "name": "figma-ui-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "4173"],
+      "cwd": "figma-plugin/src",
+      "port": 4173
+    }
+  ]
+}

@@ -71,6 +71,9 @@ c:\dev\variante/
 │   ├── manifest.json
 │   └── src/ (code.ts + ui.html — Screen 1: Welcome statt Token-Eingabe)
 │
+├── z.future-features/      # ⚠️ Anfassen verboten — kommt nach Launch
+│   └── README.md
+│
 └── db/migrations/          # Supabase SQL (001–005)
 ```
 
