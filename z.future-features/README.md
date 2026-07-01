@@ -27,13 +27,26 @@
 Heute: 1 Conversion-Goal pro Test („Click auf Element X").
 Ziel: Beliebig viele Goals parallel („Click auf Button A" + „Click auf Button B" + „Page View /pricing").
 
+**Wichtige Unterscheidung — Goal-Typen, nicht nur Goal-Anzahl:**
+Nicht jeder Test optimiert auf einen Klick. Die zwei wichtigsten Hebel im CRO:
+
+| Hebel | Metrik | Goal-Typ |
+|---|---|---|
+| **CVR** (Conversion Rate) | „Kauft der Besucher?" | Klick-Goal (CTA, Button, Link) |
+| **AOV** (Average Order Value) | „Wie viel gibt er aus?" | Revenue-Goal (€-Wert aus Checkout) |
+| **RPV** (Revenue per Visitor) | CVR × AOV — der kombinierte Hebel | Beide Goals parallel |
+
+Praktisches Beispiel: Variante B zeigt höhere Preise aber weniger Käufe → CVR sinkt, AOV steigt. Ob das mehr Geld bringt, sagt nur RPV. Heute kann variante das nicht abbilden — nur „wurde geklickt? ja/nein".
+
+**Revenue-Goals brauchen:** Event-Payload mit `value` (z. B. `{ goal: "purchase", value: 49.90 }`), `ab.js` muss numerische Werte durchreichen, Stats müssen Mean/Variance pro Goal-Typ rechnen (nicht nur Binomial).
+
 **Betroffene Schichten:**
-- `db/migrations/` — `goals` aus JSONB statt einzelner Spalte
-- `ab.js` — mehrere `data-goal`-Attribute auswerten
-- `POST /api/event` — Goal-Matching gegen Array
-- `getExperimentStats` — Stats pro Goal
-- `significance.ts` — pro Goal rechnen
-- `ResultsClient.tsx` — Goal-Selector + Multi-Tabelle
+- `db/migrations/` — `goals` aus JSONB mit `type: "click" | "revenue" | "pageview"` statt einzelner Spalte
+- `ab.js` — mehrere `data-goal`-Attribute auswerten, `value`-Prop supporten
+- `POST /api/event` — Goal-Matching gegen Array, numerische Values validieren
+- `getExperimentStats` — Stats pro Goal, t-Test für Revenue (nicht nur χ² für Clicks)
+- `significance.ts` — pro Goal rechnen, Goal-Typ-abhängiger Test
+- `ResultsClient.tsx` — Goal-Selector + Multi-Tabelle, RPV-Spalte
 
 **Ansatz:** `goals JSONB` in `tests`-Tabelle, RPC `get_experiment_stats` gibt Goal-Array zurück.
 
@@ -72,6 +85,7 @@ Ziel: Beliebig viele Goals parallel („Click auf Button A" + „Click auf Butto
 
 ---
 
+## 🤖 MCP-Server für Coding-Agents
 
 **Status:** Idee, kein Scope definiert.
 
@@ -122,8 +136,31 @@ Variante als MCP-Server für Coding-Agents (Copilot, Cursor, Claude Code):
 - **Visuelle Vorschau im Dashboard** (Side-by-Side iframe)
 - **Slack-Integration** („Test X ist significant")
 - **Public Test Gallery** (User veröffentlichen anonymisierte Test-Ergebnisse → Social Proof)
-- **AI Copy-Variationen** (Nicht nur Design, auch Text alternieren)
+- **AI Copy-Variationen** (Nicht nur Design, auch Text alternieren → Schlüssel für Stufe 2 der Plattform-Evolution)
 - **Auto-Stop** (Test stoppt automatisch bei Significance)
+
+---
+
+## 🔮 Produkt-Evolution — vom Figma-Plugin zur CRO-Plattform
+
+**Status:** Strategische Denkarbeit, kein Scope.
+
+Das Figma-Plugin ist nicht das Produkt — es ist die Tür. Langfristige Evolution in drei Stufen:
+
+### Stufe 1: Designer-natives A/B-Testing (heute)
+Figma → KI-generierte HTML-Variante → Snippet. Der Designer-Workflow ist USP und Burggraben.
+
+### Stufe 2: Vom Design-Tool zur CRO-Plattform
+Die Features aus dieser Datei machen den Shift:
+- **Revenue-Goals & Multi-Metriken** → Nicht nur „wurde geklickt", sondern Revenue, AOV, RPV — vollwertiges CRO
+- **AI Copy-Variationen** → Headlines, Pricing-Text, CTAs variieren ohne Figma
+- **Auto-Stop bei Significance** → Automatisierung à la Enterprise-Tools
+- **Public Test Gallery** → Social Proof + Benchmarking (Netzwerkeffekt jenseits von Figma)
+
+### Stufe 3: Plattform für jeden Website-Betreiber ohne Dev
+Wenn Varianten auch ohne Figma erstellbar sind (Upload, AI-only, Copy-Variation), ist die Zielgruppe nicht mehr nur Designer — sondern **jeder Shop-Betreiber, Gründer, Marketer ohne Dev-Team**. Figma bleibt der PLG-Kanal, aber das Produkt wird breiter.
+
+**Die Kernfrage (nicht jetzt entscheiden):** Lifestyle-Business (50 Pro-Kunden, 500–1.000 €/Mo passiv) oder Venture-Path (Plattform-Skalierung)? Die Features in diesem Dokument funktionieren für beide Pfade — aber ab Stufe 2 divergieren die Anforderungen an Team, Funding und Go-to-Market.
 
 ---
 
