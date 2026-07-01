@@ -44,7 +44,7 @@ body {
   flex-shrink: 0;
 }
 .back-btn {
-  width: 22px; height: 22px;
+  width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
   border: none; background: none; cursor: pointer;
   color: var(--figma-color-text-secondary);
@@ -155,6 +155,9 @@ textarea { resize: vertical; }
   color: var(--figma-color-text);
   box-shadow: 0 1px 2px rgba(0,0,0,.12);
 }
+/* Compact icon-only variant (e.g. light/dark preview toggle) — fixed width, not stretched */
+.seg-icon { display: inline-flex; }
+.seg-icon .seg-btn { flex: 0 0 auto; width: 28px; padding: 5px 0; display: flex; align-items: center; justify-content: center; }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
@@ -299,7 +302,8 @@ textarea { resize: vertical; }
 .adv-section { display: none; padding: 0 2px; }
 .adv-section.open { display: block; }
 .adv-group { margin-bottom: 12px; }
-.adv-group-title { font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+.adv-group-title { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+.adv-group-title svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
 .adv-group-desc { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 6px; line-height: 1.4; }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
@@ -310,14 +314,14 @@ textarea { resize: vertical; }
 .loading-center {
   justify-content: center; padding: 20px 0;
 }
-@keyframes dot { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
-.dots span {
-  display: inline-block; width: 3px; height: 3px; border-radius: 50%;
-  background: currentColor; margin: 0 1px;
-  animation: dot 1.2s infinite;
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 13px; height: 13px; flex-shrink: 0;
+  border: 2px solid var(--figma-color-border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
 }
-.dots span:nth-child(2) { animation-delay: .2s; }
-.dots span:nth-child(3) { animation-delay: .4s; }
 
 /* ── Divider ─────────────────────────────────────────────────────────────── */
 .divider { height: 1px; background: var(--figma-color-border); margin: 12px 0; }
@@ -431,10 +435,10 @@ code {
 .tc-stat.neg, .tc-stat.neg svg { color: var(--figma-color-text-danger, #dc2626); }
 .tc-stat.win, .tc-stat.win svg { color: var(--figma-color-text-success, var(--ok)); font-weight: 600; }
 
-.tc-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity .12s; }
+.tc-actions { display: flex; gap: 8px; flex-shrink: 0; opacity: 0; transition: opacity .12s; }
 .test-card:hover .tc-actions { opacity: 1; }
 .icon-btn {
-  width: 22px; height: 22px; font-size: 12px;
+  width: 28px; height: 28px; font-size: 12px;
   border: 1px solid var(--figma-color-border); border-radius: var(--rsm);
   background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -446,8 +450,7 @@ code {
 .prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
 .prev-lbl  { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 3px; }
 .frame      { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #fff; color: #111; overflow: auto; max-height: 180px; }
-.frame-dark { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #111; color: #fff; overflow: auto; max-height: 180px; }
-.frame img, .frame-dark img { max-width: 100%; display: block; }
+.frame img { max-width: 100%; display: block; }
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
 .err { color: var(--figma-color-text-danger, #dc2626); font-size: 11px; min-height: 15px; padding: 3px 0; }
@@ -510,6 +513,13 @@ code {
      SCREEN –1 · Connect / Welcome
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-connect" class="screen active">
+  <div class="hdr" id="connect-hdr" style="display:none">
+    <button class="back-btn" onclick="showWelcomeMode()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+  </div>
   <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:28px 20px">
 
     <!-- Brand mark -->
@@ -539,12 +549,11 @@ code {
     <!-- Token mode -->
     <div id="c-token" style="display:none">
       <div style="font-size:12px;font-weight:600;margin-bottom:3px">Connect your account</div>
-      <div style="font-size:11px;color:var(--figma-color-text-secondary);margin-bottom:14px">Paste the API token from your dashboard.</div>
-      <span class="lbl">API Token</span>
+      <div class="hint" style="margin-bottom:14px">Paste the API token from your dashboard.</div>
+      <label class="lbl" for="connect-token">API Token</label>
       <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" style="margin-bottom:8px"/>
       <datalist id="dl-token"></datalist>
       <button class="btn btn-primary" onclick="saveToken()" style="margin-bottom:6px">Connect →</button>
-      <button class="btn btn-secondary" onclick="showWelcomeMode()">← Back</button>
       <div class="err" id="e-connect" style="margin-top:6px"></div>
     </div>
 
@@ -557,14 +566,14 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-dashboard" class="screen">
   <div class="hdr" style="padding:12px 12px 0;justify-content:flex-end">
-    <button class="icon-btn" onclick="showDashboard()" title="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
-    <button class="icon-btn" onclick="goToTokenMode()" title="Account" style="margin-left:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
+    <button class="icon-btn" onclick="showDashboard()" title="Refresh" aria-label="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account" style="margin-left:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
   </div>
   <div class="body">
     <div class="upgrade-banner" id="upgrade-banner-dash">
       <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
       <div class="ub-sub">Upgrade to Pro for unlimited tests and AI generations.</div>
-      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
+      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
     </div>
     <div id="dash-list"></div>
   </div>
@@ -579,7 +588,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-setup" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -592,12 +601,22 @@ code {
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div class="hint">Name the test and enter the page URL you want to run it on.</div>
+    <div class="hint">What are you testing, and where does it live?</div>
 
-    <span class="lbl">Test name</span>
-    <input id="f-name" placeholder="e.g. Hero CTA" oninput="onNameInput()" style="margin-bottom:12px"/>
+    <label class="lbl" for="f-name">Test name</label>
+    <div class="input-wrap has-prefix" style="margin-bottom:2px">
+      <div class="input-icon-left">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 7 4 4 20 4 20 7"/>
+          <line x1="9" x2="15" y1="20" y2="20"/>
+          <line x1="12" x2="12" y1="4" y2="20"/>
+        </svg>
+      </div>
+      <input id="f-name" placeholder="e.g. Hero CTA" oninput="onNameInput()"/>
+    </div>
+    <div class="field-err" id="name-err"></div>
 
-    <span class="lbl">Site URL</span>
+    <label class="lbl" for="f-url" style="margin-top:10px">Site URL</label>
     <div class="input-wrap has-prefix" style="margin-bottom:0">
       <div class="input-icon-left">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -606,15 +625,20 @@ code {
           <path d="M2 12h20"/>
         </svg>
       </div>
-      <input id="f-url" placeholder="https://your-site.com/pricing" oninput="validateUrlInput()" list="dl-url"/>
+      <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url"/>
       <datalist id="dl-url"></datalist>
-
     </div>
+    <div id="url-hint" style="font-size:10px;color:var(--figma-color-text-secondary);margin:4px 0 0">The exact page this test will run on.</div>
     <div class="field-err" id="url-err"></div>
+
+    <div class="loading-row" id="l-setup" style="display:none;margin-top:4px">
+      <div class="spinner"></div>
+      Creating test…
+    </div>
     <div class="err" id="e-setup"></div>
   </div>
   <div class="ftr">
-    <button id="btn-create" class="btn btn-primary" onclick="createTest()" disabled>Continue →</button>
+    <button id="btn-create" class="btn btn-primary" onclick="createTest()">Continue →</button>
   </div>
 </div>
 
@@ -624,7 +648,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-element" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -675,7 +699,7 @@ code {
     <!-- Waiting state -->
     <div id="el-waiting">
       <div class="loading-row">
-        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="spinner"></div>
         <span>Waiting for element selection in browser…</span>
       </div>
       <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:8px">↗ Open site again</button>
@@ -701,7 +725,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-design" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -719,7 +743,7 @@ code {
     <!-- Waiting -->
     <div id="d-waiting">
       <div class="loading-row">
-        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="spinner"></div>
         <span id="d-info">Click a layer in Figma to select it…</span>
       </div>
     </div>
@@ -732,13 +756,13 @@ code {
     </div>
 
     <div class="loading-row" id="l-design" style="display:none;margin-top:8px">
-      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="spinner"></div>
       Exporting layer…
     </div>
     <div class="err" id="e-design" style="margin-top:4px"></div>
   </div>
   <div class="ftr">
-    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Weiter zur Metrik →</button>
+    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Goal →</button>
   </div>
 </div>
 
@@ -748,7 +772,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-metric" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -761,28 +785,14 @@ code {
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div class="hint" id="m-hint">What counts as a conversion for this test?</div>
+    <div class="hint" id="m-hint" style="display:none"></div>
 
     <!-- Default metric: click on tested element -->
     <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()">
       <div class="m-radio"></div>
       <div>
         <div class="m-title">Click on the tested element</div>
-        <div class="m-desc" id="m-default-desc">Counts when a visitor clicks the element picked in Step 2.</div>
-      </div>
-    </div>
-
-    <!-- Candidates (other page elements) -->
-    <div id="m-candidates-section" style="display:none">
-      <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()">
-        <div class="m-radio"></div>
-        <div>
-          <div class="m-title">Another element on the page</div>
-          <div class="m-desc">Count clicks on a different element as the goal.</div>
-        </div>
-      </div>
-      <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
-        <select id="m-goalsel" onchange="onMetricSelect()"></select>
+        <div class="m-desc" id="m-default-desc" style="display:none"></div>
       </div>
     </div>
 
@@ -794,18 +804,43 @@ code {
       Advanced settings
     </div>
     <div class="adv-section" id="adv-section">
+      <!-- Candidates (other page elements) — a secondary path; forced open when the default goal isn't available -->
+      <div class="adv-group" id="m-candidates-section" style="display:none">
+        <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()">
+          <div class="m-radio"></div>
+          <div>
+            <div class="m-title">Another element on the page</div>
+            <div class="m-desc">A different element as the goal.</div>
+          </div>
+        </div>
+        <div id="m-pick-wrap" style="display:none;margin:-3px 0 8px 24px">
+          <select id="m-goalsel" onchange="onMetricSelect()" aria-label="Goal element"></select>
+        </div>
+      </div>
+
+      <div class="divider" style="margin:10px 0"></div>
+
       <div class="adv-group">
-        <div class="adv-group-title">Pick goal in browser</div>
-        <div class="adv-group-desc">Use the Browser Extension to click any element on your live site as the conversion goal.</div>
+        <div class="adv-group-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.1 12 6"/><path d="m5.1 8-2.9-.8"/><path d="m6 12-1.9 2"/><path d="M7.2 2.2 8 5.1"/><path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"/></svg>
+          Pick goal in browser
+        </div>
+        <div class="adv-group-desc">Click any element on your live site.</div>
         <button class="btn btn-secondary btn-sm" onclick="openSite('goal')" style="margin-bottom:6px">Open in Chrome</button>
         <div class="loading-row" id="m-waiting" style="display:none">
-          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="spinner"></div>
           Waiting for goal selection…
         </div>
       </div>
+
+      <div class="divider" style="margin:10px 0"></div>
+
       <div class="adv-group">
-        <div class="adv-group-title">Custom CSS selector</div>
-        <div class="adv-group-desc">Enter any CSS selector as the conversion event trigger.</div>
+        <label class="adv-group-title" for="m-custom-selector">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
+          Custom CSS selector
+        </label>
+        <div class="adv-group-desc">Target any element by selector.</div>
         <div class="input-wrap has-prefix" style="margin-bottom:6px">
           <div class="input-icon-left">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -838,7 +873,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-generate" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -852,7 +887,7 @@ code {
   </div>
   <div class="body">
     <div class="loading-row loading-center" id="l-generate" style="display:none">
-      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="spinner"></div>
       <span>AI generating Variant B… (up to 30s)</span>
     </div>
 
@@ -863,21 +898,29 @@ code {
         <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
       </div>
 
-      <!-- Single reference + toggleable variant preview -->
-      <div class="prev-grid" style="grid-template-columns:1fr">
-        <div>
-          <div class="prev-lbl" style="margin-bottom:4px">Figma reference</div>
-          <div class="frame" id="gen-ref"></div>
+      <!-- Live preview: switch between rendered Original (A) and Variant (B) -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="seg seg-icon" id="gen-variant-toggle" data-variant="b">
+          <button type="button" class="seg-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" title="Original (A)">A</button>
+          <button type="button" class="seg-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" title="Variant (B)">B</button>
+        </div>
+        <div class="seg seg-icon" id="gen-bg-toggle" data-bg="light">
+          <button type="button" class="seg-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" title="Light background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </button>
+          <button type="button" class="seg-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" title="Dark background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-      <div class="divider"></div>
-      <span class="lbl" style="margin-bottom:4px">Variant B</span>
-      <div class="seg" id="gen-bg-toggle" data-bg="light" style="margin-bottom:6px">
-        <button type="button" class="seg-btn on" data-val="light" onclick="setBg('light')">Light BG</button>
-        <button type="button" class="seg-btn" data-val="dark" onclick="setBg('dark')">Dark BG</button>
-      </div>
       <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background .2s"></div>
-      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin:6px 0 10px">Preview without site CSS — close approximation, not pixel-perfect.</div>
+      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin:6px 0 10px">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+
+      <!-- Figma reference screenshot (collapsed) -->
+      <details style="margin-bottom:12px">
+        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show Figma reference</summary>
+        <div class="frame" id="gen-ref" style="margin-top:6px"></div>
+      </details>
 
       <!-- HTML source (collapsed) -->
       <details style="margin-bottom:12px">
@@ -888,7 +931,7 @@ code {
       <div class="divider"></div>
 
       <!-- Refine controls -->
-      <span class="lbl">Refine (optional)</span>
+      <label class="lbl" for="gen-feedback">Refine (optional)</label>
       <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback" style="margin-bottom:8px"></textarea>
       <span class="lbl">Scope — what may the AI change?</span>
       <div class="seg" id="gen-scope" data-scope="all" style="margin-bottom:8px">
@@ -913,7 +956,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-snippet" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -959,7 +1002,7 @@ code {
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-results" class="screen">
   <div class="hdr">
-    <button class="back-btn" onclick="navBack()">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"/>
       </svg>
@@ -974,12 +1017,12 @@ code {
 
     <div class="upgrade-banner ub-compact" id="upgrade-banner-results">
       <span class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</span>
-      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade →</button>
+      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
     </div>
 
     <div id="res-nodata" class="card" style="display:none">
       <div class="card-val" style="font-weight:400;font-size:11px">Waiting for first visitors.</div>
-      <button class="link-btn" onclick="navPush('snippet'); buildSnippet()">→ Snippet-Anleitung</button>
+      <button class="link-btn" onclick="navPush('snippet'); buildSnippet()">→ View snippet instructions</button>
     </div>
 
     <div class="ab-table">
@@ -1001,6 +1044,17 @@ code {
 
     <div id="res-preview-section" style="display:none">
       <div class="divider"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span class="lbl" style="margin-bottom:0">Live preview</span>
+        <div class="seg seg-icon" id="res-bg-toggle" data-bg="light">
+          <button type="button" class="seg-btn on" data-val="light" onclick="setResBg('light')" aria-label="Light background" title="Light background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </button>
+          <button type="button" class="seg-btn" data-val="dark" onclick="setResBg('dark')" aria-label="Dark background" title="Dark background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
+      </div>
       <div class="prev-grid">
         <div>
           <div class="prev-lbl">A (Original)</div>
@@ -1010,10 +1064,6 @@ code {
           <div class="prev-lbl">B (Variant)</div>
           <div class="frame-preview" id="res-preview-b"></div>
         </div>
-      </div>
-      <div class="seg" id="res-bg-toggle" data-bg="light" style="margin-top:6px">
-        <button type="button" class="seg-btn on" data-val="light" onclick="setResBg('light')">Light BG</button>
-        <button type="button" class="seg-btn" data-val="dark" onclick="setResBg('dark')">Dark BG</button>
       </div>
     </div>
 
@@ -1035,6 +1085,7 @@ const state = {
   frameId: '', screenshot: '', frameContent: null, html: ''
 }
 let generating = false // ponytail: guard gegen Race generate/refine
+let previewVariant = 'b' // which side (A/B) the Screen-5 live preview currently renders
 let elTimer = null, resTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
@@ -1132,6 +1183,7 @@ function createAccount() {
 function showTokenMode() {
   $('c-welcome').style.display = 'none'
   $('c-token').style.display = 'block'
+  $('connect-hdr').style.display = 'flex'
   populateDatalist('dl-token', 'token')
   ;(function retry(n) {
     var f = $('connect-token')
@@ -1142,6 +1194,7 @@ function showWelcomeMode() {
   if (API_TOKEN) { showDashboard(); return }
   $('c-token').style.display = 'none'
   $('c-welcome').style.display = 'block'
+  $('connect-hdr').style.display = 'none'
 }
 function goToTokenMode() { showTokenMode(); go('connect') }
 function saveToken() {
@@ -1160,13 +1213,21 @@ async function showDashboard() {
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
-  list.innerHTML = '<div class="loading-row" style="padding:16px 0"><div class="dots"><span></span><span></span><span></span></div>Loading tests…</div>'
+  list.innerHTML = '<div class="loading-row loading-center" style="padding:32px 0"><div class="spinner"></div>Loading tests…</div>'
   try {
     const res = await afetch(API + '/api/tests')
     if (!res.ok) throw new Error('API ' + res.status)
     const { tests } = await res.json()
     if (!tests || !tests.length) {
-      list.innerHTML = '<div style="font-size:11px;color:var(--figma-color-text-secondary);padding:20px 0 0;text-align:center">No tests yet — create one.</div>'
+      list.innerHTML =
+        '<div style="text-align:center;padding:36px 16px 8px">' +
+          '<div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--figma-color-text-secondary)">' +
+            '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.58 16.5h12.85"/></svg>' +
+          '</div>' +
+          '<div style="font-size:12px;font-weight:600;margin-bottom:3px">No tests yet</div>' +
+          '<div style="font-size:11px;color:var(--figma-color-text-secondary);margin-bottom:10px">Run your first A/B test to see how a change performs.</div>' +
+          '<button class="link-btn" onclick="newTest()">+ Create your first test</button>' +
+        '</div>'
       return
     }
     const groups = {}
@@ -1186,7 +1247,9 @@ async function showDashboard() {
       groups[url].forEach(t => list.appendChild(renderTestCard(t)))
     })
   } catch (e) {
-    list.innerHTML = '<div class="err" style="padding:8px 0">' + e.message + '</div>'
+    list.innerHTML = '<div class="err" style="display:flex;align-items:center;gap:5px;padding:8px 0">' +
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>' +
+      escapeHtml(e.message) + '</div>'
   }
 }
 function fmtNum(n) { return (n || 0).toLocaleString('en-US') }
@@ -1238,8 +1301,8 @@ function renderTestCard(t) {
         signal +
       '</div>' +
       '<div class="tc-actions">' +
-        '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseBtn + '</button>' +
-        '<button class="icon-btn" title="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
+        '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" aria-label="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseBtn + '</button>' +
+        '<button class="icon-btn" title="Delete" aria-label="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
       '</div>' +
     '</div>'
   card.onclick = () => resumeTest(t.id)
@@ -1258,36 +1321,32 @@ function normalizeUrl(raw) {
     return u
   } catch (_) { return null }
 }
-function onNameInput() { validateUrlInput() }
-function validateUrlInput() {
-  const urlEl  = $('f-url')
-  const errEl  = $('url-err')
-  const btn    = $('btn-create')
-  const name   = ($('f-name').value || '').trim()
-  const v      = (urlEl.value || '').trim()
-
-  urlEl.classList.remove('err')
-  errEl.textContent = ''
-  errEl.classList.remove('vis')
-  btn.disabled = true
-
-  if (!v) return
-  const ok = normalizeUrl(v)
-  if (ok) {
-    btn.disabled = false
-  } else {
-    urlEl.classList.add('err')
-    errEl.textContent = 'Enter a valid URL with a domain (e.g. yoursite.com)'
-    errEl.classList.add('vis')
-  }
+// Field errors only appear when the user tries to continue — not while typing.
+// Typing just clears a previously shown error for that field.
+function clearFieldError(inputId, errId) {
+  $(inputId).classList.remove('err')
+  $(errId).textContent = ''
+  $(errId).classList.remove('vis')
+  const hint = $(inputId === 'f-url' ? 'url-hint' : '')
+  if (hint) hint.style.display = ''
 }
+function setFieldError(inputId, errId, msg) {
+  $(inputId).classList.add('err')
+  $(errId).textContent = msg
+  $(errId).classList.add('vis')
+  const hint = $(inputId === 'f-url' ? 'url-hint' : '')
+  if (hint) hint.style.display = 'none'
+}
+function onNameInput() { clearFieldError('f-name', 'name-err') }
+function onUrlInput() { clearFieldError('f-url', 'url-err') }
 
 function newTest() {
   state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
   state.originalHtml = ''; state.goalCandidates = []
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
+  previewVariant = 'b'
   $('f-name').value = ''; $('f-url').value = ''
-  $('url-err').textContent = ''; $('url-err').classList.remove('vis')
+  clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
   $('btn-el-next').disabled = true
@@ -1301,14 +1360,23 @@ function newTest() {
     var f = $('f-name')
     if (f && document.activeElement !== f) { f.focus(); if (document.activeElement !== f && n < 10) setTimeout(retry, 100, n + 1) }
   })(0)
-  validateUrlInput()
 }
 
 async function createTest() {
-  const name = ($('f-name').value || '').trim()
-  const url  = normalizeUrl($('f-url').value)
-  if (!name) { err('setup', 'Test name is required.'); return }
-  if (!url)  { err('setup', 'Please enter a valid URL.'); return }
+  const nameEl = $('f-name'), urlEl = $('f-url')
+  const name = (nameEl.value || '').trim()
+  const rawUrl = (urlEl.value || '').trim()
+  const url = normalizeUrl(rawUrl)
+
+  clearFieldError('f-name', 'name-err')
+  clearFieldError('f-url', 'url-err')
+
+  if (!name) { setFieldError('f-name', 'name-err', 'Give your test a name.'); nameEl.focus(); return }
+  if (!rawUrl) { setFieldError('f-url', 'url-err', 'Enter the page URL you want to test.'); urlEl.focus(); return }
+  if (!url) { setFieldError('f-url', 'url-err', 'Enter a valid URL with a domain (e.g. yoursite.com)'); urlEl.focus(); return }
+
+  const btn = $('btn-create')
+  btn.disabled = true
   const lSetup = $('l-setup'); if (lSetup) lSetup.style.display = 'flex'
   try {
     const res = await afetch(API + '/api/tests', {
@@ -1337,6 +1405,7 @@ async function createTest() {
   } catch (e) {
     err('setup', e.message)
   } finally {
+    btn.disabled = false
     if (lSetup) lSetup.style.display = 'none'
   }
 }
@@ -1577,7 +1646,7 @@ async function enterMetric() {
   $('m-goal-display').style.display = 'none'
   $('m-pick-opt').classList.remove('m-selected')
   $('m-pick-wrap').style.display = 'none'
-  $('m-hint').textContent = 'What counts as a conversion for this test?'
+  $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
   $('adv-toggle').classList.remove('open')
   $('adv-section').classList.remove('open')
   $('m-custom-selector').value = ''
@@ -1600,17 +1669,21 @@ async function enterMetric() {
     $('m-default-opt').classList.add('m-selected')
     $('m-default-opt').classList.remove('m-disabled')
     $('m-default-opt').style.opacity = ''
-    $('m-default-desc').textContent = 'Counts when a visitor clicks the tested element.'
+    $('m-default-desc').textContent = ''; $('m-default-desc').style.display = 'none'
     $('m-generate').disabled = false
   } else {
-    // Default unavailable — tested element is not clickable
+    // Default unavailable — tested element is not clickable.
+    // The "pick another element" control lives in Advanced, but it's now
+    // the only way forward — force that section open instead of hiding it.
     state.goal = ''
     $('m-default-opt').classList.remove('m-selected')
     $('m-default-opt').classList.add('m-disabled')
-    $('m-default-desc').textContent = 'Not available — the tested element is not directly clickable (e.g., a heading or paragraph).'
-    $('m-hint').textContent = 'The tested element is not clickable. Pick a different conversion goal.'
+    $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
+    $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
     $('m-generate').disabled = true
     $('m-candidates-section').style.display = 'block'
+    $('adv-toggle').classList.add('open')
+    $('adv-section').classList.add('open')
   }
 }
 
@@ -1652,24 +1725,42 @@ function setScope(val) {
   el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
 }
 
-function fillPreviews(html) {
+function buildPreviewDoc(html) {
   const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
-  const doc = css ? '<html><head>' + css + '</head><body>' + (html || '') + '</body></html>' : (html || '')
-  renderVariantPreview(doc)
+  return css ? '<html><head>' + css + '</head><body>' + (html || '') + '</body></html>' : (html || '')
 }
-function renderVariantPreview(doc) {
+// Reset to Variant B (the side that just changed) and re-render.
+function fillPreviews() {
+  previewVariant = 'b'
+  const t = $('gen-variant-toggle')
+  if (t) {
+    t.setAttribute('data-variant', 'b')
+    t.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === 'b'))
+  }
+  renderVariantPreview()
+}
+function renderVariantPreview() {
   const bg = ($('gen-bg-toggle') || {}).getAttribute('data-bg') || 'light'
   const bgColor = bg === 'dark' ? '#1a1a1a' : '#fff'
-  $('gen-variant-preview').style.background = bgColor
-  $('gen-variant-preview').innerHTML = '<iframe srcdoc="' + escapeHtml(doc) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
+  const html = previewVariant === 'a' ? state.originalHtml : state.html
+  const el = $('gen-variant-preview')
+  el.style.background = bgColor
+  el.innerHTML = html
+    ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html)) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
+    : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">No preview available.</div>'
 }
 function setBg(val) {
   const el = $('gen-bg-toggle'); if (!el) return
   el.setAttribute('data-bg', val)
   el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
-  const css = state.siteCss ? '<style>' + state.siteCss + '</style>' : ''
-  const doc = css ? '<html><head>' + css + '</head><body>' + (state.html || '') + '</body></html>' : (state.html || '')
-  renderVariantPreview(doc)
+  renderVariantPreview()
+}
+function setPreviewVariant(val) {
+  previewVariant = val
+  const el = $('gen-variant-toggle'); if (!el) return
+  el.setAttribute('data-variant', val)
+  el.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.getAttribute('data-val') === val))
+  renderVariantPreview()
 }
 
 async function generate() {
@@ -1697,7 +1788,7 @@ async function generate() {
     state.html = data.html
     if (data.siteCss) state.siteCss = data.siteCss
     $('gen-ref').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '" style="max-width:100%;display:block">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
-    fillPreviews(state.html)
+    fillPreviews()
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
     $('gen-ftr').style.display = 'block'
@@ -1736,7 +1827,7 @@ async function refine() {
     const data = await res.json()
     state.html = data.html
     if (data.siteCss) state.siteCss = data.siteCss
-    fillPreviews(state.html)
+    fillPreviews()
     $('gen-html').textContent = state.html || ''
     $('gen-feedback').value = ''
     $('gen-result').style.display = 'block'
