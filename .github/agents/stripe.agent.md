@@ -14,7 +14,7 @@ Du bist der Stripe-Billing-Agent für Variante. Dein Scope: alles rund um Stripe
 | `lib/stripe.ts` | Stripe-Client (`new Stripe(key)`), Null-Safe bei fehlendem Key |
 | `app/api/billing/checkout/route.ts` | `POST` — Erzeugt Stripe-Checkout-Session für Pro-Abo. Legt Customer an, speichert `stripe_customer_id` am Profile |
 | `app/api/billing/portal/route.ts` | `POST` — Öffnet Stripe Customer Portal (Abo verwalten/kündigen) |
-| `app/api/stripe/webhook/route.ts` | `POST` — Verarbeitet `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Schreibt `profiles.plan` / `plan_status` |
+| `app/api/stripe/webhook/route.ts` | `POST` — Verarbeitet `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Schreibt `profiles.plan` / `plan_status`. Payment-Status-Check, Idempotenz via `stripe_webhook_events`. |
 | `lib/auth.ts` | Liest `profiles.plan` für API-Autorisierung (free/pro) |
 
 ## Env-Variablen (`.env.local` + Vercel)
@@ -34,9 +34,11 @@ Du bist der Stripe-Billing-Agent für Variante. Dein Scope: alles rund um Stripe
 
 ## Webhook-Events
 
-- `checkout.session.completed` → `plan = 'pro'`, `plan_status = 'active'`
-- `customer.subscription.updated` → `plan = active/trialing ? 'pro' : 'free'`, `plan_status` aktuell
-- `customer.subscription.deleted` → dito (status wird z. B. `canceled`)
+- `checkout.session.completed` → Nur bei `payment_status = paid|no_payment_required`: `plan = 'pro'`, `plan_status = 'active'`. Async Payment Methods (SEPA etc.) werden abgewiesen.
+- `customer.subscription.created` → Wie updated: Status-Prüfung, `plan` entsprechend setzen.
+- `customer.subscription.updated` → `active|trialing` → `pro`; `past_due|incomplete|paused` → `pro` (nicht degradieren); `canceled|unpaid` → `free`.
+- `customer.subscription.deleted` → `plan = 'free'` (Status ist dann `canceled`).
+- Idempotenz: Events werden in `stripe_webhook_events` registriert, Retries ignoriert.
 
 ## Lokal testen
 
