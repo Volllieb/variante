@@ -871,9 +871,6 @@ code {
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div id="gen-scope-hint" style="display:none;font-size:11px;color:var(--figma-color-text-secondary);margin-bottom:12px;text-align:center">
-      <span class="badge ba" style="margin-right:5px">AI scope</span> <span id="gen-scope-label"></span>
-    </div>
     <div class="loading-row loading-center" id="l-generate" style="display:none">
       <div class="spinner"></div>
       <span>AI generating Variant B… (up to 30s)</span>
@@ -1676,40 +1673,13 @@ function stopMetricPoll() {
 }
 function goGenerate() {
   if ($('m-generate').disabled) return
-  // Show scope hint if text-only change detected
-  const scope = getScope()
-  const hint = $('gen-scope-hint')
-  const label = $('gen-scope-label')
-  if (hint && scope !== 'all') {
-    hint.style.display = 'block'
-    if (label) label.textContent = 'Text-only change — AI focuses on copywriting'
-  } else if (hint) {
-    hint.style.display = 'none'
-  }
   navPush('generate'); generate()
 }
 
-// ── Scope detection ──────────────────────────────────────────────────────────
-// ponytail: compare Variant A (browser HTML) vs Variant B (Figma extractNode).
-// Text-only diff → 'text' (higher temperature for creative copy). Otherwise 'all'.
-function collText(n) {
-  if (!n) return ''
-  let t = n.text ? ' ' + n.text : ''
-  if (n.children) for (const c of n.children) t += collText(c)
-  return t.replace(/\s+/g, ' ').trim()
-}
-function getScope() {
-  const htmlA = state.originalHtml
-  const nodeB = state.frameContent
-  if (!htmlA || !nodeB) return 'all'
-  let textA = ''
-  try {
-    const doc = new DOMParser().parseFromString(htmlA, 'text/html')
-    textA = (doc.body.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase()
-  } catch (_) {}
-  const textB = collText(nodeB).toLowerCase()
-  return (textA !== textB && textB.length > 0) ? 'text' : 'all'
-}
+// ── Screen 5: AI generation ──────────────────────────────────────────────────
+// Scope is always 'all' — like Claude, the user just describes what to change
+// in the Refine box instead of pre-restricting the AI via a separate toggle.
+function getScope() { return 'all' }
 
 // bg forces the iframe's OWN background — setting it only on the outer
 // container is invisible, since the iframe document defaults to a white

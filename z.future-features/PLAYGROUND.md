@@ -99,8 +99,11 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 | **Figma Plugin** (kostenlos) | Läuft in Figmas Sidebar, steuert den Wizard | Wird simuliert (360×560-Box) |
 | **Variante Browser Extension** (Chrome, kostenlos) | Klickt Elemente auf deiner Live-Site an — das Plugin selbst kann nicht auf Browser-Tabs zugreifen | Übersprungen (Element ist vorausgewählt) |
 | **Variante Account** (Free) | Speichert deine Tests, tracked Conversions | Übersprungen (kein Login nötig) |
+| **Site-CSS für Variant-A-Vorschau** | Das vollständige Site-CSS (inkl. `:root`-Variablen) wird von der Extension erfasst, ist aber **erst nach der KI-Generierung** im Plugin verfügbar. Auf Screen 2 (Pick Element) erscheint Variant A nur als Text-Chip („BUTTON „Get Started""), nicht als gerenderte Vorschau. | Übersprungen (Element ist vorausgewählt, Vorschau nicht nötig) |
 
 > **Ohne Extension kein Element-Picking.** Das Figma-Plugin läuft in Figmas Sandbox — es kann deine Browser-Tabs nicht sehen. Die Extension ist die Brücke: einmal installiert, funktioniert sie mit jedem Plugin-Update weiter.
+>
+> **Variant-A-Vorschau erst nach Generation.** Das `siteCss` wird vom Server erst in der `/api/generate`-Response mitgeliefert. Vorher (Screen 2) sieht der Nutzer nur einen Text-Chip mit Element-Typ und Label — kein gerendertes HTML mit Original-CSS. Das ist eine bekannte UX-Lücke: Der Nutzer kann erst nach der KI-Generierung visuell prüfen, ob das richtige Element gepickt wurde.
 
 ---
 
@@ -218,6 +221,8 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 > **Ohne Extension kein Picking.** Das Plugin selbst läuft in Figmas Sandbox und kann nicht auf deine Browser-Tabs zugreifen. Die Extension ist die Brücke. Einmal installiert, funktioniert sie mit jedem Plugin-Update weiter.
 >
 > **In dieser Demo** haben wir einen „Get Started"-Button auf `getvariante.com` vorausgewählt. Keine Extension nötig.
+>
+> **Im echten Plugin** erscheint Variant A an dieser Stelle nur als Text-Chip — nicht als gerenderte Vorschau mit Site-CSS. Das CSS der Originalseite wird erst mit der `/api/generate`-Response ans Plugin geliefert (Screen 5). Die visuelle Variant-A-Vorschau gibt's also erst nach der KI-Generierung.
 >
 > Click **„Continue"** to see the Variant B you'd select in Figma.
 
