@@ -9,35 +9,41 @@
   --brand-hover:    #0B87E0;
   --brand-subtle:   rgba(13,153,255,.08);
   --brand-border:   rgba(13,153,255,.25);
-  /* Halbtransparente Status-Farben: funktionieren auf Light- UND Dark-Canvas */
   --ok:             #14AE5C;
   --ok-subtle:      rgba(20,174,92,.10);
   --ok-border:      rgba(20,174,92,.30);
-  --warn:           #B36B00;
-  --warn-subtle:    rgba(245,158,11,.14);
-  --warn-border:    rgba(245,158,11,.35);
-  --r:   6px;
-  --rsm: 4px;
-  /* Spacing-Skala (4px-Raster) */
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
-  /* Typo-Skala (bestehende De-facto-Größen) */
-  --fs-xs: 10px; --fs-sm: 11px; --fs-md: 12px; --fs-lg: 13px;
-  /* Motion */
-  --dur-fast: 120ms; --dur-med: 200ms; --ease-out: cubic-bezier(.2,.6,.2,1);
-  /* Elevation */
-  --elev-1: 0 1px 2px rgba(0,0,0,.12);
-  --elev-2: 0 2px 8px rgba(0,0,0,.16);
+  --warn:           #E59E0B;
+  --warn-subtle:    rgba(229,158,11,.12);
+  --warn-border:    rgba(229,158,11,.30);
+  --danger:         #dc2626;
+  --danger-subtle:  rgba(220,38,38,.08);
+  --r:   8px;
+  --rsm: 5px;
+  --rxs: 3px;
+  /* Spacing — generous 4px grid */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+  /* Typo — bolder hierarchy */
+  --fs-xs: 10px; --fs-sm: 11px; --fs-md: 12px; --fs-lg: 13px; --fs-xl: 16px; --fs-2xl: 20px;
+  --fw-med: 500; --fw-semibold: 600; --fw-bold: 700;
+  /* Motion — smooth & spring */
+  --dur-fast: 150ms; --dur-med: 250ms; --dur-slow: 400ms;
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  /* Elevation — 3 levels */
+  --elev-0: 0 0 0 1px rgba(0,0,0,.06);
+  --elev-1: 0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+  --elev-2: 0 4px 16px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.05);
+  --elev-3: 0 8px 30px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.06);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 12px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--fs-md);
   color: var(--figma-color-text);
   background: var(--figma-color-bg);
-  display: flex;
-  flex-direction: column;
-  height: 560px;
-  overflow: hidden;
+  display: flex; flex-direction: column;
+  height: 560px; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ── Screen shell ──────────────────────────────────────────────────────── */
@@ -46,195 +52,198 @@ body {
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .hdr {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 14px 0;
-  flex-shrink: 0;
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 14px 14px 0; flex-shrink: 0;
 }
 .back-btn {
   width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
   border: none; background: none; cursor: pointer;
   color: var(--figma-color-text-secondary);
-  border-radius: var(--rsm);
-  flex-shrink: 0;
-  padding: 0;
+  border-radius: var(--rsm); flex-shrink: 0; padding: 0;
+  transition: background var(--dur-fast), color var(--dur-fast);
 }
-.back-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
+.back-btn:hover { background: var(--figma-color-bg-secondary); color: var(--figma-color-text); }
 .back-btn svg { display: block; }
-.hdr-title { flex: 1; font-size: 13px; font-weight: 600; letter-spacing: -.1px; }
-.hdr-step  {
+.hdr-title { flex: 1; font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: -.2px; line-height: 1.3; }
+.hdr-step {
   flex-shrink: 0;
-  font-size: 10px; font-weight: 600;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
   color: var(--figma-color-text-secondary);
   background: var(--figma-color-bg-secondary);
-  padding: 3px 8px; border-radius: 999px;
+  padding: 2px 8px; border-radius: 999px;
 }
 
 /* ── Progress bar ──────────────────────────────────────────────────────── */
 .step-bar {
-  display: flex; gap: var(--sp-1);
-  padding: 10px 14px 0;
-  flex-shrink: 0;
+  display: flex; gap: 4px;
+  padding: 10px 14px 0; flex-shrink: 0;
 }
 .step-dot {
   flex: 1; height: 3px; border-radius: 2px;
   background: var(--figma-color-border);
-  transition: background .25s;
+  transition: background var(--dur-med) var(--ease-out);
 }
 .step-dot.on { background: var(--brand); }
 
 /* ── Content / scroll area ─────────────────────────────────────────────── */
 .body {
   flex: 1; overflow-y: auto;
-  padding: 16px 14px 8px;
+  padding: 18px 14px 10px;
 }
 .body::-webkit-scrollbar { width: 4px; }
 .body::-webkit-scrollbar-thumb { background: var(--figma-color-border); border-radius: 2px; }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 .ftr {
-  padding: 12px 14px;
+  padding: 14px;
   flex-shrink: 0;
   border-top: 1px solid var(--figma-color-border);
+  display: flex; flex-direction: column; gap: var(--sp-2);
 }
 
 /* ── Typography ─────────────────────────────────────────────────────────── */
 .lbl {
   display: block;
-  font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .5px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  text-transform: uppercase; letter-spacing: .6px;
   color: var(--figma-color-text-secondary);
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 .hint {
-  font-size: 11px; color: var(--figma-color-text-secondary);
-  line-height: 1.6; margin-bottom: 16px;
+  font-size: var(--fs-sm); color: var(--figma-color-text-secondary);
+  line-height: 1.6; margin-bottom: 18px;
 }
-.section-gap { height: 12px; }
+.hint-strong {
+  font-size: var(--fs-md); font-weight: var(--fw-med);
+  color: var(--figma-color-text); line-height: 1.5;
+  margin-bottom: 14px;
+  text-align: center;
+  padding: 12px 16px;
+  background: var(--figma-color-bg-secondary);
+  border-radius: var(--r);
+}
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
-/* Figma-natives Feld: grauer Fill, kein Ruhe-Border. Border erst bei Fokus. */
 input, select, textarea {
-  width: 100%; padding: 8px 10px;
+  width: 100%; padding: 9px 11px;
   border: 1px solid transparent; border-radius: var(--r);
-  font-size: 12px; font-family: inherit;
+  font-size: var(--fs-md); font-family: inherit;
   color: var(--figma-color-text); background: var(--figma-color-bg-secondary);
-  outline: none; transition: border-color .15s, box-shadow .15s, background .15s;
+  outline: none; transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast);
 }
 input:hover, select:hover, textarea:hover { border-color: var(--figma-color-border); }
 input:focus, select:focus, textarea:focus {
-  border-color: var(--brand);
-  background: var(--figma-color-bg);
-  box-shadow: 0 0 0 2px var(--brand-subtle);
+  border-color: var(--brand); background: var(--figma-color-bg);
+  box-shadow: 0 0 0 3px var(--brand-subtle);
 }
-input.err { border-color: var(--figma-color-text-danger, #dc2626); box-shadow: 0 0 0 2px rgba(220,38,38,.22); }
+input.err { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-subtle); }
 textarea { resize: vertical; }
 
-.input-wrap { position: relative; margin-bottom: 4px; }
-/* Rechtes Icon (z.B. Validierungs-Checkmark) */
-.input-wrap input { padding-right: 30px; }
+.input-wrap { position: relative; margin-bottom: var(--sp-1); }
+.input-wrap input { padding-right: 32px; }
 .input-icon {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; display: none;
 }
-/* Linkes Prefix-Icon (Figma W/H-Feld-Stil) */
-.input-wrap.has-prefix input { padding-left: 30px; }
+.input-wrap.has-prefix input { padding-left: 32px; }
 .input-icon-left {
-  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; display: flex;
   color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary));
 }
 
 .field-err {
-  font-size: 11px; font-weight: 600; color: var(--figma-color-text-danger, #dc2626);
-  min-height: 0; display: none; padding: 6px 10px; margin-top: 2px;
-  background: rgba(220,38,38,.08);
-  border: 1px solid rgba(220,38,38,.22);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--danger);
+  display: none; padding: 6px 10px; margin-top: 4px;
+  background: var(--danger-subtle);
+  border: 1px solid rgba(220,38,38,.25);
   border-radius: var(--rsm);
 }
 .field-err.vis { display: block; }
 
-/* ── Segmented control (Figma-Toggle-Leiste) ───────────────────────────────── */
-.seg {
-  display: flex; gap: 2px; padding: 2px;
-  background: var(--figma-color-bg-secondary);
-  border-radius: var(--r);
-}
-.seg-btn {
-  flex: 1; padding: 5px 6px; min-width: 28px; min-height: 24px;
-  border: none; background: none; cursor: pointer;
-  font-family: inherit; font-size: 11px; font-weight: 500;
-  color: var(--figma-color-text-secondary);
-  border-radius: var(--rsm); transition: background .12s, color .12s;
-}
-.seg-btn:hover { color: var(--figma-color-text); }
-.seg-btn.on {
-  background: var(--figma-color-bg);
-  color: var(--figma-color-text);
-  box-shadow: var(--elev-1);
-}
-/* Compact icon-only variant (e.g. light/dark preview toggle) — fixed width, not stretched */
-.seg-icon { display: inline-flex; }
-.seg-icon .seg-btn { flex: 0 0 auto; width: 28px; padding: 5px 0; display: flex; align-items: center; justify-content: center; }
-
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
-  width: 100%; padding: 8px 14px;
-  min-height: 32px;
+  width: 100%; padding: 9px 16px;
+  min-height: 34px;
   border-radius: var(--r);
-  font-size: var(--fs-md); font-weight: 600;
+  font-size: var(--fs-md); font-weight: var(--fw-semibold);
   cursor: pointer; border: none; font-family: inherit;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  transition: background .12s, opacity .12s, color .12s, transform var(--dur-fast) var(--ease-out);
-  line-height: 1;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background var(--dur-fast), opacity var(--dur-fast), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
+  line-height: 1.2;
 }
-.btn:active:not(:disabled) { transform: translateY(0.5px); }
-.btn + .btn { margin-top: 8px; }
+.btn:active:not(:disabled) { transform: scale(.98); }
 .btn-primary { background: var(--brand); color: #fff; box-shadow: var(--elev-1); }
 .btn-primary:hover:not(:disabled) { background: var(--brand-hover); box-shadow: var(--elev-2); }
 .btn-primary:disabled {
-  background: var(--figma-color-bg-secondary);
-  color: var(--figma-color-text-disabled, #aaa);
-  border: 1px solid var(--figma-color-border);
-  cursor: not-allowed;
-  box-shadow: none;
+  background: var(--figma-color-bg-secondary); color: var(--figma-color-text-disabled, #aaa);
+  border: 1px solid var(--figma-color-border); cursor: not-allowed; box-shadow: none;
 }
 .btn-secondary {
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
   color: var(--figma-color-text);
 }
-.btn-secondary:hover { background: var(--figma-color-bg-hover); }
-.btn-secondary:disabled { opacity: .6; cursor: not-allowed; }
-.btn-sm { width: auto; padding: 5px 10px; min-height: 26px; font-size: var(--fs-sm); }
+.btn-secondary:hover:not(:disabled) { background: var(--figma-color-bg-hover); border-color: var(--figma-color-text-secondary); }
+.btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-sm { width: auto; padding: 6px 12px; min-height: 28px; font-size: var(--fs-sm); font-weight: var(--fw-med); }
+.btn-ghost {
+  background: transparent; border: none; color: var(--figma-color-text-secondary);
+  font-weight: var(--fw-med); width: auto; min-height: auto; padding: 4px 8px;
+}
+.btn-ghost:hover { color: var(--figma-color-text); background: var(--figma-color-bg-secondary); }
+.btn-icon-left { justify-content: flex-start; }
 
-/* ── Info card → Figma-Property-Row (Fill, kein Border) ────────────────────── */
+/* ── Toggle switch (replaces segmented control) ────────────────────────── */
+.toggle-row {
+  display: flex; align-items: center; gap: var(--sp-2);
+  background: var(--figma-color-bg-secondary);
+  border-radius: var(--r); padding: 3px;
+}
+.toggle-btn {
+  flex: 1; padding: 5px 10px; min-height: 26px;
+  border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: var(--fs-sm); font-weight: var(--fw-med);
+  color: var(--figma-color-text-secondary);
+  border-radius: calc(var(--r) - 2px);
+  transition: background var(--dur-fast), color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.toggle-btn:hover { color: var(--figma-color-text); }
+.toggle-btn.on {
+  background: var(--figma-color-bg); color: var(--figma-color-text);
+  box-shadow: var(--elev-1);
+}
+.toggle-icon { display: inline-flex; }
+.toggle-icon .toggle-btn { flex: 0 0 auto; width: 30px; padding: 5px 0; display: flex; align-items: center; justify-content: center; }
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
 .card {
   background: var(--figma-color-bg-secondary);
-  border-radius: var(--r); padding: 10px var(--sp-3); margin-bottom: 10px;
+  border-radius: var(--r); padding: 12px 14px; margin-bottom: 10px;
+  border: 1px solid transparent;
 }
 .card-lbl {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .4px; color: var(--figma-color-text-secondary); margin-bottom: 3px;
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
+  letter-spacing: .5px; color: var(--figma-color-text-secondary); margin-bottom: 4px;
 }
-.card-val { font-size: 12px; font-weight: 500; }
+.card-val { font-size: var(--fs-md); font-weight: var(--fw-med); line-height: 1.4; }
 
 /* ── Notice ──────────────────────────────────────────────────────────────── */
 .notice {
-  border-radius: var(--r); padding: 9px 11px; margin-bottom: 12px;
+  border-radius: var(--r); padding: 12px 14px; margin-bottom: 14px;
 }
 .notice-blue { background: var(--brand-subtle); border: 1px solid var(--brand-border); }
 .notice-green { background: var(--ok-subtle); border: 1px solid var(--ok-border); }
-.notice-title { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+.notice-amber { background: var(--warn-subtle); border: 1px solid var(--warn-border); }
+.notice-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 4px; }
 .notice-blue .notice-title { color: var(--brand); }
 .notice-green .notice-title { color: var(--figma-color-text-success, var(--ok)); }
-.notice-body { font-size: 11px; line-height: 1.5; margin-bottom: 8px; color: var(--figma-color-text-secondary); }
-/* Notice mit Icon-Badge + voller CTA (z.B. Chrome-Extension-Hinweis) */
-.notice-head { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 10px; }
+.notice-amber .notice-title { color: var(--figma-color-text-warning, var(--warn)); }
+.notice-body { font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 10px; color: var(--figma-color-text-secondary); }
+.notice-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
 .notice-icon {
-  width: 26px; height: 26px; flex-shrink: 0;
+  width: 28px; height: 28px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: var(--brand); color: #fff; border-radius: var(--rsm);
   box-shadow: var(--elev-1);
@@ -245,110 +254,102 @@ textarea { resize: vertical; }
 /* ── Element chip ────────────────────────────────────────────────────────── */
 .el-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 10px;
+  padding: 7px 12px;
   background: var(--brand-subtle);
   border: 1px solid var(--brand-border);
   border-radius: var(--r);
-  font-size: 12px; color: var(--brand); font-weight: 500;
+  font-size: var(--fs-md); color: var(--brand); font-weight: var(--fw-med);
   max-width: 100%; overflow: hidden;
 }
 .el-chip-type {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .3px; opacity: .7; flex-shrink: 0;
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
+  letter-spacing: .4px; opacity: .75; flex-shrink: 0;
 }
-.el-chip-text {
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.el-chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Test-ID row ─────────────────────────────────────────────────────────── */
 .testid-row {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: 8px;
   background: var(--figma-color-bg-secondary);
-  border-radius: var(--r); padding: 6px 10px; margin-bottom: 12px;
-  cursor: pointer; transition: background .12s;
+  border-radius: var(--r); padding: 8px 12px; margin-bottom: 14px;
+  cursor: pointer; transition: background var(--dur-fast);
 }
 .testid-row:hover { background: var(--figma-color-bg-hover); }
 .testid-lbl {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .4px; color: var(--figma-color-text-secondary); flex-shrink: 0;
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
+  letter-spacing: .5px; color: var(--figma-color-text-secondary); flex-shrink: 0;
 }
 .testid-val {
-  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--fs-sm); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   color: var(--figma-color-text); flex: 1;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.testid-copy {
-  flex-shrink: 0; display: flex; align-items: center;
-  color: var(--figma-color-text-secondary);
-}
+.testid-copy { flex-shrink: 0; display: flex; align-items: center; color: var(--figma-color-text-secondary); }
 .testid-row:hover .testid-copy { color: var(--brand); }
-.testid-copied {
-  flex-shrink: 0; font-size: 10px; font-weight: 700;
-  color: var(--figma-color-text-success, var(--ok)); display: none;
-}
+.testid-copied { flex-shrink: 0; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--ok); display: none; }
 .testid-row.copied .testid-copy { display: none; }
 .testid-row.copied .testid-copied { display: inline; }
 
-/* ── Metric options ──────────────────────────────────────────────────────── */
+/* ── Metric options (radio cards) ───────────────────────────────────────── */
 .m-opt {
-  display: flex; align-items: flex-start; gap: var(--sp-2);
-  padding: 11px 12px;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 14px 14px;
   border: 1px solid var(--figma-color-border);
   border-radius: var(--r); cursor: pointer; margin-bottom: 8px;
-  transition: border-color .12s, background .12s, box-shadow .12s;
+  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
 }
-.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); box-shadow: var(--elev-1); }
+.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); }
 .m-opt.m-selected {
   border-color: var(--brand); background: var(--brand-subtle);
-  box-shadow: inset 0 0 0 1px var(--brand);
+  box-shadow: 0 0 0 1px var(--brand);
+}
+.m-opt.m-highlight {
+  border-color: var(--warn); background: var(--warn-subtle);
 }
 .m-opt.m-disabled { opacity: .45; cursor: not-allowed; }
 .m-radio {
-  width: 14px; height: 14px; border-radius: 50%;
-  border: 1.5px solid var(--figma-color-border);
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--figma-color-border);
   margin-top: 1px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  transition: border-color .12s;
+  transition: border-color var(--dur-fast);
 }
-.m-selected .m-radio { border-color: var(--brand); }
-.m-selected .m-radio::after {
-  content: ''; width: 6px; height: 6px;
+.m-selected .m-radio, .m-highlight .m-radio { border-color: var(--brand); }
+.m-selected .m-radio::after, .m-highlight .m-radio::after {
+  content: ''; width: 8px; height: 8px;
   border-radius: 50%; background: var(--brand);
 }
-.m-title { font-size: 12px; font-weight: 600; }
-.m-desc { font-size: 11px; color: var(--figma-color-text-secondary); margin-top: 1px; line-height: 1.4; }
+.m-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+.m-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-top: 2px; line-height: 1.4; }
 
 /* ── Advanced toggle ─────────────────────────────────────────────────────── */
 .adv-toggle {
   display: flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 500; color: var(--figma-color-text-secondary);
-  cursor: pointer; margin-bottom: 8px; user-select: none; margin-top: 4px;
-  /* Button-Reset: Element ist ein <button> für Tastatur-Bedienbarkeit */
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--figma-color-text-secondary);
+  cursor: pointer; margin-bottom: 10px; user-select: none; margin-top: 6px;
   background: none; border: none; padding: 0;
   font-family: inherit; width: 100%; text-align: left;
   border-radius: var(--rsm); min-height: 24px;
 }
 .adv-toggle:hover { color: var(--figma-color-text); }
-.adv-toggle .adv-arrow { transition: transform .18s; }
+.adv-toggle .adv-arrow { transition: transform var(--dur-fast) var(--ease-out); }
 .adv-toggle.open .adv-arrow { transform: rotate(90deg); }
-.adv-section { display: none; padding: 0 2px; }
+.adv-section { display: none; padding: 0 2px 4px; }
 .adv-section.open { display: block; }
-.adv-group { margin-bottom: 12px; }
-.adv-group-title { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+.adv-group { margin-bottom: 14px; }
+.adv-group-title { display: flex; align-items: center; gap: 5px; font-size: var(--fs-sm); font-weight: var(--fw-med); margin-bottom: 4px; }
 .adv-group-title svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
-.adv-group-desc { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 6px; line-height: 1.4; }
+.adv-group-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-bottom: 8px; line-height: 1.4; }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
   display: flex; align-items: center; gap: var(--sp-2);
-  font-size: 11px; color: var(--figma-color-text-secondary); padding: 8px 0;
+  font-size: var(--fs-sm); color: var(--figma-color-text-secondary); padding: 8px 0;
 }
-.loading-center {
-  justify-content: center; padding: 20px 0;
-}
+.loading-center { justify-content: center; padding: 24px 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
-  width: 13px; height: 13px; flex-shrink: 0;
+  width: 14px; height: 14px; flex-shrink: 0;
   border: 2px solid var(--figma-color-border);
   border-top-color: var(--brand);
   border-radius: 50%;
@@ -356,13 +357,13 @@ textarea { resize: vertical; }
 }
 
 /* ── Divider ─────────────────────────────────────────────────────────────── */
-.divider { height: 1px; background: var(--figma-color-border); margin: 12px 0; }
+.divider { height: 1px; background: var(--figma-color-border); margin: 14px 0; }
 
 /* ── Badges ──────────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center;
-  padding: 1px 6px; border-radius: 3px; font-size: var(--fs-xs); font-weight: 700;
-  text-transform: uppercase; letter-spacing: .2px; line-height: 1.6;
+  padding: 1px 7px; border-radius: var(--rxs); font-size: var(--fs-xs); font-weight: var(--fw-bold);
+  text-transform: uppercase; letter-spacing: .3px; line-height: 1.7;
 }
 .ba { background: var(--brand-subtle); color: var(--brand); }
 .bb { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
@@ -375,92 +376,87 @@ textarea { resize: vertical; }
 pre {
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); padding: 10px;
-  font-size: 10px; font-family: 'SF Mono', 'Fira Code', monospace;
+  border-radius: var(--r); padding: 10px 12px;
+  font-size: var(--fs-xs); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   white-space: pre-wrap; word-break: break-all;
-  max-height: 150px; overflow-y: auto; margin-bottom: 10px;
+  max-height: 140px; overflow-y: auto; margin-bottom: 10px;
   line-height: 1.5;
 }
 code {
   background: var(--figma-color-bg-secondary);
-  padding: 1px 4px; border-radius: 3px; font-size: 11px;
+  padding: 1px 5px; border-radius: var(--rxs); font-size: var(--fs-sm);
 }
 
 /* ── Upgrade banner ──────────────────────────────────────────────────────── */
 .upgrade-banner {
   display: none;
   background: var(--warn-subtle); border: 1px solid var(--warn-border);
-  border-radius: var(--r); padding: 11px; margin-bottom: 12px; text-align: center;
+  border-radius: var(--r); padding: 13px 14px; margin-bottom: 14px; text-align: center;
 }
-.ub-title { font-size: 13px; font-weight: 700; color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 4px; }
-.ub-sub   { font-size: 11px; color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 10px; }
+.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 5px; }
+.ub-sub   { font-size: var(--fs-sm); color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 12px; line-height: 1.4; }
 .btn-upgrade {
-  background: var(--warn); color: #fff; padding: 7px 14px;
-  border-radius: var(--r); font-size: 12px; font-weight: 600;
-  cursor: pointer; border: none;
+  background: var(--warn); color: #fff; padding: 8px 16px;
+  border-radius: var(--r); font-size: var(--fs-md); font-weight: var(--fw-semibold);
+  cursor: pointer; border: none; transition: background var(--dur-fast);
 }
-.btn-upgrade:hover { background: #B36B00; }
+.btn-upgrade:hover { background: #c78a0a; }
 
 /* ── Winner ──────────────────────────────────────────────────────────────── */
 .winner {
   background: var(--ok-subtle);
   border: 1px solid var(--ok-border);
-  border-radius: var(--r); padding: 12px;
-  font-size: 13px; color: var(--figma-color-text-success, var(--ok));
-  text-align: center; margin-bottom: 12px;
+  border-radius: var(--r); padding: 14px;
+  font-size: var(--fs-lg); color: var(--figma-color-text-success, var(--ok));
+  text-align: center; margin-bottom: 14px;
 }
-.winner strong { font-weight: 700; }
+.winner strong { font-weight: var(--fw-bold); }
 
 /* ── Dashboard: Test-Karte ───────────────────────────────────────────────── */
 .test-card {
   position: relative;
   background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
+  border: 1px solid transparent;
   border-radius: var(--r);
-  padding: 10px 10px 10px 14px; margin-bottom: 6px; cursor: pointer;
-  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
-  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+  display: flex; flex-direction: column; gap: 7px;
+  box-shadow: var(--elev-0);
 }
-/* Status-Akzent links */
 .test-card::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; border-radius: var(--r) 0 0 var(--r);
+  content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 3px; border-radius: 0 2px 2px 0;
   background: var(--figma-color-border);
+  transition: background var(--dur-fast);
 }
 .test-card.st-active::before { background: var(--brand); }
 .test-card.st-done::before   { background: var(--ok); }
 .test-card.st-paused::before { background: var(--warn); }
-.test-card:hover, .test-card:focus-within { border-color: var(--brand); background: var(--figma-color-bg); box-shadow: var(--elev-2); }
-.test-card.deleting { opacity: .35; pointer-events: none; }
+.test-card:hover { border-color: var(--figma-color-border); background: var(--figma-color-bg); box-shadow: var(--elev-2); transform: translateY(-1px); }
+.test-card.deleting { opacity: .35; pointer-events: none; transform: scale(.98); }
 
-/* Row 1: name + domain + status */
-.tc-row1 { display: flex; align-items: center; gap: 6px; }
+.tc-row1 { display: flex; align-items: center; gap: 8px; }
 .tc-name {
   flex: 1; min-width: 0;
-  font-weight: 600; font-size: 12px; color: var(--figma-color-text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  line-height: 1.3;
+  font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--figma-color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3;
 }
 .tc-domain {
-  font-size: 10px; color: var(--figma-color-text-secondary);
-  max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  flex-shrink: 1;
+  font-size: var(--fs-xs); color: var(--figma-color-text-secondary);
+  max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1;
 }
-
-/* Row 2: stats + actions */
-.tc-row2 { display: flex; align-items: center; gap: 6px; }
-.tc-stats { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0; }
-.tc-stat { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--figma-color-text-secondary); }
+.tc-row2 { display: flex; align-items: center; gap: 8px; }
+.tc-stats { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
+.tc-stat { display: flex; align-items: center; gap: 3px; font-size: var(--fs-sm); color: var(--figma-color-text-secondary); }
 .tc-stat svg { flex-shrink: 0; }
-.tc-stat b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--figma-color-text); }
+.tc-stat b { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; color: var(--figma-color-text); }
 .tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--figma-color-text-success, var(--ok)); }
-.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--figma-color-text-danger, #dc2626); }
-.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--figma-color-text-success, var(--ok)); font-weight: 700; }
+.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--danger); }
+.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--figma-color-text-success, var(--ok)); font-weight: var(--fw-bold); }
 
-/* Always-visible icon actions (no hover dependency — critical for Figma plugin) */
 .tc-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .icon-btn {
-  width: 26px; height: 26px;
+  width: 28px; height: 28px;
   border: none; border-radius: var(--rsm);
   background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -468,135 +464,164 @@ code {
   transition: background var(--dur-fast), color var(--dur-fast);
 }
 .icon-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
-.icon-btn.danger:hover { background: rgba(220,38,38,.12); color: var(--figma-color-text-danger, #dc2626); }
+.icon-btn.danger:hover { background: rgba(220,38,38,.12); color: var(--danger); }
 
 /* ── Dashboard: empty state ──────────────────────────────────────────────── */
 .dash-empty {
-  text-align: center; padding: 48px 16px 12px;
+  text-align: center; padding: 56px 20px 16px;
   display: flex; flex-direction: column; align-items: center;
 }
 .dash-empty-icon {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 56px; height: 56px; border-radius: 50%;
   background: var(--figma-color-bg-secondary);
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px; color: var(--figma-color-text-secondary);
+  margin-bottom: 16px; color: var(--figma-color-text-secondary);
+  box-shadow: var(--elev-0);
 }
-.dash-empty h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.dash-empty p  { font-size: 11px; color: var(--figma-color-text-secondary); line-height: 1.5; margin-bottom: 14px; }
+.dash-empty h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 6px; }
+.dash-empty p  { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); line-height: 1.6; margin-bottom: 16px; }
 
-/* ── Dashboard: section header (site group) ──────────────────────────────── */
+/* ── Dashboard: section header ───────────────────────────────────────────── */
 .dash-section {
-  display: flex; align-items: center; gap: 6px;
-  margin: 14px 0 6px;
-  padding: 0 2px;
+  display: flex; align-items: center; gap: 7px;
+  margin: 16px 0 8px; padding: 0 2px;
 }
-.dash-section:first-of-type { margin-top: 2px; }
+.dash-section:first-of-type { margin-top: 4px; }
 .dash-section-icon { display: flex; flex-shrink: 0; color: var(--figma-color-text-secondary); }
 .dash-section-label {
-  font-size: 11px; font-weight: 600; color: var(--figma-color-text-secondary);
-  text-transform: uppercase; letter-spacing: .35px;
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary);
+  text-transform: uppercase; letter-spacing: .4px;
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dash-section-count {
-  font-size: 10px; font-weight: 600; color: var(--figma-color-text-secondary);
-  background: var(--figma-color-bg-secondary); border-radius: 8px; padding: 1px 7px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary);
+  background: var(--figma-color-bg-secondary); border-radius: 8px; padding: 1px 8px;
 }
 
 /* ── Previews ────────────────────────────────────────────────────────────── */
-.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
-.prev-lbl  { font-size: 10px; color: var(--figma-color-text-secondary); margin-bottom: 3px; }
-.frame      { border: 1px solid var(--figma-color-border); border-radius: var(--r); padding: 7px; background: #fff; color: #111; overflow: auto; max-height: 180px; }
-.frame img { max-width: 100%; display: block; }
-
-/* ── Error / ok text ─────────────────────────────────────────────────────── */
-.err { color: var(--figma-color-text-danger, #dc2626); font-size: 11px; min-height: 15px; padding: 3px 0; }
-.ok  { color: var(--figma-color-text-success, var(--ok)); font-size: 11px; padding: 3px 0; }
-.copy-ok { display: none; }
-.copy-ok.vis { display: inline; }
-
-/* ── Results: header status + link button ────────────────────────────────── */
-.hdr-sub { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-.hdr-sub .hdr-title { flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.link-btn {
-  background: none; border: none; padding: 6px 0 0; cursor: pointer;
-  font-size: 11px; color: var(--brand);
+.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.prev-lbl  { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px; }
+.frame      {
+  border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  background: #fff; color: #111; overflow: hidden;
 }
-.link-btn:hover { text-decoration: underline; }
-.refresh-note { font-size: 11px; color: var(--figma-color-text-secondary); text-align: center; padding: 8px 0 0; }
-
-/* ── Results: A/B stats as a two-column table with a center divider ────────── */
-.ab-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.ab-col { padding: 10px 12px; background: var(--figma-color-bg-secondary); border-radius: var(--r); }
-.ab-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
-.ab-metric { margin-bottom: 9px; }
-.ab-metric .ab-k { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--figma-color-text-secondary); }
-.ab-metric .ab-v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
-.sig-line { font-size: 11px; color: var(--figma-color-text-secondary); margin-bottom: 4px; }
-
-/* ── Results: compact upgrade banner in native Figma warning style ────────── */
-.upgrade-banner.ub-compact {
-  display: none; flex-direction: row; align-items: center; justify-content: space-between;
-  gap: 8px; padding: 8px 10px; border: 1px solid var(--warn-border); text-align: left;
-  background: var(--figma-color-bg-warning, rgba(245,158,11,.10));
-}
-.upgrade-banner.ub-compact.vis { display: flex; }
-.upgrade-banner.ub-compact .ub-title { font-size: 11px; font-weight: 700; margin-bottom: 0; color: var(--figma-color-text-warning, #7A4510); }
-.upgrade-banner.ub-compact .btn-upgrade { width: auto; padding: 5px 12px; font-size: 11px; background: var(--warn); }
-
-/* ── Results: scaled mini preview (no scroll, single per variant) ─────────── */
 .frame-preview {
   border: 1px solid var(--figma-color-border); border-radius: var(--r);
   box-shadow: var(--elev-1);
   max-height: 64px; overflow: hidden; pointer-events: none;
   background: #fff; color: #111; margin-bottom: 4px;
 }
-.frame-preview .res-prev-inner { transform: scale(0.8); transform-origin: top left; }
 
-/* ── Toast (undo delete) ────────────────────────────────────────── */
+/* ── Error / ok text ─────────────────────────────────────────────────────── */
+.err { color: var(--danger); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
+.ok  { color: var(--figma-color-text-success, var(--ok)); font-size: var(--fs-sm); padding: 4px 0; }
+.copy-ok { display: none; }
+.copy-ok.vis { display: inline; }
+
+/* ── Results: header ─────────────────────────────────────────────────────── */
+.hdr-sub { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.hdr-sub .hdr-title { flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-btn {
+  background: none; border: none; padding: 6px 0 0; cursor: pointer;
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--brand); font-family: inherit;
+  transition: opacity var(--dur-fast);
+}
+.link-btn:hover { opacity: .8; }
+.refresh-note { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); text-align: center; padding: 10px 0 0; }
+
+/* ── Results: A/B stats table ────────────────────────────────────────────── */
+.ab-table { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.ab-col { padding: 14px; background: var(--figma-color-bg-secondary); border-radius: var(--r); border: 1px solid transparent; }
+.ab-head { display: flex; align-items: center; gap: 7px; font-size: var(--fs-md); font-weight: var(--fw-semibold); margin-bottom: 12px; }
+.ab-metric { margin-bottom: 10px; }
+.ab-metric:last-child { margin-bottom: 0; }
+.ab-metric .ab-k { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .5px; color: var(--figma-color-text-secondary); font-weight: var(--fw-semibold); }
+.ab-metric .ab-v { font-size: var(--fs-2xl); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; letter-spacing: -.4px; line-height: 1.1; }
+.sig-line { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-bottom: 6px; padding: 6px 0; }
+
+/* ── Results: compact upgrade banner ─────────────────────────────────────── */
+.upgrade-banner.ub-compact {
+  display: none; flex-direction: row; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 10px 12px; border: 1px solid var(--warn-border); text-align: left;
+  background: var(--figma-color-bg-warning, rgba(245,158,11,.10));
+}
+.upgrade-banner.ub-compact.vis { display: flex; }
+.upgrade-banner.ub-compact .ub-title { font-size: var(--fs-sm); font-weight: var(--fw-bold); margin-bottom: 0; }
+.upgrade-banner.ub-compact .btn-upgrade { width: auto; padding: 6px 14px; font-size: var(--fs-sm); }
+
+/* ── Generate: preview note ──────────────────────────────────────────────── */
+.preview-note {
+  font-size: var(--fs-xs); color: var(--figma-color-text-disabled, #bbb);
+  margin: 5px 0 12px; font-style: italic;
+}
+
+/* ── Generate: code drawer ───────────────────────────────────────────────── */
+.code-drawer summary {
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--figma-color-text-secondary);
+  cursor: pointer; user-select: none; padding: 4px 0;
+}
+.code-drawer pre { margin-top: 6px; }
+
+/* ── Refine overlay ──────────────────────────────────────────────────────── */
+.overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.35); flex-direction: column; justify-content: flex-end;
+}
+.overlay.open { display: flex; }
+.overlay-sheet {
+  background: var(--figma-color-bg);
+  border-radius: var(--r) var(--r) 0 0;
+  box-shadow: var(--elev-3);
+  padding: 20px 16px 16px; max-height: 70%;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: slideUp var(--dur-med) var(--ease-spring);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.overlay-sheet textarea { min-height: 80px; }
+.overlay-actions { display: flex; gap: var(--sp-2); }
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
 .toast {
   display: none;
   position: fixed; left: 14px; right: 14px; bottom: 14px;
   align-items: center; justify-content: space-between; gap: 10px;
   background: var(--figma-color-bg); border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); box-shadow: var(--elev-2);
-  padding: 10px 12px; font-size: 11px; z-index: 1000;
+  border-radius: var(--r); box-shadow: var(--elev-3);
+  padding: 12px 14px; font-size: var(--fs-sm); z-index: 1000;
 }
 .toast.vis { display: flex; }
-.test-card.deleting { opacity: .35; pointer-events: none; }
 
-/* ── Utilities: a11y + skeletons ────────────────────────────────── */
+/* ── Utilities ───────────────────────────────────────────────────────────── */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
-.btn:focus-visible, .back-btn:focus-visible, .icon-btn:focus-visible,
-.seg-btn:focus-visible, .link-btn:focus-visible, summary:focus-visible,
-.adv-toggle:focus-visible, .m-opt:focus-visible, .testid-row:focus-visible,
-.test-card:focus-visible, .btn-upgrade:focus-visible {
-  outline: 2px solid var(--brand); outline-offset: 1px;
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px;
 }
-summary { padding: 4px 0; cursor: pointer; }
-@keyframes sk-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
+@keyframes sk-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 .sk {
   background: var(--figma-color-bg-secondary);
   border-radius: var(--rsm);
   animation: sk-pulse 1.2s ease-in-out infinite;
 }
-.sk-card { height: 58px; border-radius: var(--r); margin-bottom: 6px; }
+.sk-card { height: 60px; border-radius: var(--r); margin-bottom: 8px; }
 .sk-line { height: 10px; }
 
-/* ── Waiting dots (external-action states) ────────────────────────── */
-.dots { display: flex; gap: 4px; }
+/* ── Dots animation ──────────────────────────────────────────────────────── */
+.dots { display: flex; gap: 5px; justify-content: center; }
 .dots span {
-  width: 5px; height: 5px; border-radius: 50%;
+  width: 6px; height: 6px; border-radius: 50%;
   background: var(--figma-color-text-secondary);
   animation: dots-bounce 1.2s ease-in-out infinite;
 }
 .dots span:nth-child(2) { animation-delay: .15s; }
 .dots span:nth-child(3) { animation-delay: .3s; }
-@keyframes dots-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-4px); opacity: 1; } }
+@keyframes dots-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-5px); opacity: 1; } }
 
-/* ── prefers-reduced-motion ─────────────────────────────────────── */
+/* ── prefers-reduced-motion ──────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0s !important;
@@ -619,60 +644,61 @@ summary { padding: 4px 0; cursor: pointer; }
       </svg>
     </button>
   </div>
-  <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:28px 20px">
+  <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:32px 22px">
 
-    <!-- Brand hero -->
-    <div style="text-align:center;margin-bottom:22px">
-      <div style="width:42px;height:42px;background:var(--brand);border-radius:11px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:var(--elev-2)">
-        <svg width="22" height="22" fill="none" viewBox="0 0 14 14">
+    <!-- Brand -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="width:48px;height:48px;background:var(--brand);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 4px 20px rgba(13,153,255,.3)">
+        <svg width="24" height="24" fill="none" viewBox="0 0 14 14">
           <rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/>
           <rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/>
         </svg>
       </div>
-      <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">Variante</div>
-      <div style="font-size:11px;color:var(--figma-color-text-secondary);margin-top:3px">A/B testing from Figma — no dev needed</div>
+      <div style="font-size:18px;font-weight:700;letter-spacing:-.3px">Variante</div>
+      <div style="font-size:var(--fs-sm);color:var(--figma-color-text-secondary);margin-top:4px">A/B testing from Figma — no dev needed</div>
     </div>
 
     <!-- How it works -->
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:var(--brand-subtle);color:var(--brand);display:flex;align-items:center;justify-content:center">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:28px;height:28px;flex-shrink:0;border-radius:8px;background:var(--brand-subtle);color:var(--brand);display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>
         </div>
-        <span style="font-size:11px;line-height:1.5">Pick any element on your <strong>live site</strong></span>
+        <span style="font-size:var(--fs-sm);line-height:1.5">Pick any element on your <strong>live site</strong></span>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:var(--brand-subtle);color:var(--brand);display:flex;align-items:center;justify-content:center">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:28px;height:28px;flex-shrink:0;border-radius:8px;background:var(--brand-subtle);color:var(--brand);display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
         </div>
-        <span style="font-size:11px;line-height:1.5">AI turns your <strong>Figma design</strong> into Variant B</span>
+        <span style="font-size:var(--fs-sm);line-height:1.5">AI turns your <strong>Figma design</strong> into Variant B</span>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:var(--ok-subtle);color:var(--figma-color-text-success, var(--ok));display:flex;align-items:center;justify-content:center">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:28px;height:28px;flex-shrink:0;border-radius:8px;background:var(--ok-subtle);color:var(--figma-color-text-success, var(--ok));display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
         </div>
-        <span style="font-size:11px;line-height:1.5">Ship it &amp; <strong>measure the lift</strong> — no code</span>
+        <span style="font-size:var(--fs-sm);line-height:1.5">Ship it &amp; <strong>measure the lift</strong> — no code</span>
       </div>
     </div>
 
     <!-- Welcome mode -->
     <div id="c-welcome">
-      <button class="btn btn-primary" onclick="createAccount()" style="margin-bottom:8px">Create free account →</button>
+      <button class="btn btn-primary" onclick="createAccount()">Create free account →</button>
       <div class="divider"></div>
       <button class="btn btn-secondary" onclick="showTokenMode()">I have an account — connect</button>
     </div>
 
     <!-- Token mode -->
     <div id="c-token" style="display:none">
-      <div style="font-size:12px;font-weight:600;margin-bottom:3px">Connect your account</div>
-      <div class="hint" style="margin-bottom:14px">Paste the API token from your dashboard.</div>
+      <div style="font-size:var(--fs-lg);font-weight:var(--fw-semibold);margin-bottom:4px">Connect your account</div>
+      <div class="hint">Paste the API token from your dashboard.</div>
       <label class="lbl" for="connect-token">API Token</label>
-      <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveToken()" style="margin-bottom:8px"/>
+      <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveToken()"/>
       <datalist id="dl-token"></datalist>
-      <button class="btn btn-primary" onclick="saveToken()" style="margin-bottom:6px">Connect →</button>
-      <div class="err" id="e-connect" role="alert" style="margin-top:6px"></div>
+      <div style="margin-top:10px">
+        <button class="btn btn-primary" onclick="saveToken()">Connect →</button>
+      </div>
+      <div class="err" id="e-connect" role="alert" style="margin-top:8px"></div>
     </div>
-
   </div>
 </div>
 
@@ -681,11 +707,11 @@ summary { padding: 4px 0; cursor: pointer; }
      SCREEN 0 · Dashboard
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-dashboard" class="screen">
-  <div class="hdr" style="padding:12px 12px 0">
-    <span class="hdr-title">Tests</span>
-    <span class="badge ba" id="dash-count" style="display:none;margin-left:4px"></span>
-    <button class="icon-btn" onclick="showDashboard()" title="Refresh" aria-label="Refresh" style="margin-left:auto"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
-    <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
+  <div class="hdr" style="padding:14px 14px 0">
+    <span class="hdr-title" style="font-size:var(--fs-xl);font-weight:var(--fw-bold)">Tests</span>
+    <span class="badge ba" id="dash-count" style="display:none"></span>
+    <button class="icon-btn" onclick="showDashboard()" title="Refresh" aria-label="Refresh" style="margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
   </div>
   <div class="body">
     <div class="upgrade-banner" id="upgrade-banner-dash">
@@ -723,34 +749,30 @@ summary { padding: 4px 0; cursor: pointer; }
     <div class="hint">What are you testing, and where does it live?</div>
 
     <label class="lbl" for="f-name">Test name</label>
-    <div class="input-wrap has-prefix" style="margin-bottom:2px">
+    <div class="input-wrap has-prefix">
       <div class="input-icon-left">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="4 7 4 4 20 4 20 7"/>
-          <line x1="9" x2="15" y1="20" y2="20"/>
-          <line x1="12" x2="12" y1="4" y2="20"/>
+          <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>
         </svg>
       </div>
       <input id="f-name" placeholder="e.g. Hero CTA" oninput="onNameInput()"/>
     </div>
     <div class="field-err" id="name-err" role="alert"></div>
 
-    <label class="lbl" for="f-url" style="margin-top:10px">Site URL</label>
-    <div class="input-wrap has-prefix" style="margin-bottom:0">
+    <label class="lbl" for="f-url" style="margin-top:12px">Site URL</label>
+    <div class="input-wrap has-prefix">
       <div class="input-icon-left">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-          <path d="M2 12h20"/>
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
         </svg>
       </div>
       <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url" onkeydown="if(event.key==='Enter')createTest()"/>
       <datalist id="dl-url"></datalist>
     </div>
-    <div id="url-hint" style="font-size:10px;color:var(--figma-color-text-secondary);margin:4px 0 0">The exact page this test will run on.</div>
+    <div id="url-hint" style="font-size:var(--fs-xs);color:var(--figma-color-text-secondary);margin:4px 0 0">The exact page this test will run on.</div>
     <div class="field-err" id="url-err" role="alert"></div>
 
-    <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:4px">
+    <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:6px">
       <div class="spinner" aria-hidden="true"></div>
       Creating test…
     </div>
@@ -781,14 +803,13 @@ summary { padding: 4px 0; cursor: pointer; }
   </div>
   <div class="body">
 
-    <!-- Test-ID always visible — click to copy -->
+    <!-- Test-ID -->
     <div class="testid-row" id="el-testid-row" onclick="copyTestId()" title="Click to copy" tabindex="0" role="button" aria-label="Copy test ID" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyTestId()}">
       <span class="testid-lbl">Test ID</span>
       <span class="testid-val" id="el-testid-val">—</span>
       <span class="testid-copy" id="el-testid-copy">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="14" height="14" x="8" y="8" rx="2"/>
-          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          <rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
         </svg>
       </span>
       <span class="testid-copied" id="el-testid-copied">✓ Copied</span>
@@ -804,7 +825,7 @@ summary { padding: 4px 0; cursor: pointer; }
         </span>
         <div>
           <div class="notice-title">Browser Extension required</div>
-          <div class="notice-body">The element picker runs in your browser. Install the Browser Extension once — it keeps working after plugin updates.</div>
+          <div class="notice-body">The element picker runs in your browser. Install once — works across plugin updates.</div>
         </div>
       </div>
       <button class="btn btn-secondary btn-sm" onclick="downloadExtension()" style="width:100%">
@@ -815,26 +836,29 @@ summary { padding: 4px 0; cursor: pointer; }
       </button>
     </div>
 
-    <!-- Waiting state -->
-    <div id="el-waiting" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:200px">
-      <div class="loading-row loading-center" role="status" style="flex-direction:column;gap:10px;padding:0">
+    <!-- Waiting state — centered with dot animation -->
+    <div id="el-waiting" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0 0">
+      <div style="text-align:center;margin-bottom:20px">
         <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span>Waiting for element selection in browser…</span>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:18px">↗ Open site again</button>
+      <div class="hint-strong">Waiting for element selection in browser…</div>
+      <button class="btn btn-secondary btn-sm" onclick="openSite('element')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+        Open site again
+      </button>
     </div>
 
     <!-- Done state -->
     <div id="el-done" style="display:none">
-      <span class="lbl" style="margin-bottom:5px">Selected element</span>
-      <div id="el-chip-wrap" style="margin-bottom:10px"></div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-        <button class="btn btn-secondary btn-sm" onclick="reselectElement()">↺ Reselect</button>
-        <span style="font-size:10px;color:var(--figma-color-text-secondary)">or pick again in the browser</span>
-      </div>
+      <span class="lbl">Selected element</span>
+      <div id="el-chip-wrap" style="margin-bottom:12px"></div>
+      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectElement()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Reselect
+      </button>
     </div>
 
-    <div class="err" id="e-element" role="alert" style="margin-top:6px"></div>
+    <div class="err" id="e-element" role="alert" style="margin-top:8px"></div>
   </div>
   <div class="ftr">
     <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
@@ -860,7 +884,8 @@ summary { padding: 4px 0; cursor: pointer; }
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div class="hint">Click any layer in Figma that represents Variant B — a single button, heading, or section. Just like the Browser Extension, but in Figma.</div>
+    <!-- Prominent instruction -->
+    <div class="hint-strong" style="margin-bottom:16px">Click any layer in Figma that represents Variant B — a single button, heading, or section.</div>
 
     <!-- Waiting -->
     <div id="d-waiting">
@@ -872,16 +897,19 @@ summary { padding: 4px 0; cursor: pointer; }
 
     <!-- Selected -->
     <div id="d-done" style="display:none">
-      <span class="lbl" style="margin-bottom:5px">Layer selected</span>
-      <div class="card" style="margin-bottom:8px"><div class="card-val" id="sel-info"></div></div>
-      <button class="btn btn-secondary btn-sm" onclick="reselectDesign()">Reselect</button>
+      <span class="lbl">Layer selected</span>
+      <div class="card"><div class="card-val" id="sel-info"></div></div>
+      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectDesign()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Reselect
+      </button>
     </div>
 
-    <div class="loading-row" id="l-design" role="status" style="display:none;margin-top:8px">
+    <div class="loading-row" id="l-design" role="status" style="display:none;margin-top:10px">
       <div class="spinner" aria-hidden="true"></div>
       Exporting layer…
     </div>
-    <div class="err" id="e-design" role="alert" style="margin-top:4px"></div>
+    <div class="err" id="e-design" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
     <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Goal →</button>
@@ -907,17 +935,17 @@ summary { padding: 4px 0; cursor: pointer; }
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <div class="hint" id="m-hint" style="display:none"></div>
-
-    <!-- Active goal — always reflects the current choice, styled exactly like the Variant-A chip -->
-    <div id="m-goal-display" style="display:none;margin-bottom:12px">
-      <span class="lbl" style="margin-bottom:5px">Active goal</span>
+    <!-- Active goal — inline chip, not a separate section -->
+    <div id="m-goal-display" style="display:none;margin-bottom:14px">
+      <span class="lbl">Active goal</span>
       <div id="m-goal-chip-wrap"></div>
     </div>
 
+    <div class="hint" id="m-hint" style="display:none"></div>
+
     <span class="lbl">Conversion goal</span>
     <div role="radiogroup" aria-label="Conversion goal">
-      <!-- Default metric: click on tested element -->
+      <!-- Default: click on tested element -->
       <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()" role="radio" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDefaultMetric()}">
         <div class="m-radio"></div>
         <div>
@@ -926,18 +954,21 @@ summary { padding: 4px 0; cursor: pointer; }
         </div>
       </div>
 
-      <!-- Another element: picked live in the browser — same open-and-wait flow as Variant A -->
+      <!-- Pick another element — highlighted when default unavailable -->
       <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPickMetric()}">
         <div class="m-radio"></div>
         <div>
           <div class="m-title">Another element on the page</div>
-          <div class="m-desc">Pick it in your browser.</div>
+          <div class="m-desc">Pick any clickable element in your browser.</div>
         </div>
       </div>
     </div>
-    <div id="m-pick-wrap" style="display:none;margin:4px 0 10px 35px">
-      <button class="btn btn-secondary btn-sm" onclick="openSite('goal')">Open in Chrome</button>
-      <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:6px">
+    <div id="m-pick-wrap" style="display:none;margin:8px 0 12px 36px">
+      <button class="btn btn-primary btn-sm btn-icon-left" onclick="openSite('goal')" style="width:auto">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+        Open in Chrome
+      </button>
+      <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:8px">
         <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
         Waiting for goal selection…
       </div>
@@ -957,20 +988,17 @@ summary { padding: 4px 0; cursor: pointer; }
           Custom CSS selector
         </label>
         <div class="adv-group-desc">Target any element by selector.</div>
-        <div class="input-wrap has-prefix" style="margin-bottom:6px">
+        <div class="input-wrap has-prefix">
           <div class="input-icon-left">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m16 18 6-6-6-6"/>
-              <path d="m8 6-6 6 6 6"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
           </div>
-          <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:11px;font-family:'SF Mono',monospace"/>
+          <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:var(--fs-sm);font-family:'SF Mono',monospace"/>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()">Apply selector</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()" style="margin-top:4px">Apply selector</button>
       </div>
     </div>
 
-    <div class="err" id="e-metric" role="alert" style="margin-top:4px"></div>
+    <div class="err" id="e-metric" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
     <button class="btn btn-primary" id="m-generate" onclick="goGenerate()" disabled>Generate HTML →</button>
@@ -1008,50 +1036,58 @@ summary { padding: 4px 0; cursor: pointer; }
         <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
       </div>
 
-      <!-- Live preview: switch between rendered Original (A) and Variant (B) -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <div class="seg seg-icon" id="gen-variant-toggle" data-variant="b">
-          <button type="button" class="seg-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
-          <button type="button" class="seg-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
+      <!-- Toggle switches: A/B and Light/Dark -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span class="lbl" style="margin-bottom:0">Preview</span>
+        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
+          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
+          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
         </div>
-        <div class="seg seg-icon" id="gen-bg-toggle" data-bg="light">
-          <button type="button" class="seg-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
+        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
+          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
           </button>
-          <button type="button" class="seg-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
+          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
           </button>
         </div>
       </div>
-      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background .2s"></div>
-      <div style="font-size:10px;color:var(--figma-color-text-secondary);margin:6px 0 12px">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
+      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+
+      <!-- Generated HTML drawer — directly under preview -->
+      <details class="code-drawer">
+        <summary>Show generated HTML</summary>
+        <pre id="gen-html"></pre>
+      </details>
 
       <div class="divider"></div>
 
-      <!-- Refine: the main way to iterate, same flow as asking Claude to adjust a result -->
-      <label class="lbl" for="gen-feedback">Refine (optional)</label>
-      <textarea id="gen-feedback" rows="2" placeholder="e.g. bolder button, more spacing, clearer hover feedback" style="margin-bottom:8px"></textarea>
-      <button class="btn btn-secondary" onclick="refine()" style="margin-bottom:6px">↻ Refine with AI</button>
-      <button class="link-btn" onclick="generate()">Start over — regenerate from scratch</button>
-
-      <div class="divider"></div>
-
-      <!-- Secondary reference material, least important first, HTML source last -->
-      <details style="margin-bottom:8px">
-        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show Figma reference</summary>
-        <div class="frame" id="gen-ref" style="margin-top:6px"></div>
-      </details>
-      <details>
-        <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer">Show generated HTML</summary>
-        <pre id="gen-html" style="margin-top:6px"></pre>
-      </details>
+      <!-- Refine: opens overlay -->
+      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        Refine with AI
+      </button>
+      <button class="btn btn-ghost" onclick="generate()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
     </div>
 
-    <div class="err" id="e-generate" role="alert" style="margin-top:4px"></div>
+    <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
     <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
   </div>
   <div class="ftr" id="gen-ftr" style="display:none">
     <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good — Install Snippet →</button>
+  </div>
+</div>
+
+<!-- Refine overlay -->
+<div class="overlay" id="refine-overlay">
+  <div class="overlay-sheet">
+    <label class="lbl" for="gen-feedback">What should change?</label>
+    <textarea id="gen-feedback" rows="3" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
+    <div class="overlay-actions">
+      <button class="btn btn-secondary" onclick="closeRefine()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRefine()">Apply →</button>
+    </div>
   </div>
 </div>
 
@@ -1076,28 +1112,32 @@ summary { padding: 4px 0; cursor: pointer; }
   <div class="body">
     <div class="notice notice-green">
       <div class="notice-title">One snippet — every page</div>
-      <div class="notice-body">Add it once in the <code>&lt;head&gt;</code> of every page. Selector and goal load from the server automatically — don't add it more than once.</div>
+      <div class="notice-body">Add it once in the <code>&lt;head&gt;</code> of every page. Selector and goal load from the server automatically.</div>
     </div>
 
-    <!-- Empfohlen: KI-Integration -->
-    <button class="btn btn-primary" onclick="copyAiPrompt(this)">
+    <!-- Copy prompt -->
+    <button class="btn btn-primary btn-icon-left" onclick="copyAiPrompt(this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
       Copy prompt
     </button>
-    <div class="hint" style="margin:6px 2px 2px">Copies a ready-made prompt — paste it into Cursor, Copilot, ChatGPT or Claude and it adds the snippet to your site's <code>&lt;head&gt;</code>. The prompt includes your site URL: <strong id="cp-ai-url">—</strong>.</div>
-    <div class="copy-ok ok" id="cp-ai" aria-live="polite" style="margin:0 2px 2px;font-size:10px;font-weight:700">✓ Prompt copied</div>
+    <div class="hint" style="margin:6px 2px 16px">Ready-made prompt — paste into Cursor, Copilot, ChatGPT or Claude. The AI adds the snippet to your site's <code>&lt;head&gt;</code>. Site: <strong id="cp-ai-url">—</strong>.</div>
+    <div class="copy-ok ok" id="cp-ai" aria-live="polite" style="margin:0 2px 12px;font-size:var(--fs-xs);font-weight:var(--fw-bold)">✓ Prompt copied</div>
 
-    <!-- Manuell -->
-    <button class="btn btn-secondary" onclick="copySnippet(this)">Copy snippet manually</button>
-    <span class="copy-ok ok" id="cp-snippet" aria-live="polite" style="margin:6px 0 0 2px;font-size:10px;font-weight:700">✓ Copied</span>
+    <!-- Copy snippet manually -->
+    <button class="btn btn-secondary btn-icon-left" onclick="copySnippet(this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      Copy snippet manually
+    </button>
+    <div class="copy-ok ok" id="cp-snippet" aria-live="polite" style="margin:6px 0 0 2px;font-size:var(--fs-xs);font-weight:var(--fw-bold)">✓ Copied</div>
     <details style="margin:8px 0 0">
-      <summary style="font-size:11px;color:var(--figma-color-text-secondary);cursor:pointer;user-select:none">Show snippet code</summary>
-      <pre id="snippet-code" style="margin-top:6px"></pre>
+      <summary style="font-size:var(--fs-sm);font-weight:var(--fw-med);color:var(--figma-color-text-secondary);cursor:pointer">Show snippet code</summary>
+      <pre id="snippet-code" style="margin-top:8px"></pre>
     </details>
 
     <div class="divider"></div>
 
-    <button class="btn btn-secondary" onclick="navPush('results'); startResults()">View Results →</button>
+    <button class="btn btn-secondary" onclick="navPush('results'); startResults()" style="margin-bottom:8px">View Results →</button>
+    <button class="btn btn-ghost" onclick="navHistory=['dashboard'];go('dashboard')">← Back to overview</button>
   </div>
 </div>
 
@@ -1127,7 +1167,7 @@ summary { padding: 4px 0; cursor: pointer; }
     </div>
 
     <div id="res-nodata" class="card" style="display:none">
-      <div class="card-val" style="font-weight:400;font-size:11px">Waiting for first visitors — data refreshes every 30 s.</div>
+      <div class="card-val" style="font-weight:400;font-size:var(--fs-sm)">Waiting for first visitors — data refreshes every 30 s.</div>
       <button class="link-btn" onclick="navPush('snippet'); buildSnippet()">→ View snippet instructions</button>
     </div>
 
@@ -1150,13 +1190,13 @@ summary { padding: 4px 0; cursor: pointer; }
 
     <div id="res-preview-section" style="display:none">
       <div class="divider"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <span class="lbl" style="margin-bottom:0">Live preview</span>
-        <div class="seg seg-icon" id="res-bg-toggle" data-bg="light">
-          <button type="button" class="seg-btn on" data-val="light" onclick="setResBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
+        <div class="toggle-row toggle-icon" id="res-bg-toggle" data-bg="light">
+          <button type="button" class="toggle-btn on" data-val="light" onclick="setResBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
           </button>
-          <button type="button" class="seg-btn" data-val="dark" onclick="setResBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
+          <button type="button" class="toggle-btn" data-val="dark" onclick="setResBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
           </button>
         </div>
@@ -1191,11 +1231,11 @@ const state = {
   frameId: '', screenshot: '', frameContent: null, html: '',
   plan: 'free'
 }
-let activeTestCount = 0 // ponytail: für Early-Upgrade-Check in newTest()
-let generating = false // ponytail: guard gegen Race generate/refine
-let generateDone = false   // ponytail: Prefetch — generate lief während Metric-Screen durch
-let generateFailed = false // ponytail: Prefetch — generate schlug fehl, goGenerate retried
-let previewVariant = 'b' // which side (A/B) the Screen-5 live preview currently renders
+let activeTestCount = 0
+let generating = false
+let generateDone = false
+let generateFailed = false
+let previewVariant = 'b'
 let elTimer = null, resTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
@@ -1220,7 +1260,6 @@ function escapeHtml(s) {
 }
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s }
 
-// ── Input history ───────────────────────────────────────────────────────────
 function saveInputHistory(key, value) {
   if (!value) return
   const k = 'ab_history_' + key
@@ -1240,7 +1279,6 @@ function populateDatalist(id, key) {
   })
 }
 
-// ── Navigation ──────────────────────────────────────────────────────────────
 function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
   $('s-' + id).classList.add('active')
@@ -1258,16 +1296,14 @@ function navBack() {
   go(prev)
 }
 
-// ── Error display ───────────────────────────────────────────────────────────
 function err(id, msg) {
   const el = $('e-' + id); if (!el) return
   el.textContent = msg
   setTimeout(() => { if (el.textContent === msg) el.textContent = '' }, 4000)
 }
 
-// ── Upgrade banner ──────────────────────────────────────────────────────────
 function showUpgradeBanner(msg) {
-  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results', 'upgrade-banner-dash']
+  var ids = ['upgrade-banner', 'upgrade-banner-results', 'upgrade-banner-dash']
   ids.forEach(function(id) {
     var b = $(id); if (!b) return
     if (msg) { var s = b.querySelector('.ub-sub'); if (s) s.textContent = msg }
@@ -1276,7 +1312,7 @@ function showUpgradeBanner(msg) {
   })
 }
 function hideUpgradeBanner() {
-  var ids = ['upgrade-banner', 'upgrade-banner-setup', 'upgrade-banner-results', 'upgrade-banner-dash']
+  var ids = ['upgrade-banner', 'upgrade-banner-results', 'upgrade-banner-dash']
   ids.forEach(function(id) {
     var b = $(id); if (!b) return
     if (b.classList.contains('ub-compact')) b.classList.remove('vis')
@@ -1287,7 +1323,6 @@ function goUpgrade() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?upgrade=true' } }, '*')
 }
 
-// ── Connect / token ─────────────────────────────────────────────────────────
 function createAccount() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
 }
@@ -1319,7 +1354,6 @@ function saveToken() {
   setTimeout(showDashboard, 1200)
 }
 
-// ── Dashboard ───────────────────────────────────────────────────────────────
 async function showDashboard() {
   if (pendingDelete) commitPendingDelete()
   navHistory = ['dashboard']
@@ -1328,9 +1362,9 @@ async function showDashboard() {
   const countEl = $('dash-count')
   countEl.style.display = 'none'
   list.innerHTML = '<div role="status"><span class="sr-only">Loading tests…</span>' +
-    '<div class="sk sk-card" aria-hidden="true" style="height:52px"></div>' +
-    '<div class="sk sk-card" aria-hidden="true" style="height:52px"></div>' +
-    '<div class="sk sk-card" aria-hidden="true" style="height:52px"></div></div>'
+    '<div class="sk sk-card" aria-hidden="true" style="height:56px"></div>' +
+    '<div class="sk sk-card" aria-hidden="true" style="height:56px"></div>' +
+    '<div class="sk sk-card" aria-hidden="true" style="height:56px"></div></div>'
   try {
     const res = await afetch(API + '/api/tests')
     if (!res.ok) throw new Error('API ' + res.status)
@@ -1352,14 +1386,12 @@ async function showDashboard() {
     countEl.textContent = tests.length
     countEl.style.display = 'inline-flex'
 
-    // Group by site URL
     const groups = {}
     tests.forEach(t => { const k = t.site_url || '(no URL)'; (groups[k] = groups[k] || []).push(t) })
     list.innerHTML = ''
     Object.keys(groups).forEach((url, i) => {
       const display = url.replace(/^https?:\/\//, '').replace(/\/+$/, '') || url
       const n = groups[url].length
-      // Section header
       const h = document.createElement('div')
       h.className = 'dash-section'
       h.title = url
@@ -1385,10 +1417,8 @@ function renderTestCard(t) {
   const st = t.status || 'draft'
   const winner = t.winner && st === 'done' ? t.winner : ''
 
-  // Domain label
   const domain = (t.site_url || '').replace(/^https?:\/\//, '').replace(/\/+$/, '') || ''
 
-  // Lift / winner signal
   let signal = ''
   if (winner) {
     signal = '<span class="tc-stat win" title="Winner">' + IC_TROPHY + '<b>Variant ' + escapeHtml(winner) + '</b></span>'
@@ -1435,7 +1465,6 @@ function renderTestCard(t) {
 }
 function fmtNum(n) { return (n || 0).toLocaleString('en-US') }
 
-// Icons (24px viewBox, currentColor stroke)
 const IC_USER  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>'
 const IC_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
 const IC_UP    = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
@@ -1443,7 +1472,6 @@ const IC_DOWN  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" st
 const IC_TROPHY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>'
 function resumeTest(id) { state.testId = id; navPush('results'); startResults() }
 
-// ── Screen 1: Setup ─────────────────────────────────────────────────────────
 function normalizeUrl(raw) {
   let u = (raw || '').trim()
   if (!u) return null
@@ -1454,8 +1482,6 @@ function normalizeUrl(raw) {
     return u
   } catch (_) { return null }
 }
-// Field errors only appear when the user tries to continue — not while typing.
-// Typing just clears a previously shown error for that field.
 function clearFieldError(inputId, errId) {
   $(inputId).classList.remove('err')
   $(errId).textContent = ''
@@ -1474,7 +1500,6 @@ function onNameInput() { clearFieldError('f-name', 'name-err') }
 function onUrlInput() { clearFieldError('f-url', 'url-err') }
 
 function newTest() {
-  // ponytail: Early-Upgrade-Check — verhindert Navigation zu Setup wenn Free-Limit erreicht
   if (state.plan === 'free' && activeTestCount >= 1) {
     showUpgradeBanner('Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.')
     return
@@ -1551,7 +1576,6 @@ async function createTest() {
   }
 }
 
-// ── Site URL builder ─────────────────────────────────────────────────────────
 function siteTriggerUrl(mode) {
   if (!state.url) return ''
   const base = /^https?:\/\//i.test(state.url) ? state.url : 'https://' + state.url
@@ -1576,7 +1600,6 @@ async function openSite(mode) {
 function downloadExtension() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: API + '/chrome-extension.zip' } }, '*')
 }
-// Test-ID per Klick in die Zwischenablage kopieren (für manuelles Picker-Setup).
 function copyTestId() {
   const id = state.testId
   if (!id) return
@@ -1590,9 +1613,6 @@ function copyTestId() {
   setTimeout(() => row.classList.remove('copied'), 1600)
 }
 
-// ── Screen 2: Element poll ───────────────────────────────────────────────────
-
-// Convert CSS selector + HTML → readable label {type, label}
 function makeElementLabel(selector, html) {
   const TAG_NAMES = { button:'Button', a:'Link', h1:'Heading', h2:'Heading', h3:'Heading', h4:'Heading', h5:'Heading', p:'Paragraph', input:'Input', img:'Image', div:'Section', span:'Text', nav:'Navigation', header:'Header', section:'Section', form:'Form', textarea:'Textarea', select:'Select', li:'List item' }
   if (html) {
@@ -1610,7 +1630,6 @@ function makeElementLabel(selector, html) {
       }
     } catch (_) {}
   }
-  // Fallback: parse selector
   const tagM = selector.match(/^([a-zA-Z]+)/)
   const idM  = selector.match(/#([\w-]+)/)
   const clsM = selector.match(/\.([\w-]+)/)
@@ -1644,7 +1663,6 @@ function startElementPoll() {
           renderElementChip(t.selector, state.originalHtml)
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
-          // Extension-Hinweis ausblenden, sobald das Element gewählt ist — dann ist er nur noch Rauschen
           var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = 'none'
           $('btn-el-next').disabled = false
           stopElementPoll()
@@ -1676,7 +1694,6 @@ async function reselectElement() {
 }
 function goToDesign() { navPush('design'); requestSelection() }
 
-// ── Screen 3: Variant B in Figma ────────────────────────────────────────────
 function requestSelection() {
   parent.postMessage({ pluginMessage: { type: 'GET_SELECTION' } }, '*')
 }
@@ -1692,7 +1709,6 @@ function reselectDesign() {
   $('btn-export').disabled = true
 }
 
-// ── Screen 4: Conversion goal ────────────────────────────────────────────────
 function isClickable(html) {
   if (!html) return false
   try {
@@ -1707,10 +1723,6 @@ function isClickable(html) {
   } catch (_) { return false }
 }
 
-// Renders the current goal (state.goal) at the top of the screen as a chip,
-// styled exactly like the Variant-A element chip — never a raw CSS selector.
-// Spiegelt den visuellen m-selected/m-disabled-Zustand in ARIA-Attribute —
-// wird von allen Auswahl-Pfaden über renderGoalChip() mitgezogen.
 function syncMetricAria() {
   ;['m-default-opt', 'm-pick-opt'].forEach(id => {
     const el = $(id); if (!el) return
@@ -1742,7 +1754,8 @@ function selectDefaultMetric() {
   const clickable = isClickable(state.originalHtml)
   if (!clickable) return
   $('m-default-opt').classList.add('m-selected')
-  $('m-pick-opt').classList.remove('m-selected')
+  $('m-default-opt').classList.remove('m-highlight')
+  $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
   $('m-pick-wrap').style.display = 'none'
   state.goal = state.selector
   $('m-generate').disabled = false
@@ -1751,9 +1764,8 @@ function selectDefaultMetric() {
 
 function selectPickMetric() {
   $('m-default-opt').classList.remove('m-selected')
-  $('m-pick-opt').classList.add('m-selected')
+  $('m-pick-opt').classList.add('m-selected', 'm-highlight')
   $('m-pick-wrap').style.display = 'block'
-  // Keep an already-resolved pick; otherwise there's no goal yet until the browser selection completes.
   if (!(state.goal && state.goal !== state.selector)) {
     state.goal = ''
     $('m-generate').disabled = true
@@ -1765,8 +1777,8 @@ function applyCustomSelector() {
   const v = ($('m-custom-selector').value || '').trim()
   if (!v) { err('metric', 'Enter a CSS selector.'); return }
   state.goal = v
-  $('m-default-opt').classList.remove('m-selected')
-  $('m-pick-opt').classList.remove('m-selected')
+  $('m-default-opt').classList.remove('m-selected', 'm-highlight')
+  $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
   $('m-generate').disabled = false
   renderGoalChip()
   afetch(API + '/api/tests/' + state.testId, {
@@ -1783,11 +1795,9 @@ function toggleAdvanced() {
 
 async function enterMetric() {
   navPush('metric')
-  // Reset screen state — sonst leakt der Zustand zwischen mehreren Tests
-  // einer Session (Hint-Text, Pick-Radio, ausgeklapptes Advanced).
   $('m-waiting').style.display = 'none'
   $('m-goal-display').style.display = 'none'
-  $('m-pick-opt').classList.remove('m-selected')
+  $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
   $('m-pick-wrap').style.display = 'none'
   $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
   $('adv-toggle').classList.remove('open')
@@ -1802,23 +1812,21 @@ async function enterMetric() {
   const clickable = isClickable(state.originalHtml)
 
   if (clickable) {
-    // Pre-select default
     state.goal = state.selector
     $('m-default-opt').classList.add('m-selected')
-    $('m-default-opt').classList.remove('m-disabled')
+    $('m-default-opt').classList.remove('m-disabled', 'm-highlight')
     $('m-default-opt').style.opacity = ''
     $('m-default-desc').textContent = ''; $('m-default-desc').style.display = 'none'
     $('m-generate').disabled = false
   } else {
-    // Default unavailable — tested element is not clickable.
-    // "Another element on the page" is now the only way forward — select it directly.
     state.goal = ''
     $('m-default-opt').classList.remove('m-selected')
     $('m-default-opt').classList.add('m-disabled')
     $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
     $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
     $('m-generate').disabled = true
-    $('m-pick-opt').classList.add('m-selected')
+    // Highlight "Another element" as the no-brainer option
+    $('m-pick-opt').classList.add('m-selected', 'm-highlight')
     $('m-pick-wrap').style.display = 'block'
   }
   renderGoalChip()
@@ -1836,7 +1844,7 @@ function startMetricPoll() {
           $('m-waiting').style.display = 'none'
           $('m-generate').disabled = false
           $('m-default-opt').classList.remove('m-selected')
-          $('m-pick-opt').classList.add('m-selected')
+          $('m-pick-opt').classList.add('m-selected', 'm-highlight')
           renderGoalChip()
           stopMetricPoll()
         }
@@ -1853,34 +1861,25 @@ function stopMetricPoll() {
 function goGenerate() {
   if ($('m-generate').disabled) return
   navPush('generate')
-  if (generating) return // ponytail: Prefetch läuft noch — Spinner auf Screen 5 bereits sichtbar
-  if (generateDone) return // ponytail: Prefetch fertig — Ergebnis bereits im DOM
-  // generateFailed oder nie gestartet → neu starten
+  if (generating) return
+  if (generateDone) return
   generate()
 }
 
-// ── Screen 5: AI generation ──────────────────────────────────────────────────
-// Scope is always 'all' — like Claude, the user just describes what to change
-// in the Refine box instead of pre-restricting the AI via a separate toggle.
 function getScope() { return 'all' }
 
-// bg forces the iframe's OWN background — setting it only on the outer
-// container is invisible, since the iframe document defaults to a white
-// page background that fully covers it. cssOverride lets callers (e.g. the
-// Results screen) pass freshly-polled site CSS instead of state.siteCss.
 function buildPreviewDoc(html, bg, cssOverride) {
   const siteCss = cssOverride !== undefined ? cssOverride : state.siteCss
   const css = siteCss ? '<style>' + siteCss + '</style>' : ''
   const bgCss = '<style>html,body{background:' + (bg === 'dark' ? '#1a1a1a' : '#fff') + ' !important}</style>'
   return '<html><head>' + bgCss + css + '</head><body>' + (html || '') + '</body></html>'
 }
-// Reset to Variant B (the side that just changed) and re-render.
 function fillPreviews() {
   previewVariant = 'b'
   const t = $('gen-variant-toggle')
   if (t) {
     t.setAttribute('data-variant', 'b')
-    t.querySelectorAll('.seg-btn').forEach(b => {
+    t.querySelectorAll('.toggle-btn').forEach(b => {
       const on = b.getAttribute('data-val') === 'b'
       b.classList.toggle('on', on)
       b.setAttribute('aria-pressed', on ? 'true' : 'false')
@@ -1895,11 +1894,11 @@ function renderVariantPreview() {
   const el = $('gen-variant-preview')
   el.style.background = bgColor
   el.innerHTML = html
-    ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bg)) + '" style="width:100%;height:180px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
-    : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">No preview available.</div>'
+    ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bg)) + '" style="width:100%;height:200px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
+    : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:10px">No preview available.</div>'
 }
-function syncSegBtns(el, val) {
-  el.querySelectorAll('.seg-btn').forEach(b => {
+function syncToggleBtns(el, val) {
+  el.querySelectorAll('.toggle-btn').forEach(b => {
     const on = b.getAttribute('data-val') === val
     b.classList.toggle('on', on)
     b.setAttribute('aria-pressed', on ? 'true' : 'false')
@@ -1908,18 +1907,17 @@ function syncSegBtns(el, val) {
 function setBg(val) {
   const el = $('gen-bg-toggle'); if (!el) return
   el.setAttribute('data-bg', val)
-  syncSegBtns(el, val)
+  syncToggleBtns(el, val)
   renderVariantPreview()
 }
 function setPreviewVariant(val) {
   previewVariant = val
   const el = $('gen-variant-toggle'); if (!el) return
   el.setAttribute('data-variant', val)
-  syncSegBtns(el, val)
+  syncToggleBtns(el, val)
   renderVariantPreview()
 }
 
-// ── Rotating status text during the (up to 30s) AI wait ────────────────────
 const GEN_MESSAGES = ['Analyzing your design…', 'Reading page styles…', 'Writing the variant…', 'Applying layout & colors…', 'Polishing details…']
 const REFINE_MESSAGES = ['Applying your feedback…', 'Adjusting styles…', 'Refining details…']
 let genStatusTimer = null
@@ -1936,7 +1934,7 @@ function retryGenerate() {
   lastGenAction === 'refine' ? refine() : generate()
 }
 async function generate() {
-  if (generating) return // ponytail: Race-Guard — doppelte Requests vermeiden
+  if (generating) return
   generating = true
   generateDone = false
   generateFailed = false
@@ -1963,7 +1961,6 @@ async function generate() {
     const data = await res.json()
     state.html = data.html
     if (data.siteCss) state.siteCss = data.siteCss
-    $('gen-ref').innerHTML = state.screenshot ? '<img src="data:image/png;base64,' + state.screenshot + '" style="max-width:100%;display:block">' : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:8px">—</div>'
     fillPreviews()
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
@@ -1982,9 +1979,8 @@ async function generate() {
   }
 }
 
-// ── Screen 5.1: Refine ───────────────────────────────────────────────
 async function refine() {
-  if (generating) return // ponytail: Race-Guard
+  if (generating) return
   generating = true
   lastGenAction = 'refine'
   const feedback = ($('gen-feedback').value || '').trim()
@@ -2028,7 +2024,6 @@ async function refine() {
   }
 }
 
-// ── Screen 6: Snippet ────────────────────────────────────────────────────────
 function buildSnippetCode() {
   return '<!-- variante A/B — paste in <head> on every page -->\n' +
     '<link rel="preconnect" href="' + API + '">\n' +
@@ -2043,7 +2038,6 @@ function buildSnippet() {
   var urlEl = $('cp-ai-url'); if (urlEl) urlEl.textContent = state.url || '(your site URL)'
 }
 
-// KI-Prompt: fertige Anweisung, die der Nutzer in Cursor/Copilot/ChatGPT/Claude einfügt.
 function buildAiPrompt() {
   const url = state.url || '(your site URL)'
   const testName = state.name || 'my test'
@@ -2091,7 +2085,6 @@ function flashCopied(id) {
   const c = $(id); if (!c) return
   c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
 }
-// Button kurz sperren — verhindert Doppel-Klick-Verwirrung beim Kopieren
 function lockCopyBtn(btn) {
   if (!btn) return
   btn.disabled = true
@@ -2102,7 +2095,7 @@ function copyAiPrompt(btn) { copyText(buildAiPrompt()); flashCopied('cp-ai'); lo
 function setResBg(val) {
   const el = $('res-bg-toggle'); if (!el) return
   el.setAttribute('data-bg', val)
-  syncSegBtns(el, val)
+  syncToggleBtns(el, val)
   const bgColor = val === 'dark' ? '#1a1a1a' : '#fff'
   ;['a','b'].forEach(k => {
     const f = $('res-preview-' + k)
@@ -2110,7 +2103,6 @@ function setResBg(val) {
   })
 }
 
-// ── Results ──────────────────────────────────────────────────────────────────
 function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '—' }
 function startResults() {
   const poll = async () => {
@@ -2119,7 +2111,6 @@ function startResults() {
       if (!res.ok) return
       const t = await res.json()
 
-      // Header: Testname + Status-Badge (state.name leer, wenn vom Dashboard gestartet)
       state.name = state.name || t.name || ''
       $('res-title').textContent = state.name || 'Results'
       const st = t.status || 'draft'
@@ -2144,7 +2135,6 @@ function startResults() {
       const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
       $('res-nodata').style.display = noData ? 'block' : 'none'
 
-      // Preview: iframe srcdoc with site CSS
       const hasA = !!t.original_html
       const hasB = !!t.variant_b_html
       ;['a','b'].forEach(k => {
@@ -2166,7 +2156,6 @@ function startResults() {
 }
 function stopResultsPoll() { if (resTimer) { clearInterval(resTimer); resTimer = null } }
 
-// ── Toggle pause / delete ────────────────────────────────────────────────────
 function togglePause(id, currentStatus) {
   const next = currentStatus === 'paused' ? 'active' : 'paused'
   afetch(API + '/api/tests/' + id, {
@@ -2176,7 +2165,6 @@ function togglePause(id, currentStatus) {
     .then(r => { if (!r.ok) throw new Error('API ' + r.status); showDashboard() })
     .catch(e => err('dashboard', 'Error: ' + (e.message || e)))
 }
-// ── Undo toast (generic) ─────────────────────────────────────────────────────
 function showUndoToast(message, onUndo) {
   let t = $('toast')
   if (!t) {
@@ -2195,8 +2183,7 @@ function hideToast() {
   const t = $('toast'); if (t) t.classList.remove('vis')
 }
 
-// ── Delete with undo (delays the real DELETE by 5s so it's reversible) ────────
-let pendingDelete = null // { id, card, timer }
+let pendingDelete = null
 function deleteTest(id, btn) {
   if (pendingDelete) commitPendingDelete()
   const card = btn.closest('.test-card')
@@ -2233,19 +2220,15 @@ async function commitPendingDelete() {
   }
 }
 
-// Räumt nach einem Delete verwaiste Section-Header und den Count-Badge auf.
 function cleanupDashboardAfterDelete() {
   const list = $('dash-list')
   if (!list) return
 
-  // Entferne Section-Header, die keine Test-Karten mehr unter sich haben,
-  // und aktualisiere die Counts der verbleibenden Header.
   const children = Array.from(list.children)
   let i = 0
   while (i < children.length) {
     const el = children[i]
     if (!el.classList.contains('dash-section')) { i++; continue }
-    // Zähle Karten zwischen diesem Header und dem nächsten Header (oder Ende)
     let cardCount = 0
     for (let j = i + 1; j < children.length; j++) {
       if (children[j].classList.contains('dash-section')) break
@@ -2255,14 +2238,12 @@ function cleanupDashboardAfterDelete() {
       el.remove()
       children.splice(i, 1)
     } else {
-      // Update Count-Badge im Header
       const countSpan = el.querySelector('.dash-section-count')
       if (countSpan) countSpan.textContent = cardCount
       i++
     }
   }
 
-  // Count-Badge im Header aktualisieren
   const remaining = list.querySelectorAll('.test-card').length
   const countEl = $('dash-count')
   if (remaining === 0) {
@@ -2282,9 +2263,6 @@ function cleanupDashboardAfterDelete() {
   }
 }
 
-// ── Messages from code.ts ────────────────────────────────────────────────────
-// code.ts liefert Fehlermeldungen auf Deutsch — die UI ist englisch.
-// UI-seitiger Shim statt code.ts-Änderung (Protokoll bleibt unangetastet).
 const DE_ERRORS = {
   'Bitte genau ein Element in Figma auswählen.': 'Please select exactly one element in Figma.',
   'Dieses Element kann nicht exportiert werden.': 'This element cannot be exported.',
@@ -2332,7 +2310,7 @@ window.onmessage = (event) => {
     const exportBtn = $('btn-export')
     if (exportBtn) exportBtn.disabled = false
     enterMetric()
-    generate() // ponytail: Prefetch — KI-Generierung läuft parallel zur Metrik-Auswahl
+    generate()
     return
   }
 
@@ -2345,8 +2323,12 @@ window.onmessage = (event) => {
   }
 }
 
+// Refine overlay
+function openRefine() { $('refine-overlay').classList.add('open'); $('gen-feedback').focus() }
+function closeRefine() { $('refine-overlay').classList.remove('open') }
+function submitRefine() { closeRefine(); refine() }
+
 // Boot: wait for token from code.ts; fallback → Connect screen after 1.5s
 setTimeout(function() { if (!tokenReceived) go('connect') }, 1500)
 </script>
-</body>
 </html>
