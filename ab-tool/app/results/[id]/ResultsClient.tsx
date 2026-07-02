@@ -155,6 +155,33 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
         <main className="mx-auto max-w-2xl px-6 py-8 space-y-5">
 
+          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5 backdrop-blur-md">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/40">
+                  Current status
+                </p>
+                <p className="mt-2 text-lg font-semibold text-white">
+                  {done
+                    ? 'Completed and ready to review'
+                    : status === 'active'
+                    ? 'Active and collecting data'
+                    : 'Paused for now'}
+                </p>
+                <p className="mt-1 text-sm text-white/45">
+                  {done
+                    ? 'This test has enough signal to evaluate the winner.'
+                    : status === 'active'
+                    ? 'Visitors are currently being split between A and B while the experiment runs.'
+                    : 'Traffic is paused until you resume this experiment.'}
+                </p>
+              </div>
+              <div className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${statusColor}`}>
+                {winner ? `${winner} won` : status}
+              </div>
+            </div>
+          </div>
+
           {/* A/B Stats cards */}
           <div className="grid grid-cols-2 gap-4">
             {[a, b].map((v, i) => {

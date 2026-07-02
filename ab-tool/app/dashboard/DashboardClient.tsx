@@ -393,12 +393,17 @@ export default function Document() {
 
           {/* ── Experiments ── */}
           <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-white">
-                Your Experiments
-              </h2>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-white">
+                  Results
+                </h2>
+                <p className="mt-1 text-xs text-white/35">
+                  {running > 0 ? `${running} active now` : 'No active experiments right now'}
+                </p>
+              </div>
               {totalConversions > 0 && (
-                <span className="text-xs text-white/40">
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-xs text-white/45">
                   {totalConversions.toLocaleString()} total conversions
                 </span>
               )}
