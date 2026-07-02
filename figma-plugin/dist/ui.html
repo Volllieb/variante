@@ -529,6 +529,18 @@ code {
 }
 .frame-preview .res-prev-inner { transform: scale(0.8); transform-origin: top left; }
 
+/* ── Toast (undo delete) ────────────────────────────────────────── */
+.toast {
+  display: none;
+  position: fixed; left: 14px; right: 14px; bottom: 14px;
+  align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--figma-color-bg); border: 1px solid var(--figma-color-border);
+  border-radius: var(--r); box-shadow: var(--elev-2);
+  padding: 10px 12px; font-size: 11px; z-index: 1000;
+}
+.toast.vis { display: flex; }
+.test-card.deleting { opacity: .35; pointer-events: none; }
+
 /* ── Utilities: a11y + skeletons ────────────────────────────────── */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -947,7 +959,7 @@ summary { padding: 4px 0; cursor: pointer; }
   <div class="body">
     <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
       <div class="spinner" aria-hidden="true"></div>
-      <span>AI generating Variant B… (up to 30s)</span>
+      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
     </div>
 
     <div id="gen-result" style="display:none">
@@ -997,6 +1009,7 @@ summary { padding: 4px 0; cursor: pointer; }
     </div>
 
     <div class="err" id="e-generate" role="alert" style="margin-top:4px"></div>
+    <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
   </div>
   <div class="ftr" id="gen-ftr" style="display:none">
     <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good — Install Snippet →</button>
@@ -1138,6 +1151,8 @@ const state = {
   frameId: '', screenshot: '', frameContent: null, html: ''
 }
 let generating = false // ponytail: guard gegen Race generate/refine
+let generateDone = false   // ponytail: Prefetch — generate lief während Metric-Screen durch
+let generateFailed = false // ponytail: Prefetch — generate schlug fehl, goGenerate retried
 let previewVariant = 'b' // which side (A/B) the Screen-5 live preview currently renders
 let elTimer = null, resTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
@@ -1190,6 +1205,7 @@ function go(id) {
   if (id !== 'element') stopElementPoll()
   if (id !== 'metric')  stopMetricPoll()
   if (id !== 'results') stopResultsPoll()
+  if (id !== 'dashboard' && pendingDelete) commitPendingDelete()
 }
 async function navPush(id) { navHistory.push(id); go(id) }
 function navBack() {
@@ -1263,6 +1279,7 @@ function saveToken() {
 
 // ── Dashboard ───────────────────────────────────────────────────────────────
 async function showDashboard() {
+  if (pendingDelete) commitPendingDelete()
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
@@ -1359,7 +1376,7 @@ function renderTestCard(t) {
       '</div>' +
       '<div class="tc-actions">' +
         '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" aria-label="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseBtn + '</button>' +
-        '<button class="icon-btn" title="Delete" aria-label="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
+        '<button class="icon-btn" title="Delete" aria-label="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\', this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
       '</div>' +
     '</div>'
   card.onclick = () => resumeTest(t.id)
@@ -1408,6 +1425,8 @@ function newTest() {
   state.originalHtml = ''; state.goalCandidates = []
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
   previewVariant = 'b'
+  generateDone = false; generateFailed = false
+  $('btn-gen-retry').style.display = 'none'
   $('f-name').value = ''; $('f-url').value = ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
@@ -1695,7 +1714,7 @@ function applyCustomSelector() {
   afetch(API + '/api/tests/' + state.testId, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ goal: v })
-  }).catch(() => {})
+  }).catch(() => err('metric', 'Selector not saved — try again.'))
 }
 
 function toggleAdvanced() {
@@ -1775,7 +1794,11 @@ function stopMetricPoll() {
 }
 function goGenerate() {
   if ($('m-generate').disabled) return
-  navPush('generate'); generate()
+  navPush('generate')
+  if (generating) return // ponytail: Prefetch läuft noch — Spinner auf Screen 5 bereits sichtbar
+  if (generateDone) return // ponytail: Prefetch fertig — Ergebnis bereits im DOM
+  // generateFailed oder nie gestartet → neu starten
+  generate()
 }
 
 // ── Screen 5: AI generation ──────────────────────────────────────────────────
@@ -1838,12 +1861,32 @@ function setPreviewVariant(val) {
   renderVariantPreview()
 }
 
+// ── Rotating status text during the (up to 30s) AI wait ────────────────────
+const GEN_MESSAGES = ['Analyzing your design…', 'Reading page styles…', 'Writing the variant…', 'Applying layout & colors…', 'Polishing details…']
+const REFINE_MESSAGES = ['Applying your feedback…', 'Adjusting styles…', 'Refining details…']
+let genStatusTimer = null
+function startGenStatus(messages) {
+  const el = $('l-generate-text'); if (!el) return
+  let i = 0; el.textContent = messages[0]
+  genStatusTimer = setInterval(() => { i = (i + 1) % messages.length; el.textContent = messages[i] }, 2800)
+}
+function stopGenStatus() { if (genStatusTimer) { clearInterval(genStatusTimer); genStatusTimer = null } }
+
+let lastGenAction = 'generate'
+function retryGenerate() {
+  $('btn-gen-retry').style.display = 'none'
+  lastGenAction === 'refine' ? refine() : generate()
+}
 async function generate() {
   if (generating) return // ponytail: Race-Guard — doppelte Requests vermeiden
   generating = true
+  generateDone = false
+  generateFailed = false
+  lastGenAction = 'generate'
   $('gen-result').style.display = 'none'
   $('gen-ftr').style.display = 'none'
   $('l-generate').style.display = 'flex'
+  startGenStatus(GEN_MESSAGES)
   hideUpgradeBanner()
   try {
     const res = await afetch(API + '/api/generate', {
@@ -1867,10 +1910,16 @@ async function generate() {
     $('gen-html').textContent = state.html || ''
     $('gen-result').style.display = 'block'
     $('gen-ftr').style.display = 'block'
+    $('btn-gen-retry').style.display = 'none'
+    generateDone = true
   } catch (e) {
+    generateFailed = true
     err('generate', e.message)
+    $('btn-gen-retry').style.display = 'block'
+    if (state.html) { $('gen-result').style.display = 'block'; $('gen-ftr').style.display = 'block' }
   } finally {
     $('l-generate').style.display = 'none'
+    stopGenStatus()
     generating = false
   }
 }
@@ -1879,11 +1928,13 @@ async function generate() {
 async function refine() {
   if (generating) return // ponytail: Race-Guard
   generating = true
+  lastGenAction = 'refine'
   const feedback = ($('gen-feedback').value || '').trim()
   if (!feedback) { generating = false; err('generate', 'Describe what should change.'); return }
   $('gen-result').style.display = 'none'
   $('gen-ftr').style.display = 'none'
   $('l-generate').style.display = 'flex'
+  startGenStatus(REFINE_MESSAGES)
   hideUpgradeBanner()
   try {
     const res = await afetch(API + '/api/generate', {
@@ -1907,10 +1958,14 @@ async function refine() {
     $('gen-feedback').value = ''
     $('gen-result').style.display = 'block'
     $('gen-ftr').style.display = 'block'
+    $('btn-gen-retry').style.display = 'none'
   } catch (e) {
     err('generate', e.message)
+    $('btn-gen-retry').style.display = 'block'
+    if (state.html) { $('gen-result').style.display = 'block'; $('gen-ftr').style.display = 'block' }
   } finally {
     $('l-generate').style.display = 'none'
+    stopGenStatus()
     generating = false
   }
 }
@@ -2063,14 +2118,57 @@ function togglePause(id, currentStatus) {
     .then(r => { if (!r.ok) throw new Error('API ' + r.status); showDashboard() })
     .catch(e => err('dashboard', 'Error: ' + (e.message || e)))
 }
-async function deleteTest(id) {
-  if (!confirm('Delete this test?')) return
+// ── Undo toast (generic) ─────────────────────────────────────────────────────
+function showUndoToast(message, onUndo) {
+  let t = $('toast')
+  if (!t) {
+    t = document.createElement('div')
+    t.id = 'toast'
+    t.className = 'toast'
+    t.setAttribute('role', 'status')
+    t.setAttribute('aria-live', 'polite')
+    document.body.appendChild(t)
+  }
+  t.innerHTML = '<span>' + escapeHtml(message) + '</span><button class="link-btn" id="toast-action" style="padding:0">Undo</button>'
+  t.classList.add('vis')
+  $('toast-action').onclick = onUndo
+}
+function hideToast() {
+  const t = $('toast'); if (t) t.classList.remove('vis')
+}
+
+// ── Delete with undo (delays the real DELETE by 5s so it's reversible) ────────
+let pendingDelete = null // { id, card, timer }
+function deleteTest(id, btn) {
+  if (pendingDelete) commitPendingDelete()
+  const card = btn.closest('.test-card')
+  card.classList.add('deleting')
+  card.setAttribute('aria-hidden', 'true')
+  const timer = setTimeout(commitPendingDelete, 5000)
+  pendingDelete = { id, card, timer }
+  showUndoToast('Test deleted', undoDelete)
+}
+function undoDelete() {
+  if (!pendingDelete) return
+  clearTimeout(pendingDelete.timer)
+  pendingDelete.card.classList.remove('deleting')
+  pendingDelete.card.removeAttribute('aria-hidden')
+  pendingDelete = null
+  hideToast()
+}
+async function commitPendingDelete() {
+  if (!pendingDelete) return
+  const { id, card, timer } = pendingDelete
+  clearTimeout(timer)
+  pendingDelete = null
+  hideToast()
   try {
     const res = await afetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
     if (!res.ok) throw new Error('API ' + res.status)
-    showDashboard()
+    if (card && card.parentNode) card.remove()
   } catch (e) {
-    err('dashboard', 'Error: ' + (e.message || e))
+    if (card) { card.classList.remove('deleting'); card.removeAttribute('aria-hidden') }
+    err('dashboard', 'Delete failed: ' + (e.message || e))
   }
 }
 
@@ -2124,6 +2222,7 @@ window.onmessage = (event) => {
     const exportBtn = $('btn-export')
     if (exportBtn) exportBtn.disabled = false
     enterMetric()
+    generate() // ponytail: Prefetch — KI-Generierung läuft parallel zur Metrik-Auswahl
     return
   }
 
