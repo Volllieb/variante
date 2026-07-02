@@ -61,7 +61,7 @@ c:\dev\variante/
 ├── ab-spike/               # Demo-Client-Site (E2E-Tests)
 │   └── app/                # layout.tsx + page.tsx
 │
-├── .github/agents/         # Custom Agents (stripe, redesign)
+├── .github/agents/         # Custom Agents (stripe, redesign, ponytail)
 ├── chrome-extension/       # Chrome-Extension (MV3)
 │   ├── manifest.json
 │   ├── content-picker.js (on-demand, kein content_scripts) / background.js / popup.js / popup.html
@@ -196,6 +196,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 02.07.2026 | **Ponytail-Agent auf full upgegradet:** Von Lite ("vorschlagen, User pickt") auf Full (direkt kürzesten Weg gehen). Deutsch, fokussierte Tools, keyword-reiche Description für Subagent-Discovery. |
 | 01.07.2026 | **Stripe-Webhook gehärtet:** (1) `checkout.session.completed` prüft jetzt `payment_status` — nur `paid`/`no_payment_required` setzen `plan = 'pro'`. (2) `customer.subscription.created` als Handler ergänzt (Abos außerhalb Checkout). (3) `customer.subscription.updated` degradiert nur noch bei `canceled`/`unpaid` auf `free` — `past_due`/`incomplete`/`paused` behalten `pro`. (4) Idempotenz via `stripe_webhook_events`-Tabelle (Migration 008). Agent-Doku aktualisiert. |
 | 30.06.2026 | **Auth-Fix: E-Mail-Bestätigung ging auf localhost:3000.** Ursache: Supabase Site URL stand auf localhost statt `www.getvariante.com`. Fix: (1) Supabase Dashboard → Site URL auf `https://www.getvariante.com` ändern, Redirect URLs ergänzen. (2) `signup/page.tsx`: `emailRedirectTo` explizit auf `${origin}/login` gesetzt. |---|
 | 29.06.2026 | **Chrome Extension CWS-ready gemacht:** Store-Listing (`store-listing.md`) finalisiert mit Permission-Justifications, Data-Usage, Single-Purpose. `cws-assets/` als Ablage für Screenshots. `.gitignore` erweitert (ZIP + Assets raus). ZIP-Package (`variante-chrome-extension.zip`, 13 KB) erstellt. |
