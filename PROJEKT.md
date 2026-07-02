@@ -61,6 +61,7 @@ c:\dev\variante/
 ├── ab-spike/               # Demo-Client-Site (E2E-Tests)
 │   └── app/                # layout.tsx + page.tsx
 │
+├── .github/agents/         # Custom Agents (stripe, redesign)
 ├── chrome-extension/       # Chrome-Extension (MV3)
 │   ├── manifest.json
 │   ├── content-picker.js (on-demand, kein content_scripts) / background.js / popup.js / popup.html
