@@ -129,7 +129,7 @@ input:focus, select:focus, textarea:focus {
   background: var(--figma-color-bg);
   box-shadow: 0 0 0 2px var(--brand-subtle);
 }
-input.err { border-color: var(--figma-color-text-danger, #dc2626); box-shadow: 0 0 0 2px rgba(220,38,38,.15); }
+input.err { border-color: var(--figma-color-text-danger, #dc2626); box-shadow: 0 0 0 2px rgba(220,38,38,.22); }
 textarea { resize: vertical; }
 
 .input-wrap { position: relative; margin-bottom: 4px; }
@@ -148,7 +148,7 @@ textarea { resize: vertical; }
 }
 
 .field-err {
-  font-size: 11px; color: var(--figma-color-text-danger, #dc2626);
+  font-size: 12px; font-weight: 600; color: var(--figma-color-text-danger, #dc2626);
   min-height: 15px; display: none; padding: 2px 0 8px;
 }
 .field-err.vis { display: block; }
@@ -199,7 +199,7 @@ textarea { resize: vertical; }
   box-shadow: none;
 }
 .btn-secondary {
-  background: transparent;
+  background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
   color: var(--figma-color-text);
 }
@@ -433,6 +433,7 @@ code {
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
   border-radius: var(--r);
+  box-shadow: var(--elev-1);
   padding: 10px 12px 10px 15px; margin-bottom: 8px; cursor: pointer;
   transition: border-color .12s, background .12s, box-shadow .12s;
 }
@@ -445,7 +446,7 @@ code {
 .test-card.st-active::before { background: var(--brand); }
 .test-card.st-done::before   { background: var(--ok); }
 .test-card.st-paused::before { background: var(--warn); }
-.test-card:hover { border-color: var(--brand); background: var(--figma-color-bg); box-shadow: var(--elev-1); }
+.test-card:hover { border-color: var(--brand); background: var(--figma-color-bg); box-shadow: var(--elev-2); }
 .test-card.paused { opacity: .6; }
 
 /* Ebene 1: Name + Status */
@@ -501,10 +502,8 @@ code {
 .refresh-note { font-size: 11px; color: var(--figma-color-text-secondary); text-align: center; padding: 8px 0 0; }
 
 /* ── Results: A/B stats as a two-column table with a center divider ────────── */
-.ab-table { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 12px; }
-.ab-col { padding: 0 12px; }
-.ab-col:first-child { padding-left: 0; border-right: 1px solid var(--figma-color-border); }
-.ab-col:last-child  { padding-right: 0; }
+.ab-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.ab-col { padding: 10px 12px; background: var(--figma-color-bg-secondary); border-radius: var(--r); }
 .ab-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
 .ab-metric { margin-bottom: 9px; }
 .ab-metric .ab-k { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--figma-color-text-secondary); }
@@ -524,6 +523,7 @@ code {
 /* ── Results: scaled mini preview (no scroll, single per variant) ─────────── */
 .frame-preview {
   border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  box-shadow: var(--elev-1);
   max-height: 64px; overflow: hidden; pointer-events: none;
   background: #fff; color: #111; margin-bottom: 4px;
 }
@@ -561,6 +561,17 @@ summary { padding: 4px 0; cursor: pointer; }
 }
 .sk-card { height: 58px; border-radius: var(--r); margin-bottom: 6px; }
 .sk-line { height: 10px; }
+
+/* ── Waiting dots (external-action states) ────────────────────────── */
+.dots { display: flex; gap: 4px; }
+.dots span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--figma-color-text-secondary);
+  animation: dots-bounce 1.2s ease-in-out infinite;
+}
+.dots span:nth-child(2) { animation-delay: .15s; }
+.dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes dots-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-4px); opacity: 1; } }
 
 /* ── prefers-reduced-motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
@@ -647,7 +658,8 @@ summary { padding: 4px 0; cursor: pointer; }
      SCREEN 0 · Dashboard
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-dashboard" class="screen">
-  <div class="hdr" style="padding:12px 12px 0;justify-content:flex-end">
+  <div class="hdr" style="padding:12px 12px 0">
+    <span class="hdr-title">Tests</span>
     <button class="icon-btn" onclick="showDashboard()" title="Refresh" aria-label="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
     <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account" style="margin-left:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
   </div>
@@ -781,11 +793,11 @@ summary { padding: 4px 0; cursor: pointer; }
 
     <!-- Waiting state -->
     <div id="el-waiting">
-      <div class="loading-row" role="status">
-        <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-row loading-center" role="status">
+        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
         <span>Waiting for element selection in browser…</span>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:8px">↗ Open site again</button>
+      <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin:8px auto 0">↗ Open site again</button>
     </div>
 
     <!-- Done state -->
@@ -899,7 +911,7 @@ summary { padding: 4px 0; cursor: pointer; }
     <div id="m-pick-wrap" style="display:none;margin:4px 0 10px 35px">
       <button class="btn btn-secondary btn-sm" onclick="openSite('goal')">Open in Chrome</button>
       <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:6px">
-        <div class="spinner" aria-hidden="true"></div>
+        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
         Waiting for goal selection…
       </div>
     </div>
@@ -1074,6 +1086,7 @@ summary { padding: 4px 0; cursor: pointer; }
       </svg>
     </button>
     <div class="hdr-sub">
+      <span class="lbl" style="margin-bottom:1px">Results</span>
       <span class="hdr-title" id="res-title">Results</span>
       <span class="badge bs-draft" id="res-badge" style="align-self:flex-start">draft</span>
     </div>
