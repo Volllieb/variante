@@ -6,8 +6,5 @@ ab-tool/.next/
 ab-tool/public/chrome-extension.zip
 chrome-extension/variante-chrome-extension.zip
 chrome-extension/cws-assets/
-.claude/
-.continue/
-.windsurf/
 
 __pycache__/
