@@ -152,11 +152,23 @@ export function DashboardClient({
         <main className="mx-auto max-w-5xl px-6 py-10 space-y-6">
 
           {/* Page title */}
-          <div>
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-white">
-              Dashboard
-            </h1>
-            <p className="mt-1 text-sm text-white/40">{email}</p>
+          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/25 to-fuchsia-500/20 text-violet-200 shadow-[0_12px_30px_-10px_rgba(192,132,252,0.35)]">
+                  <FlaskConical className="h-5 w-5" />
+                </div>
+                <div>
+                  <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-white">
+                    Dashboard
+                  </h1>
+                  <p className="mt-1 text-sm text-white/40">{email}</p>
+                </div>
+              </div>
+              <div className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-sm text-white/55">
+                {running > 0 ? `${running} active now` : 'No active tests'}
+              </div>
+            </div>
           </div>
 
           {/* ── Stats row ── */}
