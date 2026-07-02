@@ -14,8 +14,7 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "4173"],
       "cwd": "figma-plugin/src",
-      "port": 4173,
-      "autoPort": true
+      "port": 4173
     }
   ]
 }
