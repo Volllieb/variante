@@ -29,7 +29,12 @@ export default function LoginPage() {
     const p = new URLSearchParams(window.location.search)
     const errorParam = p.get('error')
     if (errorParam) setErr(decodeURIComponent(errorParam))
+    // ?google=true → auto-trigger Google OAuth (z. B. aus Figma-Plugin)
+    if (p.get('google') === 'true') {
+      handleGoogleLogin()
+    }
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   async function submit(e: React.FormEvent) {
