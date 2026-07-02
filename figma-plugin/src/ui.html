@@ -148,8 +148,11 @@ textarea { resize: vertical; }
 }
 
 .field-err {
-  font-size: 12px; font-weight: 600; color: var(--figma-color-text-danger, #dc2626);
-  min-height: 15px; display: none; padding: 2px 0 8px;
+  font-size: 11px; font-weight: 600; color: var(--figma-color-text-danger, #dc2626);
+  min-height: 0; display: none; padding: 6px 10px; margin-top: 2px;
+  background: rgba(220,38,38,.08);
+  border: 1px solid rgba(220,38,38,.22);
+  border-radius: var(--rsm);
 }
 .field-err.vis { display: block; }
 
@@ -813,19 +816,22 @@ summary { padding: 4px 0; cursor: pointer; }
     </div>
 
     <!-- Waiting state -->
-    <div id="el-waiting">
-      <div class="loading-row loading-center" role="status">
+    <div id="el-waiting" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:200px">
+      <div class="loading-row loading-center" role="status" style="flex-direction:column;gap:10px;padding:0">
         <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
         <span>Waiting for element selection in browser…</span>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin:8px auto 0">↗ Open site again</button>
+      <button class="btn btn-secondary btn-sm" onclick="openSite('element')" style="margin-top:18px">↗ Open site again</button>
     </div>
 
     <!-- Done state -->
     <div id="el-done" style="display:none">
       <span class="lbl" style="margin-bottom:5px">Selected element</span>
       <div id="el-chip-wrap" style="margin-bottom:10px"></div>
-      <button class="btn btn-secondary btn-sm" onclick="reselectElement()">Reselect</button>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+        <button class="btn btn-secondary btn-sm" onclick="reselectElement()">↺ Reselect</button>
+        <span style="font-size:10px;color:var(--figma-color-text-secondary)">or pick again in the browser</span>
+      </div>
     </div>
 
     <div class="err" id="e-element" role="alert" style="margin-top:6px"></div>
@@ -1481,7 +1487,7 @@ function newTest() {
   $('btn-gen-retry').style.display = 'none'
   $('f-name').value = ''; $('f-url').value = ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
-  $('el-waiting').style.display = 'block'; $('el-done').style.display = 'none'
+  $('el-waiting').style.display = 'flex'; $('el-done').style.display = 'none'
   var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
   $('btn-el-next').disabled = true
@@ -1654,7 +1660,7 @@ function stopElementPoll() {
 }
 async function reselectElement() {
   $('el-done').style.display = 'none'
-  $('el-waiting').style.display = 'block'
+  $('el-waiting').style.display = 'flex'
   var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
   $('btn-el-next').disabled = true
   $('el-chip-wrap').innerHTML = ''
