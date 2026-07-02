@@ -408,36 +408,17 @@ code {
 }
 .winner strong { font-weight: 700; }
 
-/* ── Dashboard: Projekt-Header (oberste Hierarchie-Ebene) ──────────────────── */
-.proj-head {
-  display: flex; align-items: center; gap: 7px;
-  margin: 16px 2px 8px;
-}
-.proj-head.first { margin-top: 2px; }
-.proj-icon { display: flex; flex-shrink: 0; color: var(--figma-color-text-secondary); }
-.proj-url {
-  flex: 1; min-width: 0;
-  font-size: 12px; font-weight: 600; color: var(--figma-color-text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.proj-count {
-  flex-shrink: 0; font-size: 10px; font-weight: 600;
-  color: var(--figma-color-text-secondary);
-  background: var(--figma-color-bg-secondary);
-  border-radius: 10px; padding: 1px 8px;
-}
-
 /* ── Dashboard: Test-Karte ───────────────────────────────────────────────── */
 .test-card {
   position: relative;
   background: var(--figma-color-bg-secondary);
   border: 1px solid var(--figma-color-border);
   border-radius: var(--r);
-  box-shadow: var(--elev-1);
-  padding: 10px 12px 10px 15px; margin-bottom: 8px; cursor: pointer;
-  transition: border-color .12s, background .12s, box-shadow .12s;
+  padding: 10px 10px 10px 14px; margin-bottom: 6px; cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
+  display: flex; flex-direction: column; gap: 6px;
 }
-/* Farbiger Status-Akzent links — auf einen Blick scanbar */
+/* Status-Akzent links */
 .test-card::before {
   content: ''; position: absolute; left: 0; top: 0; bottom: 0;
   width: 3px; border-radius: var(--r) 0 0 var(--r);
@@ -446,38 +427,77 @@ code {
 .test-card.st-active::before { background: var(--brand); }
 .test-card.st-done::before   { background: var(--ok); }
 .test-card.st-paused::before { background: var(--warn); }
-.test-card:hover { border-color: var(--brand); background: var(--figma-color-bg); box-shadow: var(--elev-2); }
-.test-card.paused { opacity: .6; }
+.test-card:hover, .test-card:focus-within { border-color: var(--brand); background: var(--figma-color-bg); box-shadow: var(--elev-2); }
+.test-card.deleting { opacity: .35; pointer-events: none; }
 
-/* Ebene 1: Name + Status */
-.tc-top { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+/* Row 1: name + domain + status */
+.tc-row1 { display: flex; align-items: center; gap: 6px; }
 .tc-name {
   flex: 1; min-width: 0;
-  font-weight: 600; font-size: 12.5px; color: var(--figma-color-text);
+  font-weight: 600; font-size: 12px; color: var(--figma-color-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  line-height: 1.3;
+}
+.tc-domain {
+  font-size: 10px; color: var(--figma-color-text-secondary);
+  max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex-shrink: 1;
 }
 
-/* Ebene 2: Kennzahlen (Icon + Wert) + Aktionen */
-.tc-bottom { display: flex; align-items: center; gap: 8px; }
-.tc-stats { display: flex; gap: var(--sp-3); align-items: center; flex: 1; min-width: 0; }
-.tc-stat { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--figma-color-text); }
-.tc-stat svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
-.tc-stat b { font-weight: 600; font-variant-numeric: tabular-nums; }
-.tc-stat.pos, .tc-stat.pos svg { color: var(--figma-color-text-success, var(--ok)); }
-.tc-stat.neg, .tc-stat.neg svg { color: var(--figma-color-text-danger, #dc2626); }
-.tc-stat.win, .tc-stat.win svg { color: var(--figma-color-text-success, var(--ok)); font-weight: 600; }
+/* Row 2: stats + actions */
+.tc-row2 { display: flex; align-items: center; gap: 6px; }
+.tc-stats { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0; }
+.tc-stat { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--figma-color-text-secondary); }
+.tc-stat svg { flex-shrink: 0; }
+.tc-stat b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--figma-color-text); }
+.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--figma-color-text-success, var(--ok)); }
+.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--figma-color-text-danger, #dc2626); }
+.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--figma-color-text-success, var(--ok)); font-weight: 700; }
 
-.tc-actions { display: flex; gap: 8px; flex-shrink: 0; opacity: 0; transition: opacity .12s; }
-.test-card:hover .tc-actions,
-.test-card:focus-within .tc-actions { opacity: 1; }
+/* Always-visible icon actions (no hover dependency — critical for Figma plugin) */
+.tc-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .icon-btn {
-  width: 28px; height: 28px; font-size: 12px;
-  border: 1px solid var(--figma-color-border); border-radius: var(--rsm);
+  width: 26px; height: 26px;
+  border: none; border-radius: var(--rsm);
   background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: var(--figma-color-text-secondary);
+  transition: background var(--dur-fast), color var(--dur-fast);
 }
-.icon-btn:hover { background: var(--figma-color-bg-hover); }
+.icon-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
+.icon-btn.danger:hover { background: rgba(220,38,38,.12); color: var(--figma-color-text-danger, #dc2626); }
+
+/* ── Dashboard: empty state ──────────────────────────────────────────────── */
+.dash-empty {
+  text-align: center; padding: 48px 16px 12px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.dash-empty-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--figma-color-bg-secondary);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px; color: var(--figma-color-text-secondary);
+}
+.dash-empty h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.dash-empty p  { font-size: 11px; color: var(--figma-color-text-secondary); line-height: 1.5; margin-bottom: 14px; }
+
+/* ── Dashboard: section header (site group) ──────────────────────────────── */
+.dash-section {
+  display: flex; align-items: center; gap: 6px;
+  margin: 14px 0 6px;
+  padding: 0 2px;
+}
+.dash-section:first-of-type { margin-top: 2px; }
+.dash-section-icon { display: flex; flex-shrink: 0; color: var(--figma-color-text-secondary); }
+.dash-section-label {
+  font-size: 11px; font-weight: 600; color: var(--figma-color-text-secondary);
+  text-transform: uppercase; letter-spacing: .35px;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dash-section-count {
+  font-size: 10px; font-weight: 600; color: var(--figma-color-text-secondary);
+  background: var(--figma-color-bg-secondary); border-radius: 8px; padding: 1px 7px;
+}
 
 /* ── Previews ────────────────────────────────────────────────────────────── */
 .prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
@@ -660,8 +680,9 @@ summary { padding: 4px 0; cursor: pointer; }
 <div id="s-dashboard" class="screen">
   <div class="hdr" style="padding:12px 12px 0">
     <span class="hdr-title">Tests</span>
-    <button class="icon-btn" onclick="showDashboard()" title="Refresh" aria-label="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
-    <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account" style="margin-left:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
+    <span class="badge ba" id="dash-count" style="display:none;margin-left:4px"></span>
+    <button class="icon-btn" onclick="showDashboard()" title="Refresh" aria-label="Refresh" style="margin-left:auto"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
   </div>
   <div class="body">
     <div class="upgrade-banner" id="upgrade-banner-dash">
@@ -670,9 +691,9 @@ summary { padding: 4px 0; cursor: pointer; }
       <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
     </div>
     <div id="dash-list"></div>
+    <div class="err" id="e-dashboard" role="alert" style="min-height:0;padding:4px 0 0"></div>
   </div>
   <div class="ftr">
-    <div class="err" id="e-dashboard" role="alert" style="min-height:0;padding:0"></div>
     <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
   </div>
 </div>
@@ -1296,39 +1317,46 @@ async function showDashboard() {
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
+  const countEl = $('dash-count')
+  countEl.style.display = 'none'
   list.innerHTML = '<div role="status"><span class="sr-only">Loading tests…</span>' +
-    '<div class="sk sk-card" aria-hidden="true"></div>' +
-    '<div class="sk sk-card" aria-hidden="true"></div>' +
-    '<div class="sk sk-card" aria-hidden="true"></div></div>'
+    '<div class="sk sk-card" aria-hidden="true" style="height:52px"></div>' +
+    '<div class="sk sk-card" aria-hidden="true" style="height:52px"></div>' +
+    '<div class="sk sk-card" aria-hidden="true" style="height:52px"></div></div>'
   try {
     const res = await afetch(API + '/api/tests')
     if (!res.ok) throw new Error('API ' + res.status)
     const { tests } = await res.json()
     if (!tests || !tests.length) {
       list.innerHTML =
-        '<div style="text-align:center;padding:40px 16px 8px">' +
-          '<div style="width:48px;height:48px;border-radius:50%;background:var(--figma-color-bg-secondary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--figma-color-text-secondary)">' +
-            '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.58 16.5h12.85"/></svg>' +
+        '<div class="dash-empty">' +
+          '<div class="dash-empty-icon">' +
+            '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.58 16.5h12.85"/></svg>' +
           '</div>' +
-          '<div style="font-size:13px;font-weight:600;margin-bottom:4px">No tests yet</div>' +
-          '<div style="font-size:11px;color:var(--figma-color-text-secondary);line-height:1.55;margin-bottom:12px">Run your first A/B test to see<br>how a change performs.</div>' +
-          '<button class="btn btn-secondary btn-sm" onclick="newTest()" style="margin:0 auto">+ Create your first test</button>' +
+          '<h3>No tests yet</h3>' +
+          '<p>Run your first A/B test to see<br>how a design change performs.</p>' +
+          '<button class="btn btn-secondary btn-sm" onclick="newTest()">+ Create your first test</button>' +
         '</div>'
       return
     }
+    countEl.textContent = tests.length
+    countEl.style.display = 'inline-flex'
+
+    // Group by site URL
     const groups = {}
     tests.forEach(t => { const k = t.site_url || '(no URL)'; (groups[k] = groups[k] || []).push(t) })
     list.innerHTML = ''
     Object.keys(groups).forEach((url, i) => {
       const display = url.replace(/^https?:\/\//, '').replace(/\/+$/, '') || url
       const n = groups[url].length
+      // Section header
       const h = document.createElement('div')
-      h.className = 'proj-head' + (i === 0 ? ' first' : '')
+      h.className = 'dash-section'
       h.title = url
       h.innerHTML =
-        '<span class="proj-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>' +
-        '<span class="proj-url">' + escapeHtml(display) + '</span>' +
-        '<span class="proj-count" title="' + n + (n === 1 ? ' test' : ' tests') + '">' + n + '</span>'
+        '<span class="dash-section-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>' +
+        '<span class="dash-section-label">' + escapeHtml(display) + '</span>' +
+        '<span class="dash-section-count">' + n + '</span>'
       list.appendChild(h)
       groups[url].forEach(t => list.appendChild(renderTestCard(t)))
     })
@@ -1339,14 +1367,6 @@ async function showDashboard() {
       '<button class="btn btn-secondary btn-sm" onclick="showDashboard()" style="margin-top:4px">↻ Retry</button>'
   }
 }
-function fmtNum(n) { return (n || 0).toLocaleString('en-US') }
-
-// Icons (24er viewBox, currentColor-Stroke)
-const IC_USER  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>'
-const IC_CHECK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
-const IC_UP    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
-const IC_DOWN  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>'
-const IC_TROPHY = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>'
 
 function renderTestCard(t) {
   const va = t.visitors_a || 0, vb = t.visitors_b || 0
@@ -1355,7 +1375,10 @@ function renderTestCard(t) {
   const st = t.status || 'draft'
   const winner = t.winner && st === 'done' ? t.winner : ''
 
-  // Drittes Signal: Gewinner (done) ODER Lift B vs. A (relativ) — das wichtigste Maß
+  // Domain label
+  const domain = (t.site_url || '').replace(/^https?:\/\//, '').replace(/\/+$/, '') || ''
+
+  // Lift / winner signal
   let signal = ''
   if (winner) {
     signal = '<span class="tc-stat win" title="Winner">' + IC_TROPHY + '<b>Variant ' + escapeHtml(winner) + '</b></span>'
@@ -1366,41 +1389,48 @@ function renderTestCard(t) {
       const cls  = lift > 0 ? 'pos' : lift < 0 ? 'neg' : ''
       const sign = lift > 0 ? '+' : ''
       const ic   = lift < 0 ? IC_DOWN : IC_UP
-      signal = '<span class="tc-stat ' + cls + '" title="Lift Variant B vs A">' + ic + '<b>' + sign + lift + '%</b></span>'
+      signal = '<span class="tc-stat ' + cls + '" title="Lift B vs A">' + ic + '<b>' + sign + lift + '%</b></span>'
     }
   }
 
-  const pauseBtn = st === 'paused'
-    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>'
-    : '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+  const pauseIcon = st === 'paused'
+    ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>'
+    : '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
 
   const card = document.createElement('div')
-  card.className = 'test-card st-' + st + (st === 'paused' ? ' paused' : '')
+  card.className = 'test-card st-' + st
   card.innerHTML =
-    '<div class="tc-top">' +
+    '<div class="tc-row1">' +
       '<span class="tc-name">' + escapeHtml(t.name) + '</span>' +
+      (domain ? '<span class="tc-domain">' + escapeHtml(domain) + '</span>' : '') +
       '<span class="badge bs-' + st + '">' + st + '</span>' +
     '</div>' +
-    '<div class="tc-bottom">' +
+    '<div class="tc-row2">' +
       '<div class="tc-stats">' +
-        '<span class="tc-stat" title="Total visitors">' + IC_USER + '<b>' + fmtNum(totalV) + '</b></span>' +
-        '<span class="tc-stat" title="Total conversions">' + IC_CHECK + '<b>' + fmtNum(totalC) + '</b></span>' +
+        '<span class="tc-stat" title="Visitors">' + IC_USER + '<b>' + fmtNum(totalV) + '</b></span>' +
+        '<span class="tc-stat" title="Conversions">' + IC_CHECK + '<b>' + fmtNum(totalC) + '</b></span>' +
         signal +
       '</div>' +
       '<div class="tc-actions">' +
-        '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" aria-label="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseBtn + '</button>' +
-        '<button class="icon-btn" title="Delete" aria-label="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\', this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
+        '<button class="icon-btn" title="' + (st === 'paused' ? 'Resume' : 'Pause') + '" aria-label="' + (st === 'paused' ? 'Resume' : 'Pause') + '" onclick="event.stopPropagation();togglePause(\'' + t.id + '\',\'' + st + '\')">' + pauseIcon + '</button>' +
+        '<button class="icon-btn danger" title="Delete" aria-label="Delete" onclick="event.stopPropagation();deleteTest(\'' + t.id + '\', this)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>' +
       '</div>' +
     '</div>'
   card.onclick = () => resumeTest(t.id)
   card.tabIndex = 0
   card.setAttribute('role', 'button')
-  card.setAttribute('aria-label', 'Open results for ' + (t.name || 'test'))
-  card.onkeydown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resumeTest(t.id) }
-  }
+  card.setAttribute('aria-label', 'Open ' + (t.name || 'test'))
+  card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resumeTest(t.id) } }
   return card
 }
+function fmtNum(n) { return (n || 0).toLocaleString('en-US') }
+
+// Icons (24px viewBox, currentColor stroke)
+const IC_USER  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>'
+const IC_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+const IC_UP    = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+const IC_DOWN  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>'
+const IC_TROPHY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>'
 function resumeTest(id) { state.testId = id; navPush('results'); startResults() }
 
 // ── Screen 1: Setup ─────────────────────────────────────────────────────────
