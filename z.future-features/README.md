@@ -109,6 +109,28 @@ Variante als MCP-Server für Coding-Agents (Copilot, Cursor, Claude Code):
 
 ---
 
+## 🔐 Figma OAuth Login
+
+**Status:** Evaluierung abgeschlossen, zurückgestellt.
+
+Figma-Login als dritter Auth-Weg neben Email/Passwort und Google OAuth. Designer loggen sich direkt mit ihrem Figma-Account ein — der natürlichste Flow für die Zielgruppe.
+
+**Herausforderung:** Figma ist kein nativer Supabase-Provider. Kein `signInWithOAuth({ provider: 'figma' })`. Der Flow muss komplett manuell gebaut werden:
+
+| Schritt | Beschreibung |
+|---|---|
+| **Figma OAuth App** | In Figma Developer Console registrieren (`https://www.figma.com/developers/apps`) |
+| **`/api/auth/figma`** | Eigene Route für Redirect zu Figmas `authorize`-Endpoint |
+| **Figma Callback** | `code` → `access_token` tauschen via `POST https://www.figma.com/api/oauth/token` |
+| **User-Info** | `GET /v1/me` für `user_id`, `email`, `handle` |
+| **Supabase-Link** | Figma-User mit Supabase-User verknüpfen (entweder via `auth.identities`-Provider oder eigenes `figma_user_id`-Feld in `profiles`) |
+
+**Aufwand:** ~4h (Custom-OAuth ohne Supabase-Adapter).
+
+**Entscheidung:** Google OAuth reicht für jetzt. Figma-User haben fast immer ein Google-Konto. Figma OAuth kommt, wenn Nutzer-Feedback es fordert.
+
+---
+
 ## 🌐 Distribution & Wachstum
 
 | Feature | Beschreibung |
