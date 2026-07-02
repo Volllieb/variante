@@ -10,7 +10,7 @@ Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` �
 - Sei kritisch aber zuversichtlich und optimistisch. Jedes Problem sollte mit einer lösungsorientierten Haltung aufgezeigt und proaktiv angegangen werden.
 
 ## Standing Order
-- **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` fortschreiben (Stand, Entscheidungen, Brainstorms, Interview-Erkenntnisse). CLAUDE.md bleibt frei von Memory.
+- **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` fortschreiben (Stand, Entscheidungen, Brainstorms, Interview-Erkenntnisse). Lokale Tool- oder IDE-Konfigurationen bleiben frei von Projekt-Logik.
 - **Nach jeder Änderung: Selbstprüfung aus §10 PROJEKT.md durchführen** — Struktur, Git, Doku, Deployment, Produkt-Health checken.
 - **Immer committen** — keine losen Änderungen hinterlassen. Nach Commit: `git push` (wenn Remote vorhanden).
 

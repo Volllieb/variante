@@ -1,5 +1,5 @@
 {
-  "name": "ab-test-monorepo",
+  "name": "variante",
   "private": true,
   "scripts": {
     "dev:tool":     "cd ab-tool && npm run dev",

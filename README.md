@@ -10,10 +10,12 @@ Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI 
 
 | Ordner | Beschreibung | Deploy |
 |---|---|---|
-| `ab-tool/` | Next.js API + Dashboard | Vercel (`www.getvariante.com`) |
-| `figma-plugin/` | Figma-Plugin | manuell laden |
-| `chrome-extension/` | Chrome-Extension | manuell laden |
-| `db/migrations/` | Supabase SQL | SQL-Editor |
+| `ab-tool/` | Aktive Next.js-App: API, Dashboard, Landing-Page | Vercel (`www.getvariante.com`) |
+| `figma-plugin/` | Figma-Plugin für Test-Erstellung | manuell laden |
+| `chrome-extension/` | Chrome-Extension für Element-/Goal-Picking | manuell laden |
+| `db/migrations/` | Supabase-SQL-Migrationen | SQL-Editor |
+
+> Kein separates `ab-spike`-Projekt mehr; die aktive Produkt-Implementierung lebt in `ab-tool/`.
 
 ## Schnellstart
 

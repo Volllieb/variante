@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
@@ -15,6 +15,21 @@ export default function LoginPage() {
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+
+  // PASSWORD_RECOVERY-Event: User kommt aus alter Reset-Mail → redirect zu /update-password
+  useEffect(() => {
+    const supabase = getBrowserSupabase()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        router.push('/update-password')
+      }
+    })
+    // Error aus Query-Param (z. B. vom /auth/callback redirect)
+    const p = new URLSearchParams(window.location.search)
+    const errorParam = p.get('error')
+    if (errorParam) setErr(decodeURIComponent(errorParam))
+    return () => subscription.unsubscribe()
+  }, [router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,7 +49,7 @@ export default function LoginPage() {
     setLoading(true)
     const supabase = getBrowserSupabase()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     })
     setLoading(false)
     if (error) { setErr(error?.message || JSON.stringify(error)); return }

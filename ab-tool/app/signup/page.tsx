@@ -39,13 +39,26 @@ export default function SignupPage() {
     setLoading(false)
     if (error) {
       const msg = typeof error === 'string' ? error : error.message || JSON.stringify(error)
-      setErr(typeof msg === 'string' ? msg : JSON.stringify(msg))
+      const msgStr = typeof msg === 'string' ? msg : JSON.stringify(msg)
+      // Supabase-Fehlermeldungen für existierende User sind kryptisch → eigene Message
+      if (
+        msgStr.toLowerCase().includes('already') ||
+        msgStr.toLowerCase().includes('exists') ||
+        msgStr.toLowerCase().includes('registered')
+      ) {
+        setAlreadyRegistered(true)
+      } else {
+        setErr(msgStr)
+      }
       return
     }
-    // Bereits registriert? Supabase liefert leeres identities-Array bei existierender Email
+    // Bereits registriert & bestätigt? identities existieren und email ist confirmed → User existiert
     if (data.user?.identities?.length === 0) {
-      setErr('')
-      setInfo('')
+      setAlreadyRegistered(true)
+      return
+    }
+    // Fallback: User existiert, identities.length > 0, aber keine Session (Email-Confirmation ON)
+    if (data.user && !data.session && data.user.email_confirmed_at) {
       setAlreadyRegistered(true)
       return
     }
@@ -139,9 +152,9 @@ export default function SignupPage() {
             )}
             {alreadyRegistered && (
               <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-xs text-amber-200">
-                Diese E-Mail-Adresse ist bereits registriert.{' '}
+                Achtung — diese E-Mail ist bereits registriert.{' '}
                 <Link href="/login" className="font-semibold underline transition-colors hover:text-amber-100">
-                  Möchtest du dich nicht einloggen?
+                  Direkt einloggen
                 </Link>
               </p>
             )}

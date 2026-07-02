@@ -14,7 +14,7 @@
 | **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 30.06.2026 |
+| **Stand** | 02.07.2026 |
 | **Leitziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community PLG), nicht Produkt. |
 
 ## §2 Stack
@@ -22,7 +22,7 @@
 | Komponente | Technologie | Zweck |
 |---|---|---|
 | API + Dashboard | Next.js 16 (App Router) | Backend + Web-UI |
-| Hosting | Vercel (2 Projekte) | Deployment |
+| Hosting | Vercel (1 aktives Produkt-Projekt) | Deployment |
 | Datenbank | Supabase (Postgres) | Tests, Events, User |
 | Auth | Supabase Auth (JWT) | Login + API-Gate |
 | Billing | Stripe | Abos + Checkout |
@@ -58,6 +58,7 @@ c:\dev\variante/
 │   ├── __tests__/          # Lightweight Self-Checks (kein Test-Framework)
 │   └── public/ab.js        # Das Snippet
 │
+├── .agents/                # Lokale Agent-/Skill-Setup für VS Code/Copilot
 ├── .github/agents/         # Custom Agents (stripe, redesign, ponytail)
 ├── chrome-extension/       # Chrome-Extension (MV3)
 │   ├── manifest.json
@@ -192,7 +193,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
-| 02.07.2026 | **Cleanup:** `ab-spike/` gelöscht (ungenutztes Next.js-Projekt). `.claude/` gelöscht (Claude-Code-CLI — VS Code nutzt `.agents/` + `.github/`). `.agents/` aus `.gitignore` entfernt. `package.json` + `README.md` bereinigt. |
+| 02.07.2026 | **Auth-Fix: Passwort-Reset & Signup-Bestehende-Mail.** (1) Passwort-Reset: `resetPasswordForEmail` redirectet jetzt auf `/auth/callback` → `verifyOtp` → `/update-password` (neue Seite). `PASSWORD_RECOVERY`-Listener auf `/login` als Fallback für alte Reset-Mails. (2) Signup mit bestehender Mail: Drei Fallbacks statt nur `identities.length === 0` — auch `error.message`-Patterns (`already`/`exists`/`registered`) und `email_confirmed_at`-Check. Message verbessert: „Achtung — bereits registriert. Direkt einloggen." |---|
 | 02.07.2026 | **Figma-Plugin UI-Redesign „Figma+":** Kompletter CSS/HTML-Neuaufbau. Größere Spacing-Scale (4–32px), 3 Elevation-Level, Toggle-Switches statt Segmented Controls für A/B + Light/Dark. Refine-Overlay (Bottom-Sheet). Zentrierte Dots-Animation für Waiting-States. Dashboard: Site-URL-gruppierte Testkarten mit Section-Headern. Step 2: Zentrierte Waiting-Animation. Step 3: Prominente "Click a layer"-Card. Step 4: Default-unavailable → automatisch "Another element" selected + highlighted. Step 5: Preview iframe ohne Scroll, Code-Drawer, kein Figma-Referenz-Screenshot mehr. Step 6: Zwei saubere Buttons (Copy Prompt/Copy Snippet). JS-Logik unangetastet bis auf `openRefine/closeRefine/submitRefine`. |
 | 01.07.2026 | **Stripe-Webhook gehärtet:** (1) `checkout.session.completed` prüft jetzt `payment_status` — nur `paid`/`no_payment_required` setzen `plan = 'pro'`. (2) `customer.subscription.created` als Handler ergänzt (Abos außerhalb Checkout). (3) `customer.subscription.updated` degradiert nur noch bei `canceled`/`unpaid` auf `free` — `past_due`/`incomplete`/`paused` behalten `pro`. (4) Idempotenz via `stripe_webhook_events`-Tabelle (Migration 008). Agent-Doku aktualisiert. |
 | 30.06.2026 | **Auth-Fix: E-Mail-Bestätigung ging auf localhost:3000.** Ursache: Supabase Site URL stand auf localhost statt `www.getvariante.com`. Fix: (1) Supabase Dashboard → Site URL auf `https://www.getvariante.com` ändern, Redirect URLs ergänzen. (2) `signup/page.tsx`: `emailRedirectTo` explizit auf `${origin}/login` gesetzt. |---|
@@ -210,7 +211,7 @@ c:\dev\variante/
 | 26.06.2026 | **brandguidelines.md erstellt:** Design.md + ui-ux-pro-max-skill (67 Styles, 79 Paletten, 72 Fonts, 59 UX-Regeln) + Plugin-Codeanalyse in ein umfassendes Design-Dokument für KI-gestütztes Figma-Plugin-Design synthetisiert. 14 Sektionen, alle Design-Tokens, Komponenten-Patterns, Screen-Flow, Anti-Patterns. |
 | 26.06.2026 | **Ponytail-Review:** `'use client'` aus VariantPreview entfernt (Server Component). Leere Grid-Spalte gefixt (jede Vorschau einzeln bedingt rendern). PROJEKT.md §3 aktualisiert. |
 | 26.06.2026 | **Variant-Preview im Dashboard:** Results-Seite zeigt jetzt Preview-Ansicht beider Varianten (Original + B) als Miniatur-iframe nebeneinander unter den Statistiken. `getExperimentStats` liefert `originalHtml`/`variantBHtml`/`siteCss`. Neue Komponente `VariantPreview.tsx`. |
-| 26.06.2026 | **Anti-Flicker fix:** 3 Probleme — (1) 3000ms-Fallback zu kurz für langsame Netze → 10000ms. (2) Kein early Connection-Hint → `preconnect` ins Snippet. (3) Blindes Timeout revealed bevor ab.js fertig → **Polling auf `window.__ab_pending_resolve`**: Inline-Script wartet auf reveal()-Signal von ab.js, 10s-Hard-Ceiling als Netz. Alle Snippet-Templates (Dashboard, Figma-Plugin, ab-spike) aktualisiert. |
+| 26.06.2026 | **Anti-Flicker fix:** 3 Probleme — (1) 3000ms-Fallback zu kurz für langsame Netze → 10000ms. (2) Kein early Connection-Hint → `preconnect` ins Snippet. (3) Blindes Timeout revealed bevor ab.js fertig → **Polling auf `window.__ab_pending_resolve`**: Inline-Script wartet auf reveal()-Signal von ab.js, 10s-Hard-Ceiling als Netz. Alle Snippet-Templates (Dashboard, Figma-Plugin) aktualisiert. |
 | 25.06.2026 | Landingpage für getvariante.com gebaut (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify/Waitlist). Privacy-/Imprint-Seiten, Waitlist-API, SQL-Migration 006. `lib/supabase.ts` auf Proxy umgestellt (lazy init für Build ohne Env-Vars). Domain-Verweis auf www.getvariante.com vereinheitlicht. |
 | 25.06.2026 | **Deployment** — Landingpage auf `www.getvariante.com` deployed (Vercel `vercel deploy --prod`). Root `getvariante.com` redirectet auf `www`. Landingpage, Privacy, Imprint alle 200. |
 | 30.06.2026 | **Deployment** — Landingpage-Redesign deployed. Health-Check 200 auf `/`, `/login`, `/signup`. |
@@ -282,7 +283,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 30.06.2026 (Auth-Fix: E-Mail-Confirmation-Redirect)*
+*DSO — zuletzt geprüft: 02.07.2026 (Auth: Passwort-Reset-Flow + Signup-Bestehende-Mail-Fix)*
 
 ---
 

@@ -23,7 +23,7 @@
 ## Phase 3: Chrome Extension — Element Picken
 
 - [ ] **Extension installieren** — `chrome://extensions` → Developer mode → Load unpacked → `chrome-extension/`
-- [ ] **Fake-Site öffnen** — `ab-spike.vercel.app` oder lokale Testseite
+- [ ] **Fake-Site öffnen** — lokale Testseite oder temporäre Demo-URL
 - [ ] **Picker via Popup** — Extension-Icon → Öffnen → Picker aktiv
 - [ ] **Picker via URL-Hash** — `#ab_pick=<testId>` startet Picker automatisch
 - [ ] **Element hovern** — Blaues Highlight über dem Element
@@ -46,7 +46,7 @@
 ## Phase 5: Snippet Installieren
 
 - [ ] **Snippet aus Dashboard kopieren** — Copy-Button kopiert alle 3 Zeilen
-- [ ] **Snippet in `<head>` einbauen** — In Testseite (ab-spike oder eigene)
+- [ ] **Snippet in `<head>` einbauen** — auf einer Testseite oder einer eigenen Demo-Seite
 - [ ] **Anti-Flicker** — Seite lädt: kurz opacity=0, dann reveal
 - [ ] **ab.js geladen** — Network-Tab: `ab.js` 200
 - [ ] **`/api/resolve`** — Network-Tab: resolve-Call 200, liefert tests[] + badge

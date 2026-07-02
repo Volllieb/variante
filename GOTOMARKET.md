@@ -38,7 +38,7 @@ Engpass: Figma-Plugin-Review + Chrome-Web-Store-Review. Aktiv Schritte bevor die
 
 - **Store-Listings früh einreichen** — heute oder morgen. Review-Zeiten sind unberechenbar (1–14 Tage).
 - **Die 2 bekannten Designer + 3–5 handverlesene kleine Agenturen** als Design-Partner gewinnen: kostenlos Pro gegen Feedback + Testimonial + Case-Study.
-- **Concierge-Onboarding**: du machst den ersten Test mit ihnen via `ab-spike` oder deren echter Site.
+- **Concierge-Onboarding**: du machst den ersten Test mit ihnen via einer schnellen Demo-Seite oder deren echter Site.
 - **Output:** 3–5 echte Installs, **1–2 Case-Studies mit Before/After-Lift-Zahlen** → Munition für Phase 2.
 
 ### Phase 2 — Public-Launch-Spike (nach Store-Freigabe)
