@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, POST, OPTIONS') })
   }
 
-  return Response.json({ tests: data ?? [] }, { headers: corsHeaders('GET, POST, OPTIONS') })
+  return Response.json({ tests: data ?? [], plan: user.plan }, { headers: corsHeaders('GET, POST, OPTIONS') })
 }
 
 export async function POST(req: Request) {
