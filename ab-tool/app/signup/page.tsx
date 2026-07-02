@@ -21,12 +21,14 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [err, setErr] = useState('')
   const [info, setInfo] = useState('')
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setErr('')
     setInfo('')
+    setAlreadyRegistered(false)
     setLoading(true)
     const supabase = getBrowserSupabase()
     const { data, error } = await supabase.auth.signUp({
@@ -38,6 +40,13 @@ export default function SignupPage() {
     if (error) {
       const msg = typeof error === 'string' ? error : error.message || JSON.stringify(error)
       setErr(typeof msg === 'string' ? msg : JSON.stringify(msg))
+      return
+    }
+    // Bereits registriert? Supabase liefert leeres identities-Array bei existierender Email
+    if (data.user?.identities?.length === 0) {
+      setErr('')
+      setInfo('')
+      setAlreadyRegistered(true)
       return
     }
     if (data.session) {
@@ -126,6 +135,14 @@ export default function SignupPage() {
             {err && (
               <p className="rounded-xl border border-rose-400/20 bg-rose-400/[0.07] px-4 py-3 text-xs text-rose-300">
                 {err}
+              </p>
+            )}
+            {alreadyRegistered && (
+              <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-xs text-amber-200">
+                Diese E-Mail-Adresse ist bereits registriert.{' '}
+                <Link href="/login" className="font-semibold underline transition-colors hover:text-amber-100">
+                  Möchtest du dich nicht einloggen?
+                </Link>
               </p>
             )}
             {info && (
