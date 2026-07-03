@@ -3,6 +3,10 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 
+// Private/Reserved Hosts — SSRF-Schutz für Domain-Verification
+const BLOCKED_HOSTS = /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|0\.0\.0\.0|\[::1\]|[0-9a-f:]+:[0-9a-f:]*:[0-9a-f:]+)$/i
+const BLOCKED_HOSTNAMES = ['metadata.google.internal', '169.254.169.254']
+
 export async function OPTIONS() {
   return preflight('GET, POST, DELETE, OPTIONS')
 }
@@ -45,6 +49,12 @@ export async function POST(req: Request) {
 
   // Normalisieren: https:// entfernen, trailing slash weg
   const normalized = url.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+
+  // SSRF-Schutz: keine privaten/reserved Hosts
+  const hostname = normalized.split(':')[0] // Port entfernen falls vorhanden
+  if (BLOCKED_HOSTS.test(hostname) || BLOCKED_HOSTNAMES.includes(hostname) || !hostname.includes('.')) {
+    return Response.json({ error: 'invalid domain' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
 
   const { data, error } = await supabase
     .from('domains')
