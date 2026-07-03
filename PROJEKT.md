@@ -27,6 +27,7 @@
 | Auth | Supabase Auth (JWT) | Login + API-Gate |
 | Billing | Stripe | Abos + Checkout |
 | KI-Generierung | OpenAI API | HTML-Varianten (~0,3 ct/Call) |
+| Coding-Agent | Cline (VS Code + CLI) via DeepSeek V4 Pro | Autonomes Coden, Testen, Iterieren |
 | Snippet | `ab.js` (Vanilla JS) | Läuft auf Kundenseite |
 | Chrome-Extension | MV3 (Vanilla JS) | Element + Goal Picker |
 | Figma-Plugin | TypeScript + HTML | Plugin-UI (8 Screens) |
@@ -193,6 +194,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 03.07.2026 | **Cline + DeepSeek als Coding-Agent eingerichtet.** Cline VS Code Extension + CLI (`npm i -g cline`, v3.0.34) installiert. Provider: `openai-compatible` via `https://api.deepseek.com`, Model: `deepseek-v4-pro`. Ermöglicht autonome Test-Loops (branch → test → fail → fix → repeat) + Multi-Agent-Teams (`--team-name`) + Kanban (`npx kanban`). |
 | 03.07.2026 | **Design-Pivot: Web-Dashboard auf monochromes „Panda"-System umgebaut.** Kompletter Wechsel weg von Dark-Aurora/Glassmorphism (Violet/Fuchsia-Gradients) hin zu Schwarz/Weiß + 3 Funktionsfarben (ok/pro/err), Struktur 1:1 vom Vercel-Dashboard übersetzt: feste Sidebar-Navigation (Tests aktiv · Activity log/Domains „Soon" · Analytics/Team gesperrt mit Lock-Icon bzw. Agency-Tag · Plugin token/Usage als Anchor-Links), Top-Bar mit Plan-Badge, Live-Suche über die Testliste. Bewusst keine erfundenen Kontingente (z. B. Visitor-Caps) — nur das real gegatete Limit „1 aktives Experiment" (Free) wird angezeigt. `brandguidelines.md` auf v2 aktualisiert (gilt jetzt für alle vier Oberflächen: Dashboard, Landingpage, Login, Figma-Plugin). Landingpage/Login/Figma-Plugin-Umsetzung folgt in separaten Schritten. |
 | 02.07.2026 | **Auth-Fix: Passwort-Reset & Signup-Bestehende-Mail.** (1) Passwort-Reset: `resetPasswordForEmail` redirectet jetzt auf `/auth/callback` → `verifyOtp` → `/update-password` (neue Seite). `PASSWORD_RECOVERY`-Listener auf `/login` als Fallback für alte Reset-Mails. (2) Signup mit bestehender Mail: Drei Fallbacks statt nur `identities.length === 0` — auch `error.message`-Patterns (`already`/`exists`/`registered`) und `email_confirmed_at`-Check. Message verbessert: „Achtung — bereits registriert. Direkt einloggen." |---|
 | 02.07.2026 | **Google OAuth eingebaut.** Login + Signup haben jetzt „Continue with Google"-Button. `/auth/callback` verarbeitet jetzt beide Flows: OAuth (`code` → `exchangeCodeForSession`) und Email (`token_hash` → `verifyOtp`). Signup leitet Google-User mit `?source=` via `next`-Param sauber ins Onboarding. **Noch zu tun:** Supabase Dashboard → Google Provider aktivieren (Client-ID + Secret aus Google Cloud Console). |---|

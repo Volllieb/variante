@@ -12,6 +12,7 @@
 | Attribut | Wert |
 |---|---|
 | **Produkt** | Variante — A/B-Testing aus Figma, kein Dev nötig |
+| **Schreibweise** | **Eigene Flächen:** „variante" (klein, Stilmittel) — **Offizielle/Fremdflächen:** „Variante" (groß, z. B. Stripe, Kreditkartenabrechnung, Impressum, Rechnungen) |
 | **Oberflächen** | Landingpage · Login/Signup · Web-Dashboard · Figma-Plugin |
 | **Referenz-Struktur** | Vercel-Dashboard (Sidebar-Nav, Workspace-Bar, Card-Grid, Toolbar-Pattern) |
 | **Farbwelt** | Monochrom (Schwarz/Weiß/Grau) — **kein** Marken-Akzentton mehr |

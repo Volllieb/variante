@@ -17,6 +17,11 @@ export default async function OnboardingPage(props: { searchParams: Promise<Reco
     .eq('user_id', user.id)
     .single()
 
+  // Sobald der User die Onboarding-Seite erreicht (egal über welchen Pfad),
+  // gilt Onboarding als gesehen — das Dashboard-Gate leitet ihn danach nicht
+  // mehr hierher zurück, auch wenn er "Skip" klickt oder die Seite verlässt.
+  await supabase.from('profiles').update({ onboarded: true }).eq('user_id', user.id)
+
   return (
     <OnboardingClient
       email={user.email ?? ''}

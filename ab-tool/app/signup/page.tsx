@@ -32,10 +32,13 @@ export default function SignupPage() {
     setAlreadyRegistered(false)
     setLoading(true)
     const supabase = getBrowserSupabase()
+    const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/login` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+      },
     })
     setLoading(false)
     if (error) {
@@ -76,7 +79,7 @@ export default function SignupPage() {
     setErr('')
     setGoogleLoading(true)
     const supabase = getBrowserSupabase()
-    const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/dashboard'
+    const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

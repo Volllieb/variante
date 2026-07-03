@@ -9,9 +9,14 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan, plan_status')
+    .select('api_token, plan, plan_status, onboarded')
     .eq('user_id', user.id)
     .single()
+
+  // Zustandsbasiertes Onboarding-Gate: greift unabhängig davon, über welchen
+  // Pfad der User zum ersten Mal eingeloggt ist (Signup-Sofort-Session,
+  // E-Mail-Bestätigung, Google-OAuth, …).
+  if (profile && !profile.onboarded) redirect('/onboarding')
 
   const { data: tests } = await supabase
     .from('tests')

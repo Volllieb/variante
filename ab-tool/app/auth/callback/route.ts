@@ -5,10 +5,14 @@ import { getServerSupabase } from '@/lib/supabaseServer'
  * Supabase Auth Callback — verarbeitet sowohl OAuth (Google) als auch Email-Links.
  *
  * Flows:
- * - OAuth (code)     → Session via Cookie-Austausch → /dashboard (oder /onboarding wenn source gesetzt)
+ * - OAuth (code)     → Session via Cookie-Austausch → next-Param (Login: /dashboard, Signup: /onboarding)
  * - type=recovery    → /update-password
- * - type=signup      → /login (nach E-Mail-Bestätigung)
+ * - type=signup      → next-Param (Signup setzt /onboarding via emailRedirectTo)
  * - default (token)  → /dashboard
+ *
+ * /dashboard selbst gated zusätzlich auf profiles.onboarded — falls ein User
+ * trotzdem ohne next-Param oder über einen alten Link landet, wird er beim
+ * ersten Dashboard-Aufruf serverseitig nach /onboarding umgeleitet.
  */
 export async function GET(req: NextRequest) {
   const requestUrl = new URL(req.url)
