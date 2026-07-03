@@ -3,15 +3,20 @@ import { supabase } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './DashboardClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan, plan_status, onboarded')
+    .select('*')
     .eq('user_id', user.id)
     .single()
+
+  // DEBUG: Force-reveal what we got
+  const debugToken = profile?.api_token ?? (profile ? 'PROFILE-NO-TOKEN' : 'NO-PROFILE')
 
   // Zustandsbasiertes Onboarding-Gate: greift unabhängig davon, über welchen
   // Pfad der User zum ersten Mal eingeloggt ist (Signup-Sofort-Session,
@@ -28,7 +33,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     <DashboardClient
       email={user.email ?? ''}
       plan={profile?.plan ?? 'free'}
-      apiToken={profile?.api_token ?? ''}
+        apiToken={debugToken}
       tests={tests ?? []}
     />
   )
