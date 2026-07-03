@@ -24,7 +24,7 @@ type TestRow = {
 export async function POST(req: Request) {
   // Security: Rate-Limiting — maximal 30 Event-Calls pro Minute pro IP
   const ip = getClientIp(req)
-  if (!checkRateLimit(`event:${ip}`, 30, 60_000)) {
+  if (!await checkRateLimit(`event:${ip}`, 30, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('POST, OPTIONS') })
   }
 

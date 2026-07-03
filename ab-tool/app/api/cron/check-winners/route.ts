@@ -91,7 +91,7 @@ export async function POST(req: Request) {
               })
             } catch {
               // E-Mail-Versand fehlgeschlagen — nicht blockierend
-              console.error('[cron] failed to send winner email for test', t.id)
+              safeError('cron:email', { message: `failed to send winner email for test ${t.id}` })
             }
           }
         }

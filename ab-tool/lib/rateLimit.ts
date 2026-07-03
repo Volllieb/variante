@@ -1,18 +1,34 @@
-// Security: In-Memory Rate-Limiter für öffentliche Endpunkte (/assign, /event).
+// Security: Rate-Limiter für öffentliche Endpunkte (/assign, /event).
 // Schützt vor Counter-Inflation und Cost-Explosion durch missbräuchliche Requests.
-// Sliding-Window-Ansatz — keine externen Dependencies.
 //
-// Limitation: Bei Vercel-Serverless (mehrere Instanzen) ist der State pro Instanz.
-// Für Production-Grade würde man Upstash Redis o.ä. verwenden. Als erste
-// Verteidigungslinie gegen Script-Kiddies ausreichend.
+// Produktion: Upstash Redis (globaler State über alle Vercel-Instanzen).
+// Dev: In-Memory-Map als Fallback (pro-Instanz, kein Redis nötig).
+//
+// Env-Vars für Production:
+//   UPSTASH_REDIS_REST_URL=https://<db>.upstash.io
+//   UPSTASH_REDIS_REST_TOKEN=<read+write token>
 
+import { Redis } from '@upstash/redis'
+
+let redis: Redis | null = null
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+    console.log('[rateLimit] Upstash Redis aktiviert')
+  }
+} catch {
+  console.warn('[rateLimit] Upstash Redis nicht verfügbar — In-Memory-Fallback')
+}
+
+// In-Memory-Fallback für Dev (keine Redis-Abhängigkeit).
 const buckets = new Map<string, number[]>()
-
-// Alte Einträge periodisch aufräumen, damit der Map nicht unbegrenzt wächst.
 let lastCleanup = Date.now()
-const CLEANUP_INTERVAL = 60_000 // 1 min
+const CLEANUP_INTERVAL = 60_000
 
-function cleanup() {
+function cleanupMemory() {
   const now = Date.now()
   if (now - lastCleanup < CLEANUP_INTERVAL) return
   lastCleanup = now
@@ -23,12 +39,31 @@ function cleanup() {
   }
 }
 
-export function checkRateLimit(
+export async function checkRateLimit(
   key: string,
   maxRequests: number,
   windowMs: number
-): boolean {
-  cleanup()
+): Promise<boolean> {
+  // Redis-Pfad (Production)
+  if (redis) {
+    const redisKey = `rl:${key}`
+    const now = Date.now()
+    const windowStart = now - windowMs
+
+    // ZSET: füge aktuellen Timestamp hinzu, entferne alte Einträge, zähle.
+    const multi = redis.multi()
+    multi.zadd(redisKey, { score: now, member: `${now}-${Math.random()}` })
+    multi.zremrangebyscore(redisKey, 0, windowStart)
+    multi.zcard(redisKey)
+    multi.expire(redisKey, Math.ceil(windowMs / 1000) + 1)
+    const results = await multi.exec()
+    // results: [zaddResult, zremResult, zcardResult, expireResult]
+    const count = (results?.[2] as number) ?? 0
+    return count <= maxRequests
+  }
+
+  // In-Memory-Pfad (Dev)
+  cleanupMemory()
   const now = Date.now()
   const timestamps = buckets.get(key) || []
   const recent = timestamps.filter(t => now - t < windowMs)
