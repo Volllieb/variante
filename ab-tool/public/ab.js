@@ -240,12 +240,23 @@
     run()
   }
 
+  // --- Clientseitiges Path-Matching (kein Pfad-Tracking zum Server) ---------
+  // Repliziert die server-seitige pathOf/Filter-Logik. DSGVO: Der Server
+  // sieht nur den Host, nicht welche Seiten ein Besucher aufruft.
+  function pathMatches(testPath, currentPath) {
+    // testPath stammt aus site_url und wurde serverseitig via pathOf extrahiert.
+    // Leerer testPath = Test gilt für alle Seiten dieser Domain.
+    if (!testPath) return true
+    return currentPath === testPath || currentPath.indexOf(testPath + '/') === 0
+  }
+
   // --- Hauptlogik ------------------------------------------------------------
   function run() {
     installDelegation()
 
-    var q =
-      '?host=' + encodeURIComponent(location.host) + '&path=' + encodeURIComponent(location.pathname)
+    // DSGVO: Nur Host senden, nicht den Pfad. Der Server gibt ALLE aktiven
+    // Tests für diesen Host zurück. Client filtert per pathMatches().
+    var q = '?host=' + encodeURIComponent(location.host)
 
     fetch(origin + '/api/resolve' + q)
       .then(function (r) {
@@ -253,7 +264,13 @@
       })
       .then(function (res) {
         if (res && res.badge) showBadge()
-        var tests = res && res.tests ? res.tests : []
+        var all = res && res.tests ? res.tests : []
+        // Clientseitiges Path-Matching — kein Tracking des Surfverhaltens.
+        var curPath = location.pathname.replace(/\/+$/, '') || '/'
+        var tests = []
+        for (var i = 0; i < all.length; i++) {
+          if (pathMatches(all[i].path, curPath)) tests.push(all[i])
+        }
         if (!tests.length) {
           reveal()
           return

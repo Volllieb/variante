@@ -60,7 +60,7 @@ export default function PrivacyPage() {
                     { label: 'AI generation (OpenAI)', body: "When you generate a variant, the extracted HTML/CSS context of the original element and the Figma export data are sent to OpenAI's API. The data is used only for generation and is not stored by OpenAI. Do not submit personal data in prompts or designs." },
                     { label: 'Payment data', body: 'Credit card details are processed directly by Stripe. We never have access to full card numbers. Stripe shares only: status, payment method type, and last 4 digits.' },
                     { label: 'Waitlist', body: 'email address if you submit the coming-soon form.' },
-                    { label: 'Usage data', body: 'page views, variant assignment, and conversion events collected by the ab.js snippet on your site. No personal visitor data is stored — only anonymized counts.' },
+                    { label: 'Usage data', body: 'the ab.js snippet sends only the domain name (host) to our servers to check for active tests — never the full page path. Variant assignment and conversion events are collected as anonymized counters only. No personal visitor data or browsing history is stored.' },
                   ].map(({ label, body }) => (
                     <li key={label} className="flex gap-2.5">
                       <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-fuchsia-400/60" />

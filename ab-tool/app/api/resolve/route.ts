@@ -26,7 +26,9 @@ function pathOf(u: string | null | undefined): string {
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const host = hostOf(url.searchParams.get('host'))
-  const path = (url.searchParams.get('path') || '').split('?')[0].split('#')[0].replace(/\/+$/, '')
+  // DSGVO: path-Parameter wird ignoriert. Der Client sendet nur noch host,
+  // path-Matching passiert clientseitig in ab.js (pathMatches()).
+  // Kein Pfad-Tracking auf dem Server.
 
   if (!host) {
     return Response.json({ tests: [] }, { headers: corsHeaders('GET, OPTIONS') })
@@ -49,10 +51,8 @@ export async function GET(req: Request) {
     // done+A bleibt draußen, weil das Original ohnehin Variante A ist.
     .filter(t => !(t.status === 'done' && t.winner !== 'B'))
     .filter(t => hostOf(t.site_url) === host)
-    .filter(t => {
-      const tp = pathOf(t.site_url)
-      return !tp || path === tp || path.startsWith(tp + '/')
-    })
+    // DSGVO: Kein server-seitiges Path-Matching mehr. Der Client filtert
+    // per pathMatches() — der Server sieht nur die Domain, nicht den Pfad.
 
   // Badge-Logik: „Powered by Variante" wird angezeigt, wenn der Besitzer eines
   // greifenden Tests NICHT Pro/Agency ist (Free oder Legacy ohne Owner).
@@ -81,6 +81,10 @@ export async function GET(req: Request) {
     // Security: XSS-Sanitization vor Auslieferung an ab.js
     variant_b_html: sanitizeHtml(t.variant_b_html),
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
+    // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
+    // Extrahiert aus site_url, damit der Client filtern kann, ohne
+    // den vollen Pfad zum Server zu senden.
+    path: pathOf(t.site_url) || null,
   }))
 
   return Response.json({ tests, badge }, { headers: corsHeaders('GET, OPTIONS') })
