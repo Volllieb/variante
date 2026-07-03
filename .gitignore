@@ -8,3 +8,5 @@ chrome-extension/variante-chrome-extension.zip
 chrome-extension/cws-assets/
 
 __pycache__/
+
+.vercel

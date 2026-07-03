@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 03.07.2026 |
+| **Stand** | 03.07.2026 (abends) |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -40,7 +40,7 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 └── __tests__/
 chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
-db/migrations/          # Supabase SQL (001–009)
+db/migrations/          # Supabase SQL (001–010)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ```
 
@@ -85,6 +85,9 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 03.07.2026 | **Cron-Fix: console.error → safeError.** check-winners verwendet jetzt safeError statt rohem console.error für E-Mail-Fehlschläge. |
+| 03.07.2026 | **.env.example + Env-Doku.** CRON_SECRET (Pflicht für Cron-Jobs), RESEND_API_KEY (optional für Winner-Mails), Upstash (optional für Rate-Limiting). |
+| 03.07.2026 | **shadcn/ui + cn()-Utility entfernt.** 5 Dependencies (`@radix-ui/react-slot`, `class-variance-authority`, `clsx`, `tailwind-merge`), 4 UI-Komponenten (badge, button, card, input), `components.json` und `lib/utils.ts` gelöscht. Keine Rest-Referenzen. Build grün. |
 | 03.07.2026 | **Auto-Deploy: Commit → Push → Deploy.** GitHub Action `.github/workflows/deploy.yml` deployed bei jedem Push auf master automatisch auf Vercel. Build-Schutz: roter Build = kein Deploy. |
 | 03.07.2026 | **Backend-Features: Events, Analytics, Domains, Cron, Profile, Export.** Event-Logging (created/started/paused/winner_detected/done) via log_event RPC. Analytics-API (Pro-gated, daily_stats Zeitreihe). Cron-Jobs: stündlicher Winner-Check + Resend Mails, täglicher Stats-Snapshot. Domain-Management (CRUD + Verification). Profile-API (GET/PATCH, notify_on_winner). CSV-Export. Token-Regeneration. vercel.json, migration 010_features.sql. Build grün. |
 | 03.07.2026 | **Plugin/Web-Split: Results, Stats & Upgrade-Banner aus Figma-Plugin entfernt.** s-results gelöscht, JS-Funktionen (startResults/stopResultsPoll/setResBg/pct) entfernt, dash-stats + upgrade-banner → plan-chip, Snippet → Open in Dashboard. Web-Backlog offen (Stats-Bar, zentrales Upgrade-Banner). Build grün. |
