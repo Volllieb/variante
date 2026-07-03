@@ -7,18 +7,11 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  // DEBUG: Token-Flow nachvollziehen
-  console.log('[DASHBOARD] user.id:', user.id)
-
-  const { data: profile, error: profileErr } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('api_token, plan, plan_status, onboarded')
     .eq('user_id', user.id)
     .single()
-
-  console.log('[DASHBOARD] profile query error:', profileErr?.message || 'none')
-  console.log('[DASHBOARD] profile keys:', Object.keys(profile ?? {}))
-  console.log('[DASHBOARD] profile.api_token:', profile?.api_token?.substring(0, 12) ?? 'NULL')
 
   // Zustandsbasiertes Onboarding-Gate: greift unabhängig davon, über welchen
   // Pfad der User zum ersten Mal eingeloggt ist (Signup-Sofort-Session,
@@ -35,7 +28,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     <DashboardClient
       email={user.email ?? ''}
       plan={profile?.plan ?? 'free'}
-      apiToken={profile?.api_token ?? 'NO-TOKEN-' + (profile ? 'HAS-PROFILE' : 'NO-PROFILE')}
+      apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
     />
   )
