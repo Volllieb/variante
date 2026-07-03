@@ -49,5 +49,11 @@ export async function POST(req: Request) {
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  // Plugin-Sync-Timestamp aktualisieren (Integration-Status)
+  await supabase
+    .from('profiles')
+    .update({ last_plugin_sync_at: new Date().toISOString() })
+    .eq('user_id', user.userId)
+
   return Response.json({ ok: true }, { headers: corsHeaders('POST, OPTIONS') })
 }

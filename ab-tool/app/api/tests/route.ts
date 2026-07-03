@@ -53,6 +53,12 @@ export async function POST(req: Request) {
     return Response.json({ error: 'name is required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  // Input-Validierung: Längenlimits verhindern DB-Blähung.
+  if (name.length > 256) return Response.json({ error: 'name too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  if (site_url && site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  if (selector && selector.length > 512) return Response.json({ error: 'selector too long (max 512)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  if (goal && goal.length > 256) return Response.json({ error: 'goal too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+
   // Gating: Free-Tier erlaubt nur 1 laufenden Test (status != 'done').
   if (user.plan === 'free') {
     const { count } = await supabase
@@ -89,6 +95,14 @@ export async function POST(req: Request) {
     safeError('tests', error)
     return Response.json({ error: 'failed to create test' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
+
+  // Event: Test erstellt
+  await supabase.rpc('log_event', {
+    p_test_id: data.id,
+    p_user_id: user.userId,
+    p_type: 'created',
+    p_message: `Test "${name}" created`,
+  })
 
   return Response.json(
     { id: data.id, snippet_key: data.snippet_key },

@@ -33,7 +33,7 @@
 
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
-├── app/api/            # assign, billing, capture, event, generate, resolve, results, stripe, tests, variant, waitlist
+├── app/api/            # assign, billing, capture, event, generate, resolve, results, stripe, tests, variant
 ├── app/dashboard/ login/ onboarding/ signup/ results/ imprint/ privacy/
 ├── lib/                # auth, cors, stats, significance, stripe, supabase, rateLimit, sanitize, safeLog
 ├── public/ab.js        # Snippet

@@ -37,6 +37,25 @@ const FRAMEWORK_HINTS: Record<string, string> = {
   custom: '',
 }
 
+// CSS-Regeln parsen mit Brace-Tiefen-Tracking (kein naiver Split an '}' —
+// bricht bei content: "}" oder data:image/svg-URLs mit geschweiften Klammern).
+function splitRules(css: string): string[] {
+  const rules: string[] = []
+  let depth = 0
+  let start = 0
+  for (let i = 0; i < css.length; i++) {
+    if (css[i] === '{') depth++
+    else if (css[i] === '}') {
+      depth--
+      if (depth === 0) {
+        rules.push(css.slice(start, i + 1))
+        start = i + 1
+      }
+    }
+  }
+  return rules
+}
+
 // CSS-Filterung: Behält nur Regeln, deren Selektoren in original_html vorkommen.
 // So bekommt das Modell keine überflüssigen Styles aus dem Seiten-CSS.
 function cssFilterRelevant(html: string | null, css: string | null): string {
@@ -56,18 +75,18 @@ function cssFilterRelevant(html: string | null, css: string | null): string {
   const tagRe = /<\s*(\w+)/g
   while ((m = tagRe.exec(html)) !== null) tags.add(m[1].toLowerCase())
 
-  const rules = css.split('}').map(r => r.trim()).filter(Boolean).map(r => {
+  const rules = splitRules(css).map(r => {
     const brace = r.indexOf('{')
     if (brace === -1) return null
     const selector = r.slice(0, brace).trim()
-    const body = r.slice(brace + 1).trim() + '}'
+    const body = r.slice(brace + 1, -1).trim() // -1 entfernt die schließende }
     const selClasses = [...selector.matchAll(/\.([\w-]+)/g)].map(x => x[1])
     const selIds = [...selector.matchAll(/#([\w-]+)/g)].map(x => x[1])
     const selTags = [...selector.matchAll(/(?:^|[+>~\s,])\s*(\w+)/g)].map(x => x[1].toLowerCase()).filter(Boolean)
     const relevant = selClasses.some(c => classes.has(c)) ||
       selIds.some(id => ids.has(id)) ||
       selTags.some(t => tags.has(t))
-    return relevant ? `${selector} {${body}}` : null
+    return relevant ? `${selector} { ${body} }` : null
   }).filter(Boolean).join('\n')
 
   return rules || css // Fallback auf komplettes CSS, falls Filter zu aggressiv war

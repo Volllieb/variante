@@ -46,6 +46,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   // Besitz-Scope: nur eigene Tests aktualisierbar.
+  // Vor dem Update den alten Status für Event-Logging sichern.
+  const { data: oldTest } = await supabase
+    .from('tests')
+    .select('status, name')
+    .eq('id', id)
+    .eq('user_id', user.userId)
+    .single()
+
   const { data: updated, error } = await supabase
     .from('tests')
     .update(patch)
@@ -58,6 +66,26 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   if (!updated || updated.length === 0) {
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
+  }
+
+  // Event-Logging bei Status-Änderungen
+  const oldStatus = oldTest?.status
+  const newStatus = patch.status
+  if (newStatus && newStatus !== oldStatus) {
+    const eventType =
+      newStatus === 'active' ? 'started' :
+      newStatus === 'paused' ? 'paused' :
+      newStatus === 'done' ? 'done' :
+      newStatus === 'draft' && oldStatus === 'paused' ? 'resumed' :
+      null
+    if (eventType) {
+      await supabase.rpc('log_event', {
+        p_test_id: id,
+        p_user_id: user.userId,
+        p_type: eventType,
+        p_message: `Test "${oldTest?.name || id}" ${oldStatus} → ${newStatus}`,
+      })
+    }
   }
 
   return Response.json({ ok: true }, { headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })

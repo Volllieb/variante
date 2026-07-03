@@ -94,5 +94,21 @@ export async function POST(req: Request) {
     safeError('event', updateError)
   }
 
+  // Event: Winner erkannt
+  if (winner) {
+    const { data: testOwner } = await supabase
+      .from('tests')
+      .select('user_id, name')
+      .eq('id', row.id)
+      .single()
+
+    await supabase.rpc('log_event', {
+      p_test_id: row.id,
+      p_user_id: testOwner?.user_id ?? null,
+      p_type: 'winner_detected',
+      p_message: `Winner ${winner} detected for "${testOwner?.name || row.id}" (sig=${significance.toFixed(4)})`,
+    })
+  }
+
   return Response.json({ ok: true }, { headers: corsHeaders('POST, OPTIONS') })
 }
