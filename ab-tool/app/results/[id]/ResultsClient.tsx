@@ -3,6 +3,7 @@
 import { ExperimentData } from '@/lib/getExperimentStats'
 import { VariantPreview } from '@/app/components/VariantPreview'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -16,6 +17,7 @@ import {
   Play,
   Pencil,
   X,
+  Trash2,
 } from 'lucide-react'
 
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
@@ -26,6 +28,37 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [editingB, setEditingB] = useState(false)
   const [draftB, setDraftB] = useState(initial.variantBHtml || '')
   const [refreshing, setRefreshing] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const router = useRouter()
+
+  async function upgrade() {
+    setBusy(true)
+    try {
+      const res = await fetch('/api/billing/checkout', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function deleteTest() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/tests/${experimentId}?confirm=true`, { method: 'DELETE' })
+      if (res.ok) {
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        const err = await res.json()
+        alert(err.error || 'Failed to delete test')
+      }
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   async function refresh() {
     setRefreshing(true)
@@ -149,6 +182,32 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               </button>
+              {!deleteConfirm ? (
+                <button
+                  onClick={() => setDeleteConfirm(true)}
+                  className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/30 transition-all hover:border-rose-400/30 hover:text-rose-400"
+                  aria-label="Delete experiment"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              ) : (
+                <div className="flex items-center gap-1.5 rounded-full border border-rose-400/20 bg-rose-400/[0.07] px-3 py-1.5">
+                  <button
+                    onClick={deleteTest}
+                    disabled={deleting}
+                    className="cursor-pointer text-xs font-semibold text-rose-300 transition-colors hover:text-rose-200 disabled:opacity-50"
+                  >
+                    {deleting ? 'Deleting…' : 'Yes, delete'}
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(false)}
+                    disabled={deleting}
+                    className="cursor-pointer text-xs text-white/40 transition-colors hover:text-white disabled:opacity-30"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -262,12 +321,13 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
             <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-5 py-4 backdrop-blur-md">
               <Lock className="h-4 w-4 shrink-0 text-white/30" />
               <span className="text-sm text-white/40">Significance &amp; auto-winner are Pro features.</span>
-              <Link
-                href="/dashboard"
-                className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1.5 text-xs font-bold text-white"
+              <button
+                onClick={upgrade}
+                disabled={busy}
+                className="ml-auto shrink-0 cursor-pointer rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
               >
-                Upgrade
-              </Link>
+                {busy ? 'Redirecting…' : 'Upgrade'}
+              </button>
             </div>
           )}
 
@@ -416,12 +476,13 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <p className="mt-2 text-xs text-white/35">
                 Statistical significance and the auto-winner are available from the Pro plan onward.
               </p>
-              <Link
-                href="/dashboard"
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-md shadow-fuchsia-500/20"
+              <button
+                onClick={upgrade}
+                disabled={busy}
+                className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-md shadow-fuchsia-500/20 disabled:opacity-50"
               >
-                Upgrade to Pro
-              </Link>
+                {busy ? 'Redirecting…' : 'Upgrade to Pro'}
+              </button>
             </div>
           )}
         </main>

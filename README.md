@@ -1,5 +1,7 @@
 # variante — A/B-Testing aus Figma
 
+> **Kurzübersicht & Schnellstart.** Produktbeschreibung, Ordnerstruktur, Dev-Kommandos. Details in [`PROJEKT.md`](./PROJEKT.md).
+
 Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI generiert HTML → Snippet trackt Conversions. **Kein Dev nötig.**
 
 > **Ausführliche Projektdoku:** [`PROJEKT.md`](./PROJEKT.md) (DSO)  

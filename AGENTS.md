@@ -2,6 +2,8 @@
 
 Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` — dort fortschreiben, nicht hier.
 
+**Agent-Definitionen:** `.github/agents/*.agent.md` (ponytail, redesign, stripe).
+
 ## Arbeitsweise
 - Deutsch. Kein Intro/Outro/Padding. Direkt zum Inhalt.
 - Meinung statt neutraler Pros/Cons. Eine Rückfrage statt Annahmen.

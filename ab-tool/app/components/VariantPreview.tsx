@@ -21,20 +21,20 @@ export function VariantPreview({
     : `<html><body>${html}</body></html>`
 
   return (
-    <div className={`rounded-xl border p-4 ${winner ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+    <div className={`rounded-xl border p-4 ${winner ? 'border-emerald-400/30 bg-emerald-400/[0.05]' : 'border-white/[0.08] bg-white/[0.025]'}`}>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500">
+        <p className="text-xs font-semibold text-white/50">
           Variant {label} {winner ? '✓ Winner' : ''}
         </p>
         <button
           onClick={() => setBg(bg === 'light' ? 'dark' : 'light')}
-          className="rounded border border-gray-300 px-2 py-0.5 text-[10px] text-gray-500 hover:bg-gray-100"
+          className="cursor-pointer rounded border border-white/10 px-2 py-0.5 text-[10px] text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/60"
         >
           {bg === 'light' ? '☀ Light' : '☾ Dark'}
         </button>
       </div>
       <div
-        className="overflow-hidden rounded-lg border border-gray-300"
+        className="overflow-hidden rounded-lg border border-white/[0.08]"
         style={{ height: 240, background: bg === 'dark' ? '#1a1a1a' : '#fff' }}
       >
         <iframe

@@ -1,6 +1,6 @@
 # GOTOMARKET.md — variante
 
-Stand: 01.07.2026. Phase 0 abgeschlossen. Figma-Plugin + Chrome-Extension eingereicht. Dogfooding gestartet.
+Stand: 03.07.2026. Phase 0 abgeschlossen. Figma-Plugin + Chrome-Extension eingereicht. Dogfooding gestartet.
 
 ## Strategie in einem Satz
 **Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
@@ -66,7 +66,7 @@ Erst wenn Figma-Plugin LIVE im Community Store ist:
 - Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
 - **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
 
-## Aktueller Status (01.07.2026)
+## Aktueller Status (03.07.2026)
 
 - ✅ **Produkt fertig**: Phase A+B+C auf `www.getvariante.com` deployed
 - ⏳ **E2E-Test**: Offen

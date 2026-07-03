@@ -13,9 +13,12 @@ export default async function OnboardingPage(props: { searchParams: Promise<Reco
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan')
+    .select('api_token, plan, onboarded')
     .eq('user_id', user.id)
     .single()
+
+  // UX: Bereits onboarded → nicht erneut Onboarding zeigen
+  if (profile?.onboarded) redirect('/dashboard')
 
   // Sobald der User die Onboarding-Seite erreicht (egal über welchen Pfad),
   // gilt Onboarding als gesehen — das Dashboard-Gate leitet ihn danach nicht

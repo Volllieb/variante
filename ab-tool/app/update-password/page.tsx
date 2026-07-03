@@ -103,11 +103,12 @@ export default function UpdatePasswordPage() {
 
               <form onSubmit={submit} className="mt-7 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                  <label htmlFor="update-password" className="text-xs font-semibold uppercase tracking-wider text-white/50">
                     New password
                   </label>
                   <div className="relative">
                     <input
+                      id="update-password"
                       type={showPassword ? 'text' : 'password'}
                       required
                       minLength={6}

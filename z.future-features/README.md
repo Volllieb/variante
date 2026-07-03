@@ -186,4 +186,4 @@ Wenn Varianten auch ohne Figma erstellbar sind (Upload, AI-only, Copy-Variation)
 
 ---
 
-*Stand: 01.07.2026 — Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*
+*Stand: 03.07.2026 — Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*

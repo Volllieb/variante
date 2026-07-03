@@ -16,10 +16,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [sessionChecked, setSessionChecked] = useState(false)
 
+  // UX: Bereits eingeloggt → direkt zum Dashboard
   // PASSWORD_RECOVERY-Event: User kommt aus alter Reset-Mail → redirect zu /update-password
   useEffect(() => {
     const supabase = getBrowserSupabase()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard')
+        return
+      }
+      setSessionChecked(true)
+    })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         router.push('/update-password')
@@ -71,6 +80,8 @@ export default function LoginPage() {
     setGoogleLoading(false)
     if (error) setErr(error.message)
   }
+
+  if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#06050f] font-[family-name:var(--font-sans)] antialiased">
@@ -132,10 +143,11 @@ export default function LoginPage() {
           <form onSubmit={submit} className="mt-5 space-y-4">
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider text-white/50">
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 required
                 placeholder="you@example.com"
@@ -147,11 +159,12 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              <label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-wider text-white/50">
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"

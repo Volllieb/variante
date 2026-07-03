@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
@@ -24,6 +24,18 @@ export default function SignupPage() {
   const [alreadyRegistered, setAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [sessionChecked, setSessionChecked] = useState(false)
+
+  // UX: Bereits eingeloggt → direkt zum Dashboard
+  useEffect(() => {
+    getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard')
+        return
+      }
+      setSessionChecked(true)
+    })
+  }, [router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -90,6 +102,8 @@ export default function SignupPage() {
     if (error) setErr(error.message)
   }
 
+  if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#06050f] font-[family-name:var(--font-sans)] antialiased">
       {/* Aurora */}
@@ -149,10 +163,11 @@ export default function SignupPage() {
 
           <form onSubmit={submit} className="mt-5 space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              <label htmlFor="signup-email" className="text-xs font-semibold uppercase tracking-wider text-white/50">
                 Email
               </label>
               <input
+                id="signup-email"
                 type="email"
                 required
                 placeholder="you@example.com"
@@ -163,11 +178,12 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              <label htmlFor="signup-password" className="text-xs font-semibold uppercase tracking-wider text-white/50">
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="signup-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   minLength={6}

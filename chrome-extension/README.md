@@ -1,6 +1,18 @@
 # Browser Extension — A/B Element Picker
 
-Kein Build-Schritt nötig. Die Extension besteht aus Plain-JS-Dateien.
+Kein Build-Schritt nötig. Die Extension besteht aus Plain-JS-Dateien. Installation: manuell via `chrome://extensions` (Developer Mode → Load unpacked).
+
+## Dateien
+
+| Datei | Zweck |
+|-------|-------|
+| `manifest.json` | Extension-Konfiguration (MV3, Permissions, Entry Points) |
+| `background.js` | Service Worker: Hash-Parsing, Auto-Flow-Koordination, Popup-Kommunikation |
+| `content-picker.js` | On-Demand: Element-Picker + Goal-Picker (wird via `scripting.executeScript` injiziert) |
+| `popup.html` / `popup.js` | Popup-UI: manueller Test-ID-Input, Picker-Start |
+| `welcome.html` | Post-Install-Welcome-Seite |
+| `store-listing.md` | CWS-Listing-Texte (nicht Teil der Extension) |
+| `icons/` | Extension-Icons (16/32/48/128px) |
 
 ## In Chrome laden
 
@@ -13,12 +25,3 @@ Kein Build-Schritt nötig. Die Extension besteht aus Plain-JS-Dateien.
 
 Nach jeder Änderung an `.js`-Dateien auf `chrome://extensions` die Extension
 neu laden (Reload-Symbol ↺ auf der Extension-Karte).
-
-## Dateien
-
-| Datei | Zweck |
-|-------|-------|
-| `manifest.json` | Extension-Konfiguration (Permissions, Entry Points) |
-| `content.js` | Läuft auf der Client-Site: Element-Picker + Goal-Picker |
-| `background.js` | Service Worker: koordiniert Popup ↔ Content |
-| `popup.html` / `popup.js` | Popup-UI der Extension |

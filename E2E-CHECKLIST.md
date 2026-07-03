@@ -1,6 +1,6 @@
 # E2E-Test-Checkliste — variante
 
-> Stand: 29.06.2026. Kompletten Loop testen: Landing → Account → Extension → Figma → Snippet → Traffic → Conversions → Billing → Winner.
+> Stand: 03.07.2026. Kompletten Loop testen: Landing → Account → Extension → Figma → Snippet → Traffic → Conversions → Billing → Winner.
 
 ---
 
@@ -109,15 +109,14 @@
 ## Smoke-Tests (vor dem Durchlauf)
 
 ```bash
-# Beide Vercel-Deployments antworten
+# Live-Deployment antwortet
 curl -sI https://www.getvariante.com | head -1       # → 200
-curl -sI https://ab-tool-pied.vercel.app | head -1    # → 200
 
 # Landing Page enthält Kerninhalte
 curl -s https://www.getvariante.com | grep -c "A/B testing from Figma"
 # → 1
 
 # API ist erreichbar + gibt CORS-Header
-curl -sI -X OPTIONS https://ab-tool-pied.vercel.app/api/resolve 2>&1 | findstr "access-control"
+curl -sI -X OPTIONS https://www.getvariante.com/api/resolve 2>&1 | findstr "access-control"
 # → access-control-allow-origin: *
 ```

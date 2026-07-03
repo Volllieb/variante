@@ -14,7 +14,7 @@
 | **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 02.07.2026 |
+| **Stand** | 03.07.2026 |
 | **Leitziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community PLG), nicht Produkt. |
 
 ## §2 Stack
@@ -28,6 +28,9 @@
 | Billing | Stripe | Abos + Checkout |
 | KI-Generierung | OpenAI API | HTML-Varianten (~0,3 ct/Call) |
 | Coding-Agent | Cline (VS Code + CLI) via DeepSeek V4 Pro | Autonomes Coden, Testen, Iterieren |
+| Coding-Agent (IDE) | GitHub Copilot (VS Code) | In-Editor-Vorschläge, Chat, Agenten |
+| Agenten-Config | `.github/copilot-instructions.md` + `.github/agents/*.agent.md` | KI-Agent-Setup (Stripe, Ponytail, Redesign, Explore) |
+| Skills | `.agents/skills/` (Stripe-Suite + ui-ux-pro-max) | Domänenwissen für KI-Agenten |
 | Snippet | `ab.js` (Vanilla JS) | Läuft auf Kundenseite |
 | Chrome-Extension | MV3 (Vanilla JS) | Element + Goal Picker |
 | Figma-Plugin | TypeScript + HTML | Plugin-UI (8 Screens) |
@@ -197,7 +200,8 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
-| 03.07.2026 | **Security-Hardening (5 Prioritäten):** (1) Rate-Limiting auf /assign (60/min/IP) + /event (30/min/IP) via In-Memory-Sliding-Window — schützt vor Counter-Inflation/Cost-Explosion. (2) XSS-Sanitization in /variant + /resolve — AI-generiertes HTML wird vor Auslieferung von `<script>`, `on*`-Handlern, `javascript:`-URLs, `<iframe>`/`<object>`/`<embed>` befreit. (3) Safe-Logging: `safeError()` ersetzt alle `console.error` in API-Routen — loggt nur `message`+`code`, keine Query-Details. (4) Security-Header via `next.config.ts` (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy). (5) UUID-Validierung für `testId` in /assign, /event, /variant. Stripe-Webhook unangetastet (korrekt). Keine neuen Dependencies. Build grün. |
+| 03.07.2026 | **UX-Audit & 10 Fixes:** Kompletter Userflow-Review aller Pages auf Schwachstellen. **(1) layout.tsx:** Body-Fallback von `bg-white text-gray-900` auf `bg-[#06050f] text-white/80` → kein Weiß-Flash mehr bei Error-Seiten. **(2) VariantPreview.tsx:** Light-Theme-Tailwind-Klassen (`bg-green-50`, `border-gray-200`, `text-gray-500`) auf Dark-Theme umgestellt (`border-emerald-400/30`, `bg-white/[0.025]`, `text-white/50`). **(3) Accessibility:** `htmlFor`+`id` auf allen Label-Input-Paaren (Signup, Login, Update-Password). **(4) Onboarding-Gate:** Server-seitiger Redirect von `/onboarding` → `/dashboard` wenn `profiles.onboarded=true`. **(5) Login/Signup:** Client-seitiger Session-Check → Redirect zu `/dashboard` für bereits eingeloggte User; `sessionChecked`-Gate verhindert Form-Flash. **(6) ResultsClient Upgrade-Links:** Zwei `<Link href="/dashboard">Upgrade</Link>` durch `fetch('/api/billing/checkout')`-Buttons ersetzt. **(7) Global not-found.tsx:** 404-Seite mit Dark-Theme für alle nicht-existierenden Routen. **(8) chrome-extension.zip:** Datei aus `chrome-extension/`-Sources gebaut und in `public/` abgelegt → Download-Link im Onboarding funktioniert jetzt. **(9) Delete-Test-Button:** `Trash2`-Icon + Confirm/Cancel in ResultsClient-Header, ruft `DELETE /api/tests/[id]?confirm=true` auf. **(10) Build grün.** Offene Punkte dokumentiert: Account-Löschen (API+UI fehlt), Agency-Tier (Post-Launch), Deutsche Code-Kommentare in `dashboard/page.tsx`/`update-password/page.tsx` (non-blocking). |
+| 03.07.2026 | **Doku-Update & KI-Optimierung:** (1) `chrome-extension/README.md`: tote `content.js`-Referenz entfernt, aktuelle Dateien gelistet. (2) `E2E-CHECKLIST.md`: Smoke-Test-URLs von `ab-tool-pied.vercel.app` auf `www.getvariante.com` migriert. (3) `.github/copilot-instructions.md`: von 4 Zeilen auf vollständige Agenten-/Skill-Übersicht erweitert. (4) `AGENTS.md`: Verweis auf `.github/agents/` ergänzt. (5) `README.md`: Erster Satz als Meta-Beschreibung, Trennung von PROJEKT.md klargestellt. (6) `GOTOMARKET.md` + `z.future-features/README.md`: Datum auf 03.07.2026 aktualisiert. (7) PROJEKT.md §2: KI-Tools dokumentiert (Copilot, Cline, Agenten, Skills). (8) PROJEKT.md §12: Roadmap & Nordstern angelegt. Build grün. |
 | 03.07.2026 | **calcSignificance: Chi-Square (df=2) → z-Test (gepoolt, zweiseitig).** Alte Approximation `1 - Math.exp(-chi/2)` war falsch (df=2 statt df=1 für 2×2-Kontingenztafel). Ersetzt durch korrekten z-Wert-Test für zwei Proportionen: gepoolter Standardfehler + normCDF (Abramowitz-Approximation). `significance-auto.mjs` hatte die korrekte Implementierung bereits. `significance-check.mjs` synchronisiert. Schwellen unverändert: determineWinner bei 0.95. |
 | 03.07.2026 | **Cline + DeepSeek als Coding-Agent eingerichtet.** Cline VS Code Extension + CLI (`npm i -g cline`, v3.0.34) installiert. Provider: `openai-compatible` via `https://api.deepseek.com`, Model: `deepseek-v4-pro`. Ermöglicht autonome Test-Loops (branch → test → fail → fix → repeat) + Multi-Agent-Teams (`--team-name`) + Kanban (`npx kanban`). |
 | 03.07.2026 | **Design-Pivot: Web-Dashboard auf monochromes „Panda"-System umgebaut.** Kompletter Wechsel weg von Dark-Aurora/Glassmorphism (Violet/Fuchsia-Gradients) hin zu Schwarz/Weiß + 3 Funktionsfarben (ok/pro/err), Struktur 1:1 vom Vercel-Dashboard übersetzt: feste Sidebar-Navigation (Tests aktiv · Activity log/Domains „Soon" · Analytics/Team gesperrt mit Lock-Icon bzw. Agency-Tag · Plugin token/Usage als Anchor-Links), Top-Bar mit Plan-Badge, Live-Suche über die Testliste. Bewusst keine erfundenen Kontingente (z. B. Visitor-Caps) — nur das real gegatete Limit „1 aktives Experiment" (Free) wird angezeigt. `brandguidelines.md` auf v2 aktualisiert (gilt jetzt für alle vier Oberflächen: Dashboard, Landingpage, Login, Figma-Plugin). Landingpage/Login/Figma-Plugin-Umsetzung folgt in separaten Schritten. |
@@ -281,7 +285,7 @@ c:\dev\variante/
 - [ ] Sind Entscheidungen und Begründungen dokumentiert? → Sonst in §9 oder §7 ergänzen
 
 ### 10.4 Deployment-Health
-- [ ] Funktionieren die Vercel-Deployments? → `curl`-Test auf beide URLs
+- [ ] Funktionieren die Vercel-Deployments? → `curl`-Test auf `www.getvariante.com`
 - [ ] Sind Environment-Vars auf Vercel gesetzt? → Bei neuen API-Keys
 - [ ] Wurden Migrationen aus `db/migrations/` ausgeführt? → Bei Schema-Änderungen
 
@@ -293,7 +297,7 @@ c:\dev\variante/
 
 ---
 
-*DSO — zuletzt geprüft: 02.07.2026 (Auth: Passwort-Reset-Flow + Signup-Bestehende-Mail-Fix)*
+*DSO — zuletzt geprüft: 03.07.2026 (Doku-Update & KI-Optimierung, §12 Roadmap angelegt)*
 
 ---
 
@@ -313,3 +317,61 @@ c:\dev\variante/
 **Bis Mitte August 2026** sollte der öffentliche Launch stehen. Danach: Conversion-Funnel optimieren, Free→Pro. Das Agency-Tier (White-Label, Multi-Site, Team-Seats) ist zurückgestellt — kommt später, wenn sich erste Nachfrage abzeichnet.
 
 > **Ein Satz:** Gebaut ist es — jetzt muss es raus zu den Leuten.
+
+---
+
+## §12 Roadmap & Nordstern
+
+> Stand: 03.07.2026. Definiert, wohin variante geht — und was wir bewusst nicht bauen.
+
+### 12A — Aktueller Stand (Juli 2026)
+
+- **Phase:** Post-MVP, Go-to-Market
+- **Store-Reviews:** Figma + Chrome eingereicht (29.06.2026), warten auf Freigabe
+- **Dogfooding:** variante testet eigene Landingpage (007_dogfooding.sql)
+- **Design-Partner:** 0 von 5 an Bord — Akquise steht an
+- **Leitziel:** 500–1.000 €/Mo passives Asset
+
+### 12B — Nächste 3 Meilensteine
+
+#### M1: Erster echter Test auf Fremd-Site ⭐ (nächster Schritt)
+
+- E2E-Durchlauf mit echter Kunden-Website
+- Snippet installiert → Traffic → Conversions → Dashboard → Winner
+- **Blockiert alles weitere** — ohne diesen Proof ist das Produkt Theorie
+
+#### M2: Store-Freigaben + Erster Design-Partner (Ziel: August 2026)
+
+- Figma Plugin + Chrome Extension live in Stores
+- 3–5 Design-Partner mit Concierge-Onboarding
+- 1–2 Case-Studies mit echten Lift-Zahlen
+
+#### M3: Erster zahlender Pro-Kunde (Ziel: September 2026)
+
+- Free→Pro-Conversion funktioniert
+- Stripe-Loop: Checkout → Webhook → Plan-Upgrade → Badge-aus → Snippet aktualisiert
+- Danach: Conversion-Funnel optimieren
+
+### 12C — Was WIRKLICH zählt (Nordstern)
+
+- **Distribution > Produkt.** Figma Community = Burggraben. Alles andere ist zweitrangig.
+- **Viraler Loop > Bezahlte Kanäle.** Das Badge ist der Wachstumsmotor.
+- **Plugin = Creation, Web = Analysis.** Keine Results-Ansicht ins Plugin quetschen.
+- **Keine Features ohne Revenue-Signal.** Agency-Tier, Multi-Metriken, Team-Seats bleiben auf Eis bis erste Pro-Nachfrage sichtbar.
+
+### 12D — Anti-Roadmap (was wir bewusst NICHT bauen)
+
+| Nicht bauen | Warum nicht |
+|---|---|
+| Agency-Tier | Kein Revenue-Signal. Erst bei 5+ Pro-Kunden anfragen. |
+| Mehrere Metriken parallel | 6–10h Aufwand, alle Schichten betroffen. Erst wenn Kunden danach fragen. |
+| A/B-Test-Editor im Web | Plugin = Creation. Web nur Analysis. Kein zweiter Creation-Pfad. |
+| Eigener WYSIWYG-Editor | Designer nutzen Figma. Kein Tool-Krieg mit Webflow/Framer. |
+| Analytics-Dashboard (Session-Recordings, Heatmaps) | Fokus auf A/B-Testing. Kein Monster-Produkt. |
+
+### 12E — Technische Nordstern-Entscheidungen
+
+- **Kein Microservice-Split.** Alles bleibt im `ab-tool/` Monolith (Next.js API + Dashboard + Landingpage). Erst aufbrechen wenn >1000 Tests/Tag.
+- **Kein zweites Deployment.** `www.getvariante.com` ist die einzige Live-URL. Kein Staging-Vercel-Projekt nötig solange <10 Kunden.
+- **Keine neue Datenbank.** Supabase Postgres reicht. Kein Redis, kein Kafka, kein TimescaleDB.
+- **ab.js bleibt Vanilla JS.** Kein Build-Step, kein npm-Paket. <5KB. Das ist der USP.
