@@ -35,7 +35,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     <DashboardClient
       email={user.email ?? ''}
       plan={profile?.plan ?? 'free'}
-      apiToken={profile?.api_token ?? ''}
+      apiToken={profile?.api_token ?? 'NO-TOKEN-' + (profile ? 'HAS-PROFILE' : 'NO-PROFILE')}
       tests={tests ?? []}
     />
   )
