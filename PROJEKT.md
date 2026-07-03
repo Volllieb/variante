@@ -42,6 +42,9 @@ c:\dev\variante/
 ├── README.md               # Kurzübersicht + Schnellstart
 ├── package.json            # Root-Scripts
 ├── .gitignore              # Ignorier-Regeln
+├── __tests__/              # Root-level self-checks (kein Test-Framework)
+│   └── significance-auto.mjs  # z-Test für zwei Proportionen
+
 │
 ├── ab-tool/                # Kernprodukt — Next.js API + Dashboard
 │   ├── app/
