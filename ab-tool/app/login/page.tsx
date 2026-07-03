@@ -51,7 +51,7 @@ export default function LoginPage() {
     setLoading(true)
     const supabase = getBrowserSupabase()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/update-password')}`,
     })
     setLoading(false)
     if (error) { setErr(error?.message || JSON.stringify(error)); return }
@@ -64,7 +64,9 @@ export default function LoginPage() {
     const supabase = getBrowserSupabase()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
+      },
     })
     setGoogleLoading(false)
     if (error) setErr(error.message)
