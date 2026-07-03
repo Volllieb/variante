@@ -94,8 +94,9 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 ## §9 Selbstprüfung
 
-> Bei JEDER Änderung:
+> Bei JEDER Änderung. Erst reviewen, dann pushen:
 
+- [ ] `git diff` — was hat sich geändert? Sinnvoll? Kein Debug-Code?
 - [ ] `git status` — kein `node_modules/`, `.next/`, `dist/` im Index
 - [ ] `npm run build` in `ab-tool/` — grün
 - [ ] Geändertes committed + gepusht?

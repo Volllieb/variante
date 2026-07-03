@@ -13,8 +13,9 @@ Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` �
 
 ## Standing Order
 - **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` fortschreiben (Stand, Entscheidungen, Brainstorms, Interview-Erkenntnisse). Lokale Tool- oder IDE-Konfigurationen bleiben frei von Projekt-Logik.
-- **Nach jeder Änderung: Selbstprüfung aus §10 PROJEKT.md durchführen** — Struktur, Git, Doku, Deployment, Produkt-Health checken.
-- **Immer committen** — keine losen Änderungen hinterlassen. Nach Commit: `git push` (wenn Remote vorhanden).
+- **Nach jeder Änderung: Selbstprüfung aus §9 PROJEKT.md durchführen** — Struktur, Git, Doku, Deployment, Produkt-Health checken.
+- **Immer committen** — keine losen Änderungen hinterlassen.
+- **Nach jeder relevanten Aufgabe: Review → Commit → Push.** Erst prüfen was geändert wurde, dann commiten, dann sofort pushen. Was nicht gepusht ist, ist vergessen.
 
 ## Auto-Push-Regel
 - Nach jedem Commit: `git push` ausführen (sofern Remote existiert).
