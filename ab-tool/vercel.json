@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/check-winners",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/snapshot-stats",
