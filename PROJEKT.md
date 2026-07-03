@@ -95,6 +95,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 | 02.07.2026 | Auth: Passwort-Reset, Google OAuth, Signup-Bestehende-Mail-Detection |
 | 01.07.2026 | Stripe-Webhook gehärtet (payment_status, Idempotenz, Subscription-Status) |
 | 30.06.2026 | Chrome Extension: content_scripts entfernt, Figma + Chrome Store eingereicht |
+| 03.07.2026 | Chrome Extension LIVE im Chrome Web Store |
 | 29.06.2026 | Phase A+B+C: Polling-Gating, Pause/Resume, HTML-Editor, KI-Prompt, Winner-Logik, Dashboard |
 
 ## §9 Selbstprüfung
@@ -111,7 +112,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ## §10 Roadmap & Nordstern
 
 ### Aktueller Stand
-- Store-Reviews laufen (Figma + Chrome, eingereicht 29.06.)
+- Chrome-Extension LIVE im CWS · Figma-Plugin-Review läuft (eingereicht 29.06.)
 - Dogfooding: variante testet eigene Landingpage
 - **Nächster Schritt:** E2E auf echter Fremd-Site
 
