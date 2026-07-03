@@ -65,12 +65,39 @@ Primär-Buttons sind immer weiß gefüllt mit schwarzem Text (nie farbig) — z.
 
 Keine vierte Funktionsfarbe hinzufügen. „Draft"/neutral nutzt `--text-3` + `--bg-2`, keine eigene Farbe.
 
-### 2.4 Figma-Plugin-spezifisch (Ausnahme, siehe 8.4)
+### 2.4 Figma-Plugin-spezifisch — "Figma-native, nicht Panda"
 
-Das Plugin läuft weiterhin *in* Figma und übernimmt Figma's Light/Dark automatisch über
-`--figma-color-*`-Tokens. Es bekommt **keinen eigenen Akzent mehr** (`#0D99FF` als Marke entfällt) —
-Buttons/Fokus-States nutzen Figma's eigene native Darstellung. Die drei Funktionsfarben oben werden
-auf Figma's Status-Tokens gemappt (`--figma-color-bg-success`, `-warning`, `-danger`).
+Das Plugin läuft **in** Figma, nicht daneben. Ein Plugin, das wie ein Fremdkörper aussieht
+(schwarzes Panda-Dashboard in Figmas heller/dunkler UI), fühlt sich billig an. Figma-Nutzer
+erwarten native Widgets, native Focus-Rings, native Light/Dark-Adaption. Das ist **kein**
+Kompromiss bei der Brand-Identity — es ist Respekt vor dem Host-Kontext.
+
+**Prinzip:** Würde ein Figma-Nutzer denken „aha, ein Figma-Plugin" oder „was ist das für ein
+fremdes Ding da in meiner Sidebar"? Ersteres ist das Ziel. Die Marke „Variante" transportiert
+sich über Logo, Tonalität und die 3 Farbtupfer — nicht über einen komplett eigenen Look.
+
+**Was reinkommt (Panda-Anteil):**
+- Die **3 Funktionsfarben** auf Figma-Status-Tokens gemappt
+- Dieselbe **Status-Ikonografie** (Dot/Ring, Badges) wie im Dashboard
+- Gleiche **Gating-Sprache** (Pro-Features sichtbar, nicht versteckt)
+- Gleiche **Tonalität** und **Terminologie**
+
+**Was rausfliegt:**
+- `#0D99FF` als eigener Akzent — Buttons/Fokus nutzen Figmas native Tokens
+- Shadows (`--elev-0` bis `elev-3`), Gradients, `brand-subtle`-Hintergründe
+- Selbstgebaute Button-/Input-/Card-Styles zugunsten von `--figma-color-*`
+
+**Token-Mapping:**
+
+| Panda-Token | Figma-Token |
+|---|---|
+| `--ok` / `--ok-bg` | `--figma-color-bg-success` / `--figma-color-text-success` |
+| `--pro` / `--pro-bg` | `--figma-color-bg-warning` / `--figma-color-text-warning` |
+| `--err` / `--err-bg` | `--figma-color-bg-danger` / `--figma-color-text-danger` |
+| Hintergrund, Text, Border | `--figma-color-bg`, `--figma-color-text`, `--figma-color-border` |
+
+Das Plugin bekommt **keinen eigenen Akzent mehr** — Figma's eigene native Darstellung bestimmt
+das Look & Feel.
 
 ### 2.5 Radius
 
@@ -302,11 +329,24 @@ da kein Marken-Akzent mehr existiert.
 
 ### 7.4 Figma-Plugin
 
-Bleibt strukturell wie in der bisherigen Doku (Wizard, 360×560px, Figma-Tokens für Light/Dark),
-übernimmt aber die neue Sprache: kein `#0D99FF`-Akzent mehr, Lock-Icon + Pro-Badge-Konvention aus
-Abschnitt 6 für gesperrte Wizard-Optionen (z. B. Multivariate-Test-Option), Status-Dot/Ring aus 5.4
-für Test-/Ergebnis-Zustände. Bestehende Figma-native Regeln (Abschnitt 8–14 der alten Version:
-Icon-Styleguide, Screen-Flow, Polling-Pattern) bleiben inhaltlich gültig, nur ohne Brand-Blue.
+**Strategie:** Figma-native, nicht Panda. Das Plugin respektiert den Host-Kontext — es soll sich
+anfühlen wie ein natives Figma-Feature, nicht wie eine eingebettete Fremd-App.
+
+- **Farbwelt:** `--figma-color-*`-Tokens (Light/Dark automatisch), kein eigenes Farbsystem.
+  Details und Token-Mapping siehe §2.4.
+- **Kein `#0D99FF`-Akzent mehr** — Buttons, Fokus, Hover nutzen Figmas native Darstellung.
+- **Keine eigenen Schatten, Gradients, Blur** — Figma hebt Elemente selbst.
+- **Gating:** Lock-Icon + Pro-Badge-Konvention aus Abschnitt 6 für gesperrte Wizard-Optionen
+  (z. B. Multivariate-Test-Option).
+- **Status:** Dot/Ring aus 5.4 für Test-/Ergebnis-Zustände.
+- **Struktur:** Wizard, 360×560px, bestehende Screen-Flow- und Polling-Pattern bleiben gültig.
+
+**Migration (konkret):**
+1. `--brand`/`--brand-hover`/`--brand-subtle`/`--brand-border` entfernen
+2. Buttons, Inputs, Cards auf `--figma-color-bg`, `--figma-color-border`, `--figma-color-text` umstellen
+3. Funktionsfarben mappen (siehe §2.4 Token-Mapping)
+4. Status-Badges und Dots visuell 1:1 wie Dashboard, aber mit Figma-Tokens gerendert
+5. Keine eigenen Schatten mehr
 
 ---
 
@@ -321,6 +361,7 @@ Icon-Styleguide, Screen-Flow, Polling-Pattern) bleiben inhaltlich gültig, nur o
 | Font-Weight 700/800 | Hierarchie läuft über 400/500/600, sonst wirkt es wieder wie das alte Marketing-System |
 | Vierte Funktionsfarbe einführen | Nur `ok`/`pro`/`err` — mehr Farbe verwässert die Bedeutung |
 | Eigene Marketing-Palette auf der Landingpage | Nutzer-Entscheidung: „gleiches System, mehr Luft" — keine zweite Optik |
+| Panda-Monochrom-Palette ins Figma-Plugin zwingen | Plugin läuft *in* Figma — natives Look & Feel hat Vorrang vor Marken-Durchsetzung (§2.4) |
 | Modal-Upsell beim Klick auf gesperrtes Feature | Beschränkung muss vorher sichtbar sein, nicht als Überraschung |
 
 ---

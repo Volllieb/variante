@@ -59,7 +59,7 @@ const proFeatures = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#000000] text-white/80 antialiased">
+    <div className="min-h-screen bg-bg-0 text-white/80 antialiased">
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-sm">
@@ -108,7 +108,7 @@ export default function HomePage() {
               Start free — install Figma plugin
             </Link>
           </div>
-          <p className="mt-4 text-xs text-white/40">
+          <p className="mt-4 text-xs text-text-3">
             No credit card · 1 free experiment
           </p>
         </div>
@@ -122,9 +122,9 @@ export default function HomePage() {
             {steps.map((s) => (
               <div
                 key={s.step}
-                className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6"
+                className="rounded-[10px] border border-border bg-bg-1 p-6"
               >
-                <s.icon className="mb-4 h-8 w-8 text-white/40" />
+                <s.icon className="mb-4 h-8 w-8 text-text-3" />
                 <p className="mb-2 text-xs font-medium text-white/25">{s.step}</p>
                 <h3 className="mb-2 text-sm font-semibold text-white">{s.title}</h3>
                 <p className="text-sm text-white/50">{s.body}</p>
@@ -140,8 +140,8 @@ export default function HomePage() {
           <h2 className="text-center text-xl font-semibold text-white">Pricing</h2>
           <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
             {/* Free */}
-            <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-8">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
+            <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
                 Free
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
@@ -150,35 +150,35 @@ export default function HomePage() {
               <ul className="mt-6 space-y-2.5 text-sm">
                 {freeFeatures.map((f) => (
                   <li key={f} className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 shrink-0 text-[#2fd76c]" />
+                    <Check className="h-4 w-4 shrink-0 text-ok" />
                     <span className="text-white/70">{f}</span>
                   </li>
                 ))}
               </ul>
               <Link
                 href="/signup"
-                className="mt-8 inline-flex w-full justify-center rounded-full border border-white/18 px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
+                className="mt-8 inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
                 Install plugin
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="relative rounded-[10px] border border-white/18 bg-[#0a0a0a] p-8">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#f5a623]">
+            <div className="relative rounded-[10px] border border-border-strong bg-bg-1 p-8">
+              <p className="text-xs font-semibold uppercase tracking-wider text-pro">
                 Most popular
               </p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/40">
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-text-3">
                 Pro
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-4xl font-semibold text-white">35 €</span>
-                <span className="text-sm text-white/40">/mo</span>
+                <span className="text-sm text-text-3">/mo</span>
               </div>
               <ul className="mt-6 space-y-2.5 text-sm">
                 {proFeatures.map((f) => (
                   <li key={f} className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 shrink-0 text-[#2fd76c]" />
+                    <Check className="h-4 w-4 shrink-0 text-ok" />
                     <span className="text-white/70">{f}</span>
                   </li>
                 ))}
@@ -197,7 +197,7 @@ export default function HomePage() {
       {/* ── Badge Demo ── */}
       <a
         href="/signup"
-        className="fixed bottom-4 right-4 z-50 rounded-md bg-[#111] px-3 py-1.5 text-[11px] font-semibold text-white no-underline opacity-90 transition-opacity hover:opacity-100"
+        className="fixed bottom-4 right-4 z-50 rounded-md bg-bg-2 px-3 py-1.5 text-[11px] font-semibold text-white no-underline opacity-90 transition-opacity hover:opacity-100"
         style={{ borderRadius: '6px' }}
       >
         A/B by Variante

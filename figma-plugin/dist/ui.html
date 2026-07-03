@@ -455,16 +455,6 @@ code {
 }
 .btn-upgrade:hover { background: #c78a0a; }
 
-/* ── Winner ──────────────────────────────────────────────────────────────── */
-.winner {
-  background: var(--ok-subtle);
-  border: 1px solid var(--ok-border);
-  border-radius: var(--r); padding: 14px;
-  font-size: var(--fs-lg); color: var(--figma-color-text-success, var(--ok));
-  text-align: center; margin-bottom: 14px;
-}
-.winner strong { font-weight: var(--fw-bold); }
-
 /* ── Dashboard: Test-Karte ───────────────────────────────────────────────── */
 .test-card {
   position: relative;
@@ -535,33 +525,12 @@ code {
 .dash-empty h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 6px; }
 .dash-empty p  { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); line-height: 1.6; margin-bottom: 16px; }
 
-/* ── Dashboard: quick stats ──────────────────────────────────────────────── */
-.dash-stats {
-  display: flex; gap: 6px;
-  padding: 8px 16px 0; flex-shrink: 0;
-}
-.dash-stat {
-  flex: 1; text-align: center;
-  background: var(--panel);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r);
-  padding: 9px 6px;
-  box-shadow: var(--elev-0);
-}
-.dash-stat-val {
-  display: block;
-  font-size: var(--fs-xl); font-weight: var(--fw-bold);
-  font-variant-numeric: tabular-nums;
-  color: var(--figma-color-text);
-  line-height: 1.1;
-}
-.dash-stat-val--live { color: var(--brand); }
-.dash-stat-lbl {
-  display: block;
-  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
-  text-transform: uppercase; letter-spacing: .5px;
-  color: var(--text-soft);
-  margin-top: 1px;
+/* ── Plan chip ──────────────────────────────────────────────────────────── */
+.plan-chip {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--figma-color-text-secondary);
+  padding: 4px 16px 0; flex-shrink: 0;
 }
 
 /* ── Dashboard: section header ───────────────────────────────────────────── */
@@ -582,17 +551,9 @@ code {
 }
 
 /* ── Previews ────────────────────────────────────────────────────────────── */
-.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.prev-lbl  { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px; }
 .frame      {
   border: 1px solid var(--figma-color-border); border-radius: var(--r);
   background: #fff; color: #111; overflow: hidden;
-}
-.frame-preview {
-  border: 1px solid var(--figma-color-border); border-radius: var(--r);
-  box-shadow: var(--elev-1);
-  max-height: 64px; overflow: hidden; pointer-events: none;
-  background: #fff; color: #111; margin-bottom: 4px;
 }
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
@@ -601,36 +562,13 @@ code {
 .copy-ok { display: none; }
 .copy-ok.vis { display: inline; }
 
-/* ── Results: header ─────────────────────────────────────────────────────── */
-.hdr-sub { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-.hdr-sub .hdr-title { flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ── Link button (used in toast undo) ───────────────────────────────────── */
 .link-btn {
   background: none; border: none; padding: 6px 0 0; cursor: pointer;
   font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--brand); font-family: inherit;
   transition: opacity var(--dur-fast);
 }
 .link-btn:hover { opacity: .8; }
-.refresh-note { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); text-align: center; padding: 10px 0 0; }
-
-/* ── Results: A/B stats table ────────────────────────────────────────────── */
-.ab-table { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-.ab-col { padding: 14px; background: var(--figma-color-bg-secondary); border-radius: var(--r); border: 1px solid transparent; }
-.ab-head { display: flex; align-items: center; gap: 7px; font-size: var(--fs-md); font-weight: var(--fw-semibold); margin-bottom: 12px; }
-.ab-metric { margin-bottom: 10px; }
-.ab-metric:last-child { margin-bottom: 0; }
-.ab-metric .ab-k { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .5px; color: var(--figma-color-text-secondary); font-weight: var(--fw-semibold); }
-.ab-metric .ab-v { font-size: var(--fs-2xl); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; letter-spacing: -.4px; line-height: 1.1; }
-.sig-line { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-bottom: 6px; padding: 6px 0; }
-
-/* ── Results: compact upgrade banner ─────────────────────────────────────── */
-.upgrade-banner.ub-compact {
-  display: none; flex-direction: row; align-items: center; justify-content: space-between;
-  gap: 10px; padding: 10px 12px; border: 1px solid var(--warn-border); text-align: left;
-  background: var(--figma-color-bg-warning, rgba(245,158,11,.10));
-}
-.upgrade-banner.ub-compact.vis { display: flex; }
-.upgrade-banner.ub-compact .ub-title { font-size: var(--fs-sm); font-weight: var(--fw-bold); margin-bottom: 0; }
-.upgrade-banner.ub-compact .btn-upgrade { width: auto; padding: 6px 14px; font-size: var(--fs-sm); }
 
 /* ── Generate: preview note ──────────────────────────────────────────────── */
 .preview-note {
@@ -812,11 +750,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   </div>
 
   <div class="body" style="padding-top:8px">
-    <div class="upgrade-banner" id="upgrade-banner-dash">
-      <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
-      <div class="ub-sub">Upgrade to Pro for unlimited tests and AI generations.</div>
-      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
-    </div>
+
     <div id="dash-list"></div>
     <div class="err" id="e-dashboard" role="alert" style="min-height:0;padding:4px 0 0"></div>
   </div>
@@ -1128,12 +1062,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     </div>
 
     <div id="gen-result" style="display:none">
-      <div class="upgrade-banner" id="upgrade-banner">
-        <div class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</div>
-        <div class="ub-sub">Upgrade to Pro for unlimited tests, higher traffic, and priority AI generation.</div>
-        <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
-      </div>
-
       <!-- Toggle switches: A/B and Light/Dark -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <span class="lbl" style="margin-bottom:0">Preview</span>
@@ -1234,86 +1162,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 
     <div class="divider"></div>
 
-    <button class="btn btn-secondary" onclick="navPush('results'); startResults()" style="margin-bottom:8px">View Results →</button>
+    <button class="btn btn-secondary" onclick="window.open(API + '/dashboard')" style="margin-bottom:8px">Open in Dashboard →</button>
     <button class="btn btn-ghost" onclick="navHistory=['dashboard'];go('dashboard')">← Back to overview</button>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SCREEN · Results
-════════════════════════════════════════════════════════════════════ -->
-<div id="s-results" class="screen">
-  <div class="hdr">
-    <button class="back-btn" onclick="navBack()" aria-label="Back">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6"/>
-      </svg>
-    </button>
-    <div class="hdr-sub">
-      <span class="lbl" style="margin-bottom:1px">Results</span>
-      <span class="hdr-title" id="res-title">Results</span>
-      <span class="badge bs-draft" id="res-badge" style="align-self:flex-start">draft</span>
-    </div>
-  </div>
-  <div class="body">
-    <div class="winner" id="res-winner" aria-live="polite" style="display:none"></div>
-
-    <div class="upgrade-banner ub-compact" id="upgrade-banner-results">
-      <span class="ub-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>Free limit reached</span>
-      <button class="btn-upgrade" onclick="goUpgrade()">Upgrade to Pro →</button>
-    </div>
-
-    <div id="res-nodata" class="card" style="display:none">
-      <div class="card-val" style="font-weight:400;font-size:var(--fs-sm)">Waiting for first visitors — data refreshes every 30 s.</div>
-      <button class="link-btn" onclick="navPush('snippet'); buildSnippet()">→ View snippet instructions</button>
-    </div>
-
-    <div class="ab-table">
-      <div class="ab-col">
-        <div class="ab-head"><span class="badge ba">A</span> Variant A</div>
-        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-va">—</div></div>
-        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-ca">—</div></div>
-        <div class="ab-metric"><div class="ab-k">CR</div><div class="ab-v" id="res-cra">—</div></div>
-      </div>
-      <div class="ab-col">
-        <div class="ab-head"><span class="badge bb">B</span> Variant B</div>
-        <div class="ab-metric"><div class="ab-k">Visitors</div><div class="ab-v" id="res-vb">—</div></div>
-        <div class="ab-metric"><div class="ab-k">Conversions</div><div class="ab-v" id="res-cb">—</div></div>
-        <div class="ab-metric"><div class="ab-k">CR</div><div class="ab-v" id="res-crb">—</div></div>
-      </div>
-    </div>
-
-    <div class="sig-line" id="res-sig" aria-live="polite">Significance: 0% — not significant yet</div>
-
-    <div id="res-preview-section" style="display:none">
-      <div class="divider"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span class="lbl" style="margin-bottom:0">Live preview</span>
-        <div class="toggle-row toggle-icon" id="res-bg-toggle" data-bg="light">
-          <button type="button" class="toggle-btn on" data-val="light" onclick="setResBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          </button>
-          <button type="button" class="toggle-btn" data-val="dark" onclick="setResBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="prev-grid">
-        <div>
-          <div class="prev-lbl">A (Original)</div>
-          <div class="frame-preview" id="res-preview-a"></div>
-        </div>
-        <div>
-          <div class="prev-lbl">B (Variant)</div>
-          <div class="frame-preview" id="res-preview-b"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="refresh-note">↻ Refreshes every 30s</div>
-  </div>
-</div>
 
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -1334,7 +1187,7 @@ let generating = false
 let generateDone = false
 let generateFailed = false
 let previewVariant = 'b'
-let elTimer = null, resTimer = null, mTimer = null, mDotTimer = null
+let elTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
 let navHistory = []
@@ -1382,7 +1235,6 @@ function go(id) {
   $('s-' + id).classList.add('active')
   if (id !== 'element') stopElementPoll()
   if (id !== 'metric')  stopMetricPoll()
-  if (id !== 'results') stopResultsPoll()
   if (id !== 'dashboard' && pendingDelete) commitPendingDelete()
 }
 async function navPush(id) { navHistory.push(id); go(id) }
@@ -1401,7 +1253,7 @@ function err(id, msg) {
 }
 
 function showUpgradeBanner(msg) {
-  var ids = ['upgrade-banner', 'upgrade-banner-results', 'upgrade-banner-dash']
+  var ids = ['upgrade-banner', 'upgrade-banner-dash']
   ids.forEach(function(id) {
     var b = $(id); if (!b) return
     if (msg) { var s = b.querySelector('.ub-sub'); if (s) s.textContent = msg }
@@ -1410,7 +1262,7 @@ function showUpgradeBanner(msg) {
   })
 }
 function hideUpgradeBanner() {
-  var ids = ['upgrade-banner', 'upgrade-banner-results', 'upgrade-banner-dash']
+  var ids = ['upgrade-banner', 'upgrade-banner-dash']
   ids.forEach(function(id) {
     var b = $(id); if (!b) return
     if (b.classList.contains('ub-compact')) b.classList.remove('vis')
@@ -1470,7 +1322,7 @@ async function showDashboard() {
     if (plan) state.plan = plan
     activeTestCount = tests ? tests.filter(t => t.status !== 'done').length : 0
     if (!tests || !tests.length) {
-      $('dash-stats').style.display = 'none'
+      $('plan-chip').style.display = 'none'
       list.innerHTML =
         '<div class="dash-empty">' +
           '<div class="dash-empty-icon">' +
@@ -1485,12 +1337,13 @@ async function showDashboard() {
     countEl.textContent = tests.length
     countEl.style.display = 'inline-flex'
 
-    // Populate quick stats
-    const doneCount = tests.filter(t => t.status === 'done').length
-    $('stat-total').textContent = tests.length
-    $('stat-active').textContent = activeTestCount
-    $('stat-done').textContent = doneCount
-    $('dash-stats').style.display = 'flex'
+    // Show plan chip for free users
+    if (state.plan === 'free') {
+      $('plan-chip').style.display = 'block'
+      $('plan-limit').textContent = activeTestCount + '/1'
+    } else {
+      $('plan-chip').style.display = 'none'
+    }
 
     const groups = {}
     tests.forEach(t => { const k = t.site_url || '(no URL)'; (groups[k] = groups[k] || []).push(t) })
@@ -1577,7 +1430,7 @@ const IC_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" st
 const IC_UP    = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
 const IC_DOWN  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>'
 const IC_TROPHY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>'
-function resumeTest(id) { state.testId = id; navPush('results'); startResults() }
+function resumeTest(id) { window.open(API + '/results/' + id) }
 
 function normalizeUrl(raw) {
   let u = (raw || '').trim()

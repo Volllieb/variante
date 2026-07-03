@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
         <script async src="/ab.js" />
       </head>
-      <body className="min-h-screen bg-[#000000] text-white/80 antialiased">{children}</body>
+      <body className="min-h-screen bg-bg-0 text-white/80 antialiased">{children}</body>
     </html>
   )
 }
