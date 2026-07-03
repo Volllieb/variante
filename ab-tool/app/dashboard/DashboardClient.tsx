@@ -303,36 +303,34 @@ export function DashboardClient({
 
           {/* ═══ Right column: Tests grid with toolbar ═══ */}
           <div className="min-w-0">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[13px] font-medium text-[#ededed]">Tests</p>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
-                  <input
-                    value={query}
-                    onChange={e => setQuery(e.target.value)}
-                    placeholder="Find test…"
-                    className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none sm:w-48"
-                  />
-                </div>
-                <button
-                  onClick={cycleFilter}
-                  title={`Filter: ${statusFilter}`}
-                  className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
-                >
-                  <ListFilter className="h-3.5 w-3.5" />
-                  {statusFilter !== 'all' && (
-                    <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
-                  )}
-                </button>
-                <a
-                  href="#plugin-token"
-                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity duration-150 hover:opacity-85"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  New test
-                </a>
+            <p className="mb-2 text-[13px] font-medium text-[#ededed]">Tests</p>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
+                <input
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Find test…"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
+                />
               </div>
+              <button
+                onClick={cycleFilter}
+                title={`Filter: ${statusFilter}`}
+                className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+              >
+                <ListFilter className="h-3.5 w-3.5" />
+                {statusFilter !== 'all' && (
+                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
+                )}
+              </button>
+              <a
+                href="#plugin-token"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity duration-150 hover:opacity-85"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New test
+              </a>
             </div>
 
             {tests.length === 0 ? (

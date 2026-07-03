@@ -5,15 +5,31 @@
 import { strict as assert } from 'node:assert'
 
 // --- Duplicate of lib/significance.ts (pure functions, no imports) ---
+function normCDF(x) {
+  const a1 = 0.254829592
+  const a2 = -0.284496736
+  const a3 = 1.421413741
+  const a4 = -1.453152027
+  const a5 = 1.061405429
+  const p = 0.3275911
+
+  const sign = x < 0 ? -1 : 1
+  const absScaled = Math.abs(x) / Math.sqrt(2)
+  const t = 1.0 / (1.0 + p * absScaled)
+  const y = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-absScaled * absScaled)
+  return 0.5 * (1.0 + sign * y)
+}
+
 function calcSignificance(vA, cA, vB, cB) {
   if (vA === 0 || vB === 0 || cA + cB === 0) return 0
-  const n = vA + vB
-  const c = cA + cB
-  const eA = (vA / n) * c
-  const eB = (vB / n) * c
-  if (eA === 0 || eB === 0) return 0
-  const chi = (cA - eA) ** 2 / eA + (cB - eB) ** 2 / eB
-  return 1 - Math.exp(-chi / 2)
+  const pA = cA / vA
+  const pB = cB / vB
+  const pPooled = (cA + cB) / (vA + vB)
+  const se = Math.sqrt(pPooled * (1 - pPooled) * (1 / vA + 1 / vB))
+  if (se === 0) return 0
+  const z = (pB - pA) / se
+  const pValue = 2 * (1 - normCDF(Math.abs(z)))
+  return 1 - pValue
 }
 
 const WINNER_MIN_SIGNIFICANCE = 0.95
@@ -35,9 +51,10 @@ const sig1 = calcSignificance(1000, 100, 1000, 200)
 console.log('✓ calcSignificance: big diff →', (sig1 * 100).toFixed(1) + '%')
 assert(sig1 > 0.95, `Expected >0.95, got ${sig1}`)
 
-// Significance: no difference → 0
-assert.equal(calcSignificance(100, 10, 100, 10), 0)
-console.log('✓ calcSignificance: no difference → 0')
+// Significance: no difference → ~0
+const sig2 = calcSignificance(100, 10, 100, 10)
+assert(sig2 < 0.01, `Expected <0.01, got ${sig2}`)
+console.log('✓ calcSignificance: no difference → ~0')
 
 // Significance: no data → 0
 assert.equal(calcSignificance(0, 0, 0, 0), 0)
