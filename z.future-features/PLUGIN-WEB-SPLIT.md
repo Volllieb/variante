@@ -1,8 +1,31 @@
 # Plugin / Web — Arbeitsteilung
 
-Status: ✅ Umgesetzt am 03.07.2026
+Status: ✅ Schritt 1 & 3 (Plugin + Doku) · ⬜ Schritt 2 (Web-Dashboard, optional)
 
-Stand: 03.07.2026. Strategie-Entscheidung dokumentiert.
+Stand: 03.07.2026.
+
+---
+
+## ✅ Schritt 1: Plugin eindampfen (erledigt 03.07.2026)
+
+- [x] `s-results`-HTML-Block entfernt
+- [x] `startResults()`, `stopResultsPoll()`, `resTimer`-Logik entfernt
+- [x] `setResBg()`, `pct()` Results-Preview-Funktionen entfernt
+- [x] `navHistory` von Results-Referenzen gesäubert
+- [x] "View Results →" → `window.open('.../dashboard')`
+- [x] `dash-stats`-HTML-Block entfernt
+- [x] Upgrade-Banner aus Dashboard + Generate entfernt, durch `#plan-chip` ersetzt
+- [x] CSS-Regeln für entfernte Elemente aufgeräumt
+
+## ⬜ Schritt 2: Web-Dashboard ergänzen (optional, nicht kritisch)
+
+- [ ] Stats-Bar (Total/Active/Done) in `DashboardClient.tsx` — Daten sind schon da, nur UI fehlt
+- [ ] Upgrade-Banner zentralisieren (ein Ort statt verstreut)
+
+## ✅ Schritt 3: PROJEKT.md fortschreiben (erledigt 03.07.2026)
+
+- [x] §8 Historie: Eintrag hinzugefügt
+- [x] §3 Repository-Struktur: bereits korrekt ("6 Screens, Creation only")
 
 ---
 

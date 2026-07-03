@@ -10,8 +10,11 @@
   --color-text-2: rgba(237, 237, 237, 0.62);
   --color-text-3: rgba(237, 237, 237, 0.40);
   --color-ok: #2fd76c;
+  --color-ok-bg: rgba(47, 215, 108, 0.12);
   --color-pro: #f5a623;
+  --color-pro-bg: rgba(245, 166, 35, 0.12);
   --color-err: #f5455c;
+  --color-err-bg: rgba(245, 69, 92, 0.12);
 }
 
 @layer base {

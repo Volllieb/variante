@@ -105,45 +105,32 @@ export default function SignupPage() {
   if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#06050f] font-[family-name:var(--font-sans)] antialiased">
-      {/* Aurora */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -right-32 -top-32 h-[36rem] w-[36rem] rounded-full bg-fuchsia-600/18 blur-[130px]" />
-        <div className="absolute -bottom-20 -left-20 h-[30rem] w-[30rem] rounded-full bg-violet-700/15 blur-[110px]" />
-        <div
-          className="absolute inset-0 opacity-[0.13]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.32) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 w-full max-w-sm px-6">
+    <div className="flex min-h-screen items-center justify-center bg-bg-0 antialiased">
+      <div className="w-full max-w-sm px-6">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
           <Link
             href="/"
-            className="flex items-center gap-2 font-[family-name:var(--font-display)] text-xl font-bold text-white transition-opacity hover:opacity-75"
+            className="flex items-center gap-2 text-xl font-semibold text-white transition-opacity hover:opacity-75"
           >
-            <PandaLogo className="h-8 w-8 rounded-xl p-1 shadow-lg shadow-fuchsia-500/30" />
+            <PandaLogo className="h-8 w-8 rounded-lg p-1" />
             variante
           </Link>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-8 shadow-2xl backdrop-blur-xl">
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-white">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+          <h1 className="text-2xl font-semibold text-white">
             Create account
           </h1>
-          <p className="mt-1 text-sm text-white/45">Start free — no credit card, no dev required.</p>
+          <p className="mt-1 text-sm text-text-3">Start free — no credit card, no dev required.</p>
 
           {/* Google */}
           <button
             type="button"
             onClick={handleGoogleSignup}
             disabled={googleLoading}
-            className="mt-6 flex h-11 w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-white/[0.10] bg-white/[0.04] text-sm font-medium text-white/80 transition-all duration-200 hover:border-white/[0.18] hover:bg-white/[0.07] disabled:pointer-events-none disabled:opacity-40"
+            className="mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[6px] border border-border bg-bg-1 text-sm font-medium text-white/80 transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-40"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -156,14 +143,14 @@ export default function SignupPage() {
 
           {/* Divider */}
           <div className="mt-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-white/[0.08]" />
-            <span className="text-[11px] uppercase tracking-wider text-white/25">or</span>
-            <div className="h-px flex-1 bg-white/[0.08]" />
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-text-3">or</span>
+            <div className="h-px flex-1 bg-border" />
           </div>
 
           <form onSubmit={submit} className="mt-5 space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="signup-email" className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              <label htmlFor="signup-email" className="text-xs font-semibold uppercase tracking-wider text-text-2">
                 Email
               </label>
               <input
@@ -173,12 +160,12 @@ export default function SignupPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-white/12 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/30 transition-colors duration-200 focus:border-fuchsia-400/40 focus:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-fuchsia-400/20"
+                className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus:outline-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="signup-password" className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              <label htmlFor="signup-password" className="text-xs font-semibold uppercase tracking-wider text-text-2">
                 Password
               </label>
               <div className="relative">
@@ -190,13 +177,13 @@ export default function SignupPage() {
                   placeholder="Min. 6 characters"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-white/12 bg-white/[0.06] px-4 py-3 pr-11 text-sm text-white placeholder:text-white/30 transition-colors duration-200 focus:border-fuchsia-400/40 focus:bg-white/[0.08] focus:outline-none focus:ring-2 focus:ring-fuchsia-400/20"
+                  className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-white/35 transition-colors hover:text-white/70"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 transition-colors hover:text-text-2"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -204,20 +191,20 @@ export default function SignupPage() {
             </div>
 
             {err && (
-              <p className="rounded-xl border border-rose-400/20 bg-rose-400/[0.07] px-4 py-3 text-xs text-rose-300">
+              <p className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
                 {err}
               </p>
             )}
             {alreadyRegistered && (
-              <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-xs text-amber-200">
+              <p className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
                 Achtung — diese E-Mail ist bereits registriert.{' '}
-                <Link href="/login" className="font-semibold underline transition-colors hover:text-amber-100">
+                <Link href="/login" className="font-semibold underline transition-colors hover:opacity-80">
                   Direkt einloggen
                 </Link>
               </p>
             )}
             {info && (
-              <p className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.07] px-4 py-3 text-xs text-emerald-300">
+              <p className="rounded-[6px] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
                 {info}
               </p>
             )}
@@ -226,18 +213,18 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 bg-[length:200%_auto] px-6 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(139,92,246,0.55)] transition-all duration-200 hover:bg-[position:100%_center] hover:scale-[1.02] disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[6px] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:pointer-events-none disabled:opacity-50"
               >
                 {loading ? 'Creating account…' : 'Sign up'}
-                {!loading && <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
+                {!loading && <ArrowRight className="h-4 w-4" />}
               </button>
             </div>
           </form>
         </div>
 
-        <p className="mt-5 text-center text-sm text-white/40">
+        <p className="mt-5 text-center text-sm text-text-3">
           Already have an account?{' '}
-          <Link href="/login" className="cursor-pointer font-semibold text-fuchsia-300 transition-colors hover:text-fuchsia-200">
+          <Link href="/login" className="font-semibold text-white transition-colors hover:text-text">
             Log in
           </Link>
         </p>
