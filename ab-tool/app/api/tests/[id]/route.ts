@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
+import { safeError } from '@/lib/safeLog'
 
 export async function OPTIONS() {
   return preflight('GET, PATCH, DELETE, OPTIONS')
@@ -52,7 +53,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .eq('user_id', user.userId)
     .select('id')
   if (error) {
-    console.error('[tests:patch] update error:', error)
+    safeError('tests:patch', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
   }
   if (!updated || updated.length === 0) {
@@ -97,7 +98,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   const { error } = await supabase.from('tests').delete().eq('id', id).eq('user_id', user.userId)
   if (error) {
-    console.error('[tests:delete] delete error:', error)
+    safeError('tests:delete', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })
   }
 

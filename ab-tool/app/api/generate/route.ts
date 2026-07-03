@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
+import { safeError } from '@/lib/safeLog'
 
 export const maxDuration = 60
 
@@ -306,7 +307,7 @@ export async function POST(req: Request) {
     warnings = check.warnings
     if (!variantHtml) throw new Error('empty response after stripFences')
   } catch (e) {
-    console.error('[generate] openai error:', e)
+    safeError('generate', e)
     return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
   }
 
@@ -321,7 +322,7 @@ export async function POST(req: Request) {
     .eq('user_id', user.userId)
 
   if (updateErr) {
-    console.error('[generate] update error:', updateErr)
+    safeError('generate', updateErr)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 

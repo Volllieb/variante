@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
+import { safeError } from '@/lib/safeLog'
 
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
     .select('id')
 
   if (error) {
-    console.error('[capture] update error:', error)
+    safeError('capture', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
   if (!updated || updated.length === 0) {

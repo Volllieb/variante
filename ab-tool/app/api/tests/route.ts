@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
+import { safeError } from '@/lib/safeLog'
 
 export async function OPTIONS() {
   return preflight('GET, POST, OPTIONS')
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
     .limit(50)
 
   if (error) {
-    console.error('[tests] list error:', error)
+    safeError('tests', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, POST, OPTIONS') })
   }
 
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
     .single()
 
   if (error || !data) {
-    console.error('[tests] insert error:', error)
+    safeError('tests', error)
     return Response.json({ error: 'failed to create test' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 

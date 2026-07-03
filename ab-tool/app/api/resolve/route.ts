@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
+import { sanitizeHtml } from '@/lib/sanitize'
+import { safeError } from '@/lib/safeLog'
 
 export async function OPTIONS() {
   return preflight('GET, OPTIONS')
@@ -38,7 +40,7 @@ export async function GET(req: Request) {
     .limit(200) // ponytail: vernünftiges Limit statt ALLER non-paused Tests
 
   if (error) {
-    console.error('[resolve] db error:', error)
+    safeError('resolve', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, OPTIONS') })
   }
 
@@ -76,7 +78,8 @@ export async function GET(req: Request) {
     goal: t.goal,
     status: t.status,
     traffic_split: t.traffic_split,
-    variant_b_html: t.variant_b_html,
+    // Security: XSS-Sanitization vor Auslieferung an ab.js
+    variant_b_html: sanitizeHtml(t.variant_b_html),
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
   }))
 
