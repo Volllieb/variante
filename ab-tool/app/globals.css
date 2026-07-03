@@ -1,39 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-border: hsl(0 0% 89.8%);
-  --color-input: hsl(0 0% 89.8%);
-  --color-ring: hsl(0 0% 3.9%);
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(0 0% 3.9%);
-  --color-primary: hsl(262.1 83.3% 57.8%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(0 0% 96.1%);
-  --color-secondary-foreground: hsl(0 0% 9%);
-  --color-muted: hsl(0 0% 96.1%);
-  --color-muted-foreground: hsl(0 0% 45.1%);
-  --color-accent: hsl(0 0% 96.1%);
-  --color-accent-foreground: hsl(0 0% 9%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(0 0% 3.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(0 0% 3.9%);
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.625rem;
-  --radius-xl: 0.75rem;
+  --color-bg-0: #000000;
+  --color-bg-1: #0a0a0a;
+  --color-bg-2: #111111;
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+  --color-text: #ededed;
+  --color-text-2: rgba(237, 237, 237, 0.62);
+  --color-text-3: rgba(237, 237, 237, 0.40);
+  --color-ok: #2fd76c;
+  --color-pro: #f5a623;
+  --color-err: #f5455c;
 }
 
 @layer base {
   .__ab_pending { visibility: hidden; }
-  * {
-    border-color: var(--color-border);
-  }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--color-bg-0);
+    color: var(--color-text);
   }
 }
 
@@ -52,92 +37,5 @@ html {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-/* ──────────────────────────────────────────────────────────
-   Landing-page-scoped visual system (dark / aurora / glass).
-   These utilities are only used on the marketing landing page
-   and never touch the app's semantic light-theme tokens.
-   ────────────────────────────────────────────────────────── */
-
-/* Staggered page-load reveal */
-@keyframes lp-rise {
-  from {
-    opacity: 0;
-    transform: translateY(22px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.lp-rise {
-  opacity: 0;
-  animation: lp-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Slow drifting aurora blobs */
-@keyframes lp-drift {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(4%, -6%) scale(1.12);
-  }
-  66% {
-    transform: translate(-5%, 4%) scale(0.94);
-  }
-}
-
-.lp-drift {
-  animation: lp-drift 22s ease-in-out infinite;
-}
-
-/* Conic gradient halo that slowly rotates behind the featured card */
-@keyframes lp-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.lp-spin {
-  animation: lp-spin 14s linear infinite;
-}
-
-/* Animated gradient sheen for the wordmark / accents */
-@keyframes lp-sheen {
-  to {
-    background-position: 200% center;
-  }
-}
-
-.lp-gradient-text {
-  background-image: linear-gradient(
-    100deg,
-    #c4b5fd,
-    #f0abfc,
-    #67e8f9,
-    #c4b5fd
-  );
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  animation: lp-sheen 6s linear infinite;
-}
-
-/* Fine grain overlay for atmosphere */
-.lp-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lp-drift,
-  .lp-spin,
-  .lp-gradient-text {
-    animation: none !important;
   }
 }
