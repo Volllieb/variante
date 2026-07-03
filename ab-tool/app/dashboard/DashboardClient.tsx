@@ -13,7 +13,7 @@ import {
   FlaskConical,
   Users,
   TrendingUp,
-  ArrowRight,
+  Zap,
   Shield,
   List,
   BarChart3,
@@ -23,8 +23,20 @@ import {
   Lock,
   Search,
   Plus,
-  Zap,
+  Rocket,
+  Plug,
+  ListFilter,
 } from 'lucide-react'
+
+/* ── Token palette (brandguidelines.md §2) — literal hex/rgba, not Tailwind defaults ── */
+const T = {
+  bg1: '#0a0a0a',
+  bg2: '#111111',
+  text: '#ededed',
+  ok: '#2fd76c',
+  pro: '#f5a623',
+  err: '#f5455c',
+}
 
 type TestRow = {
   id: string
@@ -36,6 +48,7 @@ type TestRow = {
   conversions_a: number
   conversions_b: number
   winner: string | null
+  created_at: string
 }
 
 const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
@@ -43,6 +56,18 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js"><\/script>`
+
+const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
+type StatusFilter = (typeof STATUS_FILTERS)[number]
+
+function timeAgo(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
+}
 
 export function DashboardClient({
   email,
@@ -61,6 +86,7 @@ export function DashboardClient({
   const [busy, setBusy] = useState(false)
   const [snippetOpen, setSnippetOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const isPro = plan === 'pro' || plan === 'agency'
 
   async function logout() {
@@ -95,6 +121,10 @@ export function DashboardClient({
     }
   }
 
+  function cycleFilter() {
+    setStatusFilter(f => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
+  }
+
   /* ── Aggregate stats ── */
   const totalVisitors = tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
   const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
@@ -110,31 +140,31 @@ export function DashboardClient({
 
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return tests
-    return tests.filter(
-      t => t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-    )
-  }, [tests, query])
+    return tests.filter(t => {
+      const matchesQuery = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
+      const matchesStatus = statusFilter === 'all' || t.status === statusFilter
+      return matchesQuery && matchesStatus
+    })
+  }, [tests, query, statusFilter])
+
+  const recent = tests.slice(0, 3)
 
   return (
-    <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-white/80 antialiased">
+    <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-50 flex items-center gap-4 border-b border-white/10 bg-black/95 px-5 py-3 backdrop-blur-xl">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-[family-name:var(--font-display)] text-[15px] font-bold text-white transition-opacity hover:opacity-75"
-        >
-          <PandaLogo className="h-6 w-6 rounded-md" />
+      <header className="sticky top-0 z-50 flex items-center gap-3 border-b border-white/10 bg-black/95 px-5 py-3 backdrop-blur-xl">
+        <Link href="/dashboard" className="flex items-center gap-2 text-[13px] font-medium text-[#ededed]">
+          <PandaLogo className="h-6 w-6 rounded-[6px]" />
           variante
         </Link>
-        <span className="rounded-md border border-white/15 bg-white/[0.05] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/50">
+        <span className="rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/40">
           {plan}
         </span>
         <div className="flex-1" />
-        <span className="hidden text-sm text-white/45 sm:block">{email}</span>
+        <span className="hidden text-[13px] text-[#ededed]/40 sm:block">{email}</span>
         <button
           onClick={logout}
-          className="flex cursor-pointer items-center gap-1.5 rounded-md border border-white/10 px-3 py-1.5 text-xs text-white/50 transition-colors duration-150 hover:border-white/25 hover:text-white"
+          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
         >
           <LogOut className="h-3.5 w-3.5" />
           Log out
@@ -143,8 +173,9 @@ export function DashboardClient({
 
       <div className="mx-auto flex max-w-[1400px]">
         {/* ── Sidebar ── */}
-        <aside className="sticky top-[49px] hidden h-[calc(100vh-49px)] w-56 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/10 p-3 md:flex">
+        <aside className="sticky top-[49px] hidden h-[calc(100vh-49px)] w-[200px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/10 p-3 md:flex">
           <NavLink icon={FlaskConical} label="Tests" href="/dashboard" active />
+          <NavLink icon={Rocket} label="Results" state="soon" />
           <NavLink icon={List} label="Activity log" state="soon" />
           <NavLink
             icon={BarChart3}
@@ -157,179 +188,302 @@ export function DashboardClient({
           <div className="my-2 h-px bg-white/10" />
 
           <NavLink icon={KeyRound} label="Plugin token" anchor="#plugin-token" />
-          <NavLink icon={Users} label="Team" state="agency" />
+          <NavLink icon={Plug} label="Integrations" state="soon" />
+          <NavLink icon={Users} label="Team" state="locked" />
 
           <div className="my-2 h-px bg-white/10" />
 
-          <NavLink icon={CreditCard} label="Usage & billing" anchor="#billing" />
+          <NavLink icon={CreditCard} label="Usage" anchor="#usage" />
         </aside>
 
-        {/* ── Main content ── */}
-        <main className="min-w-0 flex-1 space-y-8 px-5 py-6 sm:px-8">
-          {/* Page header row */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="font-[family-name:var(--font-display)] text-xl font-bold text-white">Tests</h1>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
-                <input
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  placeholder="Find test…"
-                  className="w-full rounded-md border border-white/10 bg-white/[0.03] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none sm:w-56"
-                />
+        {/* ── Main content: two columns, 38% / 62% ── */}
+        <main className="grid min-w-0 flex-1 grid-cols-1 gap-5 px-5 py-6 sm:px-8 md:grid-cols-[38%_1fr]">
+          {/* ═══ Left column: Usage / Significance / Recent activity ═══ */}
+          <div className="flex flex-col gap-5">
+            <div>
+              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Usage</p>
+              <div id="usage" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                <p className="mb-2.5 text-[13px] font-medium text-[#ededed]">Last 30 days</p>
+                <div className="flex flex-col divide-y divide-white/[0.06]">
+                  <QuotaRow
+                    icon={FlaskConical}
+                    label="Active experiments"
+                    value={isPro ? `${running}` : `${running} / 1`}
+                    atLimit={!isPro && running >= 1}
+                  />
+                  <QuotaRow icon={Users} label="Total experiments" value={`${tests.length}`} />
+                  <QuotaRow icon={TrendingUp} label="Total visitors" value={totalVisitors.toLocaleString()} />
+                  <QuotaRow icon={Zap} label="Total conversions" value={totalConversions.toLocaleString()} />
+                  {avgLift !== null && (
+                    <QuotaRow
+                      icon={TrendingUp}
+                      label="Avg lift"
+                      value={`${avgLift > 0 ? '+' : ''}${(avgLift * 100).toFixed(1)}%`}
+                      tone={avgLift > 0 ? 'ok' : avgLift < 0 ? 'err' : undefined}
+                    />
+                  )}
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+                  <span className="text-[11px] text-[#ededed]/40">
+                    Plan: <span className="text-[#ededed]/62">{plan.toUpperCase()}</span>
+                  </span>
+                  {isPro ? (
+                    <button
+                      onClick={() => billing('portal')}
+                      disabled={busy}
+                      className="cursor-pointer text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed] disabled:opacity-50"
+                    >
+                      Manage →
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => billing('checkout')}
+                      disabled={busy}
+                      className="cursor-pointer rounded-[5px] bg-white px-2.5 py-1 text-[11px] font-semibold text-black transition-opacity duration-150 hover:opacity-85 disabled:opacity-50"
+                    >
+                      Upgrade
+                    </button>
+                  )}
+                </div>
               </div>
-              <a
-                href="#plugin-token"
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-black transition-opacity duration-150 hover:opacity-85"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                New test
-              </a>
             </div>
-          </div>
 
-          {/* ── Stats row ── */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard icon={FlaskConical} value={tests.length} label="Experiments" />
-            <StatCard
-              icon={Zap}
-              value={isPro ? running : `${running} / 1`}
-              label="Running"
-              accent={running > 0 ? 'emerald' : 'default'}
-            />
-            <StatCard icon={Users} value={totalVisitors.toLocaleString()} label="Total visitors" />
-            <StatCard
-              icon={TrendingUp}
-              value={avgLift !== null ? `${avgLift > 0 ? '+' : ''}${(avgLift * 100).toFixed(1)}%` : '—'}
-              label="Avg lift"
-              accent={avgLift !== null && avgLift > 0 ? 'emerald' : avgLift !== null && avgLift < 0 ? 'rose' : 'default'}
-            />
-          </div>
-
-          {/* ── Plan + Token row ── */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Plan / Billing card */}
-            <div id="billing" className="scroll-mt-24 rounded-xl border border-white/10 bg-white/[0.02] p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Current plan</p>
-                  <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-extrabold uppercase text-white">
-                    {plan}
-                  </p>
-                  <p className="mt-1.5 text-xs text-white/45">
-                    {isPro
-                      ? 'Unlimited experiments, full statistics, no badge.'
-                      : '1 active experiment · "Powered by Variante" badge.'}
+            <div>
+              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Significance</p>
+              {isPro ? (
+                <div className="flex items-center gap-2.5 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
+                  <p className="text-[13px] text-[#ededed]/62">
+                    Enabled — winners are detected and declared automatically.
                   </p>
                 </div>
-                {isPro ? (
-                  <button
-                    onClick={() => billing('portal')}
-                    disabled={busy}
-                    className="shrink-0 cursor-pointer rounded-md border border-white/15 px-4 py-2 text-xs font-semibold text-white/70 transition-colors duration-150 hover:border-white/30 hover:text-white disabled:opacity-50"
-                  >
-                    Manage
-                  </button>
-                ) : (
+              ) : (
+                <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                  <p className="text-[13px] font-semibold text-[#ededed]">See when a variant actually wins</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/40">
+                    Free shows raw visitor and conversion counts. Pro calculates statistical significance
+                    and declares a winner automatically.
+                  </p>
                   <button
                     onClick={() => billing('checkout')}
                     disabled={busy}
-                    className="group inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md bg-white px-4 py-2 text-xs font-bold text-black transition-opacity duration-150 hover:opacity-85 disabled:opacity-50"
+                    className="mt-3 cursor-pointer rounded-[6px] border border-white/[0.18] px-3 py-1.5 text-[11px] font-semibold text-[#ededed] transition-colors duration-150 hover:border-white/25 disabled:opacity-50"
                   >
                     Upgrade to Pro
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </button>
-                )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Recent activity</p>
+              {recent.length === 0 ? (
+                <p className="text-[11px] text-[#ededed]/40">No tests yet.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {recent.map(t => (
+                    <Link
+                      key={t.id}
+                      href={`/results/${t.id}`}
+                      className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3 transition-colors duration-150 hover:border-white/[0.18]"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-[13px] font-medium text-[#ededed]">{t.name}</span>
+                        <StatusDot status={t.status} winner={t.winner} />
+                      </div>
+                      <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">
+                        {t.site_url ?? '—'} · {timeAgo(t.created_at)}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ═══ Right column: Tests grid with toolbar ═══ */}
+          <div className="min-w-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[13px] font-medium text-[#ededed]">Tests</p>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
+                  <input
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder="Find test…"
+                    className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none sm:w-48"
+                  />
+                </div>
+                <button
+                  onClick={cycleFilter}
+                  title={`Filter: ${statusFilter}`}
+                  className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                >
+                  <ListFilter className="h-3.5 w-3.5" />
+                  {statusFilter !== 'all' && (
+                    <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
+                  )}
+                </button>
+                <a
+                  href="#plugin-token"
+                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity duration-150 hover:opacity-85"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  New test
+                </a>
               </div>
             </div>
 
-            {/* Plugin Token card */}
-            <div id="plugin-token" className="scroll-mt-24 rounded-xl border border-white/10 bg-white/[0.02] p-6">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Plugin token</p>
-              <p className="mt-1 text-xs text-white/45">
+            {tests.length === 0 ? (
+              <div className="mt-3 flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
+                  <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
+                </div>
+                <p className="mt-4 text-[13px] font-medium text-[#ededed]/62">No experiments yet</p>
+                <p className="mt-1.5 max-w-xs text-[11px] text-[#ededed]/40">
+                  Create your first test in the Figma plugin — paste the plugin token below to get started.
+                </p>
+              </div>
+            ) : filteredTests.length === 0 ? (
+              <div className="mt-3 flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
+                <p className="text-[13px] font-medium text-[#ededed]/62">
+                  {query ? `No tests match “${query}”` : 'No tests in this filter'}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {filteredTests.map(t => {
+                  const va = t.visitors_a ?? 0
+                  const vb = t.visitors_b ?? 0
+                  const ca = t.conversions_a ?? 0
+                  const cb = t.conversions_b ?? 0
+                  const crA = va > 0 ? ca / va : 0
+                  const crB = vb > 0 ? cb / vb : 0
+                  const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
+                  const totalV = va + vb
+                  const pctA = totalV > 0 ? (va / totalV) * 100 : 50
+                  const pctB = 100 - pctA
+
+                  return (
+                    <Link
+                      key={t.id}
+                      href={`/results/${t.id}`}
+                      className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors duration-150 hover:border-white/[0.18]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-[15px] font-medium text-[#ededed]">{t.name}</p>
+                          {t.site_url && <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>}
+                        </div>
+                        <StatusDot status={t.status} winner={t.winner} />
+                      </div>
+
+                      <div className="mt-2.5 flex items-center gap-2">
+                        <span className="text-[11px] text-[#ededed]/62">{t.winner === 'B' ? 'B won' : t.status}</span>
+                        {uplift !== null && uplift !== 0 && (
+                          <span
+                            className="rounded-[5px] px-2 py-0.5 text-[11px] font-semibold"
+                            style={
+                              uplift > 0
+                                ? { background: `${T.ok}1f`, color: T.ok }
+                                : { background: `${T.err}1f`, color: T.err }
+                            }
+                          >
+                            {uplift > 0 ? '+' : ''}
+                            {uplift.toFixed(1)}%
+                          </span>
+                        )}
+                      </div>
+
+                      {totalV > 0 && (
+                        <div className="mt-3">
+                          <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                            <div className="bg-white/30 transition-all" style={{ width: `${pctA}%` }} />
+                            <div className="bg-white transition-all" style={{ width: `${pctB}%` }} />
+                          </div>
+                          <div className="mt-2 flex items-center justify-between text-[11px] text-[#ededed]/40">
+                            <span>
+                              A: {va.toLocaleString()}
+                              {crA > 0 && <span className="ml-1 text-[#ededed]/62">{(crA * 100).toFixed(1)}% CR</span>}
+                            </span>
+                            <span>
+                              {crB > 0 && <span className="mr-1 text-[#ededed]/62">{(crB * 100).toFixed(1)}% CR</span>}
+                              B: {vb.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ═══ Full width: Plugin token + Snippet installation ═══ */}
+          <div className="flex flex-col gap-5 md:col-span-2">
+            <div id="plugin-token" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+              <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
+              <p className="mt-1 text-[11px] text-[#ededed]/40">
                 Paste once into the Figma plugin to link your tests — this is where new tests are created.
               </p>
-              <div className="mt-4 flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto truncate rounded-md border border-white/10 bg-black px-3 py-2.5 font-mono text-xs text-white/70">
+              <div className="mt-3 flex items-center gap-2">
+                <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2.5 font-mono text-[13px] text-[#ededed]/62">
                   {apiToken}
                 </code>
                 <button
                   onClick={copyToken}
-                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md border border-white/10 bg-white/[0.05] text-white/60 transition-colors duration-150 hover:border-white/25 hover:text-white"
+                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
                 >
-                  {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                  {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-          </div>
 
-          {/* ── Significance upsell (free only) ── */}
-          {!isPro && (
-            <div className="flex flex-col items-start gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-6 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-white">See when a variant actually wins</p>
-                <p className="mt-1 max-w-md text-xs text-white/45">
-                  Free shows raw visitor and conversion counts. Pro calculates statistical significance and
-                  declares a winner automatically.
-                </p>
-              </div>
+            <div className="overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
               <button
-                onClick={() => billing('checkout')}
-                disabled={busy}
-                className="shrink-0 cursor-pointer rounded-md border border-white/15 px-4 py-2 text-xs font-semibold text-white/70 transition-colors duration-150 hover:border-white/30 hover:text-white disabled:opacity-50"
+                onClick={() => setSnippetOpen(o => !o)}
+                className="flex w-full cursor-pointer items-center justify-between px-3.5 py-3 text-left transition-colors duration-150 hover:bg-white/[0.02]"
               >
-                Upgrade to Pro
-              </button>
-            </div>
-          )}
-
-          {/* ── Snippet installation card ── */}
-          <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
-            <button
-              onClick={() => setSnippetOpen(o => !o)}
-              className="flex w-full cursor-pointer items-center justify-between px-6 py-5 text-left transition-colors duration-150 hover:bg-white/[0.02]"
-            >
-              <div>
-                <p className="text-sm font-semibold text-white">Snippet installation</p>
-                <p className="mt-0.5 text-xs text-white/40">
-                  Paste one block into your site&apos;s{' '}
-                  <code className="rounded bg-white/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-white/70">
-                    &lt;head&gt;
-                  </code>{' '}
-                  — universal, framework-agnostic
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 shrink-0 text-white/40 transition-transform duration-150 ${snippetOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {snippetOpen && (
-              <div className="space-y-5 border-t border-white/10 px-6 pb-6 pt-5">
-                {/* Main snippet */}
                 <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-white/60">Universal snippet</span>
-                    <button
-                      onClick={copySnippet}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-white/60 transition-colors duration-150 hover:border-white/25 hover:text-white"
-                    >
-                      {snippetCopied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                      {snippetCopied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                  <pre className="overflow-x-auto rounded-md bg-black px-4 py-4 text-[11px] leading-relaxed text-white/70 ring-1 ring-white/10">
-{SNIPPET_CODE}
-                  </pre>
+                  <p className="text-[13px] font-medium text-[#ededed]">Snippet installation</p>
+                  <p className="mt-0.5 text-[11px] text-[#ededed]/40">
+                    Paste one block into your site&apos;s{' '}
+                    <code className="rounded-[5px] bg-white/[0.08] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
+                      &lt;head&gt;
+                    </code>{' '}
+                    — universal, framework-agnostic
+                  </p>
                 </div>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-[#ededed]/40 transition-transform duration-150 ${snippetOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
 
-                {/* Framework accordions */}
-                {[
-                  {
-                    label: 'Next.js App Router',
-                    file: 'app/layout.tsx',
-                    code: `// app/layout.tsx
+              {snippetOpen && (
+                <div className="space-y-4 border-t border-white/10 px-3.5 pb-4 pt-3.5">
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-[#ededed]/62">Universal snippet</span>
+                      <button
+                        onClick={copySnippet}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                      >
+                        {snippetCopied ? <Check className="h-3.5 w-3.5" style={{ color: T.ok }} /> : <Copy className="h-3.5 w-3.5" />}
+                        {snippetCopied ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                    <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+{SNIPPET_CODE}
+                    </pre>
+                  </div>
+
+                  {[
+                    {
+                      label: 'Next.js App Router',
+                      file: 'app/layout.tsx',
+                      code: `// app/layout.tsx
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -345,11 +499,11 @@ export default function RootLayout({ children }) {
     </html>
   )
 }`,
-                  },
-                  {
-                    label: 'Next.js Pages Router',
-                    file: 'pages/_document.tsx',
-                    code: `// pages/_document.tsx
+                    },
+                    {
+                      label: 'Next.js Pages Router',
+                      file: 'pages/_document.tsx',
+                      code: `// pages/_document.tsx
 import { Html, Head, Main, NextScript } from 'next/document'
 
 export default function Document() {
@@ -367,11 +521,11 @@ export default function Document() {
     </Html>
   )
 }`,
-                  },
-                  {
-                    label: 'Plain HTML',
-                    file: '<head>',
-                    code: `<!DOCTYPE html>
+                    },
+                    {
+                      label: 'Plain HTML',
+                      file: '<head>',
+                      code: `<!DOCTYPE html>
 <html>
 <head>
   <link rel="preconnect" href="https://www.getvariante.com">
@@ -381,159 +535,56 @@ export default function Document() {
 </head>
 <body><!-- your content --></body>
 </html>`,
-                  },
-                ].map(({ label, file, code }) => (
-                  <details key={label} className="group rounded-md border border-white/10 [&_summary]:list-none">
-                    <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-xs font-semibold text-white/60 transition-colors hover:text-white/85">
-                      <span>{label}</span>
-                      <span className="flex items-center gap-2">
-                        <code className="rounded bg-white/[0.07] px-2 py-0.5 font-mono text-[10px] text-white/50">{file}</code>
-                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                      </span>
-                    </summary>
-                    <pre className="overflow-x-auto border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-white/70">
+                    },
+                  ].map(({ label, file, code }) => (
+                    <details key={label} className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
+                      <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
+                        <span>{label}</span>
+                        <span className="flex items-center gap-2">
+                          <code className="rounded-[5px] bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] text-[#ededed]/40">{file}</code>
+                          <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                        </span>
+                      </summary>
+                      <pre className="overflow-x-auto border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62">
 {code}
-                    </pre>
+                      </pre>
+                    </details>
+                  ))}
+
+                  <details className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
+                    <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
+                      <span>Vue · Svelte · Astro · others</span>
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                    </summary>
+                    <p className="border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/40">
+                      Inject the three lines into the{' '}
+                      <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;head&gt;</code>{' '}
+                      of your root layout or template. The snippet is framework-agnostic. Make sure the
+                      anti-flicker <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;style&gt;</code> and
+                      inline <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;script&gt;</code> come{' '}
+                      <strong className="font-semibold text-[#ededed]/62">before</strong> the async{' '}
+                      <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">ab.js</code> tag.
+                    </p>
                   </details>
-                ))}
 
-                {/* Other frameworks note */}
-                <details className="group rounded-md border border-white/10 [&_summary]:list-none">
-                  <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-xs font-semibold text-white/60 transition-colors hover:text-white/85">
-                    <span>Vue · Svelte · Astro · others</span>
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <p className="border-t border-white/10 px-4 py-4 text-xs leading-relaxed text-white/45">
-                    Inject the three lines into the{' '}
-                    <code className="rounded bg-white/[0.07] px-1.5 py-0.5 font-mono text-[10px] text-white/70">&lt;head&gt;</code>{' '}
-                    of your root layout or template. The snippet is framework-agnostic. Make sure the
-                    anti-flicker <code className="rounded bg-white/[0.07] px-1.5 py-0.5 font-mono text-[10px] text-white/70">&lt;style&gt;</code> and
-                    inline <code className="rounded bg-white/[0.07] px-1.5 py-0.5 font-mono text-[10px] text-white/70">&lt;script&gt;</code> come{' '}
-                    <strong className="text-white/70">before</strong> the async{' '}
-                    <code className="rounded bg-white/[0.07] px-1.5 py-0.5 font-mono text-[10px] text-white/70">ab.js</code> tag.
-                  </p>
-                </details>
-
-                {/* Privacy note */}
-                <div className="flex items-start gap-3 rounded-md border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3.5">
-                  <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-400/80" />
-                  <p className="text-xs leading-relaxed text-amber-200/70">
-                    <strong className="font-semibold text-amber-200/90">Privacy:</strong>{' '}
-                    ab.js stores a random visitor ID in{' '}
-                    <code className="rounded bg-amber-400/10 px-1 font-mono text-[10px]">localStorage</code> (no cookies).
-                    No personal data is collected or transmitted. The snippet only sends: current URL,
-                    visitor ID, and click events on test elements.
-                  </p>
+                  <div
+                    className="flex items-start gap-3 rounded-[6px] px-4 py-3.5"
+                    style={{ background: `${T.pro}0f`, border: `1px solid ${T.pro}33` }}
+                  >
+                    <Shield className="mt-0.5 h-4 w-4 shrink-0" style={{ color: T.pro }} />
+                    <p className="text-[11px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
+                      <strong className="font-semibold">Privacy:</strong>{' '}
+                      ab.js stores a random visitor ID in{' '}
+                      <code className="rounded-[5px] px-1 font-mono text-[11px]" style={{ background: `${T.pro}1a` }}>
+                        localStorage
+                      </code>{' '}
+                      (no cookies). No personal data is collected or transmitted. The snippet only sends:
+                      current URL, visitor ID, and click events on test elements.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Tests grid ── */}
-          <div>
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-white">Results</h2>
-                <p className="mt-1 text-xs text-white/35">
-                  {running > 0 ? `${running} active now` : 'No active experiments right now'}
-                </p>
-              </div>
-              {totalConversions > 0 && (
-                <span className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/45">
-                  {totalConversions.toLocaleString()} total conversions
-                </span>
               )}
             </div>
-
-            {tests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/15 py-16 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.04]">
-                  <FlaskConical className="h-5 w-5 text-white/30" />
-                </div>
-                <p className="mt-4 text-sm font-medium text-white/50">No experiments yet</p>
-                <p className="mt-1.5 max-w-xs text-xs text-white/30">
-                  Create your first test in the Figma plugin — paste the plugin token above to get started.
-                </p>
-              </div>
-            ) : filteredTests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/15 py-16 text-center">
-                <p className="text-sm font-medium text-white/50">No tests match &ldquo;{query}&rdquo;</p>
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {filteredTests.map(t => {
-                  const va = t.visitors_a ?? 0
-                  const vb = t.visitors_b ?? 0
-                  const ca = t.conversions_a ?? 0
-                  const cb = t.conversions_b ?? 0
-                  const crA = va > 0 ? ca / va : 0
-                  const crB = vb > 0 ? cb / vb : 0
-                  const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
-                  const totalV = va + vb
-                  const pctA = totalV > 0 ? (va / totalV) * 100 : 50
-                  const pctB = 100 - pctA
-
-                  const statusColor =
-                    t.status === 'active'
-                      ? 'bg-emerald-400/15 text-emerald-300'
-                      : t.winner === 'B'
-                      ? 'bg-white/10 text-white/70'
-                      : 'bg-white/[0.06] text-white/45'
-
-                  return (
-                    <Link
-                      key={t.id}
-                      href={`/results/${t.id}`}
-                      className="group block rounded-xl border border-white/10 bg-white/[0.02] p-5 transition-colors duration-150 hover:border-white/25 hover:bg-white/[0.04]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate font-[family-name:var(--font-display)] text-base font-bold text-white">
-                            {t.name}
-                          </p>
-                          {t.site_url && <p className="mt-0.5 truncate text-xs text-white/35">{t.site_url}</p>}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          {uplift !== null && uplift !== 0 && (
-                            <span
-                              className={`rounded-md px-2.5 py-1 text-[11px] font-bold ${
-                                uplift > 0 ? 'bg-emerald-400/15 text-emerald-300' : 'bg-rose-400/15 text-rose-300'
-                              }`}
-                            >
-                              {uplift > 0 ? '+' : ''}
-                              {uplift.toFixed(1)}%
-                            </span>
-                          )}
-                          <span className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${statusColor}`}>
-                            {t.winner === 'B' ? 'B won' : t.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* A vs B visitor bar */}
-                      {totalV > 0 && (
-                        <div className="mt-4">
-                          <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                            <div className="bg-white/30 transition-all" style={{ width: `${pctA}%` }} />
-                            <div className="bg-white transition-all" style={{ width: `${pctB}%` }} />
-                          </div>
-                          <div className="mt-2 flex items-center justify-between text-[11px] text-white/40">
-                            <span>
-                              A: {va.toLocaleString()} visitors
-                              {crA > 0 && <span className="ml-1 text-white/55">{(crA * 100).toFixed(1)}% CR</span>}
-                            </span>
-                            <span>
-                              {crB > 0 && <span className="mr-1 text-white/70">{(crB * 100).toFixed(1)}% CR</span>}
-                              B: {vb.toLocaleString()} visitors
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
           </div>
         </main>
       </div>
@@ -555,12 +606,13 @@ function NavLink({
   href?: string
   anchor?: string
   active?: boolean
-  state?: 'soon' | 'locked' | 'agency'
+  state?: 'soon' | 'locked'
   onClick?: () => void
 }) {
-  const base = `flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-[13px] transition-colors duration-150 ${
-    active ? 'bg-white/10 font-medium text-white' : 'text-white/60 hover:bg-white/[0.05] hover:text-white/85'
+  const base = `flex items-center justify-between gap-2 rounded-[6px] px-[9px] py-[7px] text-[13px] transition-colors duration-150 ${
+    active ? 'font-medium text-[#ededed]' : 'text-[#ededed]/62 hover:text-[#ededed]/85'
   }`
+  const style = active ? { background: T.bg2 } : undefined
   const content = (
     <>
       <span className="flex min-w-0 items-center gap-2.5">
@@ -568,67 +620,78 @@ function NavLink({
         <span className="truncate">{label}</span>
       </span>
       {state === 'soon' && (
-        <span className="shrink-0 rounded border border-white/10 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-white/30">
+        <span className="shrink-0 rounded-[5px] border border-white/10 px-1.5 py-px text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/30">
           Soon
         </span>
       )}
-      {state === 'locked' && <Lock className="h-3 w-3 shrink-0 text-white/30" />}
-      {state === 'agency' && (
-        <span className="shrink-0 rounded border border-white/10 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-white/30">
-          Agency
-        </span>
-      )}
+      {state === 'locked' && <Lock className="h-3 w-3 shrink-0 text-[#ededed]/40" />}
     </>
   )
 
   if (href) {
     return (
-      <Link href={href} className={base}>
+      <Link href={href} className={base} style={style}>
         {content}
       </Link>
     )
   }
   if (anchor) {
     return (
-      <a href={anchor} className={base}>
+      <a href={anchor} className={base} style={style}>
         {content}
       </a>
     )
   }
   if (onClick) {
     return (
-      <button onClick={onClick} className={`${base} cursor-pointer text-left`}>
+      <button onClick={onClick} className={`${base} cursor-pointer text-left`} style={style}>
         {content}
       </button>
     )
   }
-  return <div className={`${base} cursor-default opacity-60`}>{content}</div>
-}
-
-function StatCard({
-  icon: Icon,
-  value,
-  label,
-  accent = 'default',
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  value: string | number
-  label: string
-  accent?: 'emerald' | 'rose' | 'default'
-}) {
-  const accents = {
-    emerald: 'text-emerald-300',
-    rose: 'text-rose-300',
-    default: 'text-white/40',
-  }
-
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.05]">
-        <Icon className={`h-4 w-4 ${accents[accent]}`} />
-      </div>
-      <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-white">{value}</p>
-      <p className="mt-0.5 text-xs text-white/40">{label}</p>
+    <div className={`${base} cursor-default text-[#ededed]/40`} style={style}>
+      {content}
     </div>
   )
+}
+
+function QuotaRow({
+  icon: Icon,
+  label,
+  value,
+  atLimit,
+  tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+  atLimit?: boolean
+  tone?: 'ok' | 'err'
+}) {
+  const color = atLimit ? T.pro : tone === 'ok' ? T.ok : tone === 'err' ? T.err : undefined
+  return (
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <span className="flex items-center gap-2 text-[13px] text-[#ededed]/62">
+        <Icon className="h-3.5 w-3.5 shrink-0" />
+        {label}
+      </span>
+      <span className="font-mono text-[13px] text-[#ededed]/62" style={color ? { color } : undefined}>
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function StatusDot({ status, winner }: { status: string; winner?: string | null }) {
+  if (status === 'active') {
+    return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
+  }
+  if (status === 'paused') {
+    return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.pro }} />
+  }
+  if (status === 'done' || winner) {
+    return <span className="h-2 w-2 shrink-0 rounded-full bg-[#ededed]/40" />
+  }
+  return <span className="h-2 w-2 shrink-0 rounded-full border border-dashed border-[#ededed]/40" />
 }

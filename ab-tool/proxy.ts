@@ -23,12 +23,17 @@ export async function proxy(req: NextRequest) {
   )
 
   // Refresht den Session-Cookie (wichtig für Token-Ablauf).
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Eingeloggte Nutzer sollen die Landingpage nie sehen — direkt ins Dashboard.
+  if (user && req.nextUrl.pathname === '/') {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
 
   return res
 }
 
 export const config = {
-  // Nur auf Dashboard/Results/API-Routen anwenden, nicht auf statische Assets.
-  matcher: ['/dashboard/:path*', '/results/:path*', '/onboarding/:path*'],
+  // Dashboard/Results/Onboarding: Session-Refresh. Landingpage: Auth-Redirect-Check.
+  matcher: ['/', '/dashboard/:path*', '/results/:path*', '/onboarding/:path*'],
 }
