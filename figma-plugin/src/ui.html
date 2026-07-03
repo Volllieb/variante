@@ -733,21 +733,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <button class="icon-btn" onclick="goToTokenMode()" title="Account" aria-label="Account"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></button>
   </div>
 
-  <!-- Quick stats -->
-  <div class="dash-stats" id="dash-stats" style="display:none">
-    <div class="dash-stat">
-      <span class="dash-stat-val" id="stat-total">0</span>
-      <span class="dash-stat-lbl">Total</span>
-    </div>
-    <div class="dash-stat">
-      <span class="dash-stat-val dash-stat-val--live" id="stat-active">0</span>
-      <span class="dash-stat-lbl">Active</span>
-    </div>
-    <div class="dash-stat">
-      <span class="dash-stat-val" id="stat-done">0</span>
-      <span class="dash-stat-lbl">Done</span>
-    </div>
-  </div>
+  <div id="plan-chip" class="plan-chip" style="display:none">Free · <span id="plan-limit">1/1</span></div>
 
   <div class="body" style="padding-top:8px">
 
@@ -2055,69 +2041,6 @@ function lockCopyBtn(btn) {
 }
 function copySnippet(btn) { copyText(buildSnippetCode()); flashCopied('cp-snippet'); lockCopyBtn(btn) }
 function copyAiPrompt(btn) { copyText(buildAiPrompt()); flashCopied('cp-ai'); lockCopyBtn(btn) }
-function setResBg(val) {
-  const el = $('res-bg-toggle'); if (!el) return
-  el.setAttribute('data-bg', val)
-  syncToggleBtns(el, val)
-  const bgColor = val === 'dark' ? '#1a1a1a' : '#fff'
-  ;['a','b'].forEach(k => {
-    const f = $('res-preview-' + k)
-    if (f) f.style.background = bgColor
-  })
-}
-
-function pct(v, c) { return v > 0 ? (Math.round((c / v) * 1000) / 10) + '%' : '—' }
-function startResults() {
-  const poll = async () => {
-    try {
-      const res = await afetch(API + '/api/tests/' + state.testId)
-      if (!res.ok) return
-      const t = await res.json()
-
-      state.name = state.name || t.name || ''
-      $('res-title').textContent = state.name || 'Results'
-      const st = t.status || 'draft'
-      const badge = $('res-badge')
-      badge.textContent = st
-      badge.className = 'badge bs-' + st
-
-      $('res-va').textContent  = t.visitors_a    || 0
-      $('res-vb').textContent  = t.visitors_b    || 0
-      $('res-ca').textContent  = t.conversions_a || 0
-      $('res-cb').textContent  = t.conversions_b || 0
-      $('res-cra').textContent = pct(t.visitors_a || 0, t.conversions_a || 0)
-      $('res-crb').textContent = pct(t.visitors_b || 0, t.conversions_b || 0)
-
-      const sigPct = Math.round((t.significance || 0) * 100)
-      $('res-sig').textContent = 'Significance: ' + sigPct + '% — ' + (sigPct >= 95 ? 'significant' : 'not significant yet')
-
-      const hasWinner = t.status === 'done' && !!t.winner
-      $('res-winner').style.display = hasWinner ? 'block' : 'none'
-      if (hasWinner) $('res-winner').innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Winner: <strong>Variant ' + escapeHtml(t.winner) + '</strong>'
-
-      const noData = t.status === 'draft' && (t.visitors_a || 0) + (t.visitors_b || 0) === 0
-      $('res-nodata').style.display = noData ? 'block' : 'none'
-
-      const hasA = !!t.original_html
-      const hasB = !!t.variant_b_html
-      ;['a','b'].forEach(k => {
-        const html = k === 'a' ? t.original_html : t.variant_b_html
-        const has  = k === 'a' ? hasA : hasB
-        const bgToggle = $('res-bg-toggle')
-        const bgVal = bgToggle ? bgToggle.getAttribute('data-bg') : 'light'
-        const bgColor = bgVal === 'dark' ? '#1a1a1a' : '#fff'
-        $('res-preview-' + k).innerHTML = has
-          ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bgVal, t.site_css)) + '" style="width:100%;height:80px;border:none;background:' + bgColor + '"></iframe>'
-          : '<span style="font-size:11px;color:var(--figma-color-text-secondary)">—</span>'
-        if (has) $('res-preview-' + k).style.background = bgColor
-      })
-      $('res-preview-section').style.display = (hasA || hasB) ? 'block' : 'none'
-    } catch (_) {}
-  }
-  poll()
-  resTimer = setInterval(poll, 30000)
-}
-function stopResultsPoll() { if (resTimer) { clearInterval(resTimer); resTimer = null } }
 
 function togglePause(id, currentStatus) {
   const next = currentStatus === 'paused' ? 'active' : 'paused'

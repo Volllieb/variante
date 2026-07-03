@@ -1,6 +1,8 @@
 # Plugin / Web — Arbeitsteilung
 
-Stand: 03.07.2026. Strategie-Entscheidung dokumentiert. Umsetzung steht aus.
+Status: ✅ Umgesetzt am 03.07.2026
+
+Stand: 03.07.2026. Strategie-Entscheidung dokumentiert.
 
 ---
 

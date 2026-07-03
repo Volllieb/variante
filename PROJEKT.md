@@ -1,6 +1,7 @@
-# PROJEKT.md — variante (DSO)
+# PROJEKT.md — variante
 
-> **DSO = Documentation Structure Overview.** Lebendes Projektdokument. Bei jeder Änderung fortschreiben, nicht ersetzen. Enthält Selbstprüfung (siehe §Prüfung).
+> Single Source of Truth. Fakten, Entscheidungen, Richtung. Kein Chat-Verlauf.
+> Arbeitsanweisungen: `AGENTS.md` · Strategie: `GOTOMARKET.md` · Schnellstart: `README.md`
 
 ---
 
@@ -8,101 +9,133 @@
 
 | Feld | Wert |
 |---|---|
-| **Produktname** | variante |
-| **Mission** | Designer-natives A/B-Testing — Element in Figma auswählen → KI generiert Variante B → Snippet trackt Conversions. Kein Dev nötig. |
-| **ICP** | Designer & kleine Agenturen, die eigenes Design per KI in Websites übertragen — auf Plattformen **ohne** natives A/B-Testing (Custom HTML, WordPress, Next/React, Shopify). |
-| **Nicht-Zielgruppe** | Webflow/Framer/Wix — haben A/B eingebaut + sperren `<head>`. |
+| **Produkt** | variante — Designer-natives A/B-Testing aus Figma, kein Dev nötig |
+| **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
 | **Stand** | 03.07.2026 |
-| **Leitziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community PLG), nicht Produkt. |
+| **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
 
-| Komponente | Technologie | Zweck |
-|---|---|---|
-| API + Dashboard | Next.js 16 (App Router) | Backend + Web-UI |
-| Hosting | Vercel (1 aktives Produkt-Projekt) | Deployment |
-| Datenbank | Supabase (Postgres) | Tests, Events, User |
-| Auth | Supabase Auth (JWT) | Login + API-Gate |
-| Billing | Stripe | Abos + Checkout |
-| KI-Generierung | OpenAI API | HTML-Varianten (~0,3 ct/Call) |
-| Coding-Agent | Cline (VS Code + CLI) via DeepSeek V4 Pro | Autonomes Coden, Testen, Iterieren |
-| Coding-Agent (IDE) | GitHub Copilot (VS Code) | In-Editor-Vorschläge, Chat, Agenten |
-| Agenten-Config | `.github/copilot-instructions.md` + `.github/agents/*.agent.md` | KI-Agent-Setup (Stripe, Ponytail, Redesign, Explore) |
-| Skills | `.agents/skills/` (Stripe-Suite + ui-ux-pro-max) | Domänenwissen für KI-Agenten |
-| Snippet | `ab.js` (Vanilla JS) | Läuft auf Kundenseite |
-| Chrome-Extension | MV3 (Vanilla JS) | Element + Goal Picker |
-| Figma-Plugin | TypeScript + HTML | Plugin-UI (8 Screens) |
+| Komponente | Technologie |
+|---|---|
+| API + Dashboard | Next.js 16 (App Router) auf Vercel |
+| Datenbank + Auth | Supabase (Postgres + JWT) |
+| Billing | Stripe (Checkout, Portal, Webhooks) |
+| KI-Generierung | OpenAI API (~0,3 ct/Call) |
+| Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
+| Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
+| Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
+| KI-Agenten | Cline (DeepSeek V4 Pro) + GitHub Copilot · Config: `.github/agents/`, `.agents/skills/` |
 
-## §3 Repository-Struktur
+## §3 Struktur
 
 ```
-c:\dev\variante/
-├── AGENTS.md              # Meta-Anweisungen + Prüfregeln
-├── GOTOMARKET.md           # GTM-Strategie & Phasen
-├── PROJEKT.md              # ← DSO (diese Datei)
-├── README.md               # Kurzübersicht + Schnellstart
-├── package.json            # Root-Scripts
-├── .gitignore              # Ignorier-Regeln
-├── __tests__/              # Root-level self-checks (kein Test-Framework)
-│   └── significance-auto.mjs  # z-Test für zwei Proportionen
-
-│
-├── ab-tool/                # Kernprodukt — Next.js API + Dashboard
-│   ├── app/
-│   │   ├── api/            # API-Routen (assign, billing, capture, event, generate, resolve, results, stripe, tests, variant, waitlist)
-│   │   ├── dashboard/      # Dashboard-UI
-│   │   ├── login/          # Login-Seite
-│   │   ├── onboarding/     # Post-Signup-Onboarding (Token, Upgrade, Extension)
-│   │   ├── signup/         # Signup-Seite
-│   │   ├── results/[id]/   # Ergebnisse
-│   │   ├── imprint/        # Impressum
-│   │   ├── privacy/        # Privacy Policy
-│   │   ├── layout.tsx      # Root-Layout
-│   │   └── page.tsx        # Landing-Page (5 Sektionen: Hero, How It Works, Use Cases, Pricing, Notify)
-│   ├── lib/                # Server-Logik (auth, cors, stats, significance, stripe, supabase)
-│   ├── __tests__/          # Lightweight Self-Checks (kein Test-Framework)
-│   └── public/ab.js        # Das Snippet
-│
-├── .agents/                # Lokale Agent-/Skill-Setup für VS Code/Copilot
-├── .github/agents/         # Custom Agents (stripe, redesign, ponytail)
-├── chrome-extension/       # Chrome-Extension (MV3)
-│   ├── manifest.json
-│   ├── content-picker.js (on-demand, kein content_scripts) / background.js / popup.js / popup.html
-│   ├── welcome.html
-│   └── icons/
-│
-├── figma-plugin/           # Figma-Plugin
-│   ├── manifest.json
-│   └── src/ (code.ts + ui.html — Screen 1: Welcome statt Token-Eingabe)
-│
-├── z.future-features/      # ⚠️ Anfassen verboten — kommt nach Launch
-│   └── README.md
-│
-└── db/migrations/          # Supabase SQL (001–008)
+ab-tool/                # Next.js — API, Dashboard, Landingpage
+├── app/api/            # assign, billing, capture, event, generate, resolve, results, stripe, tests, variant, waitlist
+├── app/dashboard/ login/ onboarding/ signup/ results/ imprint/ privacy/
+├── lib/                # auth, cors, stats, significance, stripe, supabase, rateLimit, sanitize, safeLog
+├── public/ab.js        # Snippet
+└── __tests__/
+chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
+figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
+db/migrations/          # Supabase SQL (001–009)
+z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ```
 
 ## §4 Deployment
 
-| Projekt | URL | Vercel-Name | Deploy-Methode |
-|---|---|---|---|
-| ab-tool | `www.getvariante.com` | `ab-tool` | `vercel deploy` (CLI) |
+| Projekt | URL | Methode |
+|---|---|---|
+| ab-tool | `www.getvariante.com` | `vercel deploy --prod` (CLI) |
 
-**Git-Remote:** `origin` → `github.com/Volllieb/variante.git` (`master`)  
-**CI/CD:** Keine automatische Pipeline (kein Vercel-Git-Import eingerichtet).  
-**Auto-Push:** `post-commit`-Hook pusht automatisch nach jedem Commit (siehe `.githooks/post-commit`).
+**Git:** `github.com/Volllieb/variante.git` (master) · **Auto-Push:** `post-commit`-Hook
 
 ## §5 Pricing
 
-| Tier | Preis | Inhalt | Zweck |
-|---|---|---|---|
-| **Free** | 0 € | 1 aktives Experiment, Badge **an** | Figma-Discovery + viraler Loop |
-| **Pro** | 35€/Monat | Unbegrenzt, Badge **aus**, volle Statistik | Solo-Monetarisierung |
-| **Agency** | 99€/Monat (Coming Soon) | Multi-Site, White-Label, Team-Seats | **Später — aktuell auf Eis** |
+| Tier | Preis | Inhalt |
+|---|---|---|
+| **Free** | 0 € | 1 aktives Experiment, Badge **an** |
+| **Pro** | 35 €/Monat | Unbegrenzt, Badge **aus**, Signifikanz, Auto-Winner |
+| **Agency** | 99 €/Monat | ❄️ Auf Eis — erst bei 5+ Pro-Kunden |
 
-**KI-Kosten:** ~0,3 ct/Call → Marge praktisch 100 %.  
-**Free-Tier AI-Gen:** ✅ **Entschieden — ja.** AI-Gen auch im Free-Tier (1 Experiment). Begründung: Aha-Moment > Kosten; Kosten vernachlässigbar. Monetarisierung über *unbegrenzt + Badge-aus*, nicht über das KI-Feature selbst.
+**KI-Kosten:** ~0,3 ct/Call → Marge ~100 %. AI-Gen auch im Free-Tier (Aha-Moment > Kosten).
+**Währung:** EUR (Sitz DE, Kunden DACH).
+
+## §6 Plattform-Support & Steuer
+
+| Plattform | Snippet | 
+|---|---|
+| Custom HTML, WordPress, Next.js/React, Shopify | ✅ `<head>` |
+| Webflow | ⚠️ nur Paid |
+| Framer, Wix, Squarespace | ❌ Kein `<head>`-Zugriff |
+
+**Steuer:** Kleinunternehmer (§19 UStG). Stripe Tax aktivieren (0,5 %/Transaktion). Berater erst bei >15.000 €/Jahr.
+
+## §7 Security (Figma Publish-Dialog)
+
+- Hosting: Vercel us-east (DPA + SCCs). DB: Supabase Frankfurt.
+- Auth: Supabase JWT, bcrypt, HTTP-only Cookies, API-Key UUID v4.
+- Daten: Nur selektiertes Figma-Element transient an OpenAI API. Kein Storage.
+- Reporting: `hello@getvariante.com`, 24h-Bestätigung, 30d-Fix.
+- Kein CDN/Analytics-Drittanbieter. Keine Kreditkarten auf eigenem Server.
+
+## §8 Historie (letzte Einträge)
+
+| Datum | Eintrag |
+|---|---|
+| 03.07.2026 | Landingpage Panda-Redesign, UX-Audit (10 Fixes), Doku-Update, Roadmap §10 angelegt |
+| 02.07.2026 | Auth: Passwort-Reset, Google OAuth, Signup-Bestehende-Mail-Detection |
+| 01.07.2026 | Stripe-Webhook gehärtet (payment_status, Idempotenz, Subscription-Status) |
+| 30.06.2026 | Chrome Extension: content_scripts entfernt, Figma + Chrome Store eingereicht |
+| 29.06.2026 | Phase A+B+C: Polling-Gating, Pause/Resume, HTML-Editor, KI-Prompt, Winner-Logik, Dashboard |
+
+## §9 Selbstprüfung
+
+> Bei JEDER Änderung:
+
+- [ ] `git status` — kein `node_modules/`, `.next/`, `dist/` im Index
+- [ ] `npm run build` in `ab-tool/` — grün
+- [ ] Geändertes committed + gepusht?
+- [ ] PROJEKT.md §1 (Stand), §8 (Historie), §3 (Struktur) aktuell?
+- [ ] Neue Entscheidungen dokumentiert?
+
+## §10 Roadmap & Nordstern
+
+### Aktueller Stand
+- Store-Reviews laufen (Figma + Chrome, eingereicht 29.06.)
+- Dogfooding: variante testet eigene Landingpage
+- **Nächster Schritt:** E2E auf echter Fremd-Site
+
+### Meilensteine
+
+1. **M1: Fremd-Site-Test** — Snippet → Traffic → Conversions → Winner. Blockiert alles.
+2. **M2: Store-Freigaben + Design-Partner** (Ziel: August) — 3–5 Partner, 1–2 Case-Studies.
+3. **M3: Erster Pro-Kunde** (Ziel: September) — Checkout → Webhook → Badge-aus.
+
+### Nordstern
+
+- **Distribution > Produkt.** Figma Community = Burggraben.
+- **Badge = Wachstumsmotor.** Viral > bezahlt.
+- **Plugin = Creation, Web = Analysis.** Keine Results ins Plugin.
+- **Keine Features ohne Revenue-Signal.**
+
+### Anti-Roadmap
+
+| Nicht bauen | Warum |
+|---|---|
+| Agency-Tier | Kein Revenue-Signal |
+| Mehrere Metriken parallel | 6–10h, alle Schichten |
+| A/B-Editor im Web | Creation = Plugin |
+| Analytics-Dashboard | Fokus auf A/B-Testing |
+
+### Technische Leitplanken
+
+- **Monolith** (`ab-tool/`). Kein Microservice-Split bis >1000 Tests/Tag.
+- **Eine Produktions-URL** (`www.getvariante.com`). Kein Staging bis >10 Kunden.
+- **Supabase only.** Kein Redis, Kafka, TimescaleDB.
+- **ab.js bleibt Vanilla JS.** Kein npm, kein Build. Das ist der USP.
 
 ## §6 Plattform-Support
 
@@ -200,6 +233,7 @@ c:\dev\variante/
 
 | Datum | Eintrag |
 |---|---|
+| 03.07.2026 | **Plugin/Web-Split: Results, Stats & Upgrade-Banner aus Figma-Plugin entfernt.** Prinzip „Plugin = Creation, Web = Analysis" umgesetzt: (1) `s-results`-Screen komplett gelöscht (~72 Zeilen HTML). (2) Snippet-Screen: „View Results →" → „Open in Dashboard →" mit `window.open(API + '/dashboard')`. (3) `resumeTest()`: `window.open(API + '/results/' + id)` statt `navPush('results')`. (4) JS-Funktionen `startResults()`, `stopResultsPoll()`, `setResBg()`, `pct()` gelöscht. (5) `resTimer`-Globale entfernt. (6) `go()` von `stopResultsPoll()`-Aufruf bereinigt. (7) `showUpgradeBanner`/`hideUpgradeBanner` ohne `upgrade-banner-results`. (8) `dash-stats`-HTML (Total/Active/Done) entfernt. (9) `showDashboard()`: Stats-Population durch Plan-Chip-Logik ersetzt. (10) `upgrade-banner-dash` → `#plan-chip` („Free · 1/1"). (11) `upgrade-banner` aus Generate-Screen gelöscht. (12) CSS aufgeräumt: `.hdr-sub`, `.refresh-note`, `.ab-table`/`.ab-col`/`.ab-head`/`.ab-metric`, `.sig-line`, `.ub-compact`, `.winner`, `.dash-stats`/`.dash-stat*`, `.prev-grid`/`.prev-lbl`/`.frame-preview` entfernt. (13) `.plan-chip` CSS ergänzt. `PLUGIN-WEB-SPLIT.md` auf „✅ Umgesetzt" gesetzt. Build grün. |
 | 03.07.2026 | **Figma-Plugin: tote CSS entfernt + brandguidelines §2.4/§7.4 geschärft.** (1) `ui.html`: `.winner`, `.dash-stats`/`.dash-stat*`, `.frame-preview`, `.ab-table`/`.ab-col`/`.ab-metric`/`.sig-line`, `.upgrade-banner.ub-compact`, `.refresh-note`, `.hdr-sub` entfernt — Result-Screen und Stats-Bar sind raus, CSS war tot. `.plan-chip` ergänzt als Ersatz für dash-stats. (2) `brandguidelines.md`: §2.4 von „kein eigener Akzent mehr" zu explizitem „Figma-native, nicht Panda"-Prinzip erweitert — Host-Kontext respektieren, Figma-Tokens statt eigener Schatten/Gradients/Button-Styles, Token-Mapping-Tabelle. §7.4 mit konkreter 5-Schritt-Migration ergänzt. Build grün. |
 | 03.07.2026 | **Landingpage: Panda-Redesign + Conversion-Optimierung.** Kompletter Neuaufbau in 5 Sektionen (Header, Hero, How It Works, Pricing, Footer). Monochromes Panda-System aus `brandguidelines.md`: Canvas #000000, Cards #0a0a0a mit Hairline-Border, Inter als einziger Font, 3 Funktionsfarben (ok/pro/err). Entfernt: Aurora-Blobs, Dot-Grid, Grain, Stats-Bar, Feature-Pills, Use-Cases, FAQ, Waitlist-Formular, Hero-Mockup, Avatar-Reihe, Agency-Tier. Neue Struktur: sticky Header (backdrop-blur-sm), Hero mit EINEM weißen CTA, 3 Step-Cards (neutral icons text-white/40), Pricing (Free + Pro, keine Agency), statisches Badge (fixed bottom-right, #111, 6px radius, kein shadow), Footer. Conversion-Fokus: kein Ablenken durch Dekoration. Build grün. |
 | 03.07.2026 | **UX-Audit & 10 Fixes:** Kompletter Userflow-Review aller Pages auf Schwachstellen. **(1) layout.tsx:** Body-Fallback von `bg-white text-gray-900` auf `bg-[#06050f] text-white/80` → kein Weiß-Flash mehr bei Error-Seiten. **(2) VariantPreview.tsx:** Light-Theme-Tailwind-Klassen (`bg-green-50`, `border-gray-200`, `text-gray-500`) auf Dark-Theme umgestellt (`border-emerald-400/30`, `bg-white/[0.025]`, `text-white/50`). **(3) Accessibility:** `htmlFor`+`id` auf allen Label-Input-Paaren (Signup, Login, Update-Password). **(4) Onboarding-Gate:** Server-seitiger Redirect von `/onboarding` → `/dashboard` wenn `profiles.onboarded=true`. **(5) Login/Signup:** Client-seitiger Session-Check → Redirect zu `/dashboard` für bereits eingeloggte User; `sessionChecked`-Gate verhindert Form-Flash. **(6) ResultsClient Upgrade-Links:** Zwei `<Link href="/dashboard">Upgrade</Link>` durch `fetch('/api/billing/checkout')`-Buttons ersetzt. **(7) Global not-found.tsx:** 404-Seite mit Dark-Theme für alle nicht-existierenden Routen. **(8) chrome-extension.zip:** Datei aus `chrome-extension/`-Sources gebaut und in `public/` abgelegt → Download-Link im Onboarding funktioniert jetzt. **(9) Delete-Test-Button:** `Trash2`-Icon + Confirm/Cancel in ResultsClient-Header, ruft `DELETE /api/tests/[id]?confirm=true` auf. **(10) Build grün.** Offene Punkte dokumentiert: Account-Löschen (API+UI fehlt), Agency-Tier (Post-Launch), Deutsche Code-Kommentare in `dashboard/page.tsx`/`update-password/page.tsx` (non-blocking). |
