@@ -13,16 +13,17 @@ export default async function OnboardingPage(props: { searchParams: Promise<Reco
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan')
+    .select('api_token, plan, onboarded')
     .eq('user_id', user.id)
     .single()
 
-  // TODO: Wieder aktivieren sobald Migration 009 in Production läuft.
-  // if (profile?.onboarded) redirect('/dashboard')
+  // UX: Bereits onboarded → nicht erneut Onboarding zeigen
+  if (profile?.onboarded) redirect('/dashboard')
 
-  // TODO: Entfernen sobald Migration 009 in Production läuft.
-  // Workaround: Update versuchen, Fehler ignorieren (Spalte existiert noch nicht).
-  await supabase.from('profiles').update({ onboarded: true } as any).eq('user_id', user.id)
+  // Sobald der User die Onboarding-Seite erreicht (egal über welchen Pfad),
+  // gilt Onboarding als gesehen — das Dashboard-Gate leitet ihn danach nicht
+  // mehr hierher zurück, auch wenn er "Skip" klickt oder die Seite verlässt.
+  await supabase.from('profiles').update({ onboarded: true }).eq('user_id', user.id)
 
   return (
     <OnboardingClient
