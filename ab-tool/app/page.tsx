@@ -29,8 +29,6 @@ export const metadata: Metadata = {
   },
 }
 
-export const dynamic = 'force-static'
-
 /* ── Data ── */
 
 const steps = [

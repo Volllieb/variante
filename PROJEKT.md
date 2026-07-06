@@ -33,14 +33,14 @@
 
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
-├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token, variant
+├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token
 ├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/
-├── lib/                # auth, cors, stats, significance, stripe, supabase, rateLimit, sanitize, safeLog
+├── lib/                # auth, cors, emailAgent, getExperimentStats, rateLimit, safeLog, sanitize, significance, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
 └── __tests__/
 chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
-db/migrations/          # Supabase SQL (001–013)
+db/migrations/          # Supabase SQL (001–014)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ```
 
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 | Datum | Eintrag |
 |---|---|
 | 06.07.2026 | **SEO: Landingpage-Audit + 4 kritische Fixes.** `robots.ts` (allow /, disallow auth/dashboard/api), `sitemap.ts` (5 URLs), JSON-LD Organization in `layout.tsx`, `og:image` + `twitter:card` in `layout.tsx` + `page.tsx`, Title-Optimierung (Keyword first, ~140 Zeichen). Offen: echtes OG-Image (128×128 SVG zu klein), strukturierte Daten für Subpages ausbauen. |
+| 06.07.2026 | **Round-2 Cleanup.** Build-Fix: `force-static` + `cacheComponents` inkompatibel → entfernt. Dead Code: `/api/variant` (32 Zeilen, ersetzt durch `/api/resolve`), `proxy.ts` (55 Zeilen, kein middleware.ts). AGENTS.md: Agent-Liste vervollständigt. PROJEKT.md §3: API-Listing + Migration-Nummern korrigiert. |
 | 06.07.2026 | **Root-Cleanup.** `dashboard-source.html` (HTML-Dump), `test.md` (Duplikat von E2E-CHECKLIST.md) gelöscht. `dashboard-redesign-plan.md` → `z.future-features/` (abgeschlossenes Redesign, dient als Doku). |
 | 06.07.2026 | **Dashboard: Tab-System entfernt, Overview/Tests als separate Seiten.** Sidebar: Tests-Link → `/dashboard/tests`, Billing+Account nach unten gruppiert, Setup-Tools in eigener Sektion. `TestsClient.tsx` extrahiert. Build grün, deployed. |
 | 06.07.2026 | **Dashboard-Redesign umgesetzt.** Tab-System (Overview/Tests), Stats-Bar (Active/Visitors/Conversions/Plan), Winner-Alert, Sidebar mit Account-Link, NewTestFlow mit Polling+Zustandsmaschine (idle→awaiting_figma→test_received/timeout/error), Test-Card Highlight-Animation. `PATCH /api/profile` akzeptiert jetzt `onboarded`. `POST /api/tests` setzt `has_figma_plugin`. Migration 013 für `has_figma_plugin`-Flag. Build grün, deployed. |
