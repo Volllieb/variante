@@ -7,6 +7,21 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 
+function norm(s: string): string {
+  return s.trim().toLowerCase()
+}
+
+type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
+
+function classify(error: any): ErrKind {
+  const msg = (typeof error === 'string' ? error : error?.message || JSON.stringify(error)).toLowerCase()
+  if (!msg) return 'network'
+  if (msg.includes('not confirmed') || msg.includes('email not confirmed')) return 'not-confirmed'
+  if (msg.includes('too many') || msg.includes('rate') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
+  if (msg.includes('fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
+  return 'generic'
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -51,20 +66,25 @@ export default function LoginPage() {
     setNotConfirmed(false)
     setConfirmationSent(false)
     setLoading(true)
-    const supabase = getBrowserSupabase()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) {
-      const msg = (typeof error === 'string' ? error : error.message || JSON.stringify(error)).toLowerCase()
-      if (msg.includes('not confirmed') || msg.includes('email not confirmed')) {
-        setNotConfirmed(true)
+    try {
+      const supabase = getBrowserSupabase()
+      const { error } = await supabase.auth.signInWithPassword({ email: norm(email), password })
+      if (error) {
+        const kind = classify(error)
+        if (kind === 'not-confirmed') { setNotConfirmed(true); setLoading(false); return }
+        if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); setLoading(false); return }
+        if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); setLoading(false); return }
+        setErr(error.message)
+        setLoading(false)
         return
       }
-      setErr(error?.message || JSON.stringify(error))
-      return
+      setLoading(false)
+      router.push('/dashboard')
+      router.refresh()
+    } catch (e: any) {
+      setLoading(false)
+      setErr('Connection failed. Check your internet and try again.')
     }
-    router.push('/dashboard')
-    router.refresh()
   }
 
   async function handleResendConfirmation() {
@@ -72,54 +92,68 @@ export default function LoginPage() {
     setErr('')
     setConfirmationSent(false)
     setLoading(true)
-    const supabase = getBrowserSupabase()
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
-      },
-    })
-    setLoading(false)
-    if (error) { setErr(error.message); return }
-    setConfirmationSent(true)
+    try {
+      const supabase = getBrowserSupabase()
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: norm(email),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
+        },
+      })
+      if (error) { setErr(error.message); setLoading(false); return }
+      setLoading(false)
+      setConfirmationSent(true)
+    } catch {
+      setLoading(false)
+      setErr('Connection failed. Check your internet and try again.')
+    }
   }
 
   async function handleReset() {
     if (!email) { setErr('Enter your email first, then click "Forgot password?"'); return }
     setErr('')
     setLoading(true)
-    const supabase = getBrowserSupabase()
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/update-password')}`,
-    })
-    setLoading(false)
-    if (error) { setErr(error?.message || JSON.stringify(error)); return }
-    setResetSent(true)
+    try {
+      const supabase = getBrowserSupabase()
+      const { error } = await supabase.auth.resetPasswordForEmail(norm(email), {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/update-password')}`,
+      })
+      if (error) { setErr(error?.message || JSON.stringify(error)); setLoading(false); return }
+      setLoading(false)
+      setResetSent(true)
+    } catch {
+      setLoading(false)
+      setErr('Connection failed. Check your internet and try again.')
+    }
   }
 
   async function handleGoogleLogin() {
     setErr('')
     setGoogleErr('')
     setGoogleLoading(true)
-    const supabase = getBrowserSupabase()
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
-      },
-    })
-    setGoogleLoading(false)
-    if (error) {
-      const msg = (typeof error === 'string' ? error : error.message || '').toLowerCase()
-      if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
-        setGoogleErr('This Google account is already linked to a different user. Try logging in with email + password instead.')
-      } else if (msg.includes('provider') || msg.includes('identity')) {
-        setGoogleErr('Couldn\'t sign in with Google. If you registered with email + password, use the login form above.')
-      } else {
-        setErr(error.message)
+    try {
+      const supabase = getBrowserSupabase()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
+        },
+      })
+      if (error) {
+        const msg = (typeof error === 'string' ? error : error.message || '').toLowerCase()
+        if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
+          setGoogleErr('This Google account is already linked to a different user. Try logging in with email + password instead.')
+        } else if (msg.includes('provider') || msg.includes('identity')) {
+          setGoogleErr('Couldn\'t sign in with Google. If you registered with email + password, use the login form above.')
+        } else {
+          setErr(error.message)
+        }
       }
+    } catch {
+      setErr('Connection failed. Check your internet and try again.')
     }
+    setGoogleLoading(false)
   }
 
   if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash

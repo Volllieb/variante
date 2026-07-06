@@ -1,9 +1,7 @@
 const idInput = document.getElementById('test-id')
 const startBtn = document.getElementById('start')
-const reselectBtn = document.getElementById('reselect-btn')
 const inputMsg = document.getElementById('input-msg')
 const viewPick = document.getElementById('view-pick')
-const viewDone = document.getElementById('view-done')
 
 // testId-History (letzte 10) in chrome.storage pflegen.
 function saveTestIdHistory(value) {
@@ -48,30 +46,19 @@ function showInputErr(msg) {
   inputMsg.textContent = msg
 }
 
-function showDone() {
-  viewPick.classList.add('hidden')
-  viewDone.classList.remove('hidden')
-}
-
-function showPick() {
-  viewDone.classList.add('hidden')
-  viewPick.classList.remove('hidden')
-}
-
 startBtn.addEventListener('click', async () => {
   const testId = idInput.value.trim()
 
   if (!testId) { showInputErr('Please enter a testId.'); return }
 
-  await chrome.storage.local.set({ testId })
+  await chrome.storage.local.set({ testId, abPickerMode: 'element' })
   saveTestIdHistory(testId)
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab || !tab.id) { showInputErr('No active tab found.'); return }
 
   try {
-    // Inject the picker script first (content-hash.js is always present but
-    // content-picker.js is loaded on-demand to minimize host permissions impact).
+    // content-picker.js is loaded on-demand to minimize host permissions impact.
     // Double-injection is safe: content-picker.js has a DOM-attribute guard.
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -84,10 +71,4 @@ startBtn.addEventListener('click', async () => {
   } catch (e) {
     showInputErr('Open a web page first, then try again.')
   }
-})
-
-// Reselect: neuen testId-Input erlauben
-reselectBtn.addEventListener('click', () => {
-  showPick()
-  idInput.focus()
 })

@@ -96,9 +96,12 @@ export function DashboardClient({
     setBusy(true)
     try {
       const res = await fetch(`/api/billing/${path}`, { method: 'POST' })
+      if (res.status === 401) { router.push('/login'); return }
       const data = await res.json()
       if (data.url) window.location.href = data.url
       else alert(data.error || 'Error')
+    } catch {
+      alert('Connection failed. Check your internet and try again.')
     } finally {
       setBusy(false)
     }

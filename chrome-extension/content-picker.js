@@ -308,6 +308,8 @@ document.documentElement.setAttribute('data-ab-picker-injected', '1')
     if (msg.type === 'START_PICKER') {
       if (!msg.testId) return
       chrome.storage.local.set({ testId: msg.testId }).catch(function () {})
+      // startPicker returns early if __abPickerActive — reflect reality, not false hope
+      if (window.__abPickerActive) { sendResponse({ ok: true }); return }
       startPicker(msg.mode || 'element')
       sendResponse({ ok: true })
     }

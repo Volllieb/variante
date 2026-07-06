@@ -7,6 +7,21 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 
+function norm(s: string): string {
+  return s.trim().toLowerCase()
+}
+
+type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
+
+function classify(error: any): ErrKind {
+  const msg = (typeof error === 'string' ? error : error?.message || JSON.stringify(error)).toLowerCase()
+  if (!msg) return 'network'
+  if (msg.includes('not confirmed') || msg.includes('email not confirmed')) return 'not-confirmed'
+  if (msg.includes('too many') || msg.includes('rate') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
+  if (msg.includes('fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
+  return 'generic'
+}
+
 function signupSource(): string {
   if (typeof window === 'undefined') return ''
   const p = new URLSearchParams(window.location.search)
@@ -45,47 +60,54 @@ export default function SignupPage() {
     setInfo('')
     setAlreadyRegistered(false)
     setLoading(true)
-    const supabase = getBrowserSupabase()
-    const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
-      },
-    })
-    setLoading(false)
-    if (error) {
-      const msg = typeof error === 'string' ? error : error.message || JSON.stringify(error)
-      const msgStr = typeof msg === 'string' ? msg : JSON.stringify(msg)
-      // Supabase-Fehlermeldungen für existierende User sind kryptisch → eigene Message
-      if (
-        msgStr.toLowerCase().includes('already') ||
-        msgStr.toLowerCase().includes('exists') ||
-        msgStr.toLowerCase().includes('registered')
-      ) {
-        setAlreadyRegistered(true)
-      } else {
-        setErr(msgStr)
+    try {
+      const supabase = getBrowserSupabase()
+      const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
+      const normalEmail = norm(email)
+      const { data, error } = await supabase.auth.signUp({
+        email: normalEmail,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        },
+      })
+      setLoading(false)
+      if (error) {
+        const kind = classify(error)
+        if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); return }
+        if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); return }
+        const msgStr = typeof error === 'string' ? error : error.message || JSON.stringify(error)
+        if (
+          msgStr.toLowerCase().includes('already') ||
+          msgStr.toLowerCase().includes('exists') ||
+          msgStr.toLowerCase().includes('registered')
+        ) {
+          setAlreadyRegistered(true)
+        } else {
+          setErr(msgStr)
+        }
+        return
       }
-      return
-    }
-    // Bereits registriert & bestätigt? identities existieren und email ist confirmed → User existiert
-    if (data.user?.identities?.length === 0) {
-      setAlreadyRegistered(true)
-      return
-    }
-    // Fallback: User existiert, identities.length > 0, aber keine Session (Email-Confirmation ON)
-    if (data.user && !data.session && data.user.email_confirmed_at) {
-      setAlreadyRegistered(true)
-      return
-    }
-    if (data.session) {
-      const qs = source ? '?source=' + encodeURIComponent(source) : ''
-      router.push('/onboarding' + qs)
-      router.refresh()
-    } else {
-      setInfo('Almost there — confirm your email address, then you can log in.')
+      // Bereits registriert & bestätigt? identities existieren und email ist confirmed → User existiert
+      if (data.user?.identities?.length === 0) {
+        setAlreadyRegistered(true)
+        return
+      }
+      // Fallback: User existiert, identities.length > 0, aber keine Session (Email-Confirmation ON)
+      if (data.user && !data.session && data.user.email_confirmed_at) {
+        setAlreadyRegistered(true)
+        return
+      }
+      if (data.session) {
+        const qs = source ? '?source=' + encodeURIComponent(source) : ''
+        router.push('/onboarding' + qs)
+        router.refresh()
+      } else {
+        setInfo('Almost there — confirm your email address, then you can log in.')
+      }
+    } catch {
+      setLoading(false)
+      setErr('Connection failed. Check your internet and try again.')
     }
   }
 
@@ -94,42 +116,51 @@ export default function SignupPage() {
     setErr('')
     setConfirmationResent(false)
     setLoading(true)
-    const supabase = getBrowserSupabase()
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
-      },
-    })
-    setLoading(false)
-    if (error) { setErr(error.message); return }
-    setConfirmationResent(true)
+    try {
+      const supabase = getBrowserSupabase()
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: norm(email),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
+        },
+      })
+      if (error) { setErr(error.message); setLoading(false); return }
+      setLoading(false)
+      setConfirmationResent(true)
+    } catch {
+      setLoading(false)
+      setErr('Connection failed. Check your internet and try again.')
+    }
   }
 
   async function handleGoogleSignup() {
     setErr('')
     setGoogleErr('')
     setGoogleLoading(true)
-    const supabase = getBrowserSupabase()
-    const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
-      },
-    })
-    setGoogleLoading(false)
-    if (error) {
-      const msg = (typeof error === 'string' ? error : error.message || '').toLowerCase()
-      if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
-        setGoogleErr('This Google account is already linked to another account. Try logging in instead.')
-      } else if (msg.includes('provider') || msg.includes('identity')) {
-        setGoogleErr('An account with this email already exists. Sign up with a different email or log in.')
-      } else {
-        setErr(error.message)
+    try {
+      const supabase = getBrowserSupabase()
+      const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        },
+      })
+      if (error) {
+        const msg = (typeof error === 'string' ? error : error.message || '').toLowerCase()
+        if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
+          setGoogleErr('This Google account is already linked to another account. Try logging in instead.')
+        } else if (msg.includes('provider') || msg.includes('identity')) {
+          setGoogleErr('An account with this email already exists. Sign up with a different email or log in.')
+        } else {
+          setErr(error.message)
+        }
       }
+    } catch {
+      setErr('Connection failed. Check your internet and try again.')
     }
+    setGoogleLoading(false)
   }
 
   if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
