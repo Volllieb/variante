@@ -3,25 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <style>
-  body { width: 280px; font-family: -apple-system, Segoe UI, sans-serif; font-size: 13px; margin: 0; padding: 16px; color: #1a1a1a; }
-  h1 { font-size: 14px; margin: 0 0 4px; }
-  p.sub { color: #666; font-size: 11px; margin: 0 0 14px; }
-  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: #444; }
+  body { width: 280px; font-family: -apple-system, Segoe UI, sans-serif; font-size: 13px; margin: 0; padding: 16px; color: #ededed; background: #0a0a0a; }
+  h1 { font-size: 14px; margin: 0 0 4px; color: #ededed; }
+  p.sub { color: rgba(237,237,237,.62); font-size: 11px; margin: 0 0 14px; }
+  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: rgba(237,237,237,.62); }
   .input-wrap { position: relative; margin-bottom: 12px; }
-  input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; }
-  input:focus { outline: none; border-color: #2563eb; }
-  input.err { border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
+  input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid rgba(255,255,255,.10); border-radius: 6px; font-size: 12px; background: #111111; color: #ededed; }
+  input:focus { outline: none; border-color: rgba(255,255,255,.40); }
+  input.err { border-color: #f5455c; box-shadow: 0 0 0 1px rgba(245,69,92,.30); }
   .input-msg { font-size: 11px; min-height: 16px; padding-top: 4px; }
-  .input-msg.err { color: #dc2626; }
-  .input-msg.ok { color: #16a34a; }
-  button { width: 100%; padding: 9px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
-  button:hover { background: #1d4ed8; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { background: transparent; border: 1px solid #ccc; color: #1a1a1a; margin-top: 6px; }
-  .btn-secondary:hover { background: #f3f4f6; }
+  .input-msg.err { color: #f5455c; }
+  .input-msg.ok { color: #2fd76c; }
+  button { width: 100%; padding: 9px; border: none; border-radius: 6px; background: #ffffff; color: #000000; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,.18); color: #ededed; margin-top: 6px; }
+  .btn-secondary:hover { background: rgba(255,255,255,.06); opacity: 1; }
   .status { margin-top: 10px; font-size: 11px; min-height: 14px; }
-  .status.ok { color: #16a34a; }
-  .status.err { color: #dc2626; }
+  .status.ok { color: #2fd76c; }
+  .status.err { color: #f5455c; }
   .hidden { display: none; }
 </style>
 </head>

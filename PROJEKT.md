@@ -149,3 +149,11 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 - **Eine Produktions-URL** (`www.getvariante.com`). Kein Staging bis >10 Kunden.
 - **Supabase only.** Kein Redis, Kafka, TimescaleDB.
 - **ab.js bleibt Vanilla JS.** Kein npm, kein Build. Das ist der USP.
+
+## §11 Offene Baustellen
+
+| # | Thema | Status | Aktion |
+|---|---|---|---|
+| 1 | Upstash Redis Env-Vars | 🔴 Offen | Free-Tier-DB auf [upstash.com](https://upstash.com) erstellen, `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` als Vercel Env-Vars setzen. Code in `rateLimit.ts` ready. |
+| 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
+| 3 | OpenAI-Kosten-Tracking | 🟡 Monitoring | `max_tokens: 4096` begrenzt pro Call, aber kein globales Spend-Limit. OpenAI Usage Limits setzen. |
