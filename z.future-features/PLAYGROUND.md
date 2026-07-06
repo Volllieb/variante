@@ -1,6 +1,7 @@
 # PLAYGROUND.md — Figma-Plugin Playground
 
-> **Status:** Spezifikation v2. Stand 01.07.2026.
+> **Status:** Spezifikation v2, **nicht implementiert**. Stand 06.07.2026.
+> Kein Code, keine `/playground`-Route. Reine Denkarbeit.
 > **Ziel:** Interaktiver Demo-Durchlauf des echten Plugin-Wizards — mit vordefiniertem Element, animiertem Live-Dashboard und Sandbox-Banner.
 
 ---

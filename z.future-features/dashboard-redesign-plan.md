@@ -1,5 +1,6 @@
 # Dashboard-Neustruktur — Plan
 
+> **Status: ✅ Vollständig implementiert (06.07.2026).** Diese Datei dient nur noch als Dokumentation der Design-Entscheidungen.
 > Stand: 06.07.2026 · Ergebnis der Brainstorming-Session
 
 ## Architektur-Entscheidung

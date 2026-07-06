@@ -2,6 +2,8 @@
 
 > **Anfassen verboten.** Dieser Ordner dokumentiert, was sicher kommt — aber erst nach Launch & Stabilisierung.
 > Kein Code dafür schreiben, keine Vorbereitungen treffen. Nur Denkarbeit parken.
+>
+> **Stand: 06.07.2026** — Auf aktuellen Code-Stand abgeglichen.
 
 ---
 
@@ -54,13 +56,13 @@ Praktisches Beispiel: Variante B zeigt höhere Preise aber weniger Käufe → CV
 
 ## 📧 E-Mail-Benachrichtigungen
 
-**Status:** Zurückgestellt.
+**Status:** Teilweise live (Winner-Mails), Rest zurückgestellt.
 
-- „Dein Test hat einen signifikanten Winner"
-- Weekly Digest: „Deine Tests diese Woche"
-- „Dein Test hat 100/500/1000 Visitors erreicht"
+- ✅ „Dein Test hat einen signifikanten Winner" — Resend API + Cron-Job (`/api/cron/check-winners`) live seit 03.07.
+- ⬜ Weekly Digest: „Deine Tests diese Woche"
+- ⬜ „Dein Test hat 100/500/1000 Visitors erreicht"
 
-**Technik:** Supabase Edge Function oder Resend. Nicht vorher anfassen.
+**Technik:** Resend (`RESEND_API_KEY` Env-Var). Winner-Mail wird bei Signifikanz-Erkennung im Cron-Job versendet.
 
 ---
 
@@ -133,12 +135,14 @@ Figma-Login als dritter Auth-Weg neben Email/Passwort und Google OAuth. Designer
 
 ## 🌐 Distribution & Wachstum
 
+**Status:** SEO-Programm gestartet, Rest offen.
+
 | Feature | Beschreibung |
 |---|---|
-| **SEO-Programm** | Content: „A/B test from Figma", „A/B testing for AI-generated websites" |
-| **Framework-spezifische Guides** | WordPress, Shopify, Next.js — je ein Blogpost + Video |
-| **Case-Study-Template** | Struktur für Before/After-Lift-Stories (aus Phase 1 Design-Partnern) |
-| **Product Hunt Launch** | Vorbereitet in GOTOMARKET.md Phase 2 |
+| 🟡 **SEO-Programm** | Landingpage-Audit + 4 Fixes live (06.07.): `robots.ts`, `sitemap.ts`, JSON-LD Organization, Meta-Tags. Offen: echtes OG-Image, Content-Programm. |
+| ⬜ **Framework-spezifische Guides** | WordPress, Shopify, Next.js — je ein Blogpost + Video |
+| ⬜ **Case-Study-Template** | Struktur für Before/After-Lift-Stories (aus Phase 1 Design-Partnern) |
+| ⬜ **Product Hunt Launch** | Vorbereitet in GOTOMARKET.md Phase 2 |
 
 ---
 
@@ -186,4 +190,4 @@ Wenn Varianten auch ohne Figma erstellbar sind (Upload, AI-only, Copy-Variation)
 
 ---
 
-*Stand: 03.07.2026 — Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*
+*Stand: 06.07.2026 — Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*

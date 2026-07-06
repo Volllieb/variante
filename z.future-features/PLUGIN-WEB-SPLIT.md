@@ -1,8 +1,8 @@
 # Plugin / Web — Arbeitsteilung
 
-Status: ✅ Schritt 1 & 3 (Plugin + Doku) · ⬜ Schritt 2 (Web-Dashboard, optional)
+Status: ✅ Schritt 1 & 3 (Plugin + Doku) · ✅ Schritt 2 (Web-Dashboard)
 
-Stand: 03.07.2026.
+Stand: 06.07.2026 — Alle 3 Schritte abgeschlossen.
 
 ---
 
@@ -17,10 +17,10 @@ Stand: 03.07.2026.
 - [x] Upgrade-Banner aus Dashboard + Generate entfernt, durch `#plan-chip` ersetzt
 - [x] CSS-Regeln für entfernte Elemente aufgeräumt
 
-## ⬜ Schritt 2: Web-Dashboard ergänzen (optional, nicht kritisch)
+## ✅ Schritt 2: Web-Dashboard ergänzen (erledigt 06.07.2026)
 
-- [ ] Stats-Bar (Total/Active/Done) in `DashboardClient.tsx` — Daten sind schon da, nur UI fehlt
-- [ ] Upgrade-Banner zentralisieren (ein Ort statt verstreut)
+- [x] Stats-Bar (Active/Visitors/Conversions/Plan) in `DashboardClient.tsx` — live seit Dashboard-Redesign
+- [x] Upgrade-Banner zentralisiert — Upgrade-Card im Dashboard + "Significance"-Card (Free-User sehen Upgrade-Prompt, Pro-User sehen Status)
 
 ## ✅ Schritt 3: PROJEKT.md fortschreiben (erledigt 03.07.2026)
 
