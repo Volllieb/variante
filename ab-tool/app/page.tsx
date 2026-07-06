@@ -4,14 +4,28 @@ import { PandaLogo } from '@/components/PandaLogo'
 import { Check, MousePointerClick, Sparkles, Rocket, Zap } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Variante — A/B Testing from Figma',
+  title: 'A/B Testing from Figma — No Dev Needed | Variante',
   description:
-    'Pick an element on your live site, redesign it in Figma, and let AI generate Variant B. One snippet serves and tracks everything.',
+    'Pick any element, redesign in Figma, AI generates Variant B. One snippet tracks everything. Start free.',
   openGraph: {
-    title: 'Variante — A/B Testing from Figma',
+    title: 'A/B Testing from Figma — No Dev Needed | Variante',
     description: 'Pick → Generate → Ship. A/B testing without a developer.',
     url: 'https://www.getvariante.com',
     siteName: 'Variante',
+    images: [
+      {
+        url: 'https://www.getvariante.com/icon.svg',
+        width: 128,
+        height: 128,
+        alt: 'Variante Panda Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'A/B Testing from Figma — No Dev Needed | Variante',
+    description: 'Pick → Generate → Ship. A/B testing without a developer.',
+    images: ['https://www.getvariante.com/icon.svg'],
   },
 }
 
