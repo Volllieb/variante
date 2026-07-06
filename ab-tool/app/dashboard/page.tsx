@@ -13,7 +13,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan, onboarded')
+    .select('api_token, plan, onboarded, has_figma_plugin')
     .eq('user_id', user.id)
     .single()
 
@@ -30,6 +30,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       plan={profile?.plan ?? 'free'}
       apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
+      hasFigmaPlugin={profile?.has_figma_plugin ?? false}
     />
   )
 }

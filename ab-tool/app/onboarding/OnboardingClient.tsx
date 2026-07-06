@@ -221,7 +221,10 @@ export function OnboardingClient({
           {/* CTA */}
           <div className="pb-4 text-center">
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={async () => {
+                await fetch('/api/profile', { method: 'PATCH', body: JSON.stringify({ onboarded: true }) })
+                router.push('/dashboard')
+              }}
               className="inline-flex items-center gap-2 rounded-[6px] bg-white px-8 py-3 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
             >
               Go to Dashboard

@@ -5,6 +5,7 @@ import { PandaLogo } from '@/components/PandaLogo'
 import {
   FlaskConical,
   KeyRound,
+  Code2,
   CreditCard,
 } from 'lucide-react'
 
@@ -40,7 +41,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
 
   return (
     <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
-      <div className="mx-auto flex max-w-[1400px]">
+      <div className="flex">
         {/* ── Sidebar — full height, edge to edge ── */}
         <aside className="sticky top-0 flex h-screen w-[200px] shrink-0 flex-col border-r border-white/10 p-3">
           {/* Logo + plan pill */}
@@ -55,7 +56,8 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
           {/* Nav */}
           <nav className="flex flex-1 flex-col gap-0.5">
             <NavLink icon={FlaskConical} label="Overview" href="/dashboard" />
-            <NavLink icon={KeyRound} label="Plugin token" anchor="#plugin-token" />
+            <NavLink icon={KeyRound} label="Plugin & Extension" anchor="#plugin-token" />
+            <NavLink icon={Code2} label="Snippet" anchor="#snippet" />
             <NavLink icon={CreditCard} label="Billing" anchor="#billing" />
           </nav>
 

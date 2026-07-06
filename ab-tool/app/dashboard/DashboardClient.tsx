@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { NewTestFlow } from './NewTestFlow'
 import {
   Copy,
   Check,
@@ -22,7 +23,7 @@ import {
   LogOut,
 } from 'lucide-react'
 
-/* ── Token palette (brandguidelines.md §2) — literal hex/rgba, not Tailwind defaults ── */
+/* ── Token palette (brandguidelines.md §2) ── */
 const T = {
   bg1: '#0a0a0a',
   bg2: '#111111',
@@ -53,6 +54,7 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 
 const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
+type Tab = 'overview' | 'tests'
 
 function timeAgo(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -67,10 +69,12 @@ export function DashboardClient({
   plan,
   apiToken,
   tests,
+  hasFigmaPlugin,
 }: {
   plan: string
   apiToken: string
   tests: TestRow[]
+  hasFigmaPlugin: boolean
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -79,12 +83,16 @@ export function DashboardClient({
   const [snippetOpen, setSnippetOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [tab, setTab] = useState<Tab>('overview')
+  const [newTestOpen, setNewTestOpen] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
 
   // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
   useEffect(() => {
     const supabase = getBrowserSupabase()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/')
         router.refresh()
@@ -97,7 +105,10 @@ export function DashboardClient({
     setBusy(true)
     try {
       const res = await fetch(`/api/billing/${path}`, { method: 'POST' })
-      if (res.status === 401) { router.push('/login'); return }
+      if (res.status === 401) {
+        router.push('/login')
+        return
+      }
       const data = await res.json()
       if (data.url) window.location.href = data.url
       else alert(data.error || 'Error')
@@ -114,8 +125,13 @@ export function DashboardClient({
   }
 
   async function changePassword() {
-    const { data: { user } } = await getBrowserSupabase().auth.getUser()
-    if (!user?.email) { alert('Could not retrieve your email address.'); return }
+    const {
+      data: { user },
+    } = await getBrowserSupabase().auth.getUser()
+    if (!user?.email) {
+      alert('Could not retrieve your email address.')
+      return
+    }
     const { error } = await getBrowserSupabase().auth.resetPasswordForEmail(user.email, {
       redirectTo: `${window.location.origin}/update-password`,
     })
@@ -138,15 +154,15 @@ export function DashboardClient({
   }
 
   function cycleFilter() {
-    setStatusFilter(f => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
+    setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
   }
 
   /* ── Aggregate stats ── */
   const totalVisitors = tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
   const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
-  const running = tests.filter(t => t.status === 'active').length
+  const running = tests.filter((t) => t.status === 'active').length
   const lifts = tests
-    .map(t => {
+    .map((t) => {
       const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
       const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
       return crA > 0 ? (crB - crA) / crA : null
@@ -156,130 +172,134 @@ export function DashboardClient({
 
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return tests.filter(t => {
-      const matchesQuery = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-      const matchesStatus = statusFilter === 'all' || t.status === statusFilter
-      return matchesQuery && matchesStatus
+    return tests.filter((t) => {
+      const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
+      return mq && (statusFilter === 'all' || t.status === statusFilter)
     })
   }, [tests, query, statusFilter])
 
-  const recent = tests.slice(0, 3)
+  // Winner alert for Overview tab (Pro only, active tests with a winner)
+  const winnerTest = isPro ? tests.find((t) => t.winner && t.status !== 'done') : null
 
   return (
     <>
-      <main className="grid min-w-0 flex-1 grid-cols-1 gap-5 px-5 py-6 sm:px-8 md:grid-cols-[38%_1fr]">
-          {/* ═══ Left column: Usage / Significance / Recent activity ═══ */}
-          <div className="flex flex-col gap-5">
-            <div>
-              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Billing</p>
-              <div id="billing" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                <p className="mb-2.5 text-[13px] font-medium text-[#ededed]">Last 30 days</p>
-                <div className="flex flex-col divide-y divide-white/[0.06]">
-                  <QuotaRow
-                    icon={FlaskConical}
-                    label="Active experiments"
-                    value={isPro ? `${running}` : `${running} / 1`}
-                    atLimit={!isPro && running >= 1}
-                  />
-                  <QuotaRow icon={Users} label="Total experiments" value={`${tests.length}`} />
-                  <QuotaRow icon={TrendingUp} label="Total visitors" value={totalVisitors.toLocaleString()} />
-                  <QuotaRow icon={Zap} label="Total conversions" value={totalConversions.toLocaleString()} />
-                  {avgLift !== null && (
-                    <QuotaRow
-                      icon={TrendingUp}
-                      label="Avg lift"
-                      value={`${avgLift > 0 ? '+' : ''}${(avgLift * 100).toFixed(1)}%`}
-                      tone={avgLift > 0 ? 'ok' : avgLift < 0 ? 'err' : undefined}
-                    />
-                  )}
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
-                  <span className="text-[11px] text-[#ededed]/40">
-                    Plan: <span className="text-[#ededed]/62">{plan.toUpperCase()}</span>
-                  </span>
-                  {isPro ? (
-                    <button
-                      onClick={() => billing('portal')}
-                      disabled={busy}
-                      className="cursor-pointer text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed] disabled:opacity-50"
-                    >
-                      Manage →
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => billing('checkout')}
-                      disabled={busy}
-                      className="cursor-pointer rounded-[5px] bg-white px-2.5 py-1 text-[11px] font-semibold text-black transition-opacity duration-150 hover:opacity-85 disabled:opacity-50"
-                    >
-                      Upgrade
-                    </button>
-                  )}
-                </div>
-              </div>
+      <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
+        {/* ═══ Tab bar ═══ */}
+        <div className="mb-6 flex items-center gap-1 rounded-[8px] border border-white/10 bg-[#0a0a0a] p-0.5 w-fit">
+          <TabBtn active={tab === 'overview'} onClick={() => setTab('overview')}>
+            Overview
+          </TabBtn>
+          <TabBtn active={tab === 'tests'} onClick={() => setTab('tests')}>
+            Tests
+          </TabBtn>
+        </div>
+
+        {/* ═══ Overview tab ═══ */}
+        {tab === 'overview' && (
+          <div className="space-y-6">
+            {/* Stats bar */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatCard
+                label="Active tests"
+                value={isPro ? `${running}` : `${running} / 1`}
+                sub={!isPro && running >= 1 ? 'Upgrade for more' : undefined}
+                icon={FlaskConical}
+                tone={!isPro && running >= 1 ? 'pro' : 'ok'}
+              />
+              <StatCard label="Total visitors" value={totalVisitors.toLocaleString()} icon={Users} />
+              <StatCard label="Conversions" value={totalConversions.toLocaleString()} icon={Zap} />
+              <StatCard
+                label="Plan"
+                value={isPro ? 'Pro' : 'Free'}
+                sub={!isPro ? 'Upgrade →' : undefined}
+                icon={TrendingUp}
+                tone={isPro ? 'ok' : 'pro'}
+                onClick={!isPro ? () => billing('checkout') : undefined}
+                clickable={!isPro}
+              />
             </div>
 
-            <div>
-              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Significance</p>
-              {isPro ? (
-                <div className="flex items-center gap-2.5 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
-                  <p className="text-[13px] text-[#ededed]/62">
-                    Enabled — winners are detected and declared automatically.
+            {/* Winner alert */}
+            {winnerTest && (
+              <Link
+                href={`/dashboard/results/${winnerTest.id}`}
+                className="flex items-center gap-3 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
+              >
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                  style={{ background: `${T.ok}1f` }}
+                >
+                  <TrendingUp className="h-3.5 w-3.5" style={{ color: T.ok }} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-medium text-[#ededed]">{winnerTest.name}</p>
+                  <p className="text-[11px]" style={{ color: T.ok }}>
+                    B leads — significant winner detected
                   </p>
                 </div>
-              ) : (
-                <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                  <p className="text-[13px] font-semibold text-[#ededed]">See when a variant actually wins</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/40">
-                    Free shows raw visitor and conversion counts. Pro calculates statistical significance
-                    and declares a winner automatically.
-                  </p>
+                <span className="text-[11px] text-[#ededed]/40">View →</span>
+              </Link>
+            )}
+
+            {/* Significance card */}
+            {isPro && !winnerTest && (
+              <div className="flex items-center gap-2.5 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
+                <p className="text-[13px] text-[#ededed]/62">
+                  Significance enabled — winners are detected and declared automatically.
+                </p>
+              </div>
+            )}
+
+            {!isPro && (
+              <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                <p className="text-[13px] font-semibold text-[#ededed]">See when a variant actually wins</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/40">
+                  Free shows raw visitor and conversion counts. Pro calculates statistical significance
+                  and declares a winner automatically.
+                </p>
+                <button
+                  onClick={() => billing('checkout')}
+                  disabled={busy}
+                  className="mt-3 cursor-pointer rounded-[6px] border border-white/[0.18] px-3 py-1.5 text-[11px] font-semibold text-[#ededed] transition-colors hover:border-white/25 disabled:opacity-50"
+                >
+                  Upgrade to Pro
+                </button>
+              </div>
+            )}
+
+            {/* Recent tests preview */}
+            {tests.length > 0 && (
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[13px] font-medium text-[#ededed]">Recent tests</p>
                   <button
-                    onClick={() => billing('checkout')}
-                    disabled={busy}
-                    className="mt-3 cursor-pointer rounded-[6px] border border-white/[0.18] px-3 py-1.5 text-[11px] font-semibold text-[#ededed] transition-colors duration-150 hover:border-white/25 disabled:opacity-50"
+                    onClick={() => setTab('tests')}
+                    className="text-[11px] font-semibold text-[#ededed]/62 hover:text-[#ededed]"
                   >
-                    Upgrade to Pro
+                    View all →
                   </button>
                 </div>
-              )}
-            </div>
-
-            <div>
-              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Recent activity</p>
-              {recent.length === 0 ? (
-                <p className="text-[11px] text-[#ededed]/40">No tests yet.</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {recent.map(t => (
-                    <Link
-                      key={t.id}
-                      href={`/dashboard/results/${t.id}`}
-                      className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3 transition-colors duration-150 hover:border-white/[0.18]"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-[13px] font-medium text-[#ededed]">{t.name}</span>
-                        <StatusDot status={t.status} winner={t.winner} />
-                      </div>
-                      <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">
-                        {t.site_url ?? '—'} · {timeAgo(t.created_at)}
-                      </p>
-                    </Link>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {tests.slice(0, 3).map((t) => (
+                    <TestCard key={t.id} t={t} />
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
+        )}
 
-          {/* ═══ Right column: Tests grid with toolbar ═══ */}
-          <div className="min-w-0">
-            <p className="mb-2 text-[13px] font-medium text-[#ededed]">Tests</p>
-            <div className="flex items-center gap-2">
+        {/* ═══ Tests tab ═══ */}
+        {tab === 'tests' && (
+          <div>
+            {/* Toolbar */}
+            <div className="mb-3 flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
                 <input
                   value={query}
-                  onChange={e => setQuery(e.target.value)}
+                  onChange={(e) => setQuery(e.target.value)}
                   placeholder="Find test…"
                   className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
                 />
@@ -287,24 +307,35 @@ export function DashboardClient({
               <button
                 onClick={cycleFilter}
                 title={`Filter: ${statusFilter}`}
-                className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
               >
                 <ListFilter className="h-3.5 w-3.5" />
                 {statusFilter !== 'all' && (
                   <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
                 )}
               </button>
-              <a
-                href="#plugin-token"
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity duration-150 hover:opacity-85"
+              <button
+                onClick={() => setNewTestOpen(true)}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
               >
                 <Plus className="h-3.5 w-3.5" />
                 New test
-              </a>
+              </button>
             </div>
 
+            {/* New test flow overlay */}
+            {newTestOpen && (
+              <NewTestFlow
+                apiToken={apiToken}
+                currentTestCount={tests.length}
+                hasFigmaPlugin={hasFigmaPlugin}
+                onClose={() => setNewTestOpen(false)}
+              />
+            )}
+
+            {/* Empty / No results */}
             {tests.length === 0 ? (
-              <div className="mt-3 flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
+              <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
                 <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
                   <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
                 </div>
@@ -314,164 +345,106 @@ export function DashboardClient({
                 </p>
               </div>
             ) : filteredTests.length === 0 ? (
-              <div className="mt-3 flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
+              <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
                 <p className="text-[13px] font-medium text-[#ededed]/62">
-                  {query ? `No tests match “${query}”` : 'No tests in this filter'}
+                  {query ? `No tests match "${query}"` : 'No tests in this filter'}
                 </p>
               </div>
             ) : (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {filteredTests.map(t => {
-                  const va = t.visitors_a ?? 0
-                  const vb = t.visitors_b ?? 0
-                  const ca = t.conversions_a ?? 0
-                  const cb = t.conversions_b ?? 0
-                  const crA = va > 0 ? ca / va : 0
-                  const crB = vb > 0 ? cb / vb : 0
-                  const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
-                  const totalV = va + vb
-                  const pctA = totalV > 0 ? (va / totalV) * 100 : 50
-                  const pctB = 100 - pctA
-
-                  return (
-                    <Link
-                      key={t.id}
-                      href={`/dashboard/results/${t.id}`}
-                      className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors duration-150 hover:border-white/[0.18]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-[15px] font-medium text-[#ededed]">{t.name}</p>
-                          {t.site_url && <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>}
-                        </div>
-                        <StatusDot status={t.status} winner={t.winner} />
-                      </div>
-
-                      <div className="mt-2.5 flex items-center gap-2">
-                        <span className="text-[11px] text-[#ededed]/62">{t.winner === 'B' ? 'B won' : t.status}</span>
-                        {uplift !== null && uplift !== 0 && (
-                          <span
-                            className="rounded-[5px] px-2 py-0.5 text-[11px] font-semibold"
-                            style={
-                              uplift > 0
-                                ? { background: `${T.ok}1f`, color: T.ok }
-                                : { background: `${T.err}1f`, color: T.err }
-                            }
-                          >
-                            {uplift > 0 ? '+' : ''}
-                            {uplift.toFixed(1)}%
-                          </span>
-                        )}
-                      </div>
-
-                      {totalV > 0 && (
-                        <div className="mt-3">
-                          <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                            <div className="bg-white/30 transition-all" style={{ width: `${pctA}%` }} />
-                            <div className="bg-white transition-all" style={{ width: `${pctB}%` }} />
-                          </div>
-                          <div className="mt-2 flex items-center justify-between text-[11px] text-[#ededed]/40">
-                            <span>
-                              A: {va.toLocaleString()}
-                              {crA > 0 && <span className="ml-1 text-[#ededed]/62">{(crA * 100).toFixed(1)}% CR</span>}
-                            </span>
-                            <span>
-                              {crB > 0 && <span className="mr-1 text-[#ededed]/62">{(crB * 100).toFixed(1)}% CR</span>}
-                              B: {vb.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </Link>
-                  )
-                })}
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredTests.map((t) => (
+                  <TestCard key={t.id} t={t} />
+                ))}
               </div>
             )}
           </div>
+        )}
 
-          {/* ═══ Full width: Plugin + Extension + Snippet + Account ═══ */}
-          <div className="flex flex-col gap-5 md:col-span-2">
-            {/* Plugin token + Extension side by side */}
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div id="plugin-token" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
-                <p className="mt-1 text-[11px] text-[#ededed]/40">
-                  Paste once into the Figma plugin to link your tests — this is where new tests are created.
-                </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2.5 font-mono text-[13px] text-[#ededed]/62">
-                    {apiToken}
-                  </code>
-                  <button
-                    onClick={copyToken}
-                    className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
-                  >
-                    {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div id="browser-extension" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                <p className="text-[13px] font-medium text-[#ededed]">Browser Extension</p>
-                <p className="mt-1 text-[11px] text-[#ededed]/40">
-                  Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs locally.
-                </p>
-                <a
-                  href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors duration-200 hover:bg-white/90"
+        {/* ═══ Scroll sections — below tabs ═══ */}
+        <div className="mt-10 flex flex-col gap-5 border-t border-white/10 pt-8">
+          {/* Plugin token + Extension side by side */}
+          <div id="plugin-token" className="grid scroll-mt-24 gap-5 sm:grid-cols-2">
+            <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+              <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
+              <p className="mt-1 text-[11px] text-[#ededed]/40">
+                Paste once into the Figma plugin to link your tests — this is where new tests are created.
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2.5 font-mono text-[13px] text-[#ededed]/62">
+                  {apiToken}
+                </code>
+                <button
+                  onClick={copyToken}
+                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
                 >
-                  <Puzzle className="h-3.5 w-3.5" />
-                  Install from Chrome Web Store
-                  <ExternalLink className="h-3 w-3 opacity-60" />
-                </a>
+                  {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
-              <button
-                onClick={() => setSnippetOpen(o => !o)}
-                className="flex w-full cursor-pointer items-center justify-between px-3.5 py-3 text-left transition-colors duration-150 hover:bg-white/[0.02]"
+            <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+              <p className="text-[13px] font-medium text-[#ededed]">Browser Extension</p>
+              <p className="mt-1 text-[11px] text-[#ededed]/40">
+                Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs
+                locally.
+              </p>
+              <a
+                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors hover:bg-white/90"
               >
+                <Puzzle className="h-3.5 w-3.5" />
+                Install from Chrome Web Store
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </a>
+            </div>
+          </div>
+
+          {/* Snippet */}
+          <div id="snippet" className="scroll-mt-24 overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
+            <button
+              onClick={() => setSnippetOpen((o) => !o)}
+              className="flex w-full cursor-pointer items-center justify-between px-3.5 py-3 text-left transition-colors hover:bg-white/[0.02]"
+            >
+              <div>
+                <p className="text-[13px] font-medium text-[#ededed]">Snippet installation</p>
+                <p className="mt-0.5 text-[11px] text-[#ededed]/40">
+                  Paste one block into your site&apos;s{' '}
+                  <code className="rounded-[5px] bg-white/[0.08] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
+                    &lt;head&gt;
+                  </code>{' '}
+                  — universal, framework-agnostic
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-[#ededed]/40 transition-transform ${snippetOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {snippetOpen && (
+              <div className="space-y-4 border-t border-white/10 px-3.5 pb-4 pt-3.5">
                 <div>
-                  <p className="text-[13px] font-medium text-[#ededed]">Snippet installation</p>
-                  <p className="mt-0.5 text-[11px] text-[#ededed]/40">
-                    Paste one block into your site&apos;s{' '}
-                    <code className="rounded-[5px] bg-white/[0.08] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
-                      &lt;head&gt;
-                    </code>{' '}
-                    — universal, framework-agnostic
-                  </p>
-                </div>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-[#ededed]/40 transition-transform duration-150 ${snippetOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
-
-              {snippetOpen && (
-                <div className="space-y-4 border-t border-white/10 px-3.5 pb-4 pt-3.5">
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-[#ededed]/62">Universal snippet</span>
-                      <button
-                        onClick={copySnippet}
-                        className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
-                      >
-                        {snippetCopied ? <Check className="h-3.5 w-3.5" style={{ color: T.ok }} /> : <Copy className="h-3.5 w-3.5" />}
-                        {snippetCopied ? 'Copied!' : 'Copy'}
-                      </button>
-                    </div>
-                    <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
-{SNIPPET_CODE}
-                    </pre>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-[#ededed]/62">Universal snippet</span>
+                    <button
+                      onClick={copySnippet}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                    >
+                      {snippetCopied ? <Check className="h-3.5 w-3.5" style={{ color: T.ok }} /> : <Copy className="h-3.5 w-3.5" />}
+                      {snippetCopied ? 'Copied!' : 'Copy'}
+                    </button>
                   </div>
+                  <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+{SNIPPET_CODE}
+                  </pre>
+                </div>
 
-                  {[
-                    {
-                      label: 'Next.js App Router',
-                      file: 'app/layout.tsx',
-                      code: `// app/layout.tsx
+                {[
+                  {
+                    label: 'Next.js App Router',
+                    file: 'app/layout.tsx',
+                    code: `// app/layout.tsx
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -487,11 +460,11 @@ export default function RootLayout({ children }) {
     </html>
   )
 }`,
-                    },
-                    {
-                      label: 'Next.js Pages Router',
-                      file: 'pages/_document.tsx',
-                      code: `// pages/_document.tsx
+                  },
+                  {
+                    label: 'Next.js Pages Router',
+                    file: 'pages/_document.tsx',
+                    code: `// pages/_document.tsx
 import { Html, Head, Main, NextScript } from 'next/document'
 
 export default function Document() {
@@ -509,11 +482,11 @@ export default function Document() {
     </Html>
   )
 }`,
-                    },
-                    {
-                      label: 'Plain HTML',
-                      file: '<head>',
-                      code: `<!DOCTYPE html>
+                  },
+                  {
+                    label: 'Plain HTML',
+                    file: '<head>',
+                    code: `<!DOCTYPE html>
 <html>
 <head>
   <link rel="preconnect" href="https://www.getvariante.com">
@@ -523,83 +496,263 @@ export default function Document() {
 </head>
 <body><!-- your content --></body>
 </html>`,
-                    },
-                  ].map(({ label, file, code }) => (
-                    <details key={label} className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
-                      <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
-                        <span>{label}</span>
-                        <span className="flex items-center gap-2">
-                          <code className="rounded-[5px] bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] text-[#ededed]/40">{file}</code>
-                          <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                        </span>
-                      </summary>
-                      <pre className="overflow-x-auto border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62">
-{code}
-                      </pre>
-                    </details>
-                  ))}
-
-                  <details className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
+                  },
+                ].map(({ label, file, code }) => (
+                  <details key={label} className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
                     <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
-                      <span>Vue · Svelte · Astro · others</span>
-                      <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                      <span>{label}</span>
+                      <span className="flex items-center gap-2">
+                        <code className="rounded-[5px] bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] text-[#ededed]/40">
+                          {file}
+                        </code>
+                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                      </span>
                     </summary>
-                    <p className="border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/40">
-                      Inject the three lines into the{' '}
-                      <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;head&gt;</code>{' '}
-                      of your root layout or template. The snippet is framework-agnostic. Make sure the
-                      anti-flicker <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;style&gt;</code> and
-                      inline <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;script&gt;</code> come{' '}
-                      <strong className="font-semibold text-[#ededed]/62">before</strong> the async{' '}
-                      <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">ab.js</code> tag.
-                    </p>
+                    <pre className="overflow-x-auto border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62">
+{code}
+                    </pre>
                   </details>
+                ))}
 
-                  <div
-                    className="flex items-start gap-3 rounded-[6px] px-4 py-3.5"
-                    style={{ background: `${T.pro}0f`, border: `1px solid ${T.pro}33` }}
-                  >
-                    <Shield className="mt-0.5 h-4 w-4 shrink-0" style={{ color: T.pro }} />
-                    <p className="text-[11px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
-                      <strong className="font-semibold">Privacy:</strong>{' '}
-                      ab.js stores a random visitor ID in{' '}
-                      <code className="rounded-[5px] px-1 font-mono text-[11px]" style={{ background: `${T.pro}1a` }}>
-                        localStorage
-                      </code>{' '}
-                      (no cookies). No personal data is collected or transmitted. The snippet only sends:
-                      current URL, visitor ID, and click events on test elements.
-                    </p>
-                  </div>
+                <details className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
+                  <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
+                    <span>Vue · Svelte · Astro · others</span>
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <p className="border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/40">
+                    Inject the three lines into the{' '}
+                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
+                      &lt;head&gt;
+                    </code>{' '}
+                    of your root layout or template. The snippet is framework-agnostic. Make sure the anti-flicker{' '}
+                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
+                      &lt;style&gt;
+                    </code>{' '}
+                    and inline{' '}
+                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
+                      &lt;script&gt;
+                    </code>{' '}
+                    come{' '}
+                    <strong className="font-semibold text-[#ededed]/62">before</strong> the async{' '}
+                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
+                      ab.js
+                    </code>{' '}
+                    tag.
+                  </p>
+                </details>
+
+                <div
+                  className="flex items-start gap-3 rounded-[6px] px-4 py-3.5"
+                  style={{ background: `${T.pro}0f`, border: `1px solid ${T.pro}33` }}
+                >
+                  <Shield className="mt-0.5 h-4 w-4 shrink-0" style={{ color: T.pro }} />
+                  <p className="text-[11px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
+                    <strong className="font-semibold">Privacy:</strong> ab.js stores a random visitor ID in{' '}
+                    <code className="rounded-[5px] px-1 font-mono text-[11px]" style={{ background: `${T.pro}1a` }}>
+                      localStorage
+                    </code>{' '}
+                    (no cookies). No personal data is collected or transmitted.
+                  </p>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Billing */}
+          <div id="billing" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+            <p className="text-[13px] font-medium text-[#ededed]">Billing</p>
+            <p className="mt-1 text-[11px] text-[#ededed]/40">Last 30 days</p>
+            <div className="mt-3 flex flex-col divide-y divide-white/[0.06]">
+              <QuotaRow
+                icon={FlaskConical}
+                label="Active experiments"
+                value={isPro ? `${running}` : `${running} / 1`}
+                atLimit={!isPro && running >= 1}
+              />
+              <QuotaRow icon={Users} label="Total experiments" value={`${tests.length}`} />
+              <QuotaRow icon={TrendingUp} label="Total visitors" value={totalVisitors.toLocaleString()} />
+              <QuotaRow icon={Zap} label="Total conversions" value={totalConversions.toLocaleString()} />
+              {avgLift !== null && (
+                <QuotaRow
+                  icon={TrendingUp}
+                  label="Avg lift"
+                  value={`${avgLift > 0 ? '+' : ''}${(avgLift * 100).toFixed(1)}%`}
+                  tone={avgLift > 0 ? 'ok' : avgLift < 0 ? 'err' : undefined}
+                />
               )}
             </div>
-
-            {/* Account settings */}
-            <div id="account-settings" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-              <p className="text-[13px] font-medium text-[#ededed]">Account settings</p>
-              <p className="mt-1 text-[11px] text-[#ededed]/40">
-                Manage your security and session.
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+              <span className="text-[11px] text-[#ededed]/40">
+                Plan: <span className="text-[#ededed]/62">{plan.toUpperCase()}</span>
+              </span>
+              {isPro ? (
                 <button
-                  onClick={changePassword}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                  onClick={() => billing('portal')}
+                  disabled={busy}
+                  className="cursor-pointer text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed] disabled:opacity-50"
                 >
-                  <Key className="h-3.5 w-3.5" />
-                  Change password
+                  Manage →
                 </button>
+              ) : (
                 <button
-                  onClick={logout}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                  onClick={() => billing('checkout')}
+                  disabled={busy}
+                  className="cursor-pointer rounded-[5px] bg-white px-2.5 py-1 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-50"
                 >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Log out
+                  Upgrade
                 </button>
-              </div>
+              )}
             </div>
           </div>
-        </main>
-      </>
+
+          {/* Account settings */}
+          <div id="account-settings" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+            <p className="text-[13px] font-medium text-[#ededed]">Account settings</p>
+            <p className="mt-1 text-[11px] text-[#ededed]/40">Manage your security and session.</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                onClick={changePassword}
+                className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+              >
+                <Key className="h-3.5 w-3.5" />
+                Change password
+              </button>
+              <button
+                onClick={logout}
+                className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
+  )
+}
+
+/* ── Sub-components ── */
+
+function TabBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="cursor-pointer rounded-[6px] px-4 py-1.5 text-[13px] font-medium transition-colors"
+      style={{ color: active ? T.text : `${T.text}62`, background: active ? T.bg2 : 'transparent' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  tone,
+  onClick,
+  clickable,
+}: {
+  label: string
+  value: string
+  sub?: string
+  icon: React.ComponentType<{ className?: string }>
+  tone?: 'ok' | 'pro'
+  onClick?: () => void
+  clickable?: boolean
+}) {
+  const color = tone === 'ok' ? T.ok : tone === 'pro' ? T.pro : undefined
+  return (
+    <div
+      onClick={onClick}
+      className={`rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 ${clickable ? 'cursor-pointer transition-colors hover:border-white/[0.18]' : ''}`}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5 text-[#ededed]/40" />
+        <span className="text-[11px] text-[#ededed]/40">{label}</span>
+      </div>
+      <p className="text-[22px] font-medium text-[#ededed]" style={color ? { color } : undefined}>
+        {value}
+      </p>
+      {sub && (
+        <p className="mt-0.5 text-[11px]" style={{ color: color ?? `${T.text}40` }}>
+          {sub}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function TestCard({ t }: { t: TestRow }) {
+  const va = t.visitors_a ?? 0
+  const vb = t.visitors_b ?? 0
+  const ca = t.conversions_a ?? 0
+  const cb = t.conversions_b ?? 0
+  const crA = va > 0 ? ca / va : 0
+  const crB = vb > 0 ? cb / vb : 0
+  const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
+  const totalV = va + vb
+  const pctA = totalV > 0 ? (va / totalV) * 100 : 50
+
+  return (
+    <Link
+      href={`/dashboard/results/${t.id}`}
+      className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-medium text-[#ededed]">{t.name}</p>
+          {t.site_url && <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>}
+        </div>
+        <StatusDot status={t.status} winner={t.winner} />
+      </div>
+
+      <div className="mt-2.5 flex items-center gap-2">
+        <span className="text-[11px] text-[#ededed]/62">{t.winner === 'B' ? 'B won' : t.status}</span>
+        {uplift !== null && uplift !== 0 && (
+          <span
+            className="rounded-[5px] px-2 py-0.5 text-[11px] font-semibold"
+            style={
+              uplift > 0
+                ? { background: `${T.ok}1f`, color: T.ok }
+                : { background: `${T.err}1f`, color: T.err }
+            }
+          >
+            {uplift > 0 ? '+' : ''}
+            {uplift.toFixed(1)}%
+          </span>
+        )}
+      </div>
+
+      {totalV > 0 && (
+        <div className="mt-3">
+          <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="bg-white/30 transition-all" style={{ width: `${pctA}%` }} />
+            <div className="bg-white transition-all" style={{ width: `${100 - pctA}%` }} />
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-[#ededed]/40">
+            <span>
+              A: {va.toLocaleString()}
+              {crA > 0 && <span className="ml-1 text-[#ededed]/62">{(crA * 100).toFixed(1)}% CR</span>}
+            </span>
+            <span>
+              {crB > 0 && <span className="mr-1 text-[#ededed]/62">{(crB * 100).toFixed(1)}% CR</span>}
+              B: {vb.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      )}
+    </Link>
   )
 }
 
