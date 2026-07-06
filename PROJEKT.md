@@ -35,12 +35,12 @@
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token
 ├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/
-├── lib/                # auth, cors, emailAgent, getExperimentStats, rateLimit, safeLog, sanitize, significance, stripe, supabase, supabaseBrowser, supabaseServer
+├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
 └── __tests__/
 chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
-db/migrations/          # Supabase SQL (001–014)
+db/migrations/          # Supabase SQL (001–013)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ```
 
@@ -48,9 +48,9 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Projekt | URL | Methode |
 |---|---|---|
-| ab-tool | `www.getvariante.com` | GitHub Action → `vercel deploy --prod` (automatisch bei Push auf master) |
+| ab-tool | `www.getvariante.com` | Manuell via `vercel deploy --prod` |
 
-**Git:** `github.com/Volllieb/variante.git` (master) · **Auto-Push:** `post-commit`-Hook → **Auto-Deploy:** `.github/workflows/deploy.yml`
+**Git:** `github.com/Volllieb/variante.git` (master) · **Auto-Push:** `post-commit`-Hook
 
 ## §5 Pricing
 
@@ -85,7 +85,10 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 06.07.2026 | **Round-3 Cleanup: Doku-Sync nach Revert.** PROJEKT.md §3: `emailAgent` aus lib-Listing entfernt, Migration-Nummern auf 001–013 korrigiert. §4: Deployment-Methode auf manuell aktualisiert (CI-Workflow wurde gelöscht). §8: Revert- + CI-Deletion-Einträge nachgetragen. Kein Code geändert. |
 | 06.07.2026 | **SEO: Landingpage-Audit + 4 kritische Fixes.** `robots.ts` (allow /, disallow auth/dashboard/api), `sitemap.ts` (5 URLs), JSON-LD Organization in `layout.tsx`, `og:image` + `twitter:card` in `layout.tsx` + `page.tsx`, Title-Optimierung (Keyword first, ~140 Zeichen). Offen: echtes OG-Image (128×128 SVG zu klein), strukturierte Daten für Subpages ausbauen. |
+| 06.07.2026 | **Email-Agent rückgängig.** Cold-Outreach Reverse-Funnel komplett entfernt (Auto-Reply, OpenAI-Klassifikation, Resend Inbound). Migration 014, `emailAgent.ts`, `/api/email/inbound` gelöscht. Bleibt manuell. |
+| 06.07.2026 | **CI-Workflow gelöscht.** `.github/workflows/deploy.yml` entfernt. Deploy wieder manuell via `vercel deploy --prod`. |
 | 06.07.2026 | **Round-2 Cleanup.** Build-Fix: `force-static` + `cacheComponents` inkompatibel → entfernt. Dead Code: `/api/variant` (32 Zeilen, ersetzt durch `/api/resolve`), `proxy.ts` (55 Zeilen, kein middleware.ts). AGENTS.md: Agent-Liste vervollständigt. PROJEKT.md §3: API-Listing + Migration-Nummern korrigiert. |
 | 06.07.2026 | **Root-Cleanup.** `dashboard-source.html` (HTML-Dump), `test.md` (Duplikat von E2E-CHECKLIST.md) gelöscht. `dashboard-redesign-plan.md` → `z.future-features/` (abgeschlossenes Redesign, dient als Doku). |
 | 06.07.2026 | **Dashboard: Tab-System entfernt, Overview/Tests als separate Seiten.** Sidebar: Tests-Link → `/dashboard/tests`, Billing+Account nach unten gruppiert, Setup-Tools in eigener Sektion. `TestsClient.tsx` extrahiert. Build grün, deployed. |
