@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 06.07.2026 — Migrationen 009+010 in Production ausgeführt, DB up-to-date |
+| **Stand** | 06.07.2026 — Security-Hardening: SRI, max_tokens, Security-Headers, CORS-Doku, Upstash pending |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -23,6 +23,7 @@
 | API + Dashboard | Next.js 16 (App Router) auf Vercel |
 | Datenbank + Auth | Supabase (Postgres + JWT) |
 | Billing | Stripe (Checkout, Portal, Webhooks) |
+| Rate-Limiting | Upstash Redis (@upstash/redis, Free Tier) |
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
 | Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
 | Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
@@ -85,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 06.07.2026 | **Security-Hardening.** SRI-Hash für ab.js generiert + in allen Snippet-Beispielen ergänzt. max_tokens: 4096 in /api/generate gesetzt. CORS-Doku (Access-Control-Max-Age 600s). Security-Headers: X-Frame-Options: SAMEORIGIN + HSTS für Pages. Upstash Redis-Code ready, Env-Vars noch zu setzen. |
 | 06.07.2026 | **Auth-Guard Results + Decoupling + Loading/Error States.** Results-Page prüft Session-User gegen `test.user_id` (fremde UUIDs → 404). Winner-Logik aus `getExperimentStats` entfernt (GET read-only, Cron + Event-Route setzen Winner). `loading.tsx` + `error.tsx` für `results/[id]` und `dashboard`. Build grün. |
 | 06.07.2026 | **Migrationen 009 + 010 in Production ausgeführt.** `profiles.onboarded`, `events`, `daily_stats`, `domains` Tabellen + `log_event()`, `snapshot_daily_stats()` RPCs jetzt live. Onboarding-Gate kann wieder aktiviert werden. Alle API-Routen funktionsfähig. |
 | 03.07.2026 | **Cron-Fix: console.error → safeError.** check-winners verwendet jetzt safeError statt rohem console.error für E-Mail-Fehlschläge. |

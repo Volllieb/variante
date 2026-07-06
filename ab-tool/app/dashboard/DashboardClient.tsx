@@ -57,7 +57,7 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <link rel="preconnect" href="https://www.getvariante.com">
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://www.getvariante.com/ab.js"><\/script>`
+<script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
 const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
@@ -515,7 +515,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" />
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous" />
       </head>
       <body>{children}</body>
     </html>
@@ -537,7 +537,7 @@ export default function Document() {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" />
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous" />
       </Head>
       <body><Main /><NextScript /></body>
     </Html>
@@ -553,7 +553,7 @@ export default function Document() {
   <link rel="preconnect" href="https://www.getvariante.com">
   <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
   <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://www.getvariante.com/ab.js"><\/script>
+  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>
 </head>
 <body><!-- your content --></body>
 </html>`,

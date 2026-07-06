@@ -315,6 +315,7 @@ export async function POST(req: Request) {
           { role: 'user', content: prompt },
         ],
         temperature,
+        max_tokens: 4096,
       }),
     })
     if (!res.ok) throw new Error(`openai ${res.status}`)

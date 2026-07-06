@@ -30,3 +30,17 @@ npm run build:all   # alle Pakete bauen
 
 `db/migrations/` in aufsteigender Reihenfolge im
 [Supabase SQL-Editor](https://supabase.com/dashboard/project/_/sql/new) ausführen.
+
+## Security
+
+### Subresource Integrity (SRI)
+
+Das `ab.js`-Snippet wird auf fremden Websites geladen. Zum Schutz vor Supply-Chain-Angriffen empfehlen wir das `integrity`-Attribut:
+
+```html
+<script async src="https://www.getvariante.com/ab.js"
+  integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T"
+  crossorigin="anonymous"></script>
+```
+
+> Der Hash wird bei jedem `ab.js`-Release neu generiert (`sha384`). Ohne SRI könnte ein kompromittierter Vercel-Account Schadcode auf allen Kunden-Sites ausführen.
