@@ -167,7 +167,7 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 >
 > We've prepared a demo website and a pre-selected element so you can walk through the full workflow without installing anything.
 >
-> **Voraussetzung im echten Workflow:** Du brauchst die kostenlose [Variante Browser Extension](https://chromewebstore.google.com/detail/variante) (Chrome), um Elemente auf deiner Live-Site anzuklicken. Im Playground überspringen wir das.
+> **Voraussetzung im echten Workflow:** Du brauchst die kostenlose [Variante Browser Extension](https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh) (Chrome), um Elemente auf deiner Live-Site anzuklicken. Im Playground überspringen wir das.
 >
 > In the real plugin, you'd connect your account here. For this demo, just click **„Try the demo"**.
 

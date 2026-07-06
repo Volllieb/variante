@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
+import { ensureProfile } from '@/lib/auth'
 
 /**
  * Supabase Auth Callback — verarbeitet sowohl OAuth (Google) als auch Email-Links.
@@ -34,19 +35,21 @@ export async function GET(req: NextRequest) {
 
   // OAuth-Flow (Google etc.): Code → Session via PKCE exchange
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
       return NextResponse.redirect(
         new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
       )
     }
+    // Profile-Fallback: Bei OAuth-Signup kann der DB-Trigger rennen
+    if (data.user) await ensureProfile(data.user.id)
     const next = requestUrl.searchParams.get('next') || '/dashboard'
     return NextResponse.redirect(new URL(next, req.url))
   }
 
   // Email-Flow (Passwort-Reset, E-Mail-Bestätigung) via token hash or direct tokens
   if (accessToken && refreshToken) {
-    const { error } = await supabase.auth.setSession({
+    const { error, data } = await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken,
     })
@@ -55,6 +58,7 @@ export async function GET(req: NextRequest) {
         new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
       )
     }
+    if (data.user) await ensureProfile(data.user.id)
     const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
     return NextResponse.redirect(new URL(next, req.url))
   }
@@ -63,7 +67,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=missing-token', req.url))
   }
 
-  const { error } = await supabase.auth.verifyOtp({
+  const { error, data } = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
     type: type as 'recovery' | 'signup' | 'email',
   })
@@ -74,6 +78,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
+  if (data.user) await ensureProfile(data.user.id)
   const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
   return NextResponse.redirect(new URL(next, req.url))
 }

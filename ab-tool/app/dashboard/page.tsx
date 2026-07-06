@@ -1,11 +1,15 @@
 import { getSessionUser } from '@/lib/supabaseServer'
 import { supabase } from '@/lib/supabase'
+import { ensureProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './DashboardClient'
 
 export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
   const user = await getSessionUser()
   if (!user) redirect('/login')
+
+  // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth), jetzt anlegen
+  await ensureProfile(user.id)
 
   const { data: profile } = await supabase
     .from('profiles')

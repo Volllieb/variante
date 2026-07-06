@@ -22,6 +22,7 @@ export default function SignupPage() {
   const [err, setErr] = useState('')
   const [info, setInfo] = useState('')
   const [alreadyRegistered, setAlreadyRegistered] = useState(false)
+  const [confirmationResent, setConfirmationResent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [sessionChecked, setSessionChecked] = useState(false)
@@ -85,6 +86,24 @@ export default function SignupPage() {
     } else {
       setInfo('Almost there — confirm your email address, then you can log in.')
     }
+  }
+
+  async function handleResendConfirmation() {
+    if (!email) return
+    setErr('')
+    setConfirmationResent(false)
+    setLoading(true)
+    const supabase = getBrowserSupabase()
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
+      },
+    })
+    setLoading(false)
+    if (error) { setErr(error.message); return }
+    setConfirmationResent(true)
   }
 
   async function handleGoogleSignup() {
@@ -196,11 +215,29 @@ export default function SignupPage() {
               </p>
             )}
             {alreadyRegistered && (
-              <p className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
-                Achtung — diese E-Mail ist bereits registriert.{' '}
-                <Link href="/login" className="font-semibold underline transition-colors hover:opacity-80">
-                  Direkt einloggen
-                </Link>
+              <div className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
+                <p>
+                  Diese E-Mail ist bereits registriert.{' '}
+                  <Link href="/login" className="font-semibold underline transition-colors hover:opacity-80">
+                    Direkt einloggen
+                  </Link>
+                </p>
+                <p className="text-pro/70">
+                  Keine Bestätigungsmail bekommen?
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={loading}
+                  className="font-semibold underline transition-colors hover:opacity-80 disabled:opacity-40"
+                >
+                  Bestätigungslink erneut senden
+                </button>
+              </div>
+            )}
+            {confirmationResent && (
+              <p className="rounded-[6px] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
+                Bestätigungslink erneut gesendet — check deine E-Mails.
               </p>
             )}
             {info && (

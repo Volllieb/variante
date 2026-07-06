@@ -3,22 +3,82 @@
 <head>
 <meta charset="utf-8" />
 <style>
-  body { width: 280px; font-family: -apple-system, Segoe UI, sans-serif; font-size: 13px; margin: 0; padding: 16px; color: #ededed; background: #0a0a0a; }
-  h1 { font-size: 14px; margin: 0 0 4px; color: #ededed; }
-  p.sub { color: rgba(237,237,237,.62); font-size: 11px; margin: 0 0 14px; }
-  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: rgba(237,237,237,.62); }
+  :root {
+    --bg-0: #000000;
+    --bg-1: #0a0a0a;
+    --bg-2: #111111;
+    --border: rgba(255,255,255,.10);
+    --border-strong: rgba(255,255,255,.18);
+    --text: #ededed;
+    --text-2: rgba(237,237,237,.62);
+    --text-3: rgba(237,237,237,.40);
+    --r-ctrl: 6px;
+    --r-pill: 5px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 280px;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px;
+    padding: 16px;
+    color: var(--text);
+    background: var(--bg-1);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Brand pill */
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-2);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 3px 10px;
+    margin-bottom: 12px;
+  }
+  .brand-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text);
+  }
+
+  h1 { font-size: 15px; font-weight: 600; margin: 0 0 4px; color: var(--text); letter-spacing: -.3px; }
+  p.sub { color: var(--text-2); font-size: 11px; margin: 0 0 14px; line-height: 1.5; }
+
+  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: var(--text-2); }
   .input-wrap { position: relative; margin-bottom: 12px; }
-  input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid rgba(255,255,255,.10); border-radius: 6px; font-size: 12px; background: #111111; color: #ededed; }
+  input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--border); border-radius: var(--r-ctrl); font-size: 12px; background: var(--bg-2); color: var(--text); }
   input:focus { outline: none; border-color: rgba(255,255,255,.40); }
   input.err { border-color: #f5455c; box-shadow: 0 0 0 1px rgba(245,69,92,.30); }
   .input-msg { font-size: 11px; min-height: 16px; padding-top: 4px; }
   .input-msg.err { color: #f5455c; }
   .input-msg.ok { color: #2fd76c; }
-  button { width: 100%; padding: 9px; border: none; border-radius: 6px; background: #ffffff; color: #000000; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+
+  button { width: 100%; padding: 9px; border: none; border-radius: var(--r-ctrl); background: var(--text); color: var(--bg-0); font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
   button:hover { opacity: 0.85; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,.18); color: #ededed; margin-top: 6px; }
+  .btn-secondary { background: transparent; border: 1px solid var(--border-strong); color: var(--text); margin-top: 6px; }
   .btn-secondary:hover { background: rgba(255,255,255,.06); opacity: 1; }
+
+  /* Footer */
+  .footer {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+  }
+  .footer-text { font-size: 10px; color: var(--text-3); }
+  .footer-link {
+    font-size: 10px; color: var(--text-2); text-decoration: none;
+    transition: color .15s;
+  }
+  .footer-link:hover { color: var(--text); }
+
   .status { margin-top: 10px; font-size: 11px; min-height: 14px; }
   .status.ok { color: #2fd76c; }
   .status.err { color: #f5455c; }
@@ -26,8 +86,10 @@
 </style>
 </head>
 <body>
-  <h1>Pick Element</h1>
-  <p class="sub">The Figma plugin opens your site automatically. This popup is the manual fallback for the Browser Extension.</p>
+  <div class="brand"><span class="brand-dot"></span>variante</div>
+
+  <h1>A/B Element Picker</h1>
+  <p class="sub">Select any element on your live site as an A/B test target — directly from the variante Figma plugin.</p>
 
   <div id="view-pick">
     <label>testId</label>
@@ -43,6 +105,11 @@
   <div id="view-done" class="hidden">
     <p class="ok" style="font-size:12px;font-weight:600;margin-bottom:10px">✓ Element selected</p>
     <button id="reselect-btn" class="btn-secondary">⟳ New selection</button>
+  </div>
+
+  <div class="footer">
+    <span class="footer-text">Installed during variante onboarding</span>
+    <a class="footer-link" href="https://www.getvariante.com" target="_blank" rel="noopener">Open Dashboard →</a>
   </div>
 
   <script src="popup.js"></script>

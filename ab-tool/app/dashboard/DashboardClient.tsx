@@ -364,7 +364,7 @@ export function DashboardClient({
                 Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs locally.
               </p>
               <a
-                href="https://chromewebstore.google.com/detail/variante"
+                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors duration-200 hover:bg-white/90"

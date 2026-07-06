@@ -4,6 +4,18 @@ import { getSessionUser } from '@/lib/supabaseServer'
 
 export type ApiUser = { userId: string; plan: string }
 
+/**
+ * Garantiert dass ein profiles-Eintrag für den User existiert.
+ * Deckt den Race-Condition-Fall ab, wo der Supabase-auth-Trigger
+ * `handle_new_user` noch nicht gefeuert hat (z. B. OAuth-Signup).
+ * Idempotent — `on conflict do nothing` auf user_id.
+ */
+export async function ensureProfile(userId: string): Promise<void> {
+  await supabase
+    .from('profiles')
+    .upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: true })
+}
+
 // Auth für API-Routen — akzeptiert zwei Wege:
 //   1. Plugin/Extension: Header `Authorization: Bearer <api_token>` (aus profiles).
 //   2. Dashboard (gleiche Origin): eingeloggte Supabase-Session via Cookie.

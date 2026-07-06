@@ -1,11 +1,15 @@
 import { getSessionUser } from '@/lib/supabaseServer'
 import { supabase } from '@/lib/supabase'
+import { ensureProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { OnboardingClient } from './OnboardingClient'
 
 export default async function OnboardingPage(props: { searchParams: Promise<Record<string, string>> }) {
   const user = await getSessionUser()
   if (!user) redirect('/login')
+
+  // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth), jetzt anlegen
+  await ensureProfile(user.id)
 
   const searchParams = await props.searchParams
   const source = searchParams.source || ''

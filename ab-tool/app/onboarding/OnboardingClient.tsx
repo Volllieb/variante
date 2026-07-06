@@ -76,7 +76,7 @@ export function OnboardingClient({
 
             <div className="border-t border-border px-6 pb-6 pt-5 space-y-4">
               <a
-                href="https://chromewebstore.google.com/detail/variante"
+                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-[6px] bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"

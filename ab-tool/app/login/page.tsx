@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [notConfirmed, setNotConfirmed] = useState(false)
+  const [confirmationSent, setConfirmationSent] = useState(false)
   const [sessionChecked, setSessionChecked] = useState(false)
 
   // UX: Bereits eingeloggt → direkt zum Dashboard
@@ -45,13 +47,41 @@ export default function LoginPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setErr('')
+    setNotConfirmed(false)
+    setConfirmationSent(false)
     setLoading(true)
     const supabase = getBrowserSupabase()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
-    if (error) { setErr(error?.message || JSON.stringify(error)); return }
+    if (error) {
+      const msg = (typeof error === 'string' ? error : error.message || JSON.stringify(error)).toLowerCase()
+      if (msg.includes('not confirmed') || msg.includes('email not confirmed')) {
+        setNotConfirmed(true)
+        return
+      }
+      setErr(error?.message || JSON.stringify(error))
+      return
+    }
     router.push('/dashboard')
     router.refresh()
+  }
+
+  async function handleResendConfirmation() {
+    if (!email) return
+    setErr('')
+    setConfirmationSent(false)
+    setLoading(true)
+    const supabase = getBrowserSupabase()
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
+      },
+    })
+    setLoading(false)
+    if (error) { setErr(error.message); return }
+    setConfirmationSent(true)
   }
 
   async function handleReset() {
@@ -174,6 +204,24 @@ export default function LoginPage() {
             {err && (
               <p className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
                 {err}
+              </p>
+            )}
+            {notConfirmed && (
+              <div className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
+                <p>Your email isn't confirmed yet — check your inbox or resend the confirmation link.</p>
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={loading}
+                  className="font-semibold underline transition-colors hover:opacity-80 disabled:opacity-40"
+                >
+                  Resend confirmation email
+                </button>
+              </div>
+            )}
+            {confirmationSent && (
+              <p className="rounded-[6px] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
+                Confirmation link resent — check your email.
               </p>
             )}
             {resetSent && (
