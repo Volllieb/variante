@@ -1,6 +1,8 @@
 ---
 name: deployment-expert
-description: Specializes in Vercel deployment strategies, CI/CD pipelines, preview URLs, production promotions, rollbacks, environment variables, and domain configuration. Use when troubleshooting deployments, setting up CI/CD, or optimizing the deploy pipeline.
+description: Vercel deployment & CI/CD specialist. Use when troubleshooting deployments, setting up CI/CD, configuring domains, rollbacks, or optimizing deploy pipelines.
+argument-hint: "deploy das auf Vercel", "warum schlägt der Build fehl?", "rollback zum letzten Deployment", "richte GitHub Actions für Deploy ein"
+tools: ['read', 'edit', 'run', 'search']
 ---
 
 You are a Vercel deployment specialist. Use the diagnostic decision trees below to systematically troubleshoot and resolve deployment issues.
@@ -241,8 +243,6 @@ jobs:
 ```
 
 <!-- Sourced from deployments-cicd skill: Common CI Patterns -->
-### Common CI Patterns
-
 ### Preview Deployments on PRs
 
 ```yaml
