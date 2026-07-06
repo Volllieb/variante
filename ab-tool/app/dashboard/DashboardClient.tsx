@@ -26,6 +26,8 @@ import {
   Rocket,
   Plug,
   ListFilter,
+  Puzzle,
+  ExternalLink,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) — literal hex/rgba, not Tailwind defaults ── */
@@ -194,6 +196,10 @@ export function DashboardClient({
           <div className="my-2 h-px bg-white/10" />
 
           <NavLink icon={CreditCard} label="Usage" anchor="#usage" />
+
+          <div className="my-2 h-px bg-white/10" />
+
+          <NavLink icon={Puzzle} label="Extension" anchor="#browser-extension" />
         </aside>
 
         {/* ── Main content: two columns, 38% / 62% ── */}
@@ -421,6 +427,24 @@ export function DashboardClient({
 
           {/* ═══ Full width: Plugin token + Snippet installation ═══ */}
           <div className="flex flex-col gap-5 md:col-span-2">
+            {/* Browser Extension */}
+            <div id="browser-extension" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+              <p className="text-[13px] font-medium text-[#ededed]">Browser Extension</p>
+              <p className="mt-1 text-[11px] text-[#ededed]/40">
+                Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs locally.
+              </p>
+              <a
+                href="https://chromewebstore.google.com/detail/variante"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2 text-[11px] font-semibold text-white shadow-md shadow-fuchsia-500/25 transition-all duration-200 hover:scale-[1.02]"
+              >
+                <Puzzle className="h-3.5 w-3.5" />
+                Install from Chrome Web Store
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </a>
+            </div>
+
             <div id="plugin-token" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
               <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
               <p className="mt-1 text-[11px] text-[#ededed]/40">

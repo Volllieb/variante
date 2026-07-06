@@ -203,11 +203,20 @@ export function OnboardingClient({
             {extOpen && (
               <div className="border-t border-white/[0.07] px-6 pb-6 pt-5 space-y-4">
                 <a
+                  href="https://chromewebstore.google.com/detail/variante"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-fuchsia-500/25 transition-all duration-200 hover:scale-[1.02]"
+                >
+                  🧩 Install from Chrome Web Store
+                </a>
+                <p className="text-xs text-white/35">— or install manually —</p>
+                <a
                   href="/chrome-extension.zip"
                   download
                   className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-white/30 hover:text-white"
                 >
-                  ⬇ Download Browser Extension
+                  ⬇ Download ZIP
                 </a>
                 <ol className="space-y-2 text-xs text-white/45 ml-1">
                   <li className="flex gap-2"><span className="shrink-0 text-white/25">1.</span>Unzip the downloaded file</li>
