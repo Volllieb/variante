@@ -48,7 +48,7 @@ export default function PrivacyPage() {
             <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-white">
               Privacy Policy
             </h1>
-            <p className="mt-1.5 text-sm text-white/40">Last updated: June 25, 2026</p>
+            <p className="mt-1.5 text-sm text-white/40">Last updated: July 6, 2026</p>
 
             <div className="mt-10 space-y-8 text-sm leading-relaxed">
 
@@ -128,6 +128,8 @@ export default function PrivacyPage() {
                         ['Vercel Inc.', 'Hosting', 'us-east, USA', 'DPA + SCCs (EU-US DPF)'],
                         ['Stripe Inc.', 'Payments', 'Global', 'DPF certified'],
                         ['OpenAI', 'AI generation', 'US', 'API only, no storage'],
+                        ['Resend Inc.', 'Email notifications', 'US (us-east)', 'DPA + SCCs'],
+                        ['Upstash Inc.', 'Rate limiting (IP addresses)', 'Global', 'DPA + SCCs'],
                       ].map(([service, purpose, location, safeguard], i, arr) => (
                         <tr key={service} className={i < arr.length - 1 ? 'border-b border-white/[0.06]' : ''}>
                           <td className="px-4 py-3 text-white/75">{service}</td>
@@ -159,7 +161,8 @@ export default function PrivacyPage() {
                       {[
                         ['sb-*-auth-token', 'Cookie', 'Session auth', '1 year'],
                         ['__ab_visitor_id', 'localStorage', 'Anonymous visitor ID', 'Persistent'],
-                        ['__ab_variant', 'localStorage', 'Variant assignment', 'Per experiment'],
+                        ['ab_<test_id>', 'localStorage', 'Variant assignment (sticky)', 'Per experiment'],
+                        ['ab_conv_<test_id>', 'sessionStorage', 'Conversion deduplication', 'Session'],
                       ].map(([name, type, purpose, duration], i, arr) => (
                         <tr key={name} className={i < arr.length - 1 ? 'border-b border-white/[0.06]' : ''}>
                           <td className="px-4 py-3"><code className="rounded bg-white/[0.07] px-1.5 py-0.5 font-mono text-fuchsia-200">{name}</code></td>
