@@ -1,25 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import {
-  LogOut,
   FlaskConical,
-  Users,
-  TrendingUp,
-  Zap,
-  List,
-  BarChart3,
-  Globe,
   KeyRound,
   CreditCard,
-  Lock,
-  Rocket,
-  Plug,
-  Puzzle,
-  ExternalLink,
-  Key,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -38,85 +24,54 @@ type DashboardShellProps = {
   children: React.ReactNode
 }
 
+function avatarColor(email: string): string {
+  let hash = 0
+  for (let i = 0; i < email.length; i++) hash = email.charCodeAt(i) + ((hash << 5) - hash)
+  const colors = ['#2fd76c', '#f5a623', '#f5455c', '#ededed']
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function initials(email: string): string {
+  const [name] = email.split('@')
+  return name.slice(0, 2).toUpperCase()
+}
+
 export function DashboardShell({ email, plan, children }: DashboardShellProps) {
-  const isPro = plan === 'pro' || plan === 'agency'
-
-  async function logout() {
-    await getBrowserSupabase().auth.signOut()
-    window.location.href = '/'
-  }
-
-  async function billing(path: 'checkout' | 'portal') {
-    try {
-      const res = await fetch(`/api/billing/${path}`, { method: 'POST' })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else alert(data.error || 'Error')
-    } catch {}
-  }
-
-  async function changePassword() {
-    const supabase = getBrowserSupabase()
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/update-password`,
-    })
-    if (error) alert(error.message)
-    else alert('Password reset link sent to your email.')
-  }
 
   return (
     <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
-      {/* ── Top bar ── */}
-      <header className="sticky top-0 z-50 flex items-center gap-3 border-b border-border bg-bg-0/95 px-5 py-3">
-        <Link href="/dashboard" className="flex items-center gap-2 text-[13px] font-medium text-[#ededed]">
-          <PandaLogo className="h-6 w-6 rounded-[6px]" />
-          variante
-        </Link>
-        <span className="rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/40">
-          {plan}
-        </span>
-        <div className="flex-1" />
-        <span className="hidden text-[13px] text-[#ededed]/40 sm:block">{email}</span>
-        <button
-          onClick={logout}
-          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          Log out
-        </button>
-      </header>
-
       <div className="mx-auto flex max-w-[1400px]">
-        {/* ── Sidebar ── */}
-        <aside className="sticky top-[49px] hidden h-[calc(100vh-49px)] w-[200px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/10 p-3 md:flex">
-          <NavLink icon={FlaskConical} label="Tests" href="/dashboard" />
-          <NavLink icon={Rocket} label="Results" state="soon" />
-          <NavLink icon={List} label="Activity log" state="soon" />
-          <NavLink
-            icon={BarChart3}
-            label="Analytics"
-            state={isPro ? undefined : 'locked'}
-            onClick={!isPro ? () => billing('checkout') : undefined}
-          />
-          <NavLink icon={Globe} label="Domains" state="soon" />
+        {/* ── Sidebar — full height, edge to edge ── */}
+        <aside className="sticky top-0 flex h-screen w-[200px] shrink-0 flex-col border-r border-white/10 p-3">
+          {/* Logo + plan pill */}
+          <Link href="/dashboard" className="mb-1.5 flex items-center gap-2 px-[9px] py-1.5">
+            <PandaLogo className="h-6 w-6 rounded-[6px]" />
+            <span className="text-[13px] font-medium text-[#ededed]">variante</span>
+          </Link>
+          <span className="mb-3 ml-[9px] self-start rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/40">
+            {plan}
+          </span>
 
-          <div className="my-2 h-px bg-white/10" />
+          {/* Nav */}
+          <nav className="flex flex-1 flex-col gap-0.5">
+            <NavLink icon={FlaskConical} label="Overview" href="/dashboard" />
+            <NavLink icon={KeyRound} label="Plugin token" anchor="#plugin-token" />
+            <NavLink icon={CreditCard} label="Billing" anchor="#billing" />
+          </nav>
 
-          <NavLink icon={KeyRound} label="Plugin token" anchor="#plugin-token" />
-          <NavLink icon={Plug} label="Integrations" state="soon" />
-          <NavLink icon={Users} label="Team" state="locked" />
-
-          <div className="my-2 h-px bg-white/10" />
-
-          <NavLink icon={CreditCard} label="Usage" anchor="#usage" />
-
-          <div className="my-2 h-px bg-white/10" />
-
-          <NavLink icon={Puzzle} label="Extension" anchor="#browser-extension" />
-
-          <div className="my-2 h-px bg-white/10" />
-
-          <NavLink icon={Key} label="Change password" onClick={changePassword} />
+          {/* Profile — bottom of sidebar */}
+          <a
+            href="#account-settings"
+            className="flex items-center gap-2.5 rounded-[6px] p-[7px] transition-colors duration-150 hover:bg-[#111111]"
+          >
+            <div
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+              style={{ background: `${avatarColor(email)}1f`, color: avatarColor(email) }}
+            >
+              {initials(email)}
+            </div>
+            <span className="truncate text-[11px] font-medium text-[#ededed]/62">{email}</span>
+          </a>
         </aside>
 
         {/* ── Page content ── */}
@@ -158,7 +113,6 @@ function NavLink({
           Soon
         </span>
       )}
-      {state === 'locked' && <Lock className="h-3 w-3 shrink-0 text-[#ededed]/40" />}
     </>
   )
 

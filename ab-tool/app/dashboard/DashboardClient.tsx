@@ -15,10 +15,11 @@ import {
   Shield,
   Search,
   Plus,
-  Plug,
   ListFilter,
   Puzzle,
   ExternalLink,
+  Key,
+  LogOut,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) — literal hex/rgba, not Tailwind defaults ── */
@@ -107,6 +108,21 @@ export function DashboardClient({
     }
   }
 
+  async function logout() {
+    await getBrowserSupabase().auth.signOut()
+    window.location.href = '/'
+  }
+
+  async function changePassword() {
+    const { data: { user } } = await getBrowserSupabase().auth.getUser()
+    if (!user?.email) { alert('Could not retrieve your email address.'); return }
+    const { error } = await getBrowserSupabase().auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/update-password`,
+    })
+    if (error) alert(error.message)
+    else alert('Password reset link sent to your email.')
+  }
+
   function copyToken() {
     navigator.clipboard.writeText(apiToken).then(() => {
       setCopied(true)
@@ -155,8 +171,8 @@ export function DashboardClient({
           {/* ═══ Left column: Usage / Significance / Recent activity ═══ */}
           <div className="flex flex-col gap-5">
             <div>
-              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Usage</p>
-              <div id="usage" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+              <p className="mb-2 text-[13px] font-medium text-[#ededed]">Billing</p>
+              <div id="billing" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
                 <p className="mb-2.5 text-[13px] font-medium text-[#ededed]">Last 30 days</p>
                 <div className="flex flex-col divide-y divide-white/[0.06]">
                   <QuotaRow
@@ -373,41 +389,43 @@ export function DashboardClient({
             )}
           </div>
 
-          {/* ═══ Full width: Plugin token + Snippet installation ═══ */}
+          {/* ═══ Full width: Plugin + Extension + Snippet + Account ═══ */}
           <div className="flex flex-col gap-5 md:col-span-2">
-            {/* Browser Extension */}
-            <div id="browser-extension" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-              <p className="text-[13px] font-medium text-[#ededed]">Browser Extension</p>
-              <p className="mt-1 text-[11px] text-[#ededed]/40">
-                Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs locally.
-              </p>
-              <a
-                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors duration-200 hover:bg-white/90"
-              >
-                <Puzzle className="h-3.5 w-3.5" />
-                Install from Chrome Web Store
-                <ExternalLink className="h-3 w-3 opacity-60" />
-              </a>
-            </div>
+            {/* Plugin token + Extension side by side */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div id="plugin-token" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
+                <p className="mt-1 text-[11px] text-[#ededed]/40">
+                  Paste once into the Figma plugin to link your tests — this is where new tests are created.
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2.5 font-mono text-[13px] text-[#ededed]/62">
+                    {apiToken}
+                  </code>
+                  <button
+                    onClick={copyToken}
+                    className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                  >
+                    {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
 
-            <div id="plugin-token" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-              <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
-              <p className="mt-1 text-[11px] text-[#ededed]/40">
-                Paste once into the Figma plugin to link your tests — this is where new tests are created.
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2.5 font-mono text-[13px] text-[#ededed]/62">
-                  {apiToken}
-                </code>
-                <button
-                  onClick={copyToken}
-                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+              <div id="browser-extension" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+                <p className="text-[13px] font-medium text-[#ededed]">Browser Extension</p>
+                <p className="mt-1 text-[11px] text-[#ededed]/40">
+                  Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs locally.
+                </p>
+                <a
+                  href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors duration-200 hover:bg-white/90"
                 >
-                  {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
-                </button>
+                  <Puzzle className="h-3.5 w-3.5" />
+                  Install from Chrome Web Store
+                  <ExternalLink className="h-3 w-3 opacity-60" />
+                </a>
               </div>
             </div>
 
@@ -554,6 +572,30 @@ export default function Document() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Account settings */}
+            <div id="account-settings" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+              <p className="text-[13px] font-medium text-[#ededed]">Account settings</p>
+              <p className="mt-1 text-[11px] text-[#ededed]/40">
+                Manage your security and session.
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={changePassword}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                >
+                  <Key className="h-3.5 w-3.5" />
+                  Change password
+                </button>
+                <button
+                  onClick={logout}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors duration-150 hover:border-white/[0.18] hover:text-[#ededed]"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </main>
