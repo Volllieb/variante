@@ -1,7 +1,6 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -61,10 +60,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className="min-h-screen bg-bg-0 text-white/80 antialiased">
-        {children}
-        <Script src="/ab.js" strategy="afterInteractive" />
-      </body>
+      <body className="min-h-screen bg-bg-0 text-white/80 antialiased">{children}</body>
     </html>
   )
 }

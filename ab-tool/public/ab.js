@@ -71,6 +71,23 @@
     } catch (_) {}
   }
 
+  // fetch mit Timeout (5s). Verhindert, dass ab.js blockiert, wenn der
+  // Server nicht antwortet (Cold Start, Netzwerkfehler). Bei Timeout wird
+  // die Seite ohne Variante angezeigt (reveal).
+  function fetchWithTimeout(url, opts) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null
+    var timer = ctrl ? setTimeout(function () { ctrl.abort() }, 5000) : null
+    var fetchOpts = opts || {}
+    if (ctrl) fetchOpts.signal = ctrl.signal
+    return fetch(url, fetchOpts).then(function (r) {
+      if (timer) clearTimeout(timer)
+      return r
+    }, function (err) {
+      if (timer) clearTimeout(timer)
+      throw err
+    })
+  }
+
   // Goal-Selektor normalisieren: legacy "click:.x" → ".x"; leer → Test-Selektor.
   function normGoal(goal, selector) {
     var g = (goal || '').trim()
@@ -206,7 +223,7 @@
     // Erstbesuch: Variante zuweisen lassen. Das B-HTML liegt bereits in der
     // resolve-Antwort (t.variant_b_html) → kein separater /api/variant-Call,
     // weniger Roundtrips = weniger Flicker.
-    return fetch(origin + '/api/assign?testId=' + encodeURIComponent(key))
+    return fetchWithTimeout(origin + '/api/assign?testId=' + encodeURIComponent(key))
       .then(function (r) {
         return r.ok ? r.json() : null
       })
@@ -258,7 +275,7 @@
     // Tests für diesen Host zurück. Client filtert per pathMatches().
     var q = '?host=' + encodeURIComponent(location.host)
 
-    fetch(origin + '/api/resolve' + q)
+    fetchWithTimeout(origin + '/api/resolve' + q)
       .then(function (r) {
         return r.ok ? r.json() : null
       })

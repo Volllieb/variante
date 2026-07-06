@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { sanitizeHtml } from '@/lib/sanitize'
 import { safeError } from '@/lib/safeLog'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 export async function OPTIONS() {
   return preflight('GET, OPTIONS')
@@ -24,6 +25,14 @@ function pathOf(u: string | null | undefined): string {
 }
 
 export async function GET(req: Request) {
+  // Security: Rate-Limiting — maximal 30 Resolve-Calls pro Minute pro IP.
+  // Resolve wird bei jedem Seitenaufruf von ab.js aufgerufen, daher das
+  // gleiche Limit wie /api/event (das ebenfalls pro Seitenaufruf feuert).
+  const ip = getClientIp(req)
+  if (!await checkRateLimit(`resolve:${ip}`, 30, 60_000)) {
+    return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('GET, OPTIONS') })
+  }
+
   const url = new URL(req.url)
   const host = hostOf(url.searchParams.get('host'))
   // DSGVO: path-Parameter wird ignoriert. Der Client sendet nur noch host,
@@ -87,5 +96,13 @@ export async function GET(req: Request) {
     path: pathOf(t.site_url) || null,
   }))
 
-  return Response.json({ tests, badge }, { headers: corsHeaders('GET, OPTIONS') })
+  return Response.json({ tests, badge }, {
+    headers: {
+      ...corsHeaders('GET, OPTIONS'),
+      // Edge-Cache: Vercel cached die Antwort 30s am Edge. Spart DB-Last
+      // bei hochfrequentierten Seiten (jeder Seitenaufruf → resolve-Call).
+      // s-maxage=30: Shared-Cache (CDN) 30s, kein Browser-Cache.
+      'Cache-Control': 'public, s-maxage=30',
+    },
+  })
 }

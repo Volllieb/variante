@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { NewTestFlow } from './NewTestFlow'
 import {
   Copy,
   Check,
@@ -17,6 +18,9 @@ import {
   ExternalLink,
   Key,
   LogOut,
+  Search,
+  Plus,
+  ListFilter,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -48,6 +52,9 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
+const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
+type StatusFilter = (typeof STATUS_FILTERS)[number]
+
 function timeAgo(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
   if (mins < 1) return 'just now'
@@ -75,7 +82,22 @@ export function DashboardClient({
   const [snippetCopied, setSnippetCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const [snippetOpen, setSnippetOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [newTestOpen, setNewTestOpen] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
+
+  function cycleFilter() {
+    setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
+  }
+
+  const filteredTests = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return tests.filter((t) => {
+      const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
+      return mq && (statusFilter === 'all' || t.status === statusFilter)
+    })
+  }, [tests, query, statusFilter])
 
   // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
   useEffect(() => {
@@ -234,23 +256,63 @@ export function DashboardClient({
               </div>
             )}
 
-            {/* Recent tests preview */}
+            {/* Test grid */}
             {tests.length > 0 && (
               <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-[13px] font-medium text-[#ededed]">Recent tests</p>
-                  <Link
-                    href="/dashboard/tests"
-                    className="text-[11px] font-semibold text-[#ededed]/62 hover:text-[#ededed]"
+                {/* Toolbar */}
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Find test…"
+                      className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    onClick={cycleFilter}
+                    title={`Filter: ${statusFilter}`}
+                    className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
                   >
-                    View all →
-                  </Link>
+                    <ListFilter className="h-3.5 w-3.5" />
+                    {statusFilter !== 'all' && (
+                      <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setNewTestOpen(true)}
+                    className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    New test
+                  </button>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {tests.slice(0, 3).map((t, i) => (
-                    <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} />
-                  ))}
-                </div>
+
+                {/* New test flow overlay */}
+                {newTestOpen && (
+                  <NewTestFlow
+                    apiToken={apiToken}
+                    currentTestCount={tests.length}
+                    hasFigmaPlugin={hasFigmaPlugin}
+                    onClose={() => setNewTestOpen(false)}
+                  />
+                )}
+
+                {/* Grid */}
+                {filteredTests.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-10 text-center">
+                    <p className="text-[13px] font-medium text-[#ededed]/62">
+                      {query ? `No tests match "${query}"` : 'No tests in this filter'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {filteredTests.map((t, i) => (
+                      <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
         </div>

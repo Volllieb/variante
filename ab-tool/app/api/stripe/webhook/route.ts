@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { stripe } from '@/lib/stripe'
+import { revalidateTag } from 'next/cache'
 import type Stripe from 'stripe'
 
 // ponytail: Idempotenz via stripe_webhook_events (Event-ID als PK).
@@ -76,6 +77,29 @@ export async function POST(req: Request) {
           .update({ plan, plan_status: sub.status })
           .eq('stripe_customer_id', customerId)
         break
+      }
+    }
+
+    // Invalidate cached profile for this user after any plan change
+    // (checkout.session.completed and subscription.* both update profiles.plan)
+    const customerIds = new Set<string>()
+    if (event.type === 'checkout.session.completed') {
+      const s = event.data.object as Stripe.Checkout.Session
+      const cid = typeof s.customer === 'string' ? s.customer : s.customer?.id
+      if (cid) customerIds.add(cid)
+    } else if (event.type.startsWith('customer.subscription')) {
+      const sub = event.data.object as Stripe.Subscription
+      const cid = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id
+      if (cid) customerIds.add(cid)
+    }
+    for (const cid of customerIds) {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('stripe_customer_id', cid)
+        .maybeSingle()
+      if (prof) {
+        revalidateTag('profile', `user-${prof.user_id}`)
       }
     }
 
