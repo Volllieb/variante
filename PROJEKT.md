@@ -87,6 +87,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 | Datum | Eintrag |
 |---|---|
 | 06.07.2026 | **Dogfood-Tests pausiert.** Beide aktiven Tests auf getvariante.com / www.getvariante.com auf paused gesetzt. Hardcoded Landingpage-Badge bleibt — kein doppelter Badge mehr via ab.js. |
+| 06.07.2026 | **CI-Fix: Vercel-Deploy in GitHub Actions repariert.** `--yes`-Flag für non-interactive CI (kein TTY). Node 20 → 22 (deprecated). `VERCEL_ORG_ID` + `VERCEL_PROJECT_ID` als env vars (`.vercel/` ist gitignored → GitHub Actions fand kein Projekt). |
 | 06.07.2026 | **Security-Hardening.** SRI-Hash für ab.js generiert + in allen Snippet-Beispielen ergänzt. max_tokens: 4096 in /api/generate gesetzt. CORS-Doku (Access-Control-Max-Age 600s). Security-Headers: X-Frame-Options: SAMEORIGIN + HSTS für Pages. Upstash Redis-Code ready, Env-Vars noch zu setzen. |
 | 06.07.2026 | **Auth-Guard Results + Decoupling + Loading/Error States.** Results-Page prüft Session-User gegen `test.user_id` (fremde UUIDs → 404). Winner-Logik aus `getExperimentStats` entfernt (GET read-only, Cron + Event-Route setzen Winner). `loading.tsx` + `error.tsx` für `results/[id]` und `dashboard`. Build grün. |
 | 06.07.2026 | **Migrationen 009 + 010 in Production ausgeführt.** `profiles.onboarded`, `events`, `daily_stats`, `domains` Tabellen + `log_event()`, `snapshot_daily_stats()` RPCs jetzt live. Onboarding-Gate kann wieder aktiviert werden. Alle API-Routen funktionsfähig. |
