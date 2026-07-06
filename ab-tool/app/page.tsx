@@ -213,48 +213,24 @@ export default function HomePage() {
       </a>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border px-6 py-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
-            {/* Brand */}
-            <div className="flex flex-col gap-1.5">
-              <Link
-                href="/"
-                className="flex items-center gap-2.5 text-sm font-semibold text-white transition-opacity duration-200 hover:opacity-80"
-              >
-                <PandaLogo className="h-5 w-5 rounded-md p-0.5" />
-                variante
-              </Link>
-              <p className="text-sm text-text-3">
-                A/B testing from Figma. No dev needed.
-              </p>
-              <p className="text-sm text-text-3">Made in Bavaria.</p>
-            </div>
-
-            {/* Links */}
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                Legal
-              </p>
-              <Link
-                href="/privacy"
-                className="text-sm text-text-2 transition-colors duration-200 hover:text-text"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/imprint"
-                className="text-sm text-text-2 transition-colors duration-200 hover:text-text"
-              >
-                Imprint
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-8 border-t border-border pt-6">
-            <p className="text-xs text-text-3">
-              © 2026 Variante. All rights reserved.
-            </p>
+      <footer className="border-t border-border px-6 py-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 sm:flex-row sm:justify-between">
+          <p className="text-xs text-text-3">
+            © 2026 Variante · Made in Bavaria
+          </p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/privacy"
+              className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/imprint"
+              className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
+            >
+              Imprint
+            </Link>
           </div>
         </div>
       </footer>
