@@ -1,8 +1,9 @@
 import { supabase } from '@/lib/supabase'
-import { determineWinner } from '@/lib/significance'
 
 // ponytail: original_html/variant_b_html/site_css werden mitgeliefert
 // für die Preview-Komponente auf der Results-Seite. Kein Extra-Request nötig.
+// Kein Winner-Update mehr beim Lesen — Winner werden im Cron-Job (stündlich)
+// und in der Event-Route (real-time) gesetzt. GET ist read-only.
 
 export type VariantStats = {
   id: string
@@ -61,29 +62,8 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const userId: string | null = test.user_id || null
   const minVisitors = test.min_visitors ?? 100
   const minUplift = test.min_uplift ?? 0.05
-
-  // Auto-Gewinner-Fallback: Wird die Besucher-Schwelle überschritten, ohne dass
-  // eine weitere Conversion /api/event triggert, würde der Gewinner nie gesetzt.
-  // Beim Dashboard-Poll daher erneut auswerten und ggf. einmalig persistieren.
-  // Nur für Pro — im Free-Tier ist die Signifikanz-/Gewinner-Logik gesperrt.
-  let status = test.status
-  let winner: string | null = test.winner ?? null
-  if (pro && !winner) {
-    const computed = determineWinner(
-      test.significance ?? 0,
-      test.conversions_a ?? 0,
-      test.conversions_b ?? 0,
-      test.visitors_a ?? 0,
-      test.visitors_b ?? 0,
-      minVisitors,
-      minUplift
-    )
-    if (computed) {
-      winner = computed
-      status = 'done'
-      await supabase.from('tests').update({ winner: computed, status: 'done' }).eq('id', test.id)
-    }
-  }
+  const status = test.status
+  const winner: string | null = test.winner ?? null
 
   return {
     id: test.id,
