@@ -18,9 +18,30 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
+      // Statische Assets: langes Caching (fingerprinted via Next.js Build)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Public Assets (ab.js, icon.svg): 1h Stale + Revalidate
+      {
+        source: '/:file(ab.js|icon.svg|chrome-extension.zip)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' },
+        ],
+      },
+      // Fonts: 1 Jahr Cache
+      {
+        source: '/_next/static/media/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
       // Pages: Weniger strikt (Dashboard braucht Framing für Preview-iframes nicht)
       {
-        source: '/((?!api).*)',
+        source: '/((?!api|_next).*)',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },

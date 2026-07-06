@@ -1,3 +1,13 @@
+import Image from 'next/image'
+
 export function PandaLogo({ className }: { className: string }) {
-  return <img src="/icon.svg" alt="Variante" className={`bg-white object-contain ${className}`} />
+  return (
+    <Image
+      src="/icon.svg"
+      alt="Variante"
+      width={28}
+      height={28}
+      className={`bg-white object-contain ${className}`}
+    />
+  )
 }
