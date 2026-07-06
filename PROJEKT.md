@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 06.07.2026 — Security-Hardening: SRI, max_tokens, Security-Headers, CORS-Doku, Upstash pending |
+| **Stand** | 06.07.2026 — Security-Hardening abgeschlossen, Upstash Redis live, alles deployed |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -88,7 +88,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 |---|---|
 | 06.07.2026 | **Dogfood-Tests pausiert.** Beide aktiven Tests auf getvariante.com / www.getvariante.com auf paused gesetzt. Hardcoded Landingpage-Badge bleibt — kein doppelter Badge mehr via ab.js. |
 | 06.07.2026 | **CI-Fix: Vercel-Deploy in GitHub Actions repariert.** `--yes`-Flag für non-interactive CI (kein TTY). Node 20 → 22 (deprecated). `VERCEL_ORG_ID` + `VERCEL_PROJECT_ID` als env vars (`.vercel/` ist gitignored → GitHub Actions fand kein Projekt). |
-| 06.07.2026 | **Security-Hardening.** SRI-Hash für ab.js generiert + in allen Snippet-Beispielen ergänzt. max_tokens: 4096 in /api/generate gesetzt. CORS-Doku (Access-Control-Max-Age 600s). Security-Headers: X-Frame-Options: SAMEORIGIN + HSTS für Pages. Upstash Redis-Code ready, Env-Vars noch zu setzen. |
+| 06.07.2026 | **Upstash Redis live.** DB `amazing-mudfish-98038` (Free Tier, us-east-1), Env-Vars in Vercel Production + Preview gesetzt. Rate-Limiter zählt jetzt global über alle Serverless-Instanzen. |
 | 06.07.2026 | **Auth-Guard Results + Decoupling + Loading/Error States.** Results-Page prüft Session-User gegen `test.user_id` (fremde UUIDs → 404). Winner-Logik aus `getExperimentStats` entfernt (GET read-only, Cron + Event-Route setzen Winner). `loading.tsx` + `error.tsx` für `results/[id]` und `dashboard`. Build grün. |
 | 06.07.2026 | **Migrationen 009 + 010 in Production ausgeführt.** `profiles.onboarded`, `events`, `daily_stats`, `domains` Tabellen + `log_event()`, `snapshot_daily_stats()` RPCs jetzt live. Onboarding-Gate kann wieder aktiviert werden. Alle API-Routen funktionsfähig. |
 | 03.07.2026 | **Cron-Fix: console.error → safeError.** check-winners verwendet jetzt safeError statt rohem console.error für E-Mail-Fehlschläge. |
@@ -149,13 +149,13 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 - **Monolith** (`ab-tool/`). Kein Microservice-Split bis >1000 Tests/Tag.
 - **Eine Produktions-URL** (`www.getvariante.com`). Kein Staging bis >10 Kunden.
-- **Supabase only.** Kein Redis, Kafka, TimescaleDB.
+- **Supabase + Upstash Redis.** Kein Kafka, TimescaleDB. Redis nur für Rate-Limiting (Free Tier).
 - **ab.js bleibt Vanilla JS.** Kein npm, kein Build. Das ist der USP.
 
 ## §11 Offene Baustellen
 
 | # | Thema | Status | Aktion |
 |---|---|---|---|
-| 1 | Upstash Redis Env-Vars | 🔴 Offen | Free-Tier-DB auf [upstash.com](https://upstash.com) erstellen, `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` als Vercel Env-Vars setzen. Code in `rateLimit.ts` ready. |
+| 1 | Upstash Redis Env-Vars | ✅ Erledigt | `amazing-mudfish-98038.upstash.io`, Free Tier, beide Env-Vars in Vercel gesetzt (Production + Preview). |
 | 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
 | 3 | OpenAI-Kosten-Tracking | 🟡 Monitoring | `max_tokens: 4096` begrenzt pro Call, aber kein globales Spend-Limit. OpenAI Usage Limits setzen. |
