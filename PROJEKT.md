@@ -28,7 +28,7 @@
 | Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
 | Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
-| KI-Agenten | Cline (DeepSeek V4 Pro) + GitHub Copilot · Config: `.github/agents/`, `.agents/skills/` |
+| KI-Agenten | Cline (DeepSeek V4 Pro) + GitHub Copilot · 7 Custom Agents: `@ponytail`, `@redesign`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo` · Config: `.github/agents/`, `.agents/skills/` |
 
 ## §3 Struktur
 

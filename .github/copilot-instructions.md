@@ -14,6 +14,7 @@
 | `@deployment-expert` | deploy, vercel, CI/CD, environment, "deploy das" | Vercel-Deployments, CI/CD, Env-Vars |
 | `@performance-optimizer` | performance, Core Web Vitals, caching, "mach das schneller" | Core Web Vitals, Rendering-Strategien, Caching |
 | `@ai-architect` | architektur, AI-SDK, Vercel AI, "wie baue ich X mit AI" | AI-Architektur, Vercel AI SDK, Agent-Design |
+| `@seo` | SEO, Meta-Tags, Structured Data, Sitemap, robots.txt, Core Web Vitals, SERP, JSON-LD | Ganzheitliche Suchmaschinenoptimierung |
 | `Explore` | codebase search, "wo ist X?", "wie hängt Y zusammen?" | Read-only Code-Exploration |
 
 ## Skills
