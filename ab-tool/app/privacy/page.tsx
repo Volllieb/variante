@@ -96,6 +96,8 @@ export default function PrivacyPage() {
                   {[
                     ['Account data', 'until account deletion.'],
                     ['Experiment data', '12 months after the last conversion event, then automatically deleted.'],
+                    ['Event log', 'deleted automatically when the associated test is deleted (cascade).'],
+                    ['Waitlist entries', '12 months after submission, then automatically deleted.'],
                     ['Logs (Vercel)', '7 days.'],
                     ['Anonymized statistics', 'retained indefinitely (no personal reference).'],
                   ].map(([label, body]) => (
@@ -124,7 +126,7 @@ export default function PrivacyPage() {
                     </thead>
                     <tbody>
                       {[
-                        ['Supabase Inc.', 'Database & Auth', 'Frankfurt, DE', 'DPA + SCCs'],
+                        ['Supabase Inc.', 'Database, Auth & Google OAuth', 'Frankfurt, DE', 'DPA + SCCs'],
                         ['Vercel Inc.', 'Hosting', 'us-east, USA', 'DPA + SCCs (EU-US DPF)'],
                         ['Stripe Inc.', 'Payments', 'Global', 'DPF certified'],
                         ['OpenAI', 'AI generation', 'US', 'API only, no storage'],
