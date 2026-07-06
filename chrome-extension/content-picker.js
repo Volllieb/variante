@@ -5,6 +5,12 @@
 // Hover-highlight + click capture: selector, outerHTML, filtered CSS,
 // framework, goal_candidates.
 
+// Guard against double injection (auto-flow + popup can race).
+// Uses a DOM attribute — survives across multiple executeScript calls in the
+// same tab, unlike window properties which are per-closure.
+if (!document.documentElement.hasAttribute('data-ab-picker-injected')) {
+document.documentElement.setAttribute('data-ab-picker-injected', '1')
+
 ;(function () {
   const DEFAULT_API = 'https://www.getvariante.com'
 
@@ -307,3 +313,5 @@
     }
   })
 })()
+
+} // close double-injection guard
