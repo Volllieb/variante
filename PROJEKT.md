@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 06.07.2026 | **Root-Cleanup.** `dashboard-source.html` (HTML-Dump), `test.md` (Duplikat von E2E-CHECKLIST.md) gelöscht. `dashboard-redesign-plan.md` → `z.future-features/` (abgeschlossenes Redesign, dient als Doku). |
 | 06.07.2026 | **Cold-Outreach Email-Agent.** Reverse-Funnel: hello@getvariante.com → Resend Inbound → POST /api/email/inbound → OpenAI-Klassifikation (gpt-4o-mini, 5 Kategorien) → Auto-Reply mit Reverse-Pitch („Messt ihr eure Conversions?"). Rate-Limiting: 1 Antwort pro Sender/90 Tage via `email_auto_responses`-Tabelle. Migration 014. |
 | 06.07.2026 | **Dashboard-Redesign umgesetzt.** Tab-System (Overview/Tests), Stats-Bar (Active/Visitors/Conversions/Plan), Winner-Alert, Sidebar mit Account-Link, NewTestFlow mit Polling+Zustandsmaschine (idle→awaiting_figma→test_received/timeout/error), Test-Card Highlight-Animation. `PATCH /api/profile` akzeptiert jetzt `onboarded`. `POST /api/tests` setzt `has_figma_plugin`. Migration 013 für `has_figma_plugin`-Flag. Build grün, deployed. |
 | 06.07.2026 | **E2E auf Fremd-Site durchgeführt.** Snippet → Traffic → Conversions → Winner kompletter Loop getestet. **OpenAI Usage-Limit:** `OPENAI_MAX_MONTHLY_COST` Env-Var + `profiles.monthly_gen_cost` + Check in /api/generate (Migration 012). |
