@@ -8,31 +8,39 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth), jetzt anlegen
-  await ensureProfile(user.id)
-
   const searchParams = await props.searchParams
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('api_token, plan, onboarded, has_figma_plugin')
-    .eq('user_id', user.id)
-    .single()
+  // Parallel: Profile + Tests gleichzeitig starten (kein Waterfall)
+  const [profileRes, testsRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('api_token, plan, onboarded, has_figma_plugin')
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('tests')
+      .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+  ])
 
-  if (profile && !profile.onboarded) redirect('/onboarding')
+  const profile = profileRes.data
+  const tests = testsRes.data
 
-  const { data: tests } = await supabase
-    .from('tests')
-    .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
+  if (!profile) {
+    await ensureProfile(user.id)
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} highlightNew={searchParams.new === '1'} />
+  }
+
+  if (!profile.onboarded) redirect('/onboarding')
 
   return (
     <DashboardClient
-      plan={profile?.plan ?? 'free'}
-      apiToken={profile?.api_token ?? ''}
+      plan={profile.plan ?? 'free'}
+      apiToken={profile.api_token ?? ''}
       tests={tests ?? []}
-      hasFigmaPlugin={profile?.has_figma_plugin ?? false}
+      hasFigmaPlugin={profile.has_figma_plugin ?? false}
       highlightNew={searchParams.new === '1'}
     />
   )

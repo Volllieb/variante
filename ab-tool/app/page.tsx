@@ -76,7 +76,7 @@ export default function HomePage() {
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3">
           <Link
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
@@ -102,21 +102,21 @@ export default function HomePage() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="px-6 py-24 text-center sm:py-32">
+      <section className="px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-32">
         <div className="mx-auto max-w-3xl">
-          <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
             A/B Testing for AI-built sites.
-            <br />
+            <br className="hidden sm:block" />
             From Figma. No dev needed.
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-white/55">
+          <p className="mx-auto mt-4 max-w-xl text-base text-white/55 sm:text-lg">
             Pick an element on your live site, redesign it in Figma, and let AI generate Variant B.
             One snippet serves and tracks everything.
           </p>
-          <div className="mt-9">
+          <div className="mt-8 sm:mt-9">
             <Link
               href="/signup"
-              className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
+              className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
             >
               Start free — install Figma plugin
             </Link>
@@ -128,7 +128,7 @@ export default function HomePage() {
       </section>
 
       {/* ── How It Works ── */}
-      <section className="px-6 py-20">
+      <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-xl font-semibold text-white">How it works</h2>
           <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -148,12 +148,12 @@ export default function HomePage() {
       </section>
 
       {/* ── Pricing ── */}
-      <section className="px-6 py-20">
+      <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-xl font-semibold text-white">Pricing</h2>
           <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
             {/* Free */}
-            <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+            <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-8">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
                 Free
               </p>
@@ -178,7 +178,7 @@ export default function HomePage() {
             </div>
 
             {/* Pro */}
-            <div className="relative rounded-[10px] border border-pro/30 bg-bg-1 p-8">
+            <div className="relative rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-8">
               <span className="absolute -top-3 right-6 rounded-full bg-pro-bg px-3 py-1 text-[11px] font-semibold text-pro">
                 Most popular
               </span>
@@ -218,14 +218,14 @@ export default function HomePage() {
       {/* ── Badge Demo ── */}
       <a
         href="/signup"
-        className="fixed bottom-4 right-4 z-50 rounded-md bg-bg-2 px-3 py-1.5 text-[11px] font-semibold text-white no-underline opacity-90 transition-opacity hover:opacity-100"
+        className="fixed bottom-3 right-3 z-50 rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
         A/B by Variante
       </a>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border px-6 py-6">
+      <footer className="border-t border-border px-4 py-5 sm:px-6 sm:py-6">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <p className="text-xs text-text-3">
             © 2026 Variante · Made in Bavaria

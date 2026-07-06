@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { cache } from 'react'
 
 // Supabase-Client für den Dashboard-Pfad (Server Components + Billing-Routen),
 // der die eingeloggte Session aus den Cookies liest. Anon-Key + RLS.
@@ -29,10 +30,12 @@ export async function getServerSupabase() {
 }
 
 // Eingeloggten User der aktuellen Session zurückgeben (oder null).
-export async function getSessionUser() {
+// React.cache() dedupliziert innerhalb eines Requests — Layout + Page
+// teilen sich denselben Aufruf statt 2× cookies() + getUser().
+export const getSessionUser = cache(async () => {
   const supabase = await getServerSupabase()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   return user
-}
+})

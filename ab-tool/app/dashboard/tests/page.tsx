@@ -8,27 +8,35 @@ export default async function TestsPage() {
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  await ensureProfile(user.id)
+  // Parallel: Profile + Tests gleichzeitig starten
+  const [profileRes, testsRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('plan, onboarded, has_figma_plugin, api_token')
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('tests')
+      .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+  ])
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('plan, onboarded, has_figma_plugin, api_token')
-    .eq('user_id', user.id)
-    .single()
+  const profile = profileRes.data
+  const tests = testsRes.data
 
-  if (profile && !profile.onboarded) redirect('/onboarding')
+  if (!profile) {
+    await ensureProfile(user.id)
+    return <TestsClient apiToken="" tests={[]} hasFigmaPlugin={false} />
+  }
 
-  const { data: tests } = await supabase
-    .from('tests')
-    .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  if (!profile.onboarded) redirect('/onboarding')
 
   return (
     <TestsClient
-      apiToken={profile?.api_token ?? ''}
+      apiToken={profile.api_token ?? ''}
       tests={tests ?? []}
-      hasFigmaPlugin={profile?.has_figma_plugin ?? false}
+      hasFigmaPlugin={profile.has_figma_plugin ?? false}
     />
   )
 }
