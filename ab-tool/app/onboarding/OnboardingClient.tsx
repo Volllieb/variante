@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Copy, Check, ArrowRight, Zap } from 'lucide-react'
+import { Copy, Check, ArrowRight, Zap, Puzzle } from 'lucide-react'
 
 export function OnboardingClient({
   email,
@@ -81,7 +81,7 @@ export function OnboardingClient({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-[6px] bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
               >
-                🧩 Install from Chrome Web Store
+                <Puzzle className="h-4 w-4" /> Install from Chrome Web Store
               </a>
               <p className="text-xs text-text-3">— or install manually —</p>
               <a
