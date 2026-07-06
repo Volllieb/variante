@@ -41,7 +41,7 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 └── __tests__/
 chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
-db/migrations/          # Supabase SQL (001–011)
+db/migrations/          # Supabase SQL (001–012)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ```
 
@@ -86,7 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
-| 06.07.2026 | **E2E auf Fremd-Site durchgeführt.** Snippet → Traffic → Conversions → Winner kompletter Loop getestet. **OpenAI Usage-Limit:** `OPENAI_MAX_MONTHLY_COST` Env-Var + `profiles.monthly_gen_cost` + Check in /api/generate (Migration 011). |
+| 06.07.2026 | **E2E auf Fremd-Site durchgeführt.** Snippet → Traffic → Conversions → Winner kompletter Loop getestet. **OpenAI Usage-Limit:** `OPENAI_MAX_MONTHLY_COST` Env-Var + `profiles.monthly_gen_cost` + Check in /api/generate (Migration 012). |
 | 06.07.2026 | **Dogfood-Tests pausiert.** Beide aktiven Tests auf getvariante.com / www.getvariante.com auf paused gesetzt. Hardcoded Landingpage-Badge bleibt — kein doppelter Badge mehr via ab.js. |
 | 06.07.2026 | **CI-Fix: Vercel-Deploy in GitHub Actions repariert.** `--yes`-Flag für non-interactive CI (kein TTY). Node 20 → 22 (deprecated). `VERCEL_ORG_ID` + `VERCEL_PROJECT_ID` als env vars (`.vercel/` ist gitignored → GitHub Actions fand kein Projekt). |
 | 06.07.2026 | **Upstash Redis live.** DB `amazing-mudfish-98038` (Free Tier, us-east-1), Env-Vars in Vercel Production + Preview gesetzt. Rate-Limiter zählt jetzt global über alle Serverless-Instanzen. |
@@ -160,4 +160,4 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 |---|---|---|---|
 | 1 | Upstash Redis Env-Vars | ✅ Erledigt | `amazing-mudfish-98038.upstash.io`, Free Tier, beide Env-Vars in Vercel gesetzt (Production + Preview). |
 | 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
-| 3 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 011. |
+| 3 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 012. |

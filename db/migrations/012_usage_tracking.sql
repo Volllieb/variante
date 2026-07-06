@@ -1,4 +1,4 @@
--- Migration 011 — OpenAI Usage-Tracking & Limit
+-- Migration 012 — OpenAI Usage-Tracking & Limit
 -- Fügt monthly_gen_cost + monthly_gen_reset zu profiles hinzu.
 -- /api/generate prüft vor jedem OpenAI-Call das Limit und inkrementiert danach.
 -- Idempotent. Ausführen im Supabase SQL-Editor:
