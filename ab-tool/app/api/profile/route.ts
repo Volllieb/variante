@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('plan, plan_status, notify_on_winner, last_plugin_sync_at, created_at')
+    .select('plan, plan_status, onboarded, notify_on_winner, last_plugin_sync_at, created_at')
     .eq('user_id', user.userId)
     .single()
 

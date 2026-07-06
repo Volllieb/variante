@@ -9,12 +9,11 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan')
+    .select('api_token, plan, onboarded')
     .eq('user_id', user.id)
     .single()
 
-  // TODO: Onboarding-Gate wieder aktivieren sobald Migration 009 in Production läuft.
-  // if (profile && !profile.onboarded) redirect('/onboarding')
+  if (profile && !profile.onboarded) redirect('/onboarding')
 
   const { data: tests } = await supabase
     .from('tests')
