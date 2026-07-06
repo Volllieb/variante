@@ -20,13 +20,14 @@
     width: 280px;
     font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 13px;
-    padding: 16px;
+    padding: 20px;
     color: var(--text);
     background: var(--bg-1);
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Brand pill */
+  /* Header group */
+  .header { margin-bottom: 20px; }
   .brand {
     display: inline-flex;
     align-items: center;
@@ -38,72 +39,104 @@
     border: 1px solid var(--border);
     border-radius: var(--r-pill);
     padding: 3px 10px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .brand-dot {
     width: 6px; height: 6px;
     border-radius: 50%;
     background: var(--text);
   }
+  h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+    letter-spacing: -.3px;
+  }
+  .sub {
+    color: var(--text-2);
+    font-size: 11px;
+    line-height: 1.5;
+  }
 
-  h1 { font-size: 15px; font-weight: 600; margin: 0 0 4px; color: var(--text); letter-spacing: -.3px; }
-  p.sub { color: var(--text-2); font-size: 11px; margin: 0 0 14px; line-height: 1.5; }
-
-  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 4px; color: var(--text-2); }
-  .input-wrap { position: relative; margin-bottom: 12px; }
-  input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--border); border-radius: var(--r-ctrl); font-size: 12px; background: var(--bg-2); color: var(--text); }
+  /* Form group */
+  .form-group { margin-bottom: 18px; }
+  label { display: block; font-weight: 600; font-size: 11px; margin-bottom: 6px; color: var(--text-2); }
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-ctrl);
+    font-size: 12px;
+    background: var(--bg-2);
+    color: var(--text);
+    transition: border-color .15s;
+  }
   input:focus { outline: none; border-color: rgba(255,255,255,.40); }
   input.err { border-color: #f5455c; box-shadow: 0 0 0 1px rgba(245,69,92,.30); }
-  .input-msg { font-size: 11px; min-height: 16px; padding-top: 4px; }
+  .input-msg { font-size: 11px; min-height: 16px; margin-top: 4px; }
   .input-msg.err { color: #f5455c; }
   .input-msg.ok { color: #2fd76c; }
 
-  button { width: 100%; padding: 9px; border: none; border-radius: var(--r-ctrl); background: var(--text); color: var(--bg-0); font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: var(--r-ctrl);
+    background: var(--text);
+    color: var(--bg-0);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
   button:hover { opacity: 0.85; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-secondary { background: transparent; border: 1px solid var(--border-strong); color: var(--text); margin-top: 6px; }
+  .btn-secondary { background: transparent; border: 1px solid var(--border-strong); color: var(--text); margin-top: 8px; }
   .btn-secondary:hover { background: rgba(255,255,255,.06); opacity: 1; }
 
   /* Footer */
   .footer {
-    margin-top: 14px;
-    padding-top: 10px;
+    margin-top: 18px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
   }
   .footer-text { font-size: 10px; color: var(--text-3); }
   .footer-link {
-    font-size: 10px; color: var(--text-2); text-decoration: none;
+    font-size: 10px;
+    color: var(--text-2);
+    text-decoration: none;
     transition: color .15s;
+    white-space: nowrap;
   }
   .footer-link:hover { color: var(--text); }
 
-  .status { margin-top: 10px; font-size: 11px; min-height: 14px; }
-  .status.ok { color: #2fd76c; }
-  .status.err { color: #f5455c; }
   .hidden { display: none; }
 </style>
 </head>
 <body>
-  <div class="brand"><span class="brand-dot"></span>variante</div>
-
-  <h1>A/B Element Picker</h1>
-  <p class="sub">Select any element on your live site as an A/B test target — directly from the variante Figma plugin.</p>
+  <div class="header">
+    <div class="brand"><span class="brand-dot"></span>variante</div>
+    <h1>A/B Element Picker</h1>
+    <p class="sub">Select any element on your live site as an A/B test target — directly from the variante Figma plugin.</p>
+  </div>
 
   <div id="view-pick">
-    <label>testId</label>
-    <div class="input-wrap">
+    <div class="form-group">
+      <label for="test-id">testId</label>
       <input id="test-id" placeholder="e.g. 3f9a…" list="dl-testid" />
       <datalist id="dl-testid"></datalist>
+      <div class="input-msg" id="input-msg"></div>
     </div>
-    <div class="input-msg" id="input-msg"></div>
-
     <button id="start">Pick element on page</button>
   </div>
 
   <div id="view-done" class="hidden">
-    <p class="ok" style="font-size:12px;font-weight:600;margin-bottom:10px">✓ Element selected</p>
+    <p style="font-size:12px;font-weight:600;margin-bottom:10px;color:#2fd76c;">✓ Element selected</p>
     <button id="reselect-btn" class="btn-secondary">⟳ New selection</button>
   </div>
 
