@@ -60,6 +60,7 @@ export default function SignupPage() {
     setInfo('')
     setAlreadyRegistered(false)
     setLoading(true)
+    if (norm(email) === password) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
       const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
