@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [notConfirmed, setNotConfirmed] = useState(false)
   const [confirmationSent, setConfirmationSent] = useState(false)
+  const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
   // UX: Bereits eingeloggt → direkt zum Dashboard
@@ -99,6 +100,7 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     setErr('')
+    setGoogleErr('')
     setGoogleLoading(true)
     const supabase = getBrowserSupabase()
     const { error } = await supabase.auth.signInWithOAuth({
@@ -108,7 +110,16 @@ export default function LoginPage() {
       },
     })
     setGoogleLoading(false)
-    if (error) setErr(error.message)
+    if (error) {
+      const msg = (typeof error === 'string' ? error : error.message || '').toLowerCase()
+      if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
+        setGoogleErr('This Google account is already linked to a different user. Try logging in with email + password instead.')
+      } else if (msg.includes('provider') || msg.includes('identity')) {
+        setGoogleErr('Couldn\'t sign in with Google. If you registered with email + password, use the login form above.')
+      } else {
+        setErr(error.message)
+      }
+    }
   }
 
   if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
@@ -204,6 +215,11 @@ export default function LoginPage() {
             {err && (
               <p className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
                 {err}
+              </p>
+            )}
+            {googleErr && (
+              <p className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
+                {googleErr}
               </p>
             )}
             {notConfirmed && (

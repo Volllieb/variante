@@ -25,6 +25,7 @@ export default function SignupPage() {
   const [confirmationResent, setConfirmationResent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
   // UX: Bereits eingeloggt → direkt zum Dashboard
@@ -108,6 +109,7 @@ export default function SignupPage() {
 
   async function handleGoogleSignup() {
     setErr('')
+    setGoogleErr('')
     setGoogleLoading(true)
     const supabase = getBrowserSupabase()
     const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
@@ -118,7 +120,16 @@ export default function SignupPage() {
       },
     })
     setGoogleLoading(false)
-    if (error) setErr(error.message)
+    if (error) {
+      const msg = (typeof error === 'string' ? error : error.message || '').toLowerCase()
+      if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
+        setGoogleErr('This Google account is already linked to another account. Try logging in instead.')
+      } else if (msg.includes('provider') || msg.includes('identity')) {
+        setGoogleErr('An account with this email already exists. Sign up with a different email or log in.')
+      } else {
+        setErr(error.message)
+      }
+    }
   }
 
   if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
@@ -212,6 +223,11 @@ export default function SignupPage() {
             {err && (
               <p className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
                 {err}
+              </p>
+            )}
+            {googleErr && (
+              <p className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
+                {googleErr}
               </p>
             )}
             {alreadyRegistered && (

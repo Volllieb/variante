@@ -1,7 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import {
   Copy,
   Check,
@@ -69,6 +71,7 @@ export function DashboardClient({
   apiToken: string
   tests: TestRow[]
 }) {
+  const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [snippetCopied, setSnippetCopied] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -76,6 +79,18 @@ export function DashboardClient({
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const isPro = plan === 'pro' || plan === 'agency'
+
+  // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
+  useEffect(() => {
+    const supabase = getBrowserSupabase()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        router.push('/')
+        router.refresh()
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [router])
 
   async function billing(path: 'checkout' | 'portal') {
     setBusy(true)
