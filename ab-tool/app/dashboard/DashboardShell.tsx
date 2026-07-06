@@ -45,7 +45,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
 
   async function logout() {
     await getBrowserSupabase().auth.signOut()
-    router.push('/login')
+    router.push('/')
     router.refresh()
   }
 

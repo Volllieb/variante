@@ -79,7 +79,7 @@ export async function POST(req: Request) {
                     <p>Your A/B test <strong>"${t.name}"</strong> has a winner!</p>
                     <p>Variant <strong>${winner}</strong> won with statistical significance.</p>
                     <p>
-                      <a href="https://www.getvariante.com/results/${t.id}">View results →</a>
+                      <a href="https://www.getvariante.com/dashboard/results/${t.id}">View results →</a>
                     </p>
                     <hr>
                     <p style="color:#888;font-size:12px">
