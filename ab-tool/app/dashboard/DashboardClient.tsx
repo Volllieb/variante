@@ -85,11 +85,12 @@ export function DashboardClient({
     const supabase = getBrowserSupabase()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        window.location.href = '/'
+        router.push('/')
+        router.refresh()
       }
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [router])
 
   async function billing(path: 'checkout' | 'portal') {
     setBusy(true)

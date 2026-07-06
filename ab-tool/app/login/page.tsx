@@ -15,10 +15,10 @@ type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
 
 function classify(error: any): ErrKind {
   const msg = (typeof error === 'string' ? error : error?.message || JSON.stringify(error)).toLowerCase()
-  if (!msg) return 'network'
+  if (!msg) return 'generic'
   if (msg.includes('not confirmed') || msg.includes('email not confirmed')) return 'not-confirmed'
-  if (msg.includes('too many') || msg.includes('rate') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
-  if (msg.includes('fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
+  if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
+  if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
   return 'generic'
 }
 
@@ -81,14 +81,14 @@ export default function LoginPage() {
       setLoading(false)
       router.push('/dashboard')
       router.refresh()
-    } catch (e: any) {
+    } catch {
       setLoading(false)
       setErr('Connection failed. Check your internet and try again.')
     }
   }
 
   async function handleResendConfirmation() {
-    if (!email) return
+    if (!email) { setErr('Enter your email first, then click "Resend confirmation email".'); return }
     setErr('')
     setConfirmationSent(false)
     setLoading(true)
