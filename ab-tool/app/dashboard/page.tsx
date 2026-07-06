@@ -23,7 +23,6 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   return (
     <DashboardClient
-      email={user.email ?? ''}
       plan={profile?.plan ?? 'free'}
       apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
