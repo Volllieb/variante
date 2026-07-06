@@ -32,11 +32,7 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 ## Phase 1: Landing Page
 
-- [ ] **Seite lädt** — `www.getvariante.com` öffnet, 4 Bereiche sichtbar
-- [ ] **Header** — PandaLogo + "variante", "Log in", "Sign up — free"
-- [ ] **Hero** — H1 "A/B Testing for AI-built sites. From Figma. No dev needed.", Subtext + "Start free — install Figma plugin"-CTA
-- [ ] **How It Works** — 3 Steps: 01 Pick any element, 02 Generate in Figma, 03 Ship & track
-- [ ] **Pricing** — Free (0 €, 1 Experiment, Badge an) vs Pro (35 €/mo, unbegrenzt, kein Badge), "Most popular"-Badge auf Pro
+
 - [ ] **Footer** — "Made in Bavaria", Privacy, Imprint, © 2026
 - [ ] **Badge-Demo** — "A/B by Variante"-Floating-Badge unten rechts, klickbar → `/signup`
 

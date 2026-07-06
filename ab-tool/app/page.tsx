@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointerClick, Sparkles, Rocket } from 'lucide-react'
+import { Check, MousePointerClick, Sparkles, Rocket, Zap } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Variante — A/B Testing from Figma',
@@ -41,18 +41,19 @@ const steps = [
 ]
 
 const freeFeatures = [
-  '1 active experiment',
-  'AI variant generation',
-  'Conversion tracking',
-  '"variante" badge on site',
+  { label: '1 active experiment', pro: false },
+  { label: 'AI variant generation', pro: false },
+  { label: 'Conversion tracking', pro: false },
+  { label: '"Powered by Variante" badge', pro: false },
 ]
 
 const proFeatures = [
-  'Unlimited experiments',
-  'AI variant generation',
-  'Full statistics & significance',
-  'No badge',
-  'Priority support',
+  { label: 'Unlimited experiments', pro: true },
+  { label: 'AI variant generation', pro: false },
+  { label: 'Statistical significance analysis', pro: true },
+  { label: 'Auto-winner detection', pro: true },
+  { label: 'No branding on site', pro: true },
+  { label: 'Priority support', pro: true },
 ]
 
 /* ── Page ── */
@@ -147,11 +148,12 @@ export default function HomePage() {
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-4xl font-semibold text-white">0 €</span>
               </div>
+              <p className="mt-1 text-xs text-text-3">Forever free. No credit card.</p>
               <ul className="mt-6 space-y-2.5 text-sm">
                 {freeFeatures.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
+                  <li key={f.label} className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 shrink-0 text-ok" />
-                    <span className="text-white/70">{f}</span>
+                    <span className="text-white/60">{f.label}</span>
                   </li>
                 ))}
               </ul>
@@ -159,27 +161,34 @@ export default function HomePage() {
                 href="/signup"
                 className="mt-8 inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
-                Install plugin
+                Start free
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="relative rounded-[10px] border border-border-strong bg-bg-1 p-8">
-              <p className="text-xs font-semibold uppercase tracking-wider text-pro">
+            <div className="relative rounded-[10px] border border-pro/30 bg-bg-1 p-8">
+              <span className="absolute -top-3 right-6 rounded-full bg-pro-bg px-3 py-1 text-[11px] font-semibold text-pro">
                 Most popular
-              </p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-text-3">
+              </span>
+              <p className="text-xs font-semibold uppercase tracking-wider text-pro">
                 Pro
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-4xl font-semibold text-white">35 €</span>
                 <span className="text-sm text-text-3">/mo</span>
               </div>
+              <p className="mt-1 text-xs text-text-3">Everything in Free, plus:</p>
               <ul className="mt-6 space-y-2.5 text-sm">
                 {proFeatures.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 shrink-0 text-ok" />
-                    <span className="text-white/70">{f}</span>
+                  <li key={f.label} className="flex items-center gap-2.5">
+                    {f.pro ? (
+                      <Zap className="h-4 w-4 shrink-0 text-pro" />
+                    ) : (
+                      <Check className="h-4 w-4 shrink-0 text-ok" />
+                    )}
+                    <span className={f.pro ? 'text-white/80' : 'text-white/60'}>
+                      {f.label}
+                    </span>
                   </li>
                 ))}
               </ul>
