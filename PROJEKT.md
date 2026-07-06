@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 06.07.2026 — E2E auf Fremd-Site durchgeführt, Upstash Redis live, OpenAI Usage-Limit gesetzt, Email-Agent live |
+| **Stand** | 06.07.2026 — E2E auf Fremd-Site durchgeführt, Dashboard-Redesign live, Email-Agent live |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -35,7 +35,7 @@
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, cron, domains, email/inbound, event, events, generate, profile, resolve, results, stripe, tests, token, variant
-├── app/dashboard/ login/ onboarding/ signup/ results/ imprint/ privacy/
+├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/
 ├── lib/                # auth, cors, emailAgent, stats, significance, stripe, supabase, rateLimit, sanitize, safeLog
 ├── public/ab.js        # Snippet
 └── __tests__/
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 06.07.2026 | **SEO: Landingpage-Audit + 4 kritische Fixes.** `robots.ts` (allow /, disallow auth/dashboard/api), `sitemap.ts` (5 URLs), JSON-LD Organization in `layout.tsx`, `og:image` + `twitter:card` in `layout.tsx` + `page.tsx`, Title-Optimierung (Keyword first, ~140 Zeichen). Offen: echtes OG-Image (128×128 SVG zu klein), strukturierte Daten für Subpages ausbauen. |
 | 06.07.2026 | **Root-Cleanup.** `dashboard-source.html` (HTML-Dump), `test.md` (Duplikat von E2E-CHECKLIST.md) gelöscht. `dashboard-redesign-plan.md` → `z.future-features/` (abgeschlossenes Redesign, dient als Doku). |
 | 06.07.2026 | **Cold-Outreach Email-Agent.** Reverse-Funnel: hello@getvariante.com → Resend Inbound → POST /api/email/inbound → OpenAI-Klassifikation (gpt-4o-mini, 5 Kategorien) → Auto-Reply mit Reverse-Pitch („Messt ihr eure Conversions?"). Rate-Limiting: 1 Antwort pro Sender/90 Tage via `email_auto_responses`-Tabelle. Migration 014. |
 | 06.07.2026 | **Dashboard: Tab-System entfernt, Overview/Tests als separate Seiten.** Sidebar: Tests-Link → `/dashboard/tests`, Billing+Account nach unten gruppiert, Setup-Tools in eigener Sektion. `TestsClient.tsx` extrahiert. Build grün, deployed. |
@@ -165,3 +166,64 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 | 1 | Upstash Redis Env-Vars | ✅ Erledigt | `amazing-mudfish-98038.upstash.io`, Free Tier, beide Env-Vars in Vercel gesetzt (Production + Preview). |
 | 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
 | 3 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 012. |
+
+## §12 Dashboard-Architektur
+
+> Erkenntnisse aus der Brainstorming-Session vom 06.07.2026.
+> Vollständiger Plan: `z.future-features/dashboard-redesign-plan.md`
+
+### 12.1 Produkt-Ebenen
+
+| Ebene | Ort | Zweck |
+|---|---|---|
+| **Onboarding** | `/onboarding` | Einmaliges Setup: Chrome Extension installieren + Figma Plugin verbinden. Danach nie wieder. |
+| **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. Kein Setup-Cruft. |
+| **Creation** | Figma Plugin | Wizard zum Erstellen von Varianten. Browser wartet per Polling auf neue Tests. |
+| **Quick-Check** | Chrome Extension | „Läuft auf dieser Seite ein Test? Welche Variante sehe ich?" — kein Creation-Tool. |
+
+### 12.2 „New test"-Flow
+
+**Prinzip:** Dashboard = Hub, Figma = Creation. Kein Web-Editor (Anti-Roadmap).
+
+```
+User klickt [+ New test]
+         │
+         ├─ has_figma_plugin === true
+         │    → "Open Figma" → Polling startet
+         │
+         └─ has_figma_plugin === false
+              → "Install Figma Plugin first" → Link zu /onboarding
+```
+
+**Polling-Zustandsmaschine:** `idle → awaiting_figma → test_received | timeout | cancelled`
+
+- `GET /api/tests` alle 3s, vergleicht `tests.length` mit Snapshot
+- Neuer Test gefunden → Highlight-Animation in Test-Liste
+- Timeout nach 5 Minuten → „No test received" mit Retry/Cancel
+- Cancel jederzeit möglich — kein Gefängnis. Figma kann auch ohne vorherigen Klick Tests pushen.
+
+**Flag `profiles.has_figma_plugin`:** Wird bei erstem erfolgreichen Figma-Token-Austausch gesetzt (Migration 013). Steuert den „New test"-Flow.
+
+### 12.3 Dashboard-Layout
+
+- **Sidebar:** Overview, Tests (separate Page), Setup-Tools (Plugin & Extension, Snippet), Billing + Account (unten gruppiert)
+- **Overview:** Stats-Bar (Active tests, Visitors, Conversions, Plan) + Winner-Alert (Pro-only)
+- **Tests:** Eigene `/dashboard/tests`-Seite mit Search, Status-Filter, Test-Cards (Visitor-Bar, CR, Uplift-Badge)
+- **Sektionen unter Overview/Tests:** Plugin-Token + Extension (2-Col), Snippet (Collapsible), Billing, Account
+
+### 12.4 Gateway-Architektur
+
+| Gateway | Trigger | Ziel |
+|---|---|---|
+| Landingpage → Signup | CTA | `/signup` |
+| Signup → Onboarding | Registrierung | `/onboarding` |
+| Onboarding → Dashboard | „Go to Dashboard" + `PATCH /api/profile { onboarded: true }` | `/dashboard` |
+| Dashboard → Figma | „+ New test" | Figma Plugin (später: `figma://` Deep Link) |
+| Figma → Dashboard | Plugin pusht Test via API | Dashboard erkennt neuen Test per Polling |
+
+### 12.5 Design-Prinzipien
+
+- **Free/Pro sichtbar, nie versteckt.** Eingeschränkte Features bleiben ausgegraut mit Upgrade-Pfad.
+- **Empty States als Guide.** Kein leeres Dashboard — immer eine Handlungsaufforderung.
+- **Polling statt WebSockets.** Kein SSE/WS nötig für Plugin↔Dashboard-Sync. 3s-Poll reicht.
+- **Setup-Tools persistent sichtbar.** Plugin-Token und Extension-Link bleiben im Dashboard (Sidebar/Footer), auch nach Onboarding — für Teammates oder Gerätewechsel.
