@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Copy, Check, ArrowRight, Zap, Puzzle, ChevronDown } from 'lucide-react'
+import { Copy, Check, ArrowRight, Zap } from 'lucide-react'
 
 export function OnboardingClient({
   email,
@@ -23,7 +23,6 @@ export function OnboardingClient({
   const [tokenCopied, setTokenCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const [upgradeSkipped, setUpgradeSkipped] = useState(false)
-  const [extOpen, setExtOpen] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
 
   function copyToken() {
@@ -63,6 +62,85 @@ export function OnboardingClient({
 
         <main className="mx-auto max-w-xl px-6 py-12 space-y-5">
 
+          {/* 1. Browser Extension — step 1 */}
+          <div className="rounded-[10px] border border-border bg-bg-1 overflow-hidden">
+            <div className="px-6 py-5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-bg-2 text-xs font-semibold text-text-3">1</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">Install the Browser Extension</p>
+                  <p className="mt-0.5 text-xs text-text-3">The element picker runs locally — install once, works everywhere.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border px-6 pb-6 pt-5 space-y-4">
+              <a
+                href="https://chromewebstore.google.com/detail/variante"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-[6px] bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
+              >
+                🧩 Install from Chrome Web Store
+              </a>
+              <p className="text-xs text-text-3">— or install manually —</p>
+              <a
+                href="/chrome-extension.zip"
+                download
+                className="inline-flex items-center gap-2 rounded-[6px] border border-border px-5 py-2 text-sm font-semibold text-text transition-colors duration-200 hover:border-border-strong hover:text-white"
+              >
+                ⬇ Download ZIP
+              </a>
+              <ol className="space-y-2 text-xs text-text-3 ml-1">
+                <li className="flex gap-2"><span className="shrink-0 text-text-3">1.</span>Unzip the downloaded file</li>
+                <li className="flex gap-2"><span className="shrink-0 text-text-3">2.</span>Open Chrome → <code className="rounded-[4px] bg-bg-2 px-1.5 py-0.5 font-mono text-[10px] text-text">chrome://extensions</code></li>
+                <li className="flex gap-2"><span className="shrink-0 text-text-3">3.</span>Enable <strong className="text-text-2">Developer mode</strong> (top right)</li>
+                <li className="flex gap-2"><span className="shrink-0 text-text-3">4.</span>Click <strong className="text-text-2">Load unpacked</strong> → select the unzipped folder</li>
+                <li className="flex gap-2"><span className="shrink-0 text-text-3">5.</span>Done — you only need to do this once</li>
+              </ol>
+            </div>
+          </div>
+
+          {/* 2. Plugin Token — step 2 */}
+          <div className="rounded-[10px] border border-border bg-bg-1 p-6">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-bg-2 text-xs font-semibold text-text-3">2</span>
+              <p className="text-sm font-semibold text-white">Connect the Figma Plugin</p>
+            </div>
+            <p className="mt-1 text-xs text-text-3">
+              Copy your token and paste it into the Variante Figma plugin to link it to your account.
+            </p>
+
+            <div className="mt-4 flex items-center gap-2">
+              <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-border bg-bg-2 px-3 py-2.5 font-mono text-xs text-ok">
+                {apiToken}
+              </code>
+              <button
+                onClick={copyToken}
+                className="flex shrink-0 h-9 w-9 items-center justify-center rounded-[6px] border border-border bg-bg-1 text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
+              >
+                {tokenCopied ? <Check className="h-4 w-4 text-ok" /> : <Copy className="h-4 w-4" />}
+              </button>
+            </div>
+
+            <div className="mt-4 flex items-start gap-3 rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3">
+              <span className="mt-0.5 text-sm">💡</span>
+              <p className="text-xs leading-relaxed text-pro">
+                <strong className="font-semibold">Next:</strong>{' '}
+                Open the{' '}
+                <a
+                  href="https://www.figma.com/community/plugin/123456/variante"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline transition-colors hover:opacity-80"
+                >
+                  Variante Figma Plugin
+                </a>
+                {' '}— the connect screen is ready for your token.
+              </p>
+            </div>
+          </div>
+
           {/* Upgraded banner */}
           {upgraded && (
             <div className="rounded-[6px] border border-ok/20 bg-ok-bg px-5 py-4 text-sm text-ok text-center">
@@ -87,37 +165,6 @@ export function OnboardingClient({
               <code className="rounded-[4px] bg-bg-2 px-1.5 py-0.5 font-mono text-[11px] text-text">&lt;head&gt;</code>{' '}
               tracks conversions — no dev pipeline needed.
             </p>
-          </div>
-
-          {/* Plugin Token */}
-          <div className="rounded-[10px] border border-border bg-bg-1 p-6">
-            <div className="mb-1 flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-bg-2 text-xs">🔑</span>
-              <p className="text-sm font-semibold text-white">Your Plugin Token</p>
-            </div>
-            <p className="mt-1 text-xs text-text-3">
-              This token links the Figma plugin to your account. Copy it, then paste it into the plugin&apos;s connect screen.
-            </p>
-
-            <div className="mt-4 flex items-center gap-2">
-              <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-border bg-bg-2 px-3 py-2.5 font-mono text-xs text-ok">
-                {apiToken}
-              </code>
-              <button
-                onClick={copyToken}
-                className="flex shrink-0 h-9 w-9 items-center justify-center rounded-[6px] border border-border bg-bg-1 text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
-              >
-                {tokenCopied ? <Check className="h-4 w-4 text-ok" /> : <Copy className="h-4 w-4" />}
-              </button>
-            </div>
-
-            <div className="mt-4 flex items-start gap-3 rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3">
-              <span className="mt-0.5 text-sm">💡</span>
-              <p className="text-xs leading-relaxed text-pro">
-                <strong className="font-semibold text-pro">Next step:</strong>{' '}
-                Go back to Figma. Open the Variante plugin — the connect screen is ready for your token. Paste it there.
-              </p>
-            </div>
           </div>
 
           {/* Upgrade — free users only */}
@@ -170,51 +217,6 @@ export function OnboardingClient({
               </div>
             </div>
           )}
-
-          {/* Browser Extension */}
-          <div className="rounded-[10px] border border-border bg-bg-1 overflow-hidden">
-            <button
-              onClick={() => setExtOpen(o => !o)}
-              className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-white/[0.02]"
-            >
-              <div className="flex items-center gap-3">
-                <Puzzle className="h-4 w-4 text-text-3" />
-                <div>
-                  <p className="text-sm font-semibold text-white">Browser Extension</p>
-                  <p className="mt-0.5 text-xs text-text-3">Install once — the element picker runs locally</p>
-                </div>
-              </div>
-              <ChevronDown className={`h-4 w-4 shrink-0 text-text-3 transition-transform duration-200 ${extOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {extOpen && (
-              <div className="border-t border-border px-6 pb-6 pt-5 space-y-4">
-                <a
-                  href="https://chromewebstore.google.com/detail/variante"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-[6px] bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
-                >
-                  🧩 Install from Chrome Web Store
-                </a>
-                <p className="text-xs text-text-3">— or install manually —</p>
-                <a
-                  href="/chrome-extension.zip"
-                  download
-                  className="inline-flex items-center gap-2 rounded-[6px] border border-border px-5 py-2 text-sm font-semibold text-text transition-colors duration-200 hover:border-border-strong hover:text-white"
-                >
-                  ⬇ Download ZIP
-                </a>
-                <ol className="space-y-2 text-xs text-text-3 ml-1">
-                  <li className="flex gap-2"><span className="shrink-0 text-text-3">1.</span>Unzip the downloaded file</li>
-                  <li className="flex gap-2"><span className="shrink-0 text-text-3">2.</span>Open Chrome → <code className="rounded-[4px] bg-bg-2 px-1.5 py-0.5 font-mono text-[10px] text-text">chrome://extensions</code></li>
-                  <li className="flex gap-2"><span className="shrink-0 text-text-3">3.</span>Enable <strong className="text-text-2">Developer mode</strong> (top right)</li>
-                  <li className="flex gap-2"><span className="shrink-0 text-text-3">4.</span>Click <strong className="text-text-2">Load unpacked</strong> → select the unzipped folder</li>
-                  <li className="flex gap-2"><span className="shrink-0 text-text-3">5.</span>Done — you only need to do this once</li>
-                </ol>
-              </div>
-            )}
-          </div>
 
           {/* CTA */}
           <div className="pb-4 text-center">
