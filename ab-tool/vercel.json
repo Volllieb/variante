@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/snapshot-stats",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-webhooks",
+      "schedule": "0 2 * * 0"
+    },
+    {
+      "path": "/api/cron/cleanup-data",
+      "schedule": "0 3 * * 0"
     }
   ]
 }
