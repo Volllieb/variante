@@ -5,6 +5,58 @@ import { safeError } from '@/lib/safeLog'
 
 export const maxDuration = 60
 
+// Geschätzte Kosten pro Generation (gpt-4o-mini): ~$0.15/1M Input + ~$0.60/1M Output.
+// Bei max_tokens=4096 ist der Worst-Case-Output ~$0.0025. Inklusive Input-Prompt
+// (Figma-JSON + CSS + System-Prompt) runden wir auf $0.005 pro Call — bewusst
+// überschätzt, damit das Limit nie unterschritten wird.
+const ESTIMATED_COST_PER_GEN = 0.005
+const MAX_MONTHLY_COST = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
+
+// =============================================================================
+// DSGVO / GDPR: PII-Scanner für Original-HTML vor OpenAI-Sendung.
+// Scannt das HTML vor der Übergabe an OpenAI auf personenbezogene Daten.
+// Funde führen zu einem 422-Fehler mit Hinweis, welche PII-Typen gefunden wurden.
+// =============================================================================
+
+interface PIIFindings {
+  emails: string[]
+  phones: string[]
+  ibans: string[]
+  cards: string[]
+  ips: string[]
+}
+
+type PIIKey = keyof PIIFindings
+
+const PII_PATTERNS: Array<{ key: PIIKey; re: RegExp; label: string }> = [
+  { key: 'emails', re: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, label: 'email addresses' },
+  { key: 'phones', re: /(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{3,8}/g, label: 'phone numbers' },
+  { key: 'ibans', re: /\b[A-Z]{2}\d{2}[A-Z0-9]{1,30}\b/g, label: 'IBANs' },
+  { key: 'cards', re: /\b(?:\d[ -]*?){13,19}\b/g, label: 'credit card numbers' },
+  { key: 'ips', re: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, label: 'IP addresses' },
+]
+
+const PII_HAYSTACK_THRESHOLD = 8
+
+function scanPII(html: string | null): PIIFindings | null {
+  if (!html || html.length < PII_HAYSTACK_THRESHOLD) return null
+  const findings: PIIFindings = { emails: [], phones: [], ibans: [], cards: [], ips: [] }
+  let found = false
+  for (const { key, re } of PII_PATTERNS) {
+    const matches = html.match(re)
+    if (!matches?.length) continue
+    const filtered = matches.filter(m => {
+      if (key === 'phones') { const d = m.replace(/\D/g, ''); return d.length >= 7 && d.length <= 15 }
+      if (key === 'cards') { const d = m.replace(/\D/g, ''); return d.length >= 13 && d.length <= 19 }
+      if (key === 'ips') { const o = m.split('.').map(Number); return o.length === 4 && o.every(x => x >= 0 && x <= 255) }
+      return true
+    })
+    if (filtered.length > 0) { findings[key] = filtered; found = true }
+  }
+  return found ? findings : null
+}
+
+
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
 }
@@ -286,6 +338,60 @@ export async function POST(req: Request) {
     return Response.json({ error: 'test not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  // DSGVO: PII-Scan vor OpenAI-Sendung. original_html kann personenbezogene
+  // Daten enthalten (E-Mails, Telefonnummern im gepickten DOM-Element).
+  const pii = scanPII(test.original_html)
+  if (pii) {
+    const fields = PII_PATTERNS.filter(p => pii[p.key]?.length).map(p => p.label)
+    console.warn('[generate] PII detected in original_html, blocking OpenAI send:', fields)
+    return Response.json(
+      {
+        error: 'PII detected in element content',
+        message: `The selected element contains personal data (${fields.join(', ')}). Remove it from your page and try again.`,
+        piiFields: fields,
+      },
+      { status: 422, headers: corsHeaders('POST, OPTIONS') }
+    )
+  }
+
+  // Usage-Limit: monatliches OpenAI-Budget pro User prüfen.
+  // monthly_gen_cost wird in profiles geführt und bei Monatswechsel zurückgesetzt.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('monthly_gen_cost, monthly_gen_reset')
+    .eq('user_id', user.userId)
+    .single()
+
+  const now = new Date()
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+  let currentCost = 0
+
+  if (profile) {
+    const resetDate = profile.monthly_gen_reset
+    // Monatswechsel oder kein Reset-Datum → Zähler zurücksetzen
+    if (!resetDate || resetDate !== currentMonth) {
+      await supabase
+        .from('profiles')
+        .update({ monthly_gen_cost: 0, monthly_gen_reset: currentMonth })
+        .eq('user_id', user.userId)
+    } else {
+      currentCost = Number(profile.monthly_gen_cost) || 0
+    }
+  } else {
+    // Profil existiert nicht (sollte nicht vorkommen, aber defensive)
+    await supabase
+      .from('profiles')
+      .update({ monthly_gen_cost: 0, monthly_gen_reset: currentMonth })
+      .eq('user_id', user.userId)
+  }
+
+  if (currentCost >= MAX_MONTHLY_COST) {
+    return Response.json(
+      { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
+      { status: 429, headers: corsHeaders('POST, OPTIONS') }
+    )
+  }
+
   // Mit Feedback + vorigem Output → Verfeinerung, sonst Erstgenerierung.
   const isRefinement = !!(feedback && previousHtml)
   const prompt =
@@ -345,6 +451,13 @@ export async function POST(req: Request) {
     safeError('generate', updateErr)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
+
+  // Cost-Tracking: geschätzte Kosten inkrementieren (idempotent via RPC).
+  // Monats-Reset passiert automatisch beim nächsten Check (s.o.).
+  await supabase.rpc('increment_gen_cost', {
+    p_user_id: user.userId,
+    p_amount: ESTIMATED_COST_PER_GEN,
+  })
 
   const response: Record<string, unknown> = { html: variantHtml, siteCss: test.site_css || null }
   if (warnings.length) response.warnings = warnings
