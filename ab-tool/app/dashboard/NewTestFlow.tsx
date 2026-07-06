@@ -46,11 +46,12 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, onClos
     try {
       const res = await fetch('/api/tests')
       if (!res.ok) return
-      const tests = await res.json()
+      const data = await res.json()
       if (!mountedRef.current) return
-      if (Array.isArray(tests) && tests.length > currentTestCount) {
+      const list = data.tests ?? data
+      if (Array.isArray(list) && list.length > currentTestCount) {
         setState('test_received')
-        setTestName(tests[tests.length - 1]?.name ?? 'New test')
+        setTestName(list[list.length - 1]?.name ?? 'New test')
       }
     } catch { /* ignore network errors during polling */ }
   }, [currentTestCount])
@@ -74,7 +75,7 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, onClos
   }
 
   function goToTest() {
-    router.push('/dashboard?tab=tests')
+    router.push('/dashboard?tab=tests&new=1')
     router.refresh()
     onClose()
   }

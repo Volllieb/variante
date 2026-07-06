@@ -11,6 +11,8 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth), jetzt anlegen
   await ensureProfile(user.id)
 
+  const searchParams = await props.searchParams
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('api_token, plan, onboarded, has_figma_plugin')
@@ -31,6 +33,8 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
       hasFigmaPlugin={profile?.has_figma_plugin ?? false}
+      highlightNew={searchParams.new === '1'}
+      initialTab={searchParams.tab === 'tests' ? 'tests' : 'overview'}
     />
   )
 }

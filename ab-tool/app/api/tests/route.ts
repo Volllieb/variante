@@ -104,6 +104,13 @@ export async function POST(req: Request) {
     p_message: `Test "${name}" created`,
   })
 
+  // Erstmaliger Figma-Plugin-Token-Austausch → Flag setzen
+  await supabase
+    .from('profiles')
+    .update({ has_figma_plugin: true })
+    .eq('user_id', user.userId)
+    .eq('has_figma_plugin', false)
+
   return Response.json(
     { id: data.id, snippet_key: data.snippet_key },
     { headers: corsHeaders('POST, OPTIONS') }

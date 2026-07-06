@@ -1,5 +1,5 @@
 ---
-name: performance-optimizer
+name: vercel performance-optimizer
 description: Vercel performance optimization specialist. Core Web Vitals, rendering strategies, caching, image optimization, font loading, bundle size. Use when investigating slow pages, improving Lighthouse scores, or optimizing loading performance.
 argument-hint: "optimier die Ladezeit", "Lighthouse-Score verbessern", "Core Web Vitals fixen", "zu langsame Seite"
 tools: ['read', 'edit', 'run', 'search']

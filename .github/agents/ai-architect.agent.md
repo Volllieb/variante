@@ -1,5 +1,5 @@
 ---
-name: ai-architect
+name: vercel-ai-architect
 description: AI architecture specialist for Vercel ecosystem. AI SDK patterns, provider configuration, agent design, durable workflows, MCP servers. Use when designing AI features, building chatbots, or creating agentic applications.
 argument-hint: "wie baue ich einen Chatbot?", "AI SDK einrichten", "Agent mit Tools erstellen", "Provider-Failover konfigurieren"
 tools: ['read', 'edit', 'run', 'search']

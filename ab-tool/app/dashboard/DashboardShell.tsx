@@ -7,6 +7,7 @@ import {
   KeyRound,
   Code2,
   CreditCard,
+  Settings,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -59,6 +60,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
             <NavLink icon={KeyRound} label="Plugin & Extension" anchor="#plugin-token" />
             <NavLink icon={Code2} label="Snippet" anchor="#snippet" />
             <NavLink icon={CreditCard} label="Billing" anchor="#billing" />
+            <NavLink icon={Settings} label="Account" anchor="#account-settings" />
           </nav>
 
           {/* Profile — bottom of sidebar */}

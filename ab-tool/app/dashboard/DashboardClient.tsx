@@ -70,11 +70,15 @@ export function DashboardClient({
   apiToken,
   tests,
   hasFigmaPlugin,
+  highlightNew,
+  initialTab,
 }: {
   plan: string
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
+  highlightNew?: boolean
+  initialTab?: Tab
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -83,7 +87,7 @@ export function DashboardClient({
   const [snippetOpen, setSnippetOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [tab, setTab] = useState<Tab>('overview')
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'overview')
   const [newTestOpen, setNewTestOpen] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
 
@@ -281,8 +285,8 @@ export function DashboardClient({
                   </button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {tests.slice(0, 3).map((t) => (
-                    <TestCard key={t.id} t={t} />
+                  {tests.slice(0, 3).map((t, i) => (
+                    <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} />
                   ))}
                 </div>
               </div>
@@ -693,7 +697,7 @@ function StatCard({
   )
 }
 
-function TestCard({ t }: { t: TestRow }) {
+function TestCard({ t, highlight }: { t: TestRow; highlight?: boolean }) {
   const va = t.visitors_a ?? 0
   const vb = t.visitors_b ?? 0
   const ca = t.conversions_a ?? 0
@@ -708,6 +712,7 @@ function TestCard({ t }: { t: TestRow }) {
     <Link
       href={`/dashboard/results/${t.id}`}
       className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
+      style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

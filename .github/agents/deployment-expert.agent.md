@@ -1,5 +1,5 @@
 ---
-name: deployment-expert
+name: vercel deployment-expert
 description: Vercel deployment & CI/CD specialist. Use when troubleshooting deployments, setting up CI/CD, configuring domains, rollbacks, or optimizing deploy pipelines.
 argument-hint: "deploy das auf Vercel", "warum schlägt der Build fehl?", "rollback zum letzten Deployment", "richte GitHub Actions für Deploy ein"
 tools: ['read', 'edit', 'run', 'search']

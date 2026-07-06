@@ -42,3 +42,8 @@ html {
     transition-duration: 0.01ms !important;
   }
 }
+
+@keyframes testPulse {
+  0% { background-color: rgba(47, 215, 108, 0.12); }
+  100% { background-color: transparent; }
+}

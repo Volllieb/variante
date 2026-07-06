@@ -31,7 +31,7 @@ export async function PATCH(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('PATCH, OPTIONS')
 
-  let body: { notify_on_winner?: boolean }
+  let body: { notify_on_winner?: boolean; onboarded?: boolean }
   try {
     body = await req.json()
   } catch {
@@ -40,6 +40,7 @@ export async function PATCH(req: Request) {
 
   const patch: Record<string, unknown> = {}
   if (typeof body.notify_on_winner === 'boolean') patch.notify_on_winner = body.notify_on_winner
+  if (typeof body.onboarded === 'boolean') patch.onboarded = body.onboarded
 
   if (Object.keys(patch).length === 0) {
     return Response.json({ error: 'nothing to update' }, { status: 400, headers: corsHeaders('PATCH, OPTIONS') })
