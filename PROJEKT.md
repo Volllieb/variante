@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 06.07.2026 — E2E auf Fremd-Site durchgeführt, Upstash Redis live, OpenAI Usage-Limit gesetzt |
+| **Stand** | 06.07.2026 — E2E auf Fremd-Site durchgeführt, Upstash Redis live, OpenAI Usage-Limit gesetzt, Email-Agent live |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -23,7 +23,7 @@
 | API + Dashboard | Next.js 16 (App Router) auf Vercel |
 | Datenbank + Auth | Supabase (Postgres + JWT) |
 | Billing | Stripe (Checkout, Portal, Webhooks) |
-| Rate-Limiting | Upstash Redis (@upstash/redis, Free Tier) |
+| E-Mail | Resend (Inbound + Outbound) — Winner-Mails, Auto-Reply-Agent |
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
 | Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
 | Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
@@ -34,14 +34,14 @@
 
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
-├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token, variant
+├── app/api/            # analytics, assign, billing, capture, cron, domains, email/inbound, event, events, generate, profile, resolve, results, stripe, tests, token, variant
 ├── app/dashboard/ login/ onboarding/ signup/ results/ imprint/ privacy/
-├── lib/                # auth, cors, stats, significance, stripe, supabase, rateLimit, sanitize, safeLog
+├── lib/                # auth, cors, emailAgent, stats, significance, stripe, supabase, rateLimit, sanitize, safeLog
 ├── public/ab.js        # Snippet
 └── __tests__/
 chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
-db/migrations/          # Supabase SQL (001–012)
+db/migrations/          # Supabase SQL (001–014)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ```
 
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 06.07.2026 | **Cold-Outreach Email-Agent.** Reverse-Funnel: hello@getvariante.com → Resend Inbound → POST /api/email/inbound → OpenAI-Klassifikation (gpt-4o-mini, 5 Kategorien) → Auto-Reply mit Reverse-Pitch („Messt ihr eure Conversions?"). Rate-Limiting: 1 Antwort pro Sender/90 Tage via `email_auto_responses`-Tabelle. Migration 014. |
 | 06.07.2026 | **Dashboard-Redesign umgesetzt.** Tab-System (Overview/Tests), Stats-Bar (Active/Visitors/Conversions/Plan), Winner-Alert, Sidebar mit Account-Link, NewTestFlow mit Polling+Zustandsmaschine (idle→awaiting_figma→test_received/timeout/error), Test-Card Highlight-Animation. `PATCH /api/profile` akzeptiert jetzt `onboarded`. `POST /api/tests` setzt `has_figma_plugin`. Migration 013 für `has_figma_plugin`-Flag. Build grün, deployed. |
 | 06.07.2026 | **E2E auf Fremd-Site durchgeführt.** Snippet → Traffic → Conversions → Winner kompletter Loop getestet. **OpenAI Usage-Limit:** `OPENAI_MAX_MONTHLY_COST` Env-Var + `profiles.monthly_gen_cost` + Check in /api/generate (Migration 012). |
 | 06.07.2026 | **Dogfood-Tests pausiert.** Beide aktiven Tests auf getvariante.com / www.getvariante.com auf paused gesetzt. Hardcoded Landingpage-Badge bleibt — kein doppelter Badge mehr via ab.js. |
