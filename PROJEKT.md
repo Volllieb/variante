@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 03.07.2026 (abends) |
+| **Stand** | 03.07.2026 (abends) — Token-Fix deployed, Migrationen ausstehend ⚠️ |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -85,11 +85,12 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 03.07.2026 | **BUGFIX: Plugin-Token wurde nicht im Dashboard angezeigt.** Root Cause: `page.tsx` enthielt `select('api_token, plan, plan_status, onboarded')` — die Spalte `onboarded` existiert nicht in Production (Migration 009 nie ausgeführt). Supabase wirft `42703: column profiles.onboarded does not exist` → Query gibt `null` zurück → Profil = null → Token wird nicht gerendert. Fix: `select` auf `api_token, plan` reduziert, Onboarding-Gate temporär deaktiviert, `onboarding/page.tsx` analog gefixt. ⚠️ Migration 009 + 010 müssen noch in Production ausgeführt werden. |
 | 03.07.2026 | **Cron-Fix: console.error → safeError.** check-winners verwendet jetzt safeError statt rohem console.error für E-Mail-Fehlschläge. |
 | 03.07.2026 | **.env.example + Env-Doku.** CRON_SECRET (Pflicht für Cron-Jobs), RESEND_API_KEY (optional für Winner-Mails), Upstash (optional für Rate-Limiting). |
 | 03.07.2026 | **shadcn/ui + cn()-Utility entfernt.** 5 Dependencies (`@radix-ui/react-slot`, `class-variance-authority`, `clsx`, `tailwind-merge`), 4 UI-Komponenten (badge, button, card, input), `components.json` und `lib/utils.ts` gelöscht. Keine Rest-Referenzen. Build grün. |
 | 03.07.2026 | **Auto-Deploy: Commit → Push → Deploy.** GitHub Action `.github/workflows/deploy.yml` deployed bei jedem Push auf master automatisch auf Vercel. Build-Schutz: roter Build = kein Deploy. |
-| 03.07.2026 | **Backend-Features: Events, Analytics, Domains, Cron, Profile, Export.** Event-Logging (created/started/paused/winner_detected/done) via log_event RPC. Analytics-API (Pro-gated, daily_stats Zeitreihe). Cron-Jobs: stündlicher Winner-Check + Resend Mails, täglicher Stats-Snapshot. Domain-Management (CRUD + Verification). Profile-API (GET/PATCH, notify_on_winner). CSV-Export. Token-Regeneration. vercel.json, migration 010_features.sql. Build grün. |
+| 03.07.2026 | **Backend-Features: Events, Analytics, Domains, Cron, Profile, Export.** Event-Logging (created/started/paused/winner_detected/done) via log_event RPC. Analytics-API (Pro-gated, daily_stats Zeitreihe). Cron-Jobs: täglicher Winner-Check + Resend Mails, täglicher Stats-Snapshot. Domain-Management (CRUD + Verification). Profile-API (GET/PATCH, notify_on_winner). CSV-Export. Token-Regeneration. vercel.json, migration 010_features.sql. Build grün. |
 | 03.07.2026 | **Plugin/Web-Split: Results, Stats & Upgrade-Banner aus Figma-Plugin entfernt.** s-results gelöscht, JS-Funktionen (startResults/stopResultsPoll/setResBg/pct) entfernt, dash-stats + upgrade-banner → plan-chip, Snippet → Open in Dashboard. Web-Backlog offen (Stats-Bar, zentrales Upgrade-Banner). Build grün. |
 | 03.07.2026 | Landingpage Panda-Redesign, UX-Audit (10 Fixes), Doku-Update, Roadmap §10 angelegt |
 | 02.07.2026 | Auth: Passwort-Reset, Google OAuth, Signup-Bestehende-Mail-Detection |
@@ -144,3 +145,12 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 - **Eine Produktions-URL** (`www.getvariante.com`). Kein Staging bis >10 Kunden.
 - **Supabase only.** Kein Redis, Kafka, TimescaleDB.
 - **ab.js bleibt Vanilla JS.** Kein npm, kein Build. Das ist der USP.
+
+## §11 Offene Baustellen (⚠️ Critical)
+
+| ID | Baustelle | Impact | Status |
+|---|---|---|---|
+| **MIG-009** | `profiles.onboarded` fehlt in Production | Dashboard-Query schlägt fehl wenn Spalte im select ist → Profil = null → kein Token, kein Test | 🔴 **Blockiert Onboarding-Flow.** Aktuell: onboarded aus select entfernt, Onboarding-Gate deaktiviert. Migration muss im Supabase SQL Editor ausgeführt werden. |
+| **MIG-010** | `events`, `daily_stats`, `domains` Tabellen fehlen | API-Routen (`/api/events`, `/api/analytics`, `/api/domains`) schlagen fehl | 🔴 **Blockiert Feature-Routen.** RPCs (`log_event`, `snapshot_daily_stats`) existieren nicht. Cron-Jobs schlagen fehl. |
+| **MIG-010b** | `log_event()`, `snapshot_daily_stats()` RPCs fehlen | Event-Logging, Cron-Winner-Check, Cron-Stats | 🔴 Siehe MIG-010 |
+| **REVIEW** | Alle Änderungen dieser Session müssen überprüft werden | Datenintegrität, keine Regression | 🟡 Siehe Bericht unten |
