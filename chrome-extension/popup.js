@@ -69,19 +69,29 @@ startBtn.addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab || !tab.id) { showInputErr('No active tab found.'); return }
 
+  // Try message first — content-picker.js may already be injected (auto-flow
+  // from background.js via ab_pick= URL param). If it is, we reuse it instead
+  // of injecting a second copy (which would cause duplicate pickers/overlays).
   try {
-    // Inject the picker script first (content-hash.js is always present but
-    // content-picker.js is loaded on-demand to minimize host permissions impact)
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content-picker.js'],
-    })
-
     const resp = await chrome.tabs.sendMessage(tab.id, { type: 'START_PICKER', testId, mode: 'element' })
-    if (resp && resp.ok) window.close()
-    else showInputErr('Picker did not start.')
-  } catch (e) {
-    showInputErr('Open a web page first, then try again.')
+    if (resp && resp.ok) { window.close(); return }
+    showInputErr('Picker did not start.')
+  } catch (_) {
+    // No listener yet — inject the script, wait for auto-start, then confirm
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content-picker.js'],
+      })
+      // Auto-start in content-picker.js uses chrome.storage.local.get (async).
+      // Give it a tick, then verify the picker started via message.
+      await new Promise(r => setTimeout(r, 120))
+      const resp = await chrome.tabs.sendMessage(tab.id, { type: 'START_PICKER', testId, mode: 'element' })
+      if (resp && resp.ok) window.close()
+      else showInputErr('Picker did not start.')
+    } catch (e2) {
+      showInputErr('Open a web page first, then try again.')
+    }
   }
 })
 
