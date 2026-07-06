@@ -57,8 +57,8 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Tier | Preis | Inhalt |
 |---|---|---|
-| **Free** | 0 € | 1 aktives Experiment, Badge **an** |
-| **Pro** | 35 €/Monat | Unbegrenzt, Badge **aus**, Signifikanz, Auto-Winner |
+| **Free** | 0 € | 1 aktives Experiment |
+| **Pro** | 35 €/Monat | Unbegrenzt, Signifikanz, Auto-Winner |
 | **Agency** | 99 €/Monat | ❄️ Auf Eis — erst bei 5+ Pro-Kunden |
 
 **KI-Kosten:** ~0,3 ct/Call → Marge ~100 %. AI-Gen auch im Free-Tier (Aha-Moment > Kosten).
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 06.07.2026 | **Badge-Feature entfernt.** showBadge() aus ab.js + Badge-Logik aus /api/resolve + hardcoded Badge aus Landingpage entfernt. Free/Pro-Feature-Listen bereinigt. Dogfood-Testing übernimmt künftig Badge-Präsenz. |
 | 06.07.2026 | **Security-Hardening.** SRI-Hash für ab.js generiert + in allen Snippet-Beispielen ergänzt. max_tokens: 4096 in /api/generate gesetzt. CORS-Doku (Access-Control-Max-Age 600s). Security-Headers: X-Frame-Options: SAMEORIGIN + HSTS für Pages. Upstash Redis-Code ready, Env-Vars noch zu setzen. |
 | 06.07.2026 | **Auth-Guard Results + Decoupling + Loading/Error States.** Results-Page prüft Session-User gegen `test.user_id` (fremde UUIDs → 404). Winner-Logik aus `getExperimentStats` entfernt (GET read-only, Cron + Event-Route setzen Winner). `loading.tsx` + `error.tsx` für `results/[id]` und `dashboard`. Build grün. |
 | 06.07.2026 | **Migrationen 009 + 010 in Production ausgeführt.** `profiles.onboarded`, `events`, `daily_stats`, `domains` Tabellen + `log_event()`, `snapshot_daily_stats()` RPCs jetzt live. Onboarding-Gate kann wieder aktiviert werden. Alle API-Routen funktionsfähig. |

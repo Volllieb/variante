@@ -154,7 +154,7 @@ export function DashboardClient({
   return (
     <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-50 flex items-center gap-3 border-b border-white/10 bg-black/95 px-5 py-3 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 flex items-center gap-3 border-b border-border bg-bg-0/95 px-5 py-3">
         <Link href="/dashboard" className="flex items-center gap-2 text-[13px] font-medium text-[#ededed]">
           <PandaLogo className="h-6 w-6 rounded-[6px]" />
           variante
@@ -437,7 +437,7 @@ export function DashboardClient({
                 href="https://chromewebstore.google.com/detail/variante"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2 text-[11px] font-semibold text-white shadow-md shadow-fuchsia-500/25 transition-all duration-200 hover:scale-[1.02]"
+                className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors duration-200 hover:bg-white/90"
               >
                 <Puzzle className="h-3.5 w-3.5" />
                 Install from Chrome Web Store

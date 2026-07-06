@@ -9,33 +9,21 @@ export const metadata: Metadata = {
 
 export default function ImprintPage() {
   return (
-    <div className="relative min-h-screen bg-[#06050f] font-[family-name:var(--font-sans)] text-white/80 antialiased">
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-700/15 blur-[110px]" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-fuchsia-600/10 blur-[90px]" />
-        <div
-          className="absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-      </div>
-
+    <div className="min-h-screen bg-bg-0 text-text antialiased">
       <div className="relative z-10">
         <nav className="px-6 py-5">
           <div className="mx-auto flex max-w-2xl items-center gap-3">
             <Link
               href="/"
-              className="flex cursor-pointer items-center gap-1.5 text-sm text-white/45 transition-colors duration-200 hover:text-white"
+              className="flex cursor-pointer items-center gap-1.5 text-sm text-text-3 transition-colors duration-200 hover:text-text"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </Link>
-            <span className="text-white/15">·</span>
+            <span className="text-text-3/30">·</span>
             <Link
               href="/"
-              className="flex cursor-pointer items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-white/50 transition-colors duration-200 hover:text-white"
+              className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-text-2 transition-colors duration-200 hover:text-text"
             >
               <PandaLogo className="h-5 w-5 rounded-md p-0.5" />
               variante
@@ -44,11 +32,11 @@ export default function ImprintPage() {
         </nav>
 
         <main className="mx-auto max-w-2xl px-6 pb-20 pt-2">
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-md sm:p-12">
-            <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-white">
+          <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-12">
+            <h1 className="text-3xl font-semibold text-text">
               Imprint
             </h1>
-            <p className="mt-1.5 text-sm text-white/40">
+            <p className="mt-1.5 text-sm text-text-3">
               Information pursuant to § 5 DDG (formerly TMG)
             </p>
 
@@ -63,7 +51,7 @@ export default function ImprintPage() {
                 </p>
                 <p className="mt-3">
                   Email:{' '}
-                  <a href="mailto:hello@getvariante.com" className="cursor-pointer text-fuchsia-300 underline underline-offset-4 transition-colors hover:text-fuchsia-200">
+                  <a href="mailto:hello@getvariante.com" className="cursor-pointer text-text underline underline-offset-4 transition-colors hover:text-text/70">
                     hello@getvariante.com
                   </a>
                 </p>
@@ -121,7 +109,7 @@ export default function ImprintPage() {
                     href="https://ec.europa.eu/consumers/odr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="cursor-pointer text-fuchsia-300 underline underline-offset-4 transition-colors hover:text-fuchsia-200"
+                    className="cursor-pointer text-text underline underline-offset-4 transition-colors hover:text-text/70"
                   >
                     ec.europa.eu/consumers/odr
                   </a>
@@ -139,11 +127,11 @@ export default function ImprintPage() {
 
 function LegalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-white/[0.07] pt-8 first:border-t-0 first:pt-0">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-base font-bold text-white">
+    <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
+      <h2 className="mb-4 text-base font-semibold text-text">
         {title}
       </h2>
-      <div className="text-white/55">{children}</div>
+      <div className="text-text-2 text-sm leading-relaxed">{children}</div>
     </section>
   )
 }

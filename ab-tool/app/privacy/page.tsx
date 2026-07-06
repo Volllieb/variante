@@ -9,33 +9,21 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="relative min-h-screen bg-[#06050f] font-[family-name:var(--font-sans)] text-white/80 antialiased">
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-700/15 blur-[110px]" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-fuchsia-600/10 blur-[90px]" />
-        <div
-          className="absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-      </div>
-
+    <div className="min-h-screen bg-bg-0 text-text antialiased">
       <div className="relative z-10">
         <nav className="px-6 py-5">
           <div className="mx-auto flex max-w-2xl items-center gap-3">
             <Link
               href="/"
-              className="flex cursor-pointer items-center gap-1.5 text-sm text-white/45 transition-colors duration-200 hover:text-white"
+              className="flex cursor-pointer items-center gap-1.5 text-sm text-text-3 transition-colors duration-200 hover:text-text"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </Link>
-            <span className="text-white/15">·</span>
+            <span className="text-text-3/30">·</span>
             <Link
               href="/"
-              className="flex cursor-pointer items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-white/50 transition-colors duration-200 hover:text-white"
+              className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-text-2 transition-colors duration-200 hover:text-text"
             >
               <PandaLogo className="h-5 w-5 rounded-md p-0.5" />
               variante
@@ -44,11 +32,11 @@ export default function PrivacyPage() {
         </nav>
 
         <main className="mx-auto max-w-2xl px-6 pb-20 pt-2">
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-md sm:p-12">
-            <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-white">
+          <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-12">
+            <h1 className="text-3xl font-semibold text-text">
               Privacy Policy
             </h1>
-            <p className="mt-1.5 text-sm text-white/40">Last updated: July 6, 2026</p>
+            <p className="mt-1.5 text-sm text-text-3">Last updated: July 6, 2026</p>
 
             <div className="mt-10 space-y-8 text-sm leading-relaxed">
 
@@ -63,8 +51,8 @@ export default function PrivacyPage() {
                     { label: 'Usage data', body: 'the ab.js snippet sends only the domain name (host) to our servers to check for active tests — never the full page path. Variant assignment and conversion events are collected as anonymized counters only. No personal visitor data or browsing history is stored.' },
                   ].map(({ label, body }) => (
                     <li key={label} className="flex gap-2.5">
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-fuchsia-400/60" />
-                      <span><strong className="font-semibold text-white/80">{label}:</strong>{' '}{body}</span>
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-2/40" />
+                      <span><strong className="font-semibold text-text">{label}:</strong>{' '}{body}</span>
                     </li>
                   ))}
                 </ul>
@@ -79,7 +67,7 @@ export default function PrivacyPage() {
                     'To improve the product based on aggregated usage patterns.',
                   ].map(item => (
                     <li key={item} className="flex gap-2.5">
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-fuchsia-400/60" />
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-2/40" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -91,7 +79,7 @@ export default function PrivacyPage() {
                   Data is stored on Supabase (Postgres, hosted in Frankfurt, Germany) and on
                   Vercel (us-east, USA).
                 </p>
-                <p className="mt-4 font-semibold text-white/75">Retention periods</p>
+                <p className="mt-4 font-semibold text-text">Retention periods</p>
                 <ul className="mt-2 space-y-2">
                   {[
                     ['Account data', 'until account deletion.'],
@@ -102,8 +90,8 @@ export default function PrivacyPage() {
                     ['Anonymized statistics', 'retained indefinitely (no personal reference).'],
                   ].map(([label, body]) => (
                     <li key={label} className="flex gap-2.5">
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-fuchsia-400/60" />
-                      <span><strong className="font-semibold text-white/80">{label}:</strong>{' '}{body}</span>
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-2/40" />
+                      <span><strong className="font-semibold text-text">{label}:</strong>{' '}{body}</span>
                     </li>
                   ))}
                 </ul>
@@ -115,12 +103,12 @@ export default function PrivacyPage() {
                   We use the following sub-processors. Data processing agreements (Art. 28 GDPR)
                   are in place with all of them.
                 </p>
-                <div className="mt-4 overflow-x-auto rounded-xl border border-white/[0.08]">
+                <div className="mt-4 overflow-x-auto rounded-[6px] border border-border">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-white/[0.08] bg-white/[0.04]">
+                      <tr className="border-b border-border bg-bg-2">
                         {['Service', 'Purpose', 'Location', 'Safeguard'].map(h => (
-                          <th key={h} className="px-4 py-3 text-left font-semibold text-white/70">{h}</th>
+                          <th key={h} className="px-4 py-3 text-left font-medium text-text-2">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -133,8 +121,8 @@ export default function PrivacyPage() {
                         ['Resend Inc.', 'Email notifications', 'US (us-east)', 'DPA + SCCs'],
                         ['Upstash Inc.', 'Rate limiting (IP addresses)', 'Global', 'DPA + SCCs'],
                       ].map(([service, purpose, location, safeguard], i, arr) => (
-                        <tr key={service} className={i < arr.length - 1 ? 'border-b border-white/[0.06]' : ''}>
-                          <td className="px-4 py-3 text-white/75">{service}</td>
+                        <tr key={service} className={i < arr.length - 1 ? 'border-b border-border' : ''}>
+                          <td className="px-4 py-3 text-text">{service}</td>
                           <td className="px-4 py-3">{purpose}</td>
                           <td className="px-4 py-3">{location}</td>
                           <td className="px-4 py-3">{safeguard}</td>
@@ -150,12 +138,12 @@ export default function PrivacyPage() {
                   We do not use tracking or advertising cookies. The following storage mechanisms
                   are used strictly for functionality:
                 </p>
-                <div className="mt-4 overflow-x-auto rounded-xl border border-white/[0.08]">
+                <div className="mt-4 overflow-x-auto rounded-[6px] border border-border">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-white/[0.08] bg-white/[0.04]">
+                      <tr className="border-b border-border bg-bg-2">
                         {['Name', 'Type', 'Purpose', 'Duration'].map(h => (
-                          <th key={h} className="px-4 py-3 text-left font-semibold text-white/70">{h}</th>
+                          <th key={h} className="px-4 py-3 text-left font-medium text-text-2">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -166,8 +154,8 @@ export default function PrivacyPage() {
                         ['ab_<test_id>', 'localStorage', 'Variant assignment (sticky)', 'Per experiment'],
                         ['ab_conv_<test_id>', 'sessionStorage', 'Conversion deduplication', 'Session'],
                       ].map(([name, type, purpose, duration], i, arr) => (
-                        <tr key={name} className={i < arr.length - 1 ? 'border-b border-white/[0.06]' : ''}>
-                          <td className="px-4 py-3"><code className="rounded bg-white/[0.07] px-1.5 py-0.5 font-mono text-fuchsia-200">{name}</code></td>
+                        <tr key={name} className={i < arr.length - 1 ? 'border-b border-border' : ''}>
+                          <td className="px-4 py-3"><code className="rounded bg-bg-2 px-1.5 py-0.5 font-mono text-xs text-text">{name}</code></td>
                           <td className="px-4 py-3">{type}</td>
                           <td className="px-4 py-3">{purpose}</td>
                           <td className="px-4 py-3">{duration}</td>
@@ -190,14 +178,14 @@ export default function PrivacyPage() {
                     ['Objection (Art. 21)', 'object to processing.'],
                   ].map(([label, body]) => (
                     <li key={label} className="flex gap-2.5">
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-fuchsia-400/60" />
-                      <span><strong className="font-semibold text-white/80">{label}:</strong>{' '}{body}</span>
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-2/40" />
+                      <span><strong className="font-semibold text-text">{label}:</strong>{' '}{body}</span>
                     </li>
                   ))}
                 </ul>
                 <p className="mt-3">
                   To exercise any of these rights, email{' '}
-                  <a href="mailto:hello@getvariante.com" className="cursor-pointer text-fuchsia-300 underline underline-offset-4 transition-colors hover:text-fuchsia-200">
+                  <a href="mailto:hello@getvariante.com" className="cursor-pointer text-text underline underline-offset-4 transition-colors hover:text-text/70">
                     hello@getvariante.com
                   </a>{' '}
                   and we&apos;ll respond within 30 days.
@@ -205,7 +193,7 @@ export default function PrivacyPage() {
                 <p className="mt-2">
                   If you believe our processing infringes GDPR, you have the right to lodge a
                   complaint with the supervisory authority:{' '}
-                  <strong className="text-white/75">
+                  <strong className="text-text">
                     Bayerisches Landesamt für Datenschutzaufsicht (BayLDA), Promenade 27,
                     91522 Ansbach, Germany
                   </strong>.
@@ -221,7 +209,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="mt-3">
                   Email:{' '}
-                  <a href="mailto:hello@getvariante.com" className="cursor-pointer text-fuchsia-300 underline underline-offset-4 transition-colors hover:text-fuchsia-200">
+                  <a href="mailto:hello@getvariante.com" className="cursor-pointer text-text underline underline-offset-4 transition-colors hover:text-text/70">
                     hello@getvariante.com
                   </a>
                 </p>
@@ -237,11 +225,11 @@ export default function PrivacyPage() {
 
 function LegalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-white/[0.07] pt-8 first:border-t-0 first:pt-0">
-      <h2 className="mb-4 font-[family-name:var(--font-display)] text-base font-bold text-white">
+    <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
+      <h2 className="mb-4 text-base font-semibold text-text">
         {title}
       </h2>
-      <div className="text-white/55">{children}</div>
+      <div className="text-text-2">{children}</div>
     </section>
   )
 }

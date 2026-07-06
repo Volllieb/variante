@@ -44,14 +44,12 @@ const freeFeatures = [
   '1 active experiment',
   'AI variant generation',
   'Conversion tracking',
-  '"variante" badge on site',
 ]
 
 const proFeatures = [
   'Unlimited experiments',
   'AI variant generation',
   'Full statistics & significance',
-  'No badge',
   'Priority support',
 ]
 
@@ -62,7 +60,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link
             href="/"
@@ -193,15 +191,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── Badge Demo ── */}
-      <a
-        href="/signup"
-        className="fixed bottom-4 right-4 z-50 rounded-md bg-bg-2 px-3 py-1.5 text-[11px] font-semibold text-white no-underline opacity-90 transition-opacity hover:opacity-100"
-        style={{ borderRadius: '6px' }}
-      >
-        A/B by Variante
-      </a>
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/10 px-6 py-8 text-center text-sm text-white/40">

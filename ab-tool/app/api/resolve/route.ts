@@ -54,24 +54,6 @@ export async function GET(req: Request) {
     // DSGVO: Kein server-seitiges Path-Matching mehr. Der Client filtert
     // per pathMatches() — der Server sieht nur die Domain, nicht den Pfad.
 
-  // Badge-Logik: „Powered by Variante" wird angezeigt, wenn der Besitzer eines
-  // greifenden Tests NICHT Pro/Agency ist (Free oder Legacy ohne Owner).
-  let badge = false
-  const ownerIds = Array.from(new Set(matched.map(t => t.user_id).filter(Boolean)))
-  if (matched.length) {
-    const proOwners = new Set<string>()
-    if (ownerIds.length) {
-      const { data: profs } = await supabase
-        .from('profiles')
-        .select('user_id, plan')
-        .in('user_id', ownerIds)
-      for (const p of profs ?? []) {
-        if (p.plan === 'pro' || p.plan === 'agency') proOwners.add(p.user_id)
-      }
-    }
-    badge = matched.some(t => !t.user_id || !proOwners.has(t.user_id))
-  }
-
   const tests = matched.map(t => ({
     snippet_key: t.snippet_key,
     selector: t.selector,
@@ -87,5 +69,5 @@ export async function GET(req: Request) {
     path: pathOf(t.site_url) || null,
   }))
 
-  return Response.json({ tests, badge }, { headers: corsHeaders('GET, OPTIONS') })
+  return Response.json({ tests }, { headers: corsHeaders('GET, OPTIONS') })
 }

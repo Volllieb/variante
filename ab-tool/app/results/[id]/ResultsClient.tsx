@@ -120,50 +120,38 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
   const statusColor =
     status === 'active'
-      ? 'bg-emerald-400/15 text-emerald-300'
+      ? 'bg-ok-bg text-ok'
       : status === 'paused'
-      ? 'bg-amber-400/15 text-amber-300'
-      : 'bg-white/[0.07] text-white/50'
+      ? 'bg-pro-bg text-pro'
+      : 'bg-bg-2 text-text-3'
 
   return (
-    <div className="relative min-h-screen bg-[#06050f] font-[family-name:var(--font-sans)] text-white/80 antialiased">
-      {/* Aurora */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -left-32 top-0 h-[32rem] w-[32rem] rounded-full bg-violet-700/12 blur-[130px]" />
-        <div className="absolute -right-20 bottom-0 h-[28rem] w-[28rem] rounded-full bg-fuchsia-600/08 blur-[100px]" />
-        <div
-          className="absolute inset-0 opacity-[0.09]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.28) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-      </div>
+    <div className="min-h-screen bg-bg-0 text-text antialiased">
 
       <div className="relative z-10">
         {/* Top bar */}
-        <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#06050f]/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
           <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-3.5">
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/50 transition-all duration-200 hover:border-white/20 hover:text-white"
+                className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Dashboard
               </Link>
-              <h1 className="font-[family-name:var(--font-display)] text-base font-bold text-white">
+              <h1 className="text-base font-semibold text-text">
                 {name}
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${statusColor}`}>
+              <span className={`rounded-[6px] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
                 {winner ? `${winner} won` : status}
               </span>
               {status === 'active' && (
                 <button
                   onClick={() => toggleStatus('paused')}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/[0.07] px-3 py-1.5 text-xs text-amber-300 transition-all hover:bg-amber-400/10"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-pro/20 bg-pro-bg px-3 py-1.5 text-xs text-pro transition-colors hover:bg-pro/10"
                 >
                   <Pause className="h-3 w-3" /> Pause
                 </button>
@@ -171,38 +159,38 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               {status === 'paused' && (
                 <button
                   onClick={() => toggleStatus('active')}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-xs text-emerald-300 transition-all hover:bg-emerald-400/10"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-ok/20 bg-ok-bg px-3 py-1.5 text-xs text-ok transition-colors hover:bg-ok/10"
                 >
                   <Play className="h-3 w-3" /> Resume
                 </button>
               )}
               <button
                 onClick={refresh}
-                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all hover:border-white/20 hover:text-white"
+                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-border text-text-3 transition-colors hover:border-border-strong hover:text-text"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               </button>
               {!deleteConfirm ? (
                 <button
                   onClick={() => setDeleteConfirm(true)}
-                  className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/30 transition-all hover:border-rose-400/30 hover:text-rose-400"
+                  className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-border text-text-3 transition-colors hover:border-err/30 hover:text-err"
                   aria-label="Delete experiment"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5 rounded-full border border-rose-400/20 bg-rose-400/[0.07] px-3 py-1.5">
+                <div className="flex items-center gap-1.5 rounded-[6px] border border-err/20 bg-err-bg px-3 py-1.5">
                   <button
                     onClick={deleteTest}
                     disabled={deleting}
-                    className="cursor-pointer text-xs font-semibold text-rose-300 transition-colors hover:text-rose-200 disabled:opacity-50"
+                    className="cursor-pointer text-xs font-semibold text-err transition-colors hover:opacity-80 disabled:opacity-50"
                   >
                     {deleting ? 'Deleting…' : 'Yes, delete'}
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(false)}
                     disabled={deleting}
-                    className="cursor-pointer text-xs text-white/40 transition-colors hover:text-white disabled:opacity-30"
+                    className="cursor-pointer text-xs text-text-3 transition-colors hover:text-text disabled:opacity-30"
                   >
                     Cancel
                   </button>
@@ -214,24 +202,24 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
         <main className="mx-auto max-w-2xl px-6 py-8 space-y-5">
 
-          <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.045] to-white/[0.02] p-5 shadow-[0_20px_60px_-20px_rgba(17,24,39,0.55)] backdrop-blur-xl">
+          <div className="rounded-[10px] border border-border bg-bg-1 p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.06] text-violet-200">
+                <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-[6px] bg-bg-2 text-text-3">
                   <TrendingUp className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/40">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
                     Current status
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-text">
                     {done
                       ? 'Completed and ready to review'
                       : status === 'active'
                       ? 'Active and collecting data'
                       : 'Paused for now'}
                   </p>
-                  <p className="mt-1 text-sm text-white/45">
+                  <p className="mt-1 text-sm text-text-2">
                     {done
                       ? 'This test has enough signal to evaluate the winner.'
                       : status === 'active'
@@ -240,7 +228,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   </p>
                 </div>
               </div>
-              <div className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${statusColor}`}>
+              <div className={`rounded-[6px] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
                 {winner ? `${winner} won` : status}
               </div>
             </div>
@@ -254,33 +242,33 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               return (
                 <div
                   key={v.id}
-                  className={`rounded-2xl border p-6 backdrop-blur-md transition-all ${
+                  className={`rounded-[10px] border p-6 transition-all ${
                     isWinner
-                      ? 'border-emerald-400/30 bg-emerald-400/[0.05]'
-                      : 'border-white/[0.08] bg-white/[0.025]'
+                      ? 'border-ok/30 bg-ok-bg'
+                      : 'border-border bg-bg-1'
                   }`}
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
+                    <span className={`rounded-[6px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
                       isVariantB
-                        ? 'bg-fuchsia-400/15 text-fuchsia-300'
-                        : 'bg-white/[0.07] text-white/50'
+                        ? 'bg-pro-bg text-pro'
+                        : 'bg-bg-2 text-text-3'
                     }`}>
                       Variant {v.label}
                     </span>
                     {isWinner && (
-                      <span className="flex items-center gap-1 rounded-full bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
+                      <span className="flex items-center gap-1 rounded-[6px] bg-ok-bg px-2.5 py-1 text-[11px] font-semibold text-ok">
                         <Check className="h-3 w-3" /> Winner
                       </span>
                     )}
                   </div>
 
-                  <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-white">
+                  <p className="text-4xl font-semibold text-text">
                     {v.cr}%
                   </p>
-                  <p className="mt-0.5 text-xs text-white/40">Conversion Rate</p>
+                  <p className="mt-0.5 text-xs text-text-3">Conversion Rate</p>
 
-                  <div className="mt-4 space-y-1.5 text-xs text-white/40">
+                  <div className="mt-4 space-y-1.5 text-xs text-text-3">
                     <div className="flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5" />
                       {v.views.toLocaleString()} visitors
@@ -292,10 +280,10 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   </div>
 
                   {lift !== null && isVariantB && (
-                    <div className={`mt-4 rounded-xl px-3 py-2 text-xs font-bold ${
+                    <div className={`mt-4 rounded-[6px] px-3 py-2 text-xs font-semibold ${
                       lift > 0
-                        ? 'bg-emerald-400/10 text-emerald-300'
-                        : 'bg-rose-400/10 text-rose-300'
+                        ? 'bg-ok-bg text-ok'
+                        : 'bg-err-bg text-err'
                     }`}>
                       {lift > 0 ? '+' : ''}{lift.toFixed(1)}% vs A
                     </div>
@@ -307,24 +295,24 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
           {/* Significance */}
           {pro ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-5 py-4 backdrop-blur-md">
-              <TrendingUp className="h-4 w-4 shrink-0 text-violet-300" />
-              <span className="text-sm text-white/60">
+            <div className="flex items-center gap-3 rounded-[10px] border border-border bg-bg-1 px-5 py-4">
+              <TrendingUp className="h-4 w-4 shrink-0 text-text-3" />
+              <span className="text-sm text-text-2">
                 Statistical significance:{' '}
-                <strong className={`font-bold ${significance >= 0.95 ? 'text-emerald-300' : 'text-white/80'}`}>
+                <strong className={`font-semibold ${significance >= 0.95 ? 'text-ok' : 'text-text'}`}>
                   {Math.round(significance * 100)}%
                 </strong>
-                {significance >= 0.95 && <span className="ml-2 text-xs text-emerald-300/70">— result is reliable</span>}
+                {significance >= 0.95 && <span className="ml-2 text-xs text-ok/70">— result is reliable</span>}
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-5 py-4 backdrop-blur-md">
-              <Lock className="h-4 w-4 shrink-0 text-white/30" />
-              <span className="text-sm text-white/40">Significance &amp; auto-winner are Pro features.</span>
+            <div className="flex items-center gap-3 rounded-[10px] border border-border bg-bg-1 px-5 py-4">
+              <Lock className="h-4 w-4 shrink-0 text-text-3" />
+              <span className="text-sm text-text-3">Significance &amp; auto-winner are Pro features.</span>
               <button
                 onClick={upgrade}
                 disabled={busy}
-                className="ml-auto shrink-0 cursor-pointer rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                className="ml-auto shrink-0 cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
               >
                 {busy ? 'Redirecting…' : 'Upgrade'}
               </button>
@@ -333,8 +321,8 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
           {/* Preview */}
           {(data.originalHtml || data.variantBHtml || editingB) && (
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-md">
-              <h2 className="mb-4 font-[family-name:var(--font-display)] text-sm font-bold text-white">Preview</h2>
+            <div className="rounded-[10px] border border-border bg-bg-1 p-6">
+              <h2 className="mb-4 text-sm font-semibold text-text">Preview</h2>
               <div className="grid grid-cols-2 gap-4">
                 {data.originalHtml && (
                   <VariantPreview
@@ -371,24 +359,24 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   </div>
                 )}
                 {editingB && (
-                  <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
-                    <p className="mb-2 text-xs font-semibold text-white/50">Edit Variant B HTML</p>
+                  <div className="rounded-[6px] border border-border bg-bg-2 p-4">
+                    <p className="mb-2 text-xs font-semibold text-text-2">Edit Variant B HTML</p>
                     <textarea
                       value={draftB}
                       onChange={e => setDraftB(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-emerald-300 focus:border-fuchsia-400/30 focus:outline-none focus:ring-1 focus:ring-fuchsia-400/20"
+                      className="w-full rounded-[6px] border border-border bg-bg-0 px-3 py-2 font-mono text-xs text-ok focus:border-text/30 focus:outline-none focus:ring-1 focus:ring-text/10"
                       rows={10}
                     />
                     <div className="mt-2 flex gap-2">
                       <button
                         onClick={saveVariantB}
-                        className="cursor-pointer rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1.5 text-xs font-bold text-white"
+                        className="cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90"
                       >
                         Save
                       </button>
                       <button
                         onClick={() => setEditingB(false)}
-                        className="cursor-pointer rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/50 hover:text-white"
+                        className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-xs text-text-3 transition-colors hover:text-text"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -401,10 +389,10 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
           {/* Auto-winner */}
           {pro && (
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-md">
-              <h2 className="mb-1 font-[family-name:var(--font-display)] text-sm font-bold text-white">Auto Winner</h2>
+            <div className="rounded-[10px] border border-border bg-bg-1 p-6">
+              <h2 className="mb-1 text-sm font-semibold text-text">Auto Winner</h2>
               {done ? (
-                <p className="mt-2 text-sm text-emerald-300">
+                <p className="mt-2 text-sm text-ok">
                   ✓ Test complete —{' '}
                   {winner
                     ? `Variant ${winner} wins and is now served to all visitors.`
@@ -412,41 +400,41 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 </p>
               ) : (
                 <>
-                  <p className="mt-1 text-xs text-white/40 leading-relaxed">
+                  <p className="mt-1 text-xs text-text-3 leading-relaxed">
                     Once both thresholds are met, Variant B automatically becomes the winner and is served to all new visitors.
                   </p>
                   <div className="mt-4 grid grid-cols-2 gap-4">
                     <label className="block space-y-1.5">
-                      <span className="text-xs font-semibold text-white/50">Min Visitors</span>
+                      <span className="text-xs font-semibold text-text-2">Min Visitors</span>
                       <input
                         type="number"
                         min={1}
                         value={minVisitors}
                         onChange={e => setMinVisitors(Number(e.target.value))}
-                        className="w-full rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2 text-sm text-white focus:border-fuchsia-400/30 focus:outline-none focus:ring-1 focus:ring-fuchsia-400/20"
+                        className="w-full rounded-[6px] border border-border bg-bg-2 px-3 py-2 text-sm text-text focus:border-text/30 focus:outline-none focus:ring-1 focus:ring-text/10"
                       />
                     </label>
                     <label className="block space-y-1.5">
-                      <span className="text-xs font-semibold text-white/50">Min Uplift B (%)</span>
+                      <span className="text-xs font-semibold text-text-2">Min Uplift B (%)</span>
                       <input
                         type="number"
                         min={0}
                         step={1}
                         value={Math.round(minUplift * 100)}
                         onChange={e => setMinUplift(Number(e.target.value) / 100)}
-                        className="w-full rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2 text-sm text-white focus:border-fuchsia-400/30 focus:outline-none focus:ring-1 focus:ring-fuchsia-400/20"
+                        className="w-full rounded-[6px] border border-border bg-bg-2 px-3 py-2 text-sm text-text focus:border-text/30 focus:outline-none focus:ring-1 focus:ring-text/10"
                       />
                     </label>
                   </div>
 
                   <div className="mt-4">
-                    <div className="mb-1.5 flex justify-between text-xs text-white/35">
+                    <div className="mb-1.5 flex justify-between text-xs text-text-3">
                       <span>Visitor threshold</span>
                       <span>{totalVisitors.toLocaleString()} / {minVisitors.toLocaleString()}</span>
                     </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-bg-2">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-500"
+                        className="h-full rounded-full bg-text transition-all duration-500"
                         style={{ width: `${visitorPct}%` }}
                       />
                     </div>
@@ -455,12 +443,12 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   <div className="mt-4 flex items-center gap-3">
                     <button
                       onClick={saveConfig}
-                      className="cursor-pointer rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-fuchsia-500/20 transition-all hover:scale-[1.02]"
+                      className="cursor-pointer rounded-[6px] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90"
                     >
                       Save
                     </button>
                     {saved && (
-                      <span className="flex items-center gap-1 text-xs text-emerald-400">
+                      <span className="flex items-center gap-1 text-xs text-ok">
                         <Check className="h-3.5 w-3.5" /> Saved
                       </span>
                     )}
@@ -471,15 +459,15 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           )}
 
           {!pro && (
-            <div className="rounded-2xl border border-dashed border-white/[0.10] p-6 text-center">
-              <h2 className="font-[family-name:var(--font-display)] text-sm font-bold text-white">Auto Winner</h2>
-              <p className="mt-2 text-xs text-white/35">
+            <div className="rounded-[10px] border border-dashed border-border p-6 text-center">
+              <h2 className="text-sm font-semibold text-text">Auto Winner</h2>
+              <p className="mt-2 text-xs text-text-3">
                 Statistical significance and the auto-winner are available from the Pro plan onward.
               </p>
               <button
                 onClick={upgrade}
                 disabled={busy}
-                className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-md shadow-fuchsia-500/20 disabled:opacity-50"
+                className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
               >
                 {busy ? 'Redirecting…' : 'Upgrade to Pro'}
               </button>
