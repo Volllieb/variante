@@ -2,20 +2,17 @@ import { getSessionUser } from '@/lib/supabaseServer'
 import { supabase } from '@/lib/supabase'
 import { ensureProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { DashboardClient } from './DashboardClient'
+import { TestsClient } from './TestsClient'
 
-export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
+export default async function TestsPage() {
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth), jetzt anlegen
   await ensureProfile(user.id)
-
-  const searchParams = await props.searchParams
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('api_token, plan, onboarded, has_figma_plugin')
+    .select('plan, onboarded, has_figma_plugin, api_token')
     .eq('user_id', user.id)
     .single()
 
@@ -28,12 +25,10 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     .order('created_at', { ascending: false })
 
   return (
-    <DashboardClient
-      plan={profile?.plan ?? 'free'}
+    <TestsClient
       apiToken={profile?.api_token ?? ''}
       tests={tests ?? []}
       hasFigmaPlugin={profile?.has_figma_plugin ?? false}
-      highlightNew={searchParams.new === '1'}
     />
   )
 }

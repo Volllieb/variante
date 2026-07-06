@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
 import {
   FlaskConical,
+  LayoutGrid,
   KeyRound,
   Code2,
   CreditCard,
@@ -54,11 +55,26 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
             {plan}
           </span>
 
-          {/* Nav */}
-          <nav className="flex flex-1 flex-col gap-0.5">
+          {/* Nav — main pages */}
+          <nav className="flex flex-col gap-0.5">
             <NavLink icon={FlaskConical} label="Overview" href="/dashboard" />
-            <NavLink icon={KeyRound} label="Plugin & Extension" anchor="#plugin-token" />
-            <NavLink icon={Code2} label="Snippet" anchor="#snippet" />
+            <NavLink icon={LayoutGrid} label="Tests" href="/dashboard/tests" />
+          </nav>
+
+          {/* Nav — setup tools */}
+          <div className="mt-3 border-t border-white/[0.06] pt-3">
+            <p className="mb-1.5 px-[9px] text-[10px] font-semibold uppercase tracking-wider text-[#ededed]/30">Setup</p>
+            <nav className="flex flex-col gap-0.5">
+              <NavLink icon={KeyRound} label="Plugin & Extension" anchor="#plugin-token" />
+              <NavLink icon={Code2} label="Snippet" anchor="#snippet" />
+            </nav>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Nav — account (bottom) */}
+          <nav className="flex flex-col gap-0.5 border-t border-white/[0.06] pt-3">
             <NavLink icon={CreditCard} label="Billing" anchor="#billing" />
             <NavLink icon={Settings} label="Account" anchor="#account-settings" />
           </nav>

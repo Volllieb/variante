@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { NewTestFlow } from './NewTestFlow'
 import {
   Copy,
   Check,
@@ -14,9 +13,6 @@ import {
   TrendingUp,
   Zap,
   Shield,
-  Search,
-  Plus,
-  ListFilter,
   Puzzle,
   ExternalLink,
   Key,
@@ -52,10 +48,6 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
-const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
-type StatusFilter = (typeof STATUS_FILTERS)[number]
-type Tab = 'overview' | 'tests'
-
 function timeAgo(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
   if (mins < 1) return 'just now'
@@ -71,24 +63,18 @@ export function DashboardClient({
   tests,
   hasFigmaPlugin,
   highlightNew,
-  initialTab,
 }: {
   plan: string
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
   highlightNew?: boolean
-  initialTab?: Tab
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [snippetCopied, setSnippetCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const [snippetOpen, setSnippetOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [tab, setTab] = useState<Tab>(initialTab ?? 'overview')
-  const [newTestOpen, setNewTestOpen] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
 
   // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
@@ -157,10 +143,6 @@ export function DashboardClient({
     })
   }
 
-  function cycleFilter() {
-    setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
-  }
-
   /* ── Aggregate stats ── */
   const totalVisitors = tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
   const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
@@ -174,36 +156,16 @@ export function DashboardClient({
     .filter((l): l is number => l !== null && isFinite(l))
   const avgLift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
 
-  const filteredTests = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return tests.filter((t) => {
-      const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-      return mq && (statusFilter === 'all' || t.status === statusFilter)
-    })
-  }, [tests, query, statusFilter])
-
-  // Winner alert for Overview tab (Pro only, active tests with a winner)
+  // Winner alert (Pro only, active tests with a winner)
   const winnerTest = isPro ? tests.find((t) => t.winner && t.status !== 'done') : null
 
   return (
     <>
       <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
-        {/* ═══ Tab bar ═══ */}
-        <div className="mb-6 flex items-center gap-1 rounded-[8px] border border-white/10 bg-[#0a0a0a] p-0.5 w-fit">
-          <TabBtn active={tab === 'overview'} onClick={() => setTab('overview')}>
-            Overview
-          </TabBtn>
-          <TabBtn active={tab === 'tests'} onClick={() => setTab('tests')}>
-            Tests
-          </TabBtn>
-        </div>
-
-        {/* ═══ Overview tab ═══ */}
-        {tab === 'overview' && (
-          <div className="space-y-6">
-            {/* Stats bar */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatCard
+        <div className="space-y-6">
+          {/* Stats bar */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatCard
                 label="Active tests"
                 value={isPro ? `${running}` : `${running} / 1`}
                 sub={!isPro && running >= 1 ? 'Upgrade for more' : undefined}
@@ -277,12 +239,12 @@ export function DashboardClient({
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-[13px] font-medium text-[#ededed]">Recent tests</p>
-                  <button
-                    onClick={() => setTab('tests')}
+                  <Link
+                    href="/dashboard/tests"
                     className="text-[11px] font-semibold text-[#ededed]/62 hover:text-[#ededed]"
                   >
                     View all →
-                  </button>
+                  </Link>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {tests.slice(0, 3).map((t, i) => (
@@ -291,80 +253,9 @@ export function DashboardClient({
                 </div>
               </div>
             )}
-          </div>
-        )}
+        </div>
 
-        {/* ═══ Tests tab ═══ */}
-        {tab === 'tests' && (
-          <div>
-            {/* Toolbar */}
-            <div className="mb-3 flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Find test…"
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
-                />
-              </div>
-              <button
-                onClick={cycleFilter}
-                title={`Filter: ${statusFilter}`}
-                className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-              >
-                <ListFilter className="h-3.5 w-3.5" />
-                {statusFilter !== 'all' && (
-                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
-                )}
-              </button>
-              <button
-                onClick={() => setNewTestOpen(true)}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                New test
-              </button>
-            </div>
-
-            {/* New test flow overlay */}
-            {newTestOpen && (
-              <NewTestFlow
-                apiToken={apiToken}
-                currentTestCount={tests.length}
-                hasFigmaPlugin={hasFigmaPlugin}
-                onClose={() => setNewTestOpen(false)}
-              />
-            )}
-
-            {/* Empty / No results */}
-            {tests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
-                  <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
-                </div>
-                <p className="mt-4 text-[13px] font-medium text-[#ededed]/62">No experiments yet</p>
-                <p className="mt-1.5 max-w-xs text-[11px] text-[#ededed]/40">
-                  Create your first test in the Figma plugin — paste the plugin token below to get started.
-                </p>
-              </div>
-            ) : filteredTests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
-                <p className="text-[13px] font-medium text-[#ededed]/62">
-                  {query ? `No tests match "${query}"` : 'No tests in this filter'}
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredTests.map((t) => (
-                  <TestCard key={t.id} t={t} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ═══ Scroll sections — below tabs ═══ */}
+        {/* ═══ Scroll sections ═══ */}
         <div className="mt-10 flex flex-col gap-5 border-t border-white/10 pt-8">
           {/* Plugin token + Extension side by side */}
           <div id="plugin-token" className="grid scroll-mt-24 gap-5 sm:grid-cols-2">
@@ -637,26 +528,6 @@ export default function Document() {
 }
 
 /* ── Sub-components ── */
-
-function TabBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="cursor-pointer rounded-[6px] px-4 py-1.5 text-[13px] font-medium transition-colors"
-      style={{ color: active ? T.text : `${T.text}62`, background: active ? T.bg2 : 'transparent' }}
-    >
-      {children}
-    </button>
-  )
-}
 
 function StatCard({
   label,
