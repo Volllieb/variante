@@ -7,21 +7,23 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest    env:
+    runs-on: ubuntu-latest
+    env:
       VERCEL_ORG_ID: team_ucntpRauBhCaAdSnjjMDEUag
-      VERCEL_PROJECT_ID: prj_yd47XPmnO61WhoeMtTOOarNGXjWb    steps:
+      VERCEL_PROJECT_ID: prj_yd47XPmnO61WhoeMtTOOarNGXjWb
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Dependencies
         run: npm ci
         working-directory: ab-tool
 
       - name: Deploy to Vercel
-        run: npx vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: ab-tool
