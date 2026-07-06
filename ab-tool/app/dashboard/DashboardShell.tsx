@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
@@ -40,13 +39,11 @@ type DashboardShellProps = {
 }
 
 export function DashboardShell({ email, plan, children }: DashboardShellProps) {
-  const router = useRouter()
   const isPro = plan === 'pro' || plan === 'agency'
 
   async function logout() {
     await getBrowserSupabase().auth.signOut()
-    router.push('/')
-    router.refresh()
+    window.location.href = '/'
   }
 
   async function billing(path: 'checkout' | 'portal') {
