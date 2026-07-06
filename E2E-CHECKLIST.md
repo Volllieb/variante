@@ -2,16 +2,16 @@
 
 > Stand: 06.07.2026. Kompletten Loop testen: Landing → Account → Extension → Figma → Snippet → Traffic → Conversions → Billing → Winner.
 >
-> **Vor dem Start:** Smoke-Tests unten ausführen. Blocker (MIG-009, MIG-010) im Supabase SQL Editor beheben.
+> **Vor dem Start:** Smoke-Tests unten ausführen.
 
 ---
 
-## 🔴 Blocker (vor E2E-Durchlauf beheben)
+## ✅ Erledigte Blocker
 
-| ID | Was | Wo beheben |
+| ID | Was | Status |
 |---|---|---|
-| MIG-009 | `profiles.onboarded` Spalte fehlt in Production | Supabase SQL Editor: `db/migrations/009_onboarding_flag.sql` ausführen |
-| MIG-010 | `events`, `daily_stats`, `domains` Tabellen + `log_event()`, `snapshot_daily_stats()` RPCs fehlen | Supabase SQL Editor: `db/migrations/010_features.sql` ausführen |
+| MIG-009 | `profiles.onboarded` Spalte in Production | ✅ 06.07.2026 |
+| MIG-010 | `events`, `daily_stats`, `domains` Tabellen + `log_event()`, `snapshot_daily_stats()` RPCs | ✅ 06.07.2026 |
 
 ---
 
@@ -228,9 +228,7 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 ---
 
-## Phase 13: Neue Features (nach MIG-010)
-
-> ⚠️ Nur testbar nachdem MIG-009 + MIG-010 in Production ausgeführt wurden.
+## Phase 13: Neue Features
 
 - [ ] **Activity Log** (`/api/events`) — GET liefert Event-Historie (created, started, paused, winner_detected, done)
 - [ ] **Analytics-API** (`/api/analytics/[testId]`) — GET liefert Daily-Stats-Zeitreihe, Pro-gated
