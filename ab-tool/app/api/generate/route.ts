@@ -354,38 +354,18 @@ export async function POST(req: Request) {
     )
   }
 
-  // Usage-Limit: monatliches OpenAI-Budget pro User prüfen.
-  // monthly_gen_cost wird in profiles geführt und bei Monatswechsel zurückgesetzt.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('monthly_gen_cost, monthly_gen_reset')
-    .eq('user_id', user.userId)
-    .single()
+  // Usage-Limit: atomarer Check via RPC (Reset + Limit + Increment in einer Transaktion).
+  // Kein separates Profil-Read nötig — die DB-Funktion macht alles.
+  // ponytail: increment_gen_cost replaced manual check+reset to fix TOCTOU race.
+  // Cost wird VOR dem OpenAI-Call reserviert. Bei OpenAI-Fehlschlag ist der Betrag
+  // ($0.005) verloren — bei diesem Volumen akzeptabel. Upgrade-Pfad: Refund-RPC.
+  const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
+    p_user_id: user.userId,
+    p_amount: ESTIMATED_COST_PER_GEN,
+    p_limit: MAX_MONTHLY_COST,
+  })
 
-  const now = new Date()
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-  let currentCost = 0
-
-  if (profile) {
-    const resetDate = profile.monthly_gen_reset
-    // Monatswechsel oder kein Reset-Datum → Zähler zurücksetzen
-    if (!resetDate || resetDate !== currentMonth) {
-      await supabase
-        .from('profiles')
-        .update({ monthly_gen_cost: 0, monthly_gen_reset: currentMonth })
-        .eq('user_id', user.userId)
-    } else {
-      currentCost = Number(profile.monthly_gen_cost) || 0
-    }
-  } else {
-    // Profil existiert nicht (sollte nicht vorkommen, aber defensive)
-    await supabase
-      .from('profiles')
-      .update({ monthly_gen_cost: 0, monthly_gen_reset: currentMonth })
-      .eq('user_id', user.userId)
-  }
-
-  if (currentCost >= MAX_MONTHLY_COST) {
+  if (limitErr || withinLimit === false) {
     return Response.json(
       { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
       { status: 429, headers: corsHeaders('POST, OPTIONS') }
@@ -452,12 +432,8 @@ export async function POST(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  // Cost-Tracking: geschätzte Kosten inkrementieren (idempotent via RPC).
-  // Monats-Reset passiert automatisch beim nächsten Check (s.o.).
-  await supabase.rpc('increment_gen_cost', {
-    p_user_id: user.userId,
-    p_amount: ESTIMATED_COST_PER_GEN,
-  })
+  // Cost-Tracking wurde bereits beim Check inkrementiert (atomar, s.o.).
+  // ponytail: kein zweiter RPC-Call nötig — increment_gen_cost macht beides in einem.
 
   const response: Record<string, unknown> = { html: variantHtml, siteCss: test.site_css || null }
   if (warnings.length) response.warnings = warnings
