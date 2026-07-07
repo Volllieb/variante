@@ -22,6 +22,31 @@
 
 ---
 
+## 🤖 Agency-Agent (KI-Agent für Agenturen)
+
+**Status:** Idee, kein Scope definiert.
+
+Ein KI-Agent (`@agency`), der Agentur-Kunden self-service bedient — ohne dass die Agentur selbst das Dashboard öffnen muss. Der Agent sitzt zwischen Agentur und variante und macht das operative Geschäft.
+
+**Kern-Ideen:**
+
+| Feature | Beschreibung |
+|---|---|
+| **Test-Erstellung** | „Erstelle einen A/B-Test für meinen Kunden example.com: Variant A = blauer CTA, Variant B = grüner CTA" → Agent legt Test an, generiert HTML, gibt Snippet aus |
+| **Kunden-Onboarding** | Agent richtet neue Kundenseite ein (Domain verifizieren, Snippet-Code ausgeben, ersten Test vorschlagen) |
+| **Status-Reports** | „Wie laufen die Tests für Kunde X?" → Agent aggregated Stats, Signifikanz, Winner |
+| **Auto-Archive** | Agent erkennt Tests ohne Traffic seit >14 Tagen → schlägt Pause/Archivierung vor |
+| **Multi-Kunden-Übersicht** | „Zeig mir alle aktiven Tests über alle meine Kunden" → agenturweite Aggregation |
+| **White-Label-Konfiguration** | Agent setzt Branding, Domain, Badge-aus pro Kunde |
+
+**Technische Basis:** Nutzt die bestehende REST-API (Token-basiert). Agent hat Agentur-Token mit erweiterten Scopes (mehrere Domains, Kunden-Management).
+
+**Warum:** Agenturen sind der ideale Multiplikator — ein Agentur-Account bringt 10+ Endkunden. Aber Agenturen haben keine Zeit für Tool-Admin. Ein Agent, der das operative Geschäft abnimmt, senkt die Hürde massiv. Außerdem: „KI-Agent managed deine A/B-Tests" ist ein starkes Marketing-Versprechen.
+
+**Abhängigkeit:** Agency-Tier muss stehen (Multi-Site, Team-Seats, Shared Dashboard). Erst dann macht der Agent Sinn.
+
+---
+
 ## 📊 Mehrere Metriken parallel (#10)
 
 **Status:** Zurückgestellt (~6–10h Aufwand, alle Schichten betroffen).
