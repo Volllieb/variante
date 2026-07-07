@@ -1,0 +1,8 @@
+# Target: design professionals using modern browsers.
+# Eliminates ~14KB of ES5/ES2017 polyfills (Array.prototype.at, flat, Object.fromEntries etc.)
+# as reported by Lighthouse "Legacy JavaScript" audit.
+
+> 0.5%
+not dead
+not IE 11
+not op_mini all

@@ -8,6 +8,11 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
+  adjustFontFallback: true,
+  // Only load weights used on the marketing site (400 reg, 600 semibold).
+  // Variable font already covers all weights; subsetting reduces CLS by
+  // providing tighter fallback metrics via size-adjust.
+  weight: ['400', '600'],
 })
 
 export const metadata = {

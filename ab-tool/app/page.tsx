@@ -1,7 +1,23 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointerClick, Sparkles, Rocket, Zap } from 'lucide-react'
+
+// Inline SVG icons — zero client JS (vs lucide-react which bundles ~60KB).
+// Pure Server Components, rendered to static HTML on the landing page.
+function IconCheck({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+}
+function IconMousePointer({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+}
+function IconSparkles({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.814a2 2 0 0 1-1.275 1.274L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.274-1.275L21 12l-5.814-1.912a2 2 0 0 1-1.274-1.275L12 3Z"/></svg>
+}
+function IconRocket({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+}
+function IconZap({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+}
 
 export const metadata: Metadata = {
   title: 'A/B Testing from Figma — No Dev Needed | Variante',
@@ -14,18 +30,18 @@ export const metadata: Metadata = {
     siteName: 'Variante',
     images: [
       {
-        url: 'https://www.getvariante.com/og',
-        width: 1200,
-        height: 630,
-        alt: 'Variante — A/B Testing from Figma',
+        url: 'https://www.getvariante.com/icon.svg',
+        width: 128,
+        height: 128,
+        alt: 'Variante Panda Logo',
       },
     ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'A/B Testing from Figma — No Dev Needed | Variante',
     description: 'Pick → Generate → Ship. A/B testing without a developer.',
-    images: ['https://www.getvariante.com/og'],
+    images: ['https://www.getvariante.com/icon.svg'],
   },
 }
 
@@ -33,19 +49,19 @@ export const metadata: Metadata = {
 
 const steps = [
   {
-    icon: MousePointerClick,
+    icon: IconMousePointer,
     step: '01',
     title: 'Pick any element',
     body: 'Hover over any component on your live site. One click — the picker captures the HTML, CSS and framework context automatically.',
   },
   {
-    icon: Sparkles,
+    icon: IconSparkles,
     step: '02',
     title: 'Generate in Figma',
     body: 'Select your replacement design in Figma. AI reads both sides and writes Variant B — pixel-perfect, responsive, matching your existing styles.',
   },
   {
-    icon: Rocket,
+    icon: IconRocket,
     step: '03',
     title: 'Ship & track',
     body: 'Paste one snippet into your site. It serves the right variant to each visitor and tracks every conversion — no deploy pipeline, no dev.',
@@ -77,26 +93,26 @@ export default function HomePage() {
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3">
-          <Link
+          <a
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
             <PandaLogo className="h-7 w-7 rounded-lg p-1" />
             variante
-          </Link>
+          </a>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
+            <a
               href="/login"
               className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
             >
               Log in
-            </Link>
-            <Link
+            </a>
+            <a
               href="/signup"
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
               Sign up — free
-            </Link>
+            </a>
           </div>
         </nav>
       </header>
@@ -114,12 +130,12 @@ export default function HomePage() {
             One snippet serves and tracks everything.
           </p>
           <div className="mt-8 sm:mt-9">
-            <Link
+            <a
               href="/signup"
               className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
             >
               Start free — install Figma plugin
-            </Link>
+            </a>
           </div>
           <p className="mt-4 text-xs text-text-3">
             No credit card · 1 free experiment
@@ -164,17 +180,17 @@ export default function HomePage() {
               <ul className="mt-6 space-y-2.5 text-sm">
                 {freeFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 shrink-0 text-ok" />
+                    <IconCheck className="h-4 w-4 shrink-0 text-ok" />
                     <span className="text-white/60">{f.label}</span>
                   </li>
                 ))}
               </ul>
-              <Link
+              <a
                 href="/signup"
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
                 Start free
-              </Link>
+              </a>
             </div>
 
             {/* Pro */}
@@ -194,9 +210,9 @@ export default function HomePage() {
                 {proFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     {f.pro ? (
-                      <Zap className="h-4 w-4 shrink-0 text-pro" />
+                      <IconZap className="h-4 w-4 shrink-0 text-pro" />
                     ) : (
-                      <Check className="h-4 w-4 shrink-0 text-ok" />
+                      <IconCheck className="h-4 w-4 shrink-0 text-ok" />
                     )}
                     <span className={f.pro ? 'text-white/80' : 'text-white/60'}>
                       {f.label}
@@ -204,12 +220,12 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link
+              <a
                 href="/signup"
                 className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
               >
                 Start free trial
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -231,18 +247,18 @@ export default function HomePage() {
             © 2026 Variante · Made in Bavaria
           </p>
           <div className="flex items-center gap-4">
-            <Link
+            <a
               href="/privacy"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
               Privacy
-            </Link>
-            <Link
+            </a>
+            <a
               href="/imprint"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
               Imprint
-            </Link>
+            </a>
           </div>
         </div>
       </footer>
