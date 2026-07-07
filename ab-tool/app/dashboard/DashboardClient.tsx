@@ -74,12 +74,14 @@ export function DashboardClient({
   tests,
   hasFigmaPlugin,
   highlightNew,
+  upgraded,
 }: {
   plan: string
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
   highlightNew?: boolean
+  upgraded?: boolean
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -205,6 +207,16 @@ export function DashboardClient({
     <>
       <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
         <div className="space-y-6">
+          {/* Upgraded banner — shown after successful Stripe checkout */}
+          {upgraded && (
+            <div className="flex items-center gap-3 rounded-[10px] border border-[#2fd76c]/20 bg-[#2fd76c]/5 px-5 py-3.5">
+              <Check className="h-4 w-4 shrink-0 text-[#2fd76c]" />
+              <p className="text-[13px] text-[#2fd76c]">
+                You&apos;re now on <strong className="font-semibold">Pro</strong> — unlimited experiments, full statistics, no badge.
+              </p>
+            </div>
+          )}
+
           {/* Stats bar */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard

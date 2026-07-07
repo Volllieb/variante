@@ -43,16 +43,16 @@ export default function SignupPage() {
   const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
-  // UX: Bereits eingeloggt → direkt zum Dashboard
+  // UX: Bereits eingeloggt → direkt zum Dashboard (oder Onboarding bei plan=pro)
   useEffect(() => {
     getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.push('/dashboard')
+        router.push(signupPlan ? `/onboarding?${new URLSearchParams({ plan: signupPlan, source }).toString()}` : '/dashboard')
         return
       }
       setSessionChecked(true)
     })
-  }, [router])
+  }, [router, signupPlan, source])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -281,7 +281,7 @@ export default function SignupPage() {
               <div className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
                 <p>
                   Diese E-Mail ist bereits registriert.{' '}
-                  <Link href="/login" className="font-semibold underline transition-colors hover:opacity-80">
+                  <Link href={`/login${source || signupPlan ? `?${new URLSearchParams({ source, plan: signupPlan }).toString()}` : ''}`} className="font-semibold underline transition-colors hover:opacity-80">
                     Direkt einloggen
                   </Link>
                 </p>
@@ -324,7 +324,7 @@ export default function SignupPage() {
 
         <p className="mt-5 text-center text-sm text-text-3">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-white transition-colors hover:text-text">
+          <Link href={`/login${source || signupPlan ? `?${new URLSearchParams({ source, plan: signupPlan }).toString()}` : ''}`} className="font-semibold text-white transition-colors hover:text-text">
             Log in
           </Link>
         </p>

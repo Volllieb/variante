@@ -11,6 +11,12 @@ function norm(s: string): string {
   return s.trim().toLowerCase()
 }
 
+function loginParams(): { source: string; plan: string } {
+  if (typeof window === 'undefined') return { source: '', plan: '' }
+  const p = new URLSearchParams(window.location.search)
+  return { source: p.get('source') || '', plan: p.get('plan') || '' }
+}
+
 type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
 
 function classify(error: any): ErrKind {
@@ -24,6 +30,7 @@ function classify(error: any): ErrKind {
 
 export default function LoginPage() {
   const router = useRouter()
+  const { source, plan } = loginParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -36,13 +43,13 @@ export default function LoginPage() {
   const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
-  // UX: Bereits eingeloggt → direkt zum Dashboard
+  // UX: Bereits eingeloggt → zum Dashboard (oder Onboarding bei plan=pro)
   // PASSWORD_RECOVERY-Event: User kommt aus alter Reset-Mail → redirect zu /update-password
   useEffect(() => {
     const supabase = getBrowserSupabase()
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.push('/dashboard')
+        router.push(plan ? `/onboarding?${new URLSearchParams({ plan, source }).toString()}` : '/dashboard')
         return
       }
       setSessionChecked(true)
@@ -58,7 +65,7 @@ export default function LoginPage() {
     if (errorParam) setErr(decodeURIComponent(errorParam))
     return () => subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router])
+  }, [router, plan, source])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -304,7 +311,7 @@ export default function LoginPage() {
 
         <p className="mt-5 text-center text-sm text-text-3">
           No account yet?{' '}
-          <Link href="/signup" className="font-semibold text-white transition-colors hover:text-text">
+          <Link href={`/signup${source || plan ? `?${new URLSearchParams({ source, plan }).toString()}` : ''}`} className="font-semibold text-white transition-colors hover:text-text">
             Sign up free
           </Link>
         </p>

@@ -30,7 +30,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} highlightNew={searchParams.new === '1'} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} highlightNew={searchParams.new === '1'} upgraded={false} />
   }
 
   if (!profile.onboarded) redirect('/onboarding')
@@ -42,6 +42,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       tests={tests ?? []}
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
       highlightNew={searchParams.new === '1'}
+      upgraded={searchParams.upgraded === '1'}
     />
   )
 }
