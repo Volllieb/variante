@@ -34,36 +34,36 @@ const steps = [
   {
     icon: MousePointer2,
     step: '01',
-    title: 'Pick any element',
-    body: 'Hover over any component on your live site. One click — the picker captures the HTML, CSS and framework context automatically.',
+    title: 'No dev ticket. No briefing.',
+    body: 'Open your site, click the element you want to test. The picker captures everything — HTML, CSS, framework context. You stay in control.',
   },
   {
     icon: Sparkles,
     step: '02',
-    title: 'Generate in Figma',
-    body: 'Select your replacement design in Figma. AI reads both sides and writes Variant B — pixel-perfect, responsive, matching your existing styles.',
+    title: 'Your design, pixel‑perfect.',
+    body: 'Redesign the element in Figma — your tools, your workflow. AI reads both sides and writes Variant B matching your existing styles and breakpoints.',
   },
   {
     icon: Rocket,
     step: '03',
-    title: 'Ship & track',
-    body: 'Paste one snippet into your site. It serves the right variant to each visitor and tracks every conversion — no deploy pipeline, no dev.',
+    title: 'Live in 60 seconds.',
+    body: 'Paste one snippet into your site. It serves the right variant, tracks conversions, reports results — without touching your deploy pipeline.',
   },
 ]
 
 const freeFeatures = [
-  { label: '1 active experiment', pro: false },
-  { label: 'AI variant generation', pro: false },
-  { label: 'Conversion tracking', pro: false },
-  { label: '"Powered by Variante" badge', pro: false },
+  { label: '1 active experiment — test your first idea, free.' },
+  { label: 'AI variant generation — pixel-perfect from Figma.' },
+  { label: 'Conversion tracking — built-in, no extra setup.' },
+  { label: '"Powered by Variante" badge — your visitors become your referrals.' },
 ]
 
 const proFeatures = [
   { label: 'Unlimited experiments', pro: true },
   { label: 'AI variant generation', pro: false },
-  { label: 'Statistical significance analysis', pro: true },
-  { label: 'Auto-winner detection', pro: true },
-  { label: 'No branding on site', pro: true },
+  { label: 'Statistical significance — know when to stop testing', pro: true },
+  { label: 'Auto-winner — best variant ships automatically', pro: true },
+  { label: 'No branding on your site', pro: true },
   { label: 'Priority support', pro: true },
 ]
 
@@ -126,6 +126,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Problem → Solution ── */}
+      <section className="px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">The old way</p>
+              <p className="mt-3 text-lg font-semibold text-white">
+                &ldquo;Can we A/B test this?&rdquo;<br />
+                <span className="text-white/45">— two weeks later, still waiting.</span>
+              </p>
+            </div>
+            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">The cost</p>
+              <p className="mt-3 text-lg font-semibold text-white">
+                Every untested design<br />
+                <span className="text-white/45">is a guess that loses conversions.</span>
+              </p>
+            </div>
+            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">The shift</p>
+              <p className="mt-3 text-lg font-semibold text-white">
+                You don&rsquo;t need a dev<br />
+                <span className="text-white/45">to know what converts. You need Variante.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── How It Works ── */}
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
@@ -143,6 +172,21 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Works With ── */}
+      <section className="px-4 py-8 sm:px-6 sm:py-10">
+        <div className="mx-auto max-w-6xl text-center">
+          <p className="text-sm text-white/35">
+            One snippet. Works with{' '}
+            <span className="text-white/55">WordPress</span>,{' '}
+            <span className="text-white/55">React</span>,{' '}
+            <span className="text-white/55">Next.js</span>,{' '}
+            <span className="text-white/55">Shopify</span>,{' '}
+            <span className="text-white/55">Custom HTML</span>{' '}
+            — anywhere you can paste a script tag.
+          </p>
         </div>
       </section>
 
@@ -214,6 +258,46 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── FAQ ── */}
+      <section className="px-4 py-12 sm:px-6 sm:py-20">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="text-center text-xl font-semibold text-white">You might be wondering</h2>
+          <dl className="mt-10 space-y-3">
+            {[
+              {
+                q: 'Does the snippet slow down my site?',
+                a: 'No. It\'s under 5 KB, loads asynchronously, and never blocks rendering. Your Core Web Vitals stay untouched.',
+              },
+              {
+                q: 'What if the AI generates broken code?',
+                a: 'You review every variant before it goes live. Preview, diff, approve — nothing ships without your sign-off.',
+              },
+              {
+                q: 'Does this work with my stack?',
+                a: 'If you can paste a &lt;script&gt; tag, it works. WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, custom HTML — all supported.',
+              },
+              {
+                q: 'How is this different from Optimizely or VWO?',
+                a: 'No developer setup. No tracking plan. No \"enterprise\" sales call. Just pick an element, redesign in Figma, ship.',
+              },
+            ].map((item) => (
+              <details
+                key={item.q}
+                className="group rounded-[10px] border border-border bg-bg-1 transition-colors duration-150 hover:border-border-strong"
+              >
+                <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-white/80 select-none">
+                  {item.q}
+                  <span className="ml-4 shrink-0 text-white/25 transition-transform duration-200 group-open:rotate-180">
+                    ▾
+                  </span>
+                </summary>
+                <p className="px-5 pb-4 text-sm text-white/50">{item.a}</p>
+              </details>
+            ))}
+          </dl>
+        </div>
+      </section>
+
       {/* ── Badge Demo ── */}
       <a
         href="/signup"
@@ -258,7 +342,7 @@ export default function HomePage() {
             operatingSystem: 'Web',
             url: 'https://www.getvariante.com',
             description:
-              'A/B Testing from Figma — pick, generate, ship without a developer.',
+              'Every designer can now run A/B tests from Figma — no developer, no pipeline.',
             offers: [
               {
                 '@type': 'Offer',
