@@ -10,18 +10,22 @@ const T = {
   ok: '#2fd76c', pro: '#f5a623', err: '#f5455c',
 }
 
-type FlowState = 'idle' | 'awaiting_figma' | 'test_received' | 'timeout' | 'error'
+type FlowState = 'idle' | 'awaiting_figma' | 'test_received' | 'timeout' | 'error' | 'plan_limit'
 
 type NewTestFlowProps = {
   apiToken: string
   currentTestCount: number
   hasFigmaPlugin: boolean
+  isAtFreeLimit: boolean
   onClose: () => void
 }
 
-export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, onClose }: NewTestFlowProps) {
+export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFreeLimit, onClose }: NewTestFlowProps) {
   const router = useRouter()
-  const [state, setState] = useState<FlowState>(hasFigmaPlugin ? 'awaiting_figma' : 'idle')
+  const [state, setState] = useState<FlowState>(
+    isAtFreeLimit ? 'plan_limit' : hasFigmaPlugin ? 'awaiting_figma' : 'idle'
+  )
+  const [busy, setBusy] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [copied, setCopied] = useState(false)
   const [testName, setTestName] = useState('')
@@ -48,6 +52,11 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, onClos
       if (!res.ok) return
       const data = await res.json()
       if (!mountedRef.current) return
+      // Detect plan limit mid-poll (e.g. second test attempt via Figma)
+      if (data.plan === 'free' && Array.isArray(data.tests) && data.tests.filter((t: any) => t.status !== 'done').length >= 1) {
+        setState('plan_limit')
+        return
+      }
       const list = data.tests ?? data
       if (Array.isArray(list) && list.length > currentTestCount) {
         setState('test_received')
@@ -236,6 +245,43 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, onClos
             <button onClick={() => { setState('awaiting_figma'); setElapsed(0) }}
               className="w-full cursor-pointer rounded-[6px] bg-white py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85">
               Try again
+            </button>
+          </div>
+        )}
+
+        {/* ── State: plan_limit ── */}
+        {state === 'plan_limit' && (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center py-6">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full"
+                style={{ background: `${T.pro}1f` }}>
+                <FlaskConical className="h-6 w-6" style={{ color: T.pro }} />
+              </div>
+              <p className="mt-4 text-[15px] font-semibold text-[#ededed]">Free plan limit reached</p>
+              <p className="mt-1 text-[13px] text-[#ededed]/40">
+                The Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.
+              </p>
+            </div>
+
+            <button
+              onClick={async () => {
+                setBusy(true)
+                try {
+                  const res = await fetch('/api/billing/checkout', { method: 'POST' })
+                  const data = await res.json()
+                  if (data.url) window.location.href = data.url
+                } finally {
+                  setBusy(false)
+                }
+              }}
+              disabled={busy}
+              className="w-full cursor-pointer rounded-[6px] bg-white py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-50"
+            >
+              {busy ? 'Redirecting…' : 'Upgrade to Pro'}
+            </button>
+            <button onClick={onClose}
+              className="w-full cursor-pointer rounded-[6px] border border-white/10 py-2 text-[12px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]">
+              Close
             </button>
           </div>
         )}

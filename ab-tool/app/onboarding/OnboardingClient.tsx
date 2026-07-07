@@ -11,12 +11,14 @@ export function OnboardingClient({
   apiToken,
   plan,
   source,
+  planIntent,
   upgraded,
 }: {
   email: string
   apiToken: string
   plan: string
   source: string
+  planIntent?: string
   upgraded?: boolean
 }) {
   const router = useRouter()
@@ -167,8 +169,59 @@ export function OnboardingClient({
             </p>
           </div>
 
-          {/* Upgrade — free users only */}
-          {!isPro && !upgradeSkipped && (
+          {/* Upgrade — pro-intent users: prominent checkout (no skip) */}
+          {!isPro && planIntent === 'pro' && !upgradeSkipped && (
+            <div className="rounded-[10px] border border-pro/30 bg-pro-bg p-6">
+              <div className="mb-1 flex items-center gap-2">
+                <span className="text-sm">🚀</span>
+                <p className="text-sm font-semibold text-white">Unlock Pro</p>
+              </div>
+              <p className="mt-1 text-xs text-pro/80">
+                You chose Pro — unlimited experiments, statistical significance, auto-winner, and no badge on your site.
+              </p>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                <div className="rounded-[6px] border border-border bg-bg-2 p-4">
+                  <p className="font-semibold text-white">Free</p>
+                  <ul className="mt-2.5 space-y-1.5 text-text-3">
+                    <li>✦ 1 active experiment</li>
+                    <li>✦ Badge shown on site</li>
+                    <li>✦ Basic stats</li>
+                    <li className="text-text-3/50">✕ White-label</li>
+                  </ul>
+                </div>
+                <div className="rounded-[6px] border border-pro/30 bg-black/30 p-4">
+                  <p className="font-semibold text-pro">Pro — 35€/mo</p>
+                  <ul className="mt-2.5 space-y-1.5 text-pro/70">
+                    <li>✦ Unlimited experiments</li>
+                    <li>✦ No badge</li>
+                    <li>✦ Full statistics</li>
+                    <li>✦ Auto-winner</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={upgrade}
+                  disabled={busy}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[6px] bg-white px-4 py-2.5 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:opacity-50"
+                >
+                  {busy ? 'Redirecting…' : 'Unlock Pro'}
+                  {!busy && <ArrowRight className="h-3.5 w-3.5" />}
+                </button>
+                <button
+                  onClick={() => setUpgradeSkipped(true)}
+                  className="flex-1 rounded-[6px] border border-border px-4 py-2.5 text-sm font-medium text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
+                >
+                  Maybe later
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Upgrade — free users (no pro intent) */}
+          {!isPro && planIntent !== 'pro' && !upgradeSkipped && (
             <div className="rounded-[10px] border border-border bg-bg-1 p-6">
               <div className="mb-1 flex items-center gap-2">
                 <span className="text-sm">🚀</span>

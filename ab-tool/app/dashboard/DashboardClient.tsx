@@ -319,6 +319,7 @@ export function DashboardClient({
                     apiToken={apiToken}
                     currentTestCount={tests.length}
                     hasFigmaPlugin={hasFigmaPlugin}
+                    isAtFreeLimit={!isPro && tests.filter(t => t.status !== 'done').length >= 1}
                     onClose={() => setNewTestOpen(false)}
                   />
                 )}

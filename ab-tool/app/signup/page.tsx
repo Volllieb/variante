@@ -22,15 +22,15 @@ function classify(error: any): ErrKind {
   return 'generic'
 }
 
-function signupSource(): string {
-  if (typeof window === 'undefined') return ''
+function signupParams(): { source: string; plan: string } {
+  if (typeof window === 'undefined') return { source: '', plan: '' }
   const p = new URLSearchParams(window.location.search)
-  return p.get('source') || ''
+  return { source: p.get('source') || '', plan: p.get('plan') || '' }
 }
 
 export default function SignupPage() {
   const router = useRouter()
-  const source = signupSource()
+  const { source, plan: signupPlan } = signupParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -100,8 +100,11 @@ export default function SignupPage() {
         return
       }
       if (data.session) {
-        const qs = source ? '?source=' + encodeURIComponent(source) : ''
-        router.push('/onboarding' + qs)
+        const qsParts2: string[] = []
+        if (source) qsParts2.push(`source=${encodeURIComponent(source)}`)
+        if (signupPlan) qsParts2.push(`plan=${encodeURIComponent(signupPlan)}`)
+        const qs2 = qsParts2.length > 0 ? '?' + qsParts2.join('&') : ''
+        router.push('/onboarding' + qs2)
         router.refresh()
       } else {
         setInfo('Almost there — confirm your email address, then you can log in.')
@@ -141,7 +144,11 @@ export default function SignupPage() {
     setGoogleLoading(true)
     try {
       const supabase = getBrowserSupabase()
-      const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
+      const qsPartsG: string[] = []
+      if (source) qsPartsG.push(`source=${encodeURIComponent(source)}`)
+      if (signupPlan) qsPartsG.push(`plan=${encodeURIComponent(signupPlan)}`)
+      const qsG = qsPartsG.length > 0 ? '?' + qsPartsG.join('&') : ''
+      const nextPath = '/onboarding' + qsG
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
