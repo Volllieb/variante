@@ -89,6 +89,10 @@ git push
 
 Commit-Message folgt Conventional Commits: `chore: wrapup — dead files entfernt, Doku aktualisiert`
 
+## Skills & Best Practices
+
+Während des Ponytail-Reviews (Pipeline-Schritt 2): **React Best Practices mit einbeziehen** (`⤳ skill: react-best-practices`) — geänderte TSX-Dateien gegen die 64-Regel-Checkliste laufen lassen. Funde aus react-best-practices fließen in die priorisierte Ponytail-Liste ein. Bei Next.js-spezifischen Änderungen (RSC, Metadata, Image/Font) zusätzlich `⤳ skill: nextjs` konsultieren.
+
 ## Nicht dein Scope
 
 - **Kein Feature-Development.** Du fixt nur an, was im Wrapup-Kontext anfällt.

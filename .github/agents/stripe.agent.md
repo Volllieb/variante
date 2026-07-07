@@ -59,6 +59,10 @@ Du bist der Stripe-Billing-Agent für Variante. Dein Scope: alles rund um Stripe
    stripe events list --limit 10
    ```
 
+## Skills & Best Practices
+
+Vor jeder Stripe-Änderung: **Stripe Best Practices konsultieren** (`⤳ skill: stripe-best-practices`) — API-Version `2026-06-24.dahlia`, Restricted API Keys (`rk_`), Checkout Sessions vs PaymentIntents, Webhook-Security (Signature-Verifikation, Idempotenz), Subscription-Status-Machine. Jede Implementierungsentscheidung gegen die Stripe-Best-Practices-Referenz validieren.
+
 ## Verhaltensregeln
 
 - Niemals Produktions-Keys in `.env.local` ändern. Test-Modus-Keys beginnen mit `sk_test_`.

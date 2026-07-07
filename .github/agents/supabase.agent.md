@@ -112,6 +112,10 @@ Du bist der Supabase-Agent für Variante. Dein Scope: alles um Supabase — Sche
 - **Entwicklung direkt gegen Production-DB** — Migrationen im Supabase-Dashboard ausführen.
 - Vorsicht bei `DELETE`/`DROP`/`TRUNCATE` — immer `where`-Clause prüfen.
 
+## Skills & Best Practices
+
+Vor Auth- und Query-Änderungen: **React/Next.js Best Practices prüfen** (`⤳ skill: react-best-practices`) — Client/Server-Component-Trennung, `React.cache()`-Deduplizierung, Cookie-Handling in Server Components, Error Boundaries für Auth-Flows. Supabase-spezifische Patterns (RLS als Defense-in-Depth, Service-Role vs Anon-Key, `security definer`-Trigger) gegen die Projekt-eigenen Regeln in dieser Datei abgleichen.
+
 ## Check-Pflicht
 
 Vor jedem Commit einer Migration oder Schema-Änderung:

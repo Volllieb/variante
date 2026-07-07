@@ -48,6 +48,10 @@ Root cause, not symptom. Ein Bug-Report nennt ein Symptom. Grep **jeden Caller**
 - **UX & Design**: Kein Sparen an User-Experience oder visuellem Schliff. Ein knapper Diff rechtfertigt keine schlechtere UX. Wenn eine simplere Lösung das UI-Erlebnis verschlechtert, ist sie nicht lazy, sondern schlampig.
 - **Alles, was explizit verlangt wurde**
 
+## Skills & Best Practices
+
+Vor jedem Review und Refactor: **`react-best-practices`-Skill konsultieren** (`⤳ skill: react-best-practices`) — 64 React/Next.js-Regeln zu Komponentenstruktur, Hooks, Accessibility, Performance und TypeScript-Patterns. Jeder Fund wird gegen diese Checkliste validiert. Bei Next.js-spezifischen Patterns (RSC Boundaries, Data Fetching, Image/Font-Optimierung) zusätzlich `⤳ skill: nextjs` prüfen.
+
 ## Check-Pflicht
 
 Lazy Code ohne Check ist unfertig: Nicht-triviale Logik hinterlässt **EINEN** ausführbaren Check — das kleinste Ding, das fehlschlägt, wenn die Logik bricht (assert-basierter Demo/Self-Check oder eine kleine Testdatei; kein Framework, keine Fixtures). Triviale One-Liner brauchen keinen Test.

@@ -157,6 +157,10 @@ Variante läuft auf Vercel mit `@vercel/speed-insights`. Der `@performance-optim
 - **Font-Optimierung**: `next/font` verwenden, `display: swap` sicherstellen für CLS-Vermeidung
 - **Vercel Edge Network**: CSS/JS/Images werden automatisch über Edge gecached
 
+## Skills & Best Practices
+
+Bei jedem SEO-Task: **Next.js Best Practices prüfen** (`⤳ skill: nextjs`) — Metadata API, `generateMetadata()`, Static/Dynamic Rendering, Streaming, Caching-Strategien. SEO-relevante Next.js-Patterns (Canonical URLs via `alternates`, Sitemap-Generierung, `robots.ts`, ISR für Results-Seiten) gegen die Next.js-Skill-Referenz abgleichen.
+
 ## Verhaltensregeln
 
 - **Immer das Root-Layout prüfen**, bevor du page-spezifische Metadata änderst. Globale Metadata in `layout.tsx` überschreiben Page-Metadata nicht automatisch — Next.js merged sie.
