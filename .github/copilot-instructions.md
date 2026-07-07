@@ -10,11 +10,13 @@
 |---|---|---|
 | `@ponytail` | review, refactor, simplify, over-engineering, YAGNI, "geht das nicht einfacher?" | Code-Review, Aufräumen, Kürzen |
 | `@redesign` | redesign, neugestalten, UI überarbeiten, modernisieren, verschönern | Mutige visuelle Neugestaltungen |
+| `@supabase` | migration, schema, RLS, policy, auth, query, 'neue Tabelle', Trigger, RPC | DB, Auth, Migrationen, RLS, RPCs |
 | `@stripe` | billing, checkout, payment, webhook, subscription | Stripe-Integration (Checkout, Portal, Webhooks) |
 | `@deployment-expert` | deploy, vercel, CI/CD, environment, "deploy das" | Vercel-Deployments, CI/CD, Env-Vars |
 | `@performance-optimizer` | performance, Core Web Vitals, caching, "mach das schneller" | Core Web Vitals, Rendering-Strategien, Caching |
 | `@ai-architect` | architektur, AI-SDK, Vercel AI, "wie baue ich X mit AI" | AI-Architektur, Vercel AI SDK, Agent-Design |
 | `@seo` | SEO, Meta-Tags, Structured Data, Sitemap, robots.txt, Core Web Vitals, SERP, JSON-LD | Ganzheitliche Suchmaschinenoptimierung |
+| `@wrapup` | wrapup, aufräumen, session beenden, cleanup, fertig für heute | Session-Abschluss: tote Files, Ponytail-Review, Git-Hygiene, Doku-Update |
 | `Explore` | codebase search, "wo ist X?", "wie hängt Y zusammen?" | Read-only Code-Exploration |
 
 ## Skills

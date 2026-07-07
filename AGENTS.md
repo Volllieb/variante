@@ -2,7 +2,7 @@
 
 Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` — dort fortschreiben, nicht hier.
 
-**Agent-Definitionen:** `.github/agents/*.agent.md` (ponytail, redesign, stripe, deployment-expert, performance-optimizer, ai-architect, seo).
+**Agent-Definitionen:** `.github/agents/*.agent.md` (ponytail, redesign, supabase, stripe, deployment-expert, performance-optimizer, ai-architect, seo, wrapup).
 
 ## Arbeitsweise
 - Deutsch. Kein Intro/Outro/Padding. Direkt zum Inhalt.

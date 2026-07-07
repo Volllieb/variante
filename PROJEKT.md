@@ -27,7 +27,7 @@
 | Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
 | Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
-| KI-Agenten | Cline (DeepSeek V4 Pro) + GitHub Copilot · 7 Custom Agents: `@ponytail`, `@redesign`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo` · Config: `.github/agents/`, `.agents/skills/` |
+| **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
 
 ## §3 Struktur
 
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Supabase-Agent erstellt.** `@supabase` als 9. Custom Agent — DB, Auth, Migrationen (idempotent), RLS-Policies (Defense-in-Depth), RPCs, Query-Performance. Doku: 3-Client-Architektur, Auth-Flow, 13-Migrationen-Übersicht. |
 | 07.07.2026 | **Email-Templates designed.** 5 Supabase-Auth-Templates (Confirmation, Magic Link, Reset, Invite, Change) in `ab-tool/emails/`. Brand-konform: Monochrom, schwarzer Header + Panda-Logo als inline SVG, kein Gradient/Schatten, 480px Card-Layout. Anleitung in `emails/README.md`. Templates sind copy-paste-ready für Supabase Dashboard. |
 | 07.07.2026 | **P2-Fixes nach Architektur-Audit.** `lib/ssrf.ts` extrahiert — BLOCKED_HOSTS/BLOCKED_HOSTNAMES zentral, nicht mehr dupliziert. Tests aus Root-`__tests__/` nach `ab-tool/__tests__/` konsolidiert. `.env.example`: `RESEND_FROM` ergänzt. `api/token/route.ts` als Info-Endpoint angelegt. Build + 15 Tests grün. |
 | 07.07.2026 | **Lighthouse R4: 3 Perf-Fixes deployed.** (1) Analytics/SpeedInsights: React-Komponenten → plain `<script defer>`-Tags (kein `'use client'` im Root-Layout, keine Hydration-Erzwingung). (2) `manifest.webmanifest`-Link entfernt (404, bfcache-Blocker). (3) Landingpage: `next/link`→`<a>`, lucide-react→Inline-SVGs (kein Client-Router, keine Icon-Bundles). `.browserslist` verworfen (Next.js 16/Turbopack ignoriert sie, `experimental.legacyBrowsers` wurde entfernt — 14KB Polyfills bleiben known issue). Score von 72 auf ~75–80 erwartet. |
