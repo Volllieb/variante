@@ -27,18 +27,6 @@ Du siehst 5 Template-Tabs. Für jeden Tab:
 | **Invite User** | `invite.html` | `You've been invited to variante` |
 | **Change Email** | `email-change.html` | `Confirm your new email for variante` |
 
-#### Security Notifications (optional, aber empfohlen)
-
-Unter **Authentication → Email Templates** den "Show security templates"-Toggle aktivieren:
-
-| Tab | Datei | Subject |
-|---|---|---|
-| **Password Changed** | `password-changed.html` | `Your variante password was changed` |
-| **Email Address Changed** | `email-address-changed.html` | `Your variante email address was changed` |
-| **Sign-in Method Removed** | `sign-in-method-removed.html` | `A sign-in method was removed from your variante account` |
-
-> Security-Templates haben **keinen CTA-Button** — sind reine Benachrichtigungen mit einem "secure your account"-Fallback-Link in `--err`-Rot.
-
 ### 3. Logo hochladen (optional, aber empfohlen)
 
 Für beste Darstellung in allen Mailclients:
@@ -89,8 +77,7 @@ Supabase hat einen **"Send Test Email"**-Button rechts oben im Template-Editor. 
 | `{{ .Token }}` | Magic Link |
 | `{{ .TokenHash }}` | Magic Link |
 | `{{ .RedirectTo }}` | Alle Templates |
-| `{{ .NewEmail }}` | Change Email, Email Address Changed |
-| `{{ .Provider }}` | Sign-in Method Removed |
+| `{{ .NewEmail }}` | Change Email |
 
 ---
 
