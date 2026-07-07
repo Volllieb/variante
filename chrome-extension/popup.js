@@ -51,7 +51,14 @@ startBtn.addEventListener('click', async () => {
 
   if (!testId) { showInputErr('Please enter a testId.'); return }
 
-  await chrome.storage.local.set({ testId, abPickerMode: 'element' })
+  // Persist any token/apiBase from a prior Figma bridge session so the
+  // popup-initiated picker also sends an Authorization header.
+  let prior = {}
+  try { prior = await chrome.storage.local.get(['apiBase','abToken']) } catch (_) {}
+  const patch = { testId, abPickerMode: 'element' }
+  if (prior.apiBase) patch.apiBase = prior.apiBase
+  if (prior.abToken)  patch.abToken  = prior.abToken
+  await chrome.storage.local.set(patch)
   saveTestIdHistory(testId)
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })

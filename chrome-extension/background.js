@@ -12,7 +12,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 })
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status !== 'loading') return
   if (!tab.url || __abInjectedTabs.has(tabId)) return
 
@@ -21,13 +21,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
   __abInjectedTabs.add(tabId)
 
-  // Store so content-picker.js (injected below) picks it up
+  // Store so content-picker.js (injected below) picks it up.
+  // Await required: storage.set is async — without await, executeScript
+  // may inject content-picker.js BEFORE the token is written → 401 on API call.
   const patch = { testId: parsed.testId, abPickerMode: parsed.mode }
   if (parsed.apiBase) patch.apiBase = parsed.apiBase
   if (parsed.token) patch.abToken = parsed.token
-  chrome.storage.local.set(patch).catch(() => {})
+  await chrome.storage.local.set(patch).catch(() => {})
 
-  chrome.scripting.executeScript({
+  await chrome.scripting.executeScript({
     target: { tabId },
     files: ['content-picker.js'],
   }).catch(() => {})

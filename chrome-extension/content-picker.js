@@ -296,7 +296,7 @@ document.documentElement.setAttribute('data-ab-picker-injected', '1')
   }
 
   // --- Auto-Start: Vom Service Worker via storage.local + executeScript ----
-  chrome.storage.local.get(['testId', 'abPickerMode'], function (cfg) {
+  chrome.storage.local.get(['testId', 'abPickerMode', 'apiBase', 'abToken'], function (cfg) {
     if (cfg.testId && !window.__abPickerLoaded) {
       window.__abPickerLoaded = true
       startPicker(cfg.abPickerMode || 'element')
