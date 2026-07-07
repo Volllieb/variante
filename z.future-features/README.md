@@ -181,6 +181,70 @@ Figma-Login als dritter Auth-Weg neben Email/Passwort und Google OAuth. Designer
 
 ---
 
+## 🤖 Autopilot — KI-gesteuerte Test-Iteration
+
+**Status:** Konzept, kein Scope definiert.
+
+User gibt eine URL ein, die KI analysiert die Seite, schlägt Varianten vor, generiert sie, deployed sie und iteriert automatisch — bis ein signifikanter Winner feststeht. Kein manuelles Test-Design mehr.
+
+**Flow:**
+
+```
+URL eingeben → KI analysiert Seite → schlägt Varianten vor → generiert HTML/CSS → deployed
+→ misst Conversions → wertet aus → nächste Iteration → ... → „Test XYZ: Variante B gewinnt mit +23%"
+```
+
+**Kern-Features:**
+
+| Feature | Beschreibung |
+|---|---|
+| **URL-Scan** | KI crawlt die eingegebene URL, extrahiert DOM-Struktur, identifiziert testbare Elemente (CTAs, Headlines, Hero-Sections, Pricing-Tables, Formulare) |
+| **Varianten-Vorschläge** | KI schlägt 3–5 Varianten vor — begründet mit CRO-Best-Practices („Headline emotionaler", „CTA-Kontrast erhöht", „Social Proof näher an den CTA") |
+| **Auto-Generierung** | Varianten werden als echtes HTML/CSS generiert, nicht nur als Diff-Patch — direkt deploybar via Snippet |
+| **Auto-Iteration** | Nach jeder Signifikanz-Phase: Winner wird neue Baseline, KI generiert nächste Variante. Loop bis kein signifikanter Lift mehr oder User-Limit erreicht. |
+| **Brand-Guideline-Concierge** | User hinterlegt Brand Guidelines (Farben, Typografie, Tonalität, Logo). Die KI hält alle Varianten brand-compliant — keine generischen Templates, sondern on-brand Iterationen. Guidelines können als Text, URL zu einer Brand-Seite, oder strukturiertes JSON eingereicht werden. |
+| **Iteration-Log** | Jede Iteration mit Diff-Vorschau, Begründung, und Ergebnis — volle Transparenz, kein Black-Box-Autopilot |
+| **Guardrails** | User setzt Limits: max. Iterationen, max. Traffic-Anteil pro Variante, Brand-Regeln („niemals Preis ändern", „Logo nicht anfassen") |
+
+**Brand Guidelines — Warum das der Schlüssel ist:**
+Jeder KI-generierte Vorschlag scheitert im echten Einsatz an einer Sache: Er respektiert die Marke nicht. Eine generische „bessere" Variante, die nicht zur Brand-Identität passt, wird vom Team abgelehnt — selbst wenn sie +30% konvertiert. Der Brand-Guideline-Concierge macht aus „KI-generiert" → „KI-generiert, on-brand".
+
+**Guideline-Eingabe — drei Wege:**
+
+| Weg | Beschreibung | Aufwand |
+|---|---|---|
+| **Freitext** | User beschreibt die Brand in natürlicher Sprache: „Wir sind ein B2B-SaaS, Farben Blau/Weiß, Ton sachlich-vertrauensvoll, nie reißerisch" | Gering |
+| **URL-Scan** | KI liest die Brand-Seite des Users (z. B. `/brand` oder About-Page) und extrahiert automatisch Farbpalette, Typografie, Tonalität | Mittel |
+| **Strukturiert** | User lädt JSON/YAML mit Design Tokens hoch (Farben, Fonts, Spacing, Logo-URL, Tone-of-Voice-Regeln) | Mittel |
+
+**Brand-Constraints, die die KI beachtet:**
+- **Farbpalette:** Nur freigegebene Colors, keine Eigenkreationen
+- **Typografie:** Font-Families, -Größen, -Hierarchien
+- **Tonalität:** Formell vs. locker, Duzend vs. Siezend, humorvoll vs. sachlich
+- **No-Go-Zonen:** Elemente die nie geändert werden dürfen (Logo, Footer-Links, Preisangaben)
+- **Layout-Grid:** Bevorzugte Spalten, Maximalbreiten, Abstände
+
+**Technische Basis:**
+- Vercel AI SDK für strukturierte LLM-Outputs (Varianten-HTML, Diff-Patches, Begründungen)
+- Vision-Modell für URL-Scan (Screenshot + DOM-Struktur kombinieren)
+- Brand Guidelines als System-Prompt-Injection in den Generation-Loop
+- `ab.js`-Snippet deployed die Varianten wie gehabt — Autopilot ist nur die Creation-Schicht, nicht die Runtime
+
+**Monetarisierung:**
+- Pro-Plan: 1 aktiver Autopilot-Test
+- Agency/Autopilot-Addon: 5 aktive Autopilot-Tests parallel
+- Brand-Guideline-Concierge im Pro-Plan enthalten (Differenzierung zu Free)
+
+**Warum das der Gamechanger ist:**
+A/B-Testing hat heute drei Probleme: (1) Man muss wissen was man testen will, (2) man muss Varianten bauen können, (3) man muss Statistiken verstehen. Autopilot löst alle drei. User gibt URL ein → Variante kommt raus. Das ist die „Stripe-Level"-Abstraktion für CRO.
+
+**Risiken:**
+- KI-Halluzinationen im DOM (falsche Selektoren, kaputtes CSS) → braucht Validation-Layer vor Deployment
+- Brand-Verletzungen trotz Guidelines → User-Feedback-Loop in Iteration-Log einbauen („Diese Variante hat Brand-Regel X verletzt — korrigiert in nächster Iteration")
+- User vertrauen blind → Iteration-Log mit Diff-Vorschau ist Pflicht, nicht optional
+
+---
+
 ## 💡 Ideen (noch nicht entschieden)
 
 - **Multivariate Tests** (A/B/C/D statt nur A/B)
