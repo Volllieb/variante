@@ -1,6 +1,8 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,18 +27,18 @@ export const metadata = {
     siteName: 'Variante',
     images: [
       {
-        url: 'https://www.getvariante.com/icon.svg',
-        width: 128,
-        height: 128,
-        alt: 'Variante Panda Logo',
+        url: 'https://www.getvariante.com/og',
+        width: 1200,
+        height: 630,
+        alt: 'Variante — A/B Testing from Figma',
       },
     ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'A/B Testing from Figma — No Dev Needed | Variante',
     description: 'Pick → Generate → Ship. A/B testing without a developer.',
-    images: ['https://www.getvariante.com/icon.svg'],
+    images: ['https://www.getvariante.com/og'],
   },
 }
 
@@ -60,7 +62,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className="min-h-screen bg-bg-0 text-white/80 antialiased">{children}</body>
+      <body className="min-h-screen bg-bg-0 text-white/80 antialiased">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
     </html>
   )
 }

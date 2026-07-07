@@ -14,18 +14,18 @@ export const metadata: Metadata = {
     siteName: 'Variante',
     images: [
       {
-        url: 'https://www.getvariante.com/icon.svg',
-        width: 128,
-        height: 128,
-        alt: 'Variante Panda Logo',
+        url: 'https://www.getvariante.com/og',
+        width: 1200,
+        height: 630,
+        alt: 'Variante — A/B Testing from Figma',
       },
     ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'A/B Testing from Figma — No Dev Needed | Variante',
     description: 'Pick → Generate → Ship. A/B testing without a developer.',
-    images: ['https://www.getvariante.com/icon.svg'],
+    images: ['https://www.getvariante.com/og'],
   },
 }
 
