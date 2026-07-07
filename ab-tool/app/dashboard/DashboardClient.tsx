@@ -21,6 +21,10 @@ import {
   Search,
   Plus,
   ListFilter,
+  ArrowRight,
+  Circle,
+  CircleCheck,
+  Code2,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -165,6 +169,22 @@ export function DashboardClient({
     })
   }
 
+  // Setup-Checkliste: lokale Schritt-Verfolgung
+  const [doneSteps, setDoneSteps] = useState<Set<number>>(new Set())
+  function toggleStep(n: number) { setDoneSteps((s) => { const ns = new Set(s); if (ns.has(n)) ns.delete(n); else ns.add(n); return ns }) }
+
+  function handleSetupStep(step: 1 | 2 | 3) {
+    if (step === 1) {
+      setSnippetOpen(true)
+      setTimeout(() => document.getElementById('snippet')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    } else if (step === 2) {
+      document.getElementById('plugin-token')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      setNewTestOpen(true)
+    }
+    toggleStep(step)
+  }
+
   /* ── Aggregate stats ── */
   const totalVisitors = tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
   const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
@@ -256,31 +276,9 @@ export function DashboardClient({
               </div>
             )}
 
-            {/* Test grid — empty state or real grid */}
+            {/* Test grid — empty state (setup checklist) or real grid */}
             {tests.length === 0 ? (
-              <div className="flex flex-col items-center rounded-[10px] border border-dashed border-white/[0.14] bg-[#0a0a0a] px-6 py-10 text-center">
-                <FlaskConical className="mb-4 h-10 w-10 text-[#ededed]/25" />
-                <h3 className="text-[15px] font-semibold text-[#ededed]">Ready to run your first A/B test?</h3>
-                <p className="mt-1.5 max-w-xs text-[13px] leading-relaxed text-[#ededed]/40">
-                  Install the extension, connect Figma, create your first variant — all without a developer.
-                </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-                  <a
-                    href="#plugin-token"
-                    className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[12px] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-                  >
-                    <Puzzle className="h-3.5 w-3.5" />
-                    Install extension &amp; connect Figma
-                  </a>
-                  <button
-                    onClick={() => setNewTestOpen(true)}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Create first test
-                  </button>
-                </div>
-              </div>
+              <SetupChecklist doneSteps={doneSteps} onStep={handleSetupStep} />
             ) : (
               <div>
                 {/* Toolbar */}
@@ -757,4 +755,118 @@ function StatusDot({ status, winner }: { status: string; winner?: string | null 
     return <span className="h-2 w-2 shrink-0 rounded-full bg-[#ededed]/40" />
   }
   return <span className="h-2 w-2 shrink-0 rounded-full border border-dashed border-[#ededed]/40" />
+}
+
+/* ── Setup-Checkliste (0-Test Empty State) ── */
+
+const SETUP_STEPS = [
+  {
+    n: 1,
+    title: 'Install the snippet',
+    desc: 'Paste one line into your site\'s <head> — universal, no framework lock-in.',
+    action: 'Copy & install snippet',
+    icon: Code2,
+    target: '#snippet',
+  },
+  {
+    n: 2,
+    title: 'Connect Figma',
+    desc: 'Install the Chrome extension and paste your token into the Figma plugin.',
+    action: 'Copy token & open extension',
+    icon: Puzzle,
+    target: '#plugin-token',
+  },
+  {
+    n: 3,
+    title: 'Create your first test',
+    desc: 'Select an element in Figma, describe your variant, and push it to your dashboard.',
+    action: 'Start first test',
+    icon: FlaskConical,
+    target: null,
+  },
+] as const
+
+function SetupChecklist({
+  doneSteps,
+  onStep,
+}: {
+  doneSteps: Set<number>
+  onStep: (step: 1 | 2 | 3) => void
+}) {
+  return (
+    <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a]">
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3.5">
+        <span
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px]"
+          style={{ background: `${T.ok}1f` }}
+        >
+          <FlaskConical className="h-4 w-4" style={{ color: T.ok }} />
+        </span>
+        <div>
+          <p className="text-[13px] font-semibold text-[#ededed]">Get started in 3 steps</p>
+          <p className="text-[11px] text-[#ededed]/40">
+            {doneSteps.size === 3
+              ? 'All done — your first test is live!'
+              : `${3 - doneSteps.size} step${doneSteps.size === 2 ? '' : 's'} remaining`}
+          </p>
+        </div>
+      </div>
+
+      {/* Steps */}
+      <div className="divide-y divide-white/[0.06]">
+        {SETUP_STEPS.map((s) => {
+          const done = doneSteps.has(s.n)
+          const Icon = s.icon
+          return (
+            <div
+              key={s.n}
+              className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-white/[0.02]"
+            >
+              {/* Step number / check */}
+              <button
+                onClick={() => onStep(s.n as 1 | 2 | 3)}
+                className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+                style={{
+                  background: done ? `${T.ok}1f` : '#111111',
+                  border: done ? `1px solid ${T.ok}33` : '1px solid rgba(255,255,255,.10)',
+                }}
+              >
+                {done ? (
+                  <CircleCheck className="h-4 w-4" style={{ color: T.ok }} />
+                ) : (
+                  <Circle className="h-4 w-4 text-[#ededed]/25" />
+                )}
+              </button>
+
+              {/* Text */}
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate text-[13px] font-medium transition-colors"
+                  style={{ color: done ? `${T.text}62` : T.text }}
+                >
+                  {s.title}
+                </p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[#ededed]/40">{s.desc}</p>
+              </div>
+
+              {/* Action */}
+              <button
+                onClick={() => onStep(s.n as 1 | 2 | 3)}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
+                style={{
+                  background: done ? 'transparent' : '#ffffff',
+                  color: done ? `${T.text}40` : '#000000',
+                  border: done ? '1px solid rgba(255,255,255,.10)' : '1px solid transparent',
+                }}
+              >
+                {done ? 'Done' : s.action}
+                {!done && <ArrowRight className="h-3 w-3" />}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }

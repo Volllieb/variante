@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 07.07.2026 — Architektur-Audit abgeschlossen, P0/P1/P2-Fixes deployed |
+| **Stand** | 07.07.2026 — Sprint 1: Setup-Checkliste + Snippet-Check-API deployed |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -33,7 +33,7 @@
 
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
-├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token
+├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, snippet-check, stripe, tests, token
 ├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/ docs/
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Sprint 1: Setup-Checkliste + Snippet-Check-API.** `POST /api/snippet-check` — server-seitiger Fetch (SSRF-geschützt, 5s Timeout) prüft ob `ab.js`/`__ab_hide` auf externer Site lebt. `SetupChecklist`-Komponente ersetzt Empty-State im Dashboard (0-Test-Nutzer): 3 anklickbare Steps (Snippet→Figma→Erster Test) mit visuellem Done-Tracking. Dashboard-Brainstorming abgeschlossen, Roadmap in Sprint-Reihenfolge priorisiert. Build grün, deployed. |
 | 07.07.2026 | **Docs-Seite erstellt.** `/docs` mit 8 Sektionen (Overview, How it works, Installation, Figma Plugin, Chrome Extension, Experiments, Pricing, FAQ). Footer-Link auf Landingpage, Sitemap-Eintrag, JSON-LD. SEO: canonical, OG, Twitter-Card. |
 | 07.07.2026 | **Supabase-Agent erstellt.** `@supabase` als 9. Custom Agent — DB, Auth, Migrationen (idempotent), RLS-Policies (Defense-in-Depth), RPCs, Query-Performance. Doku: 3-Client-Architektur, Auth-Flow, 13-Migrationen-Übersicht. |
 | 07.07.2026 | **Email-Templates designed.** 5 Supabase-Auth-Templates (Confirmation, Magic Link, Reset, Invite, Change) in `ab-tool/emails/`. Brand-konform: Monochrom, schwarzer Header + Panda-Logo als inline SVG, kein Gradient/Schatten, 480px Card-Layout. Anleitung in `emails/README.md`. Templates sind copy-paste-ready für Supabase Dashboard. |
@@ -237,3 +238,26 @@ User klickt [+ New test]
 - **Empty States als Guide.** Kein leeres Dashboard — immer eine Handlungsaufforderung.
 - **Polling statt WebSockets.** Kein SSE/WS nötig für Plugin↔Dashboard-Sync. 3s-Poll reicht.
 - **Setup-Tools persistent sichtbar.** Plugin-Token und Extension-Link bleiben im Dashboard (Sidebar/Footer), auch nach Onboarding — für Teammates oder Gerätewechsel.
+
+### 12.6 Dashboard-Roadmap (Brainstorming 07.07.2026)
+
+**Entscheidungen aus Fragebogen (8 Kategorien, 23 Entscheidungen):**
+
+| Sprint | Inhalt | Status |
+|---|---|---|
+| **Sprint 1** | Setup-Checkliste (0-Test-Nutzer) + Snippet-Check-API | ✅ Deployed |
+| **Sprint 2** | Test-Cards aufwerten (Thumbnail, Dauer, Signifikanz-Pie, Three-Dot-Menü) | ⏳ |
+| **Sprint 3** | Results-Detailseite (Hero-Zahl + Sparkline + Signifikanz-Pie-Chart) | ⏳ |
+| **Sprint 4** | Overview restrukturieren (CRO-Snapshot, Top-3 Tests, Link zu /tests) | ⏳ |
+| **Sprint 5** | Account-Seite (/dashboard/account: Email/PW ändern, Danger Zone) | ⏳ |
+| **Sprint 6** | Inline-Billing (Plan, Rechnungen, Stripe-Portal-Link) | ⏳ |
+
+**In z.future-features geparkt:** Mobile-Optimierung, Text-Tests, Bulk-Actions, ROI-Rechner, Badge-Vorschau, Referral-System, Public Share-Link.
+
+**Key-Design-Entscheidungen:**
+- Layout: Quick-Actions im Content-Bereich, Sidebar = reine Navigation
+- Overview = Stats + Tests + Setup-Checkliste + CRO-Snapshot. `/dashboard/tests` = dedizierte Test-Seite (Redundanz ok)
+- Charts nur auf Detailseite, keine Avg-Lift-Stat in Overview
+- Snippet-Check proaktiv: Badge-Klick führt durch alle Setup-Schritte
+- Signifikanz für Free-User sichtbar (Platzhalter-Card mit Upgrade-Pfad)
+- Free-Gate via Best-Practice (402-UI / Locked-Card, kein harter Block)
