@@ -305,7 +305,23 @@ Der Text-Test ist im Kern ein Element-Test, bei dem die Variante zufällig nur e
 
 ---
 
-## 💡 Ideen (noch nicht entschieden)
+## � Dashboard-Features (geparkt 07.07.2026)
+
+**Status:** Aus Dashboard-Brainstorming + UX-Fragebogen geparkt. Kein Sprint-Plan, aber bewertet und priorisiert.
+
+| Feature | Begründung für Parken |
+|---|---|
+| **Mobile-Optimierung** (A3) | Audience ist Desktop (Figma/DevTools). Mobile folgt nach Core-Features. |
+| **Quick-Create Text-Tests** (B1, 2. Phase) | Element-Test ist USP. Text-Test als Spezialfall später, siehe „Text-Test vs. Element-Test" oben. |
+| **Bulk-Actions** (B3) | UX-Schulden — braucht User-Feedback zu realen Workflows bevor wir Abstraktion bauen. |
+| **ROI-Rechner** (F3) | Nice-to-have. Erst bauen wenn genug Test-Daten für realistische Projektionen da sind. |
+| **Badge-Vorschau** (G1) | Spielerei. Snippet-Funktionalität wichtiger als Badge-Ästhetik. |
+| **Referral-System** (G2) | Growth-Hebel, aber erst nach Product-Market-Fit. |
+| **Public Share-Link** (G3) | „Public Test Gallery" ist bereits als Idee gelistet. Doppelt. |
+
+**Aktive Sprints (in PROJEKT.md §12.6):** Setup-Checkliste ✅ → Test-Cards aufwerten → Results-Detailseite → Overview-Restructure → Account-Seite → Inline-Billing.
+
+---
 
 - **Multivariate Tests** (A/B/C/D statt nur A/B)
 - **Visuelle Vorschau im Dashboard** (Side-by-Side iframe)
