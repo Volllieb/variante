@@ -34,7 +34,7 @@
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token
-├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/
+├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/ docs/
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Docs-Seite erstellt.** `/docs` mit 8 Sektionen (Overview, How it works, Installation, Figma Plugin, Chrome Extension, Experiments, Pricing, FAQ). Footer-Link auf Landingpage, Sitemap-Eintrag, JSON-LD. SEO: canonical, OG, Twitter-Card. |
 | 07.07.2026 | **Supabase-Agent erstellt.** `@supabase` als 9. Custom Agent — DB, Auth, Migrationen (idempotent), RLS-Policies (Defense-in-Depth), RPCs, Query-Performance. Doku: 3-Client-Architektur, Auth-Flow, 13-Migrationen-Übersicht. |
 | 07.07.2026 | **Email-Templates designed.** 5 Supabase-Auth-Templates (Confirmation, Magic Link, Reset, Invite, Change) in `ab-tool/emails/`. Brand-konform: Monochrom, schwarzer Header + Panda-Logo als inline SVG, kein Gradient/Schatten, 480px Card-Layout. Anleitung in `emails/README.md`. Templates sind copy-paste-ready für Supabase Dashboard. |
 | 07.07.2026 | **P2-Fixes nach Architektur-Audit.** `lib/ssrf.ts` extrahiert — BLOCKED_HOSTS/BLOCKED_HOSTNAMES zentral, nicht mehr dupliziert. Tests aus Root-`__tests__/` nach `ab-tool/__tests__/` konsolidiert. `.env.example`: `RESEND_FROM` ergänzt. `api/token/route.ts` als Info-Endpoint angelegt. Build + 15 Tests grün. |

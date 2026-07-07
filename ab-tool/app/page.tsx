@@ -204,7 +204,7 @@ export default function HomePage() {
                 <span className="text-4xl font-semibold text-white">0 €</span>
               </div>
               <p className="mt-1 text-xs text-text-3">Forever free. No credit card.</p>
-              <ul className="mt-6 mb-6 space-y-2.5 text-sm">
+              <ul className="mt-6 mb-10 space-y-2.5 text-sm">
                 {freeFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 shrink-0 text-ok" />
@@ -233,7 +233,7 @@ export default function HomePage() {
                 <span className="text-sm text-text-3">/mo</span>
               </div>
               <p className="mt-1 text-xs text-text-3">Everything in Free, plus:</p>
-              <ul className="mt-6 mb-6 space-y-2.5 text-sm">
+              <ul className="mt-6 mb-10 space-y-2.5 text-sm">
                 {proFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     {f.pro ? (
@@ -314,6 +314,12 @@ export default function HomePage() {
             © 2026 Variante · Made in Bavaria
           </p>
           <div className="flex items-center gap-4">
+            <a
+              href="/docs"
+              className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
+            >
+              Docs
+            </a>
             <a
               href="/privacy"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
