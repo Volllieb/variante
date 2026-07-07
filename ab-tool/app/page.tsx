@@ -1,23 +1,6 @@
 import type { Metadata } from 'next'
 import { PandaLogo } from '@/components/PandaLogo'
-
-// Inline SVG icons — zero client JS (vs lucide-react which bundles ~60KB).
-// Pure Server Components, rendered to static HTML on the landing page.
-function IconCheck({ className }: { className?: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-}
-function IconMousePointer({ className }: { className?: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
-}
-function IconSparkles({ className }: { className?: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.814a2 2 0 0 1-1.275 1.274L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.274-1.275L21 12l-5.814-1.912a2 2 0 0 1-1.274-1.275L12 3Z"/></svg>
-}
-function IconRocket({ className }: { className?: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-}
-function IconZap({ className }: { className?: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-}
+import { Check, MousePointer2, Sparkles, Rocket, Zap } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'A/B Testing from Figma — No Dev Needed | Variante',
@@ -49,19 +32,19 @@ export const metadata: Metadata = {
 
 const steps = [
   {
-    icon: IconMousePointer,
+    icon: MousePointer2,
     step: '01',
     title: 'Pick any element',
     body: 'Hover over any component on your live site. One click — the picker captures the HTML, CSS and framework context automatically.',
   },
   {
-    icon: IconSparkles,
+    icon: Sparkles,
     step: '02',
     title: 'Generate in Figma',
     body: 'Select your replacement design in Figma. AI reads both sides and writes Variant B — pixel-perfect, responsive, matching your existing styles.',
   },
   {
-    icon: IconRocket,
+    icon: Rocket,
     step: '03',
     title: 'Ship & track',
     body: 'Paste one snippet into your site. It serves the right variant to each visitor and tracks every conversion — no deploy pipeline, no dev.',
@@ -180,7 +163,7 @@ export default function HomePage() {
               <ul className="mt-6 space-y-2.5 text-sm">
                 {freeFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
-                    <IconCheck className="h-4 w-4 shrink-0 text-ok" />
+                    <Check className="h-4 w-4 shrink-0 text-ok" />
                     <span className="text-white/60">{f.label}</span>
                   </li>
                 ))}
@@ -210,9 +193,9 @@ export default function HomePage() {
                 {proFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     {f.pro ? (
-                      <IconZap className="h-4 w-4 shrink-0 text-pro" />
+                      <Zap className="h-4 w-4 shrink-0 text-pro" />
                     ) : (
-                      <IconCheck className="h-4 w-4 shrink-0 text-ok" />
+                      <Check className="h-4 w-4 shrink-0 text-ok" />
                     )}
                     <span className={f.pro ? 'text-white/80' : 'text-white/60'}>
                       {f.label}
