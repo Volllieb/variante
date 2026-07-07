@@ -4,7 +4,9 @@ import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { calcSignificance } from '@/lib/significance'
 import { NewTestFlow } from './NewTestFlow'
+import { TestCard, StatusDot, type TestRow } from './components/TestCard'
 import {
   Copy,
   Check,
@@ -25,6 +27,7 @@ import {
   Circle,
   CircleCheck,
   Code2,
+  BarChart3,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -35,19 +38,6 @@ const T = {
   ok: '#2fd76c',
   pro: '#f5a623',
   err: '#f5455c',
-}
-
-type TestRow = {
-  id: string
-  name: string
-  site_url: string | null
-  status: string
-  visitors_a: number
-  visitors_b: number
-  conversions_a: number
-  conversions_b: number
-  winner: string | null
-  created_at: string
 }
 
 const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
@@ -91,7 +81,15 @@ export function DashboardClient({
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [newTestOpen, setNewTestOpen] = useState(false)
+  const [testList, setTestList] = useState(tests)
   const isPro = plan === 'pro' || plan === 'agency'
+
+  // Sync when server re-renders with fresh data
+  useEffect(() => { setTestList(tests) }, [tests])
+
+  function handleDeleteTest(id: string) {
+    setTestList((prev) => prev.filter((t) => t.id !== id))
+  }
 
   function cycleFilter() {
     setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
@@ -99,11 +97,11 @@ export function DashboardClient({
 
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return tests.filter((t) => {
+    return testList.filter((t) => {
       const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
       return mq && (statusFilter === 'all' || t.status === statusFilter)
     })
-  }, [tests, query, statusFilter])
+  }, [testList, query, statusFilter])
 
   // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
   useEffect(() => {
@@ -188,10 +186,10 @@ export function DashboardClient({
   }
 
   /* ── Aggregate stats ── */
-  const totalVisitors = tests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
-  const totalConversions = tests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
-  const running = tests.filter((t) => t.status === 'active').length
-  const lifts = tests
+  const totalVisitors = testList.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
+  const totalConversions = testList.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
+  const running = testList.filter((t) => t.status === 'active').length
+  const lifts = testList
     .map((t) => {
       const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
       const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
@@ -201,7 +199,7 @@ export function DashboardClient({
   const avgLift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
 
   // Winner alert (Pro only, active tests with a winner)
-  const winnerTest = isPro ? tests.find((t) => t.winner && t.status !== 'done') : null
+  const winnerTest = isPro ? testList.find((t) => t.winner && t.status !== 'done') : null
 
   return (
     <>
@@ -288,8 +286,13 @@ export function DashboardClient({
               </div>
             )}
 
+            {/* Overview info table — compact summary of all tests */}
+            {testList.length > 0 && (
+              <OverviewTable tests={testList} />
+            )}
+
             {/* Test grid — empty state (setup checklist) or real grid */}
-            {tests.length === 0 ? (
+            {testList.length === 0 ? (
               <SetupChecklist doneSteps={doneSteps} onStep={handleSetupStep} />
             ) : (
               <div>
@@ -327,9 +330,9 @@ export function DashboardClient({
                 {newTestOpen && (
                   <NewTestFlow
                     apiToken={apiToken}
-                    currentTestCount={tests.length}
+                    currentTestCount={testList.length}
                     hasFigmaPlugin={hasFigmaPlugin}
-                    isAtFreeLimit={!isPro && tests.filter(t => t.status !== 'done').length >= 1}
+                    isAtFreeLimit={!isPro && testList.filter(t => t.status !== 'done').length >= 1}
                     onClose={() => setNewTestOpen(false)}
                   />
                 )}
@@ -344,7 +347,7 @@ export function DashboardClient({
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {filteredTests.map((t, i) => (
-                      <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} />
+                      <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} />
                     ))}
                   </div>
                 )}
@@ -561,7 +564,7 @@ export default function Document() {
                 value={isPro ? `${running}` : `${running} / 1`}
                 atLimit={!isPro && running >= 1}
               />
-              <QuotaRow icon={Users} label="Total experiments" value={`${tests.length}`} />
+              <QuotaRow icon={Users} label="Total experiments" value={`${testList.length}`} />
               <QuotaRow icon={TrendingUp} label="Total visitors" value={totalVisitors.toLocaleString()} />
               <QuotaRow icon={Zap} label="Total conversions" value={totalConversions.toLocaleString()} />
               {avgLift !== null && (
@@ -665,67 +668,95 @@ function StatCard({
   )
 }
 
-function TestCard({ t, highlight }: { t: TestRow; highlight?: boolean }) {
-  const va = t.visitors_a ?? 0
-  const vb = t.visitors_b ?? 0
-  const ca = t.conversions_a ?? 0
-  const cb = t.conversions_b ?? 0
-  const crA = va > 0 ? ca / va : 0
-  const crB = vb > 0 ? cb / vb : 0
-  const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
-  const totalV = va + vb
-  const pctA = totalV > 0 ? (va / totalV) * 100 : 50
-
+function OverviewTable({ tests }: { tests: TestRow[] }) {
   return (
-    <Link
-      href={`/dashboard/results/${t.id}`}
-      className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
-      style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-[15px] font-medium text-[#ededed]">{t.name}</p>
-          {t.site_url && <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>}
-        </div>
-        <StatusDot status={t.status} winner={t.winner} />
+    <div className="overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
+      <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+        <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+        <span className="text-[13px] font-medium text-[#ededed]">Tests overview</span>
+        <span className="ml-auto text-[11px] text-[#ededed]/40">{tests.length} total</span>
       </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-white/[0.06] text-[11px] text-[#ededed]/40">
+              <th className="py-2 pl-4 pr-3 font-medium">Name</th>
+              <th className="px-3 py-2 font-medium">Status</th>
+              <th className="px-3 py-2 font-medium text-right">Visitors</th>
+              <th className="px-3 py-2 font-medium text-right">Conv.</th>
+              <th className="px-3 py-2 font-medium text-right">Sig.</th>
+              <th className="px-3 py-2 font-medium text-right">Lift</th>
+              <th className="py-2 pl-3 pr-4 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.06]">
+            {tests.map((t) => {
+              const va = t.visitors_a ?? 0
+              const vb = t.visitors_b ?? 0
+              const ca = t.conversions_a ?? 0
+              const cb = t.conversions_b ?? 0
+              const totalV = va + vb
+              const totalC = ca + cb
+              const crA = va > 0 ? ca / va : 0
+              const crB = vb > 0 ? cb / vb : 0
+              const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
+              const sig = totalV > 0 ? calcSignificance(va, ca, vb, cb) : 0
+              const sigPct = Math.round(sig * 100)
 
-      <div className="mt-2.5 flex items-center gap-2">
-        <span className="text-[11px] text-[#ededed]/62">{t.winner === 'B' ? 'B won' : t.status}</span>
-        {uplift !== null && uplift !== 0 && (
-          <span
-            className="rounded-[5px] px-2 py-0.5 text-[11px] font-semibold"
-            style={
-              uplift > 0
-                ? { background: `${T.ok}1f`, color: T.ok }
-                : { background: `${T.err}1f`, color: T.err }
-            }
-          >
-            {uplift > 0 ? '+' : ''}
-            {uplift.toFixed(1)}%
-          </span>
-        )}
+              // Use dynamic import - already available in scope
+              return (
+                <tr key={t.id} className="text-[12px] transition-colors hover:bg-white/[0.02]">
+                  <td className="py-2.5 pl-4 pr-3">
+                    <div className="max-w-[180px] truncate font-medium text-[#ededed]">{t.name}</div>
+                    {t.site_url && (
+                      <div className="mt-0.5 max-w-[180px] truncate text-[11px] text-[#ededed]/40">{t.site_url}</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <StatusDot status={t.status} winner={t.winner} />
+                      <span className="text-[#ededed]/62">
+                        {t.winner === 'B' ? 'B won' : t.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-[#ededed]/62">{totalV.toLocaleString()}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-[#ededed]/62">{totalC.toLocaleString()}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">
+                    <span
+                      className="font-semibold"
+                      style={{ color: sig >= 0.95 ? T.ok : sig >= 0.7 ? T.pro : `${T.text}62` }}
+                    >
+                      {totalV > 0 ? `${sigPct}%` : '—'}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">
+                    {uplift !== null && uplift !== 0 ? (
+                      <span
+                        className="font-semibold"
+                        style={{ color: uplift > 0 ? T.ok : T.err }}
+                      >
+                        {uplift > 0 ? '+' : ''}{uplift.toFixed(1)}%
+                      </span>
+                    ) : (
+                      <span className="text-[#ededed]/40">—</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 pl-3 pr-4 text-right">
+                    <Link
+                      href={`/dashboard/results/${t.id}`}
+                      className="text-[11px] font-medium text-[#ededed]/40 transition-colors hover:text-[#ededed]"
+                    >
+                      View →
+                    </Link>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
-
-      {totalV > 0 && (
-        <div className="mt-3">
-          <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-            <div className="bg-white/30 transition-all" style={{ width: `${pctA}%` }} />
-            <div className="bg-white transition-all" style={{ width: `${100 - pctA}%` }} />
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-[#ededed]/40">
-            <span>
-              A: {va.toLocaleString()}
-              {crA > 0 && <span className="ml-1 text-[#ededed]/62">{(crA * 100).toFixed(1)}% CR</span>}
-            </span>
-            <span>
-              {crB > 0 && <span className="mr-1 text-[#ededed]/62">{(crB * 100).toFixed(1)}% CR</span>}
-              B: {vb.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      )}
-    </Link>
+    </div>
   )
 }
 
@@ -756,18 +787,7 @@ function QuotaRow({
   )
 }
 
-function StatusDot({ status, winner }: { status: string; winner?: string | null }) {
-  if (status === 'active') {
-    return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
-  }
-  if (status === 'paused') {
-    return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.pro }} />
-  }
-  if (status === 'done' || winner) {
-    return <span className="h-2 w-2 shrink-0 rounded-full bg-[#ededed]/40" />
-  }
-  return <span className="h-2 w-2 shrink-0 rounded-full border border-dashed border-[#ededed]/40" />
-}
+/* ── Setup-Checkliste (0-Test Empty State) ── */
 
 /* ── Setup-Checkliste (0-Test Empty State) ── */
 

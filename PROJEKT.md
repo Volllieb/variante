@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 07.07.2026 — Sprint 1: Setup-Checkliste + Snippet-Check-API deployed |
+| **Stand** | 07.07.2026 — Sprint 2: Test-Cards aufgewertet + Overview-Tabelle deployed |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Sprint 2: Test-Cards + Overview-Tabelle.** Shared `TestCard`-Komponente mit Favicon-Thumbnail, Test-Dauer („Running for 3d"), Signifikanz-Mini-Donut (24×24 SVG), Three-Dot-Menü (Pause/Resume/Delete). `OverviewTable` im Dashboard: kompakte Tabelle aller Tests mit Status, Visitors, Conversions, Signifikanz, Lift. `TestsClient` nutzt jetzt dieselbe Shared-Komponente. Code-Deduplizierung: ~120 Zeilen entfernt. Build grün, deployed. |
 | 07.07.2026 | **Sprint 1: Setup-Checkliste + Snippet-Check-API.** `POST /api/snippet-check` — server-seitiger Fetch (SSRF-geschützt, 5s Timeout) prüft ob `ab.js`/`__ab_hide` auf externer Site lebt. `SetupChecklist`-Komponente ersetzt Empty-State im Dashboard (0-Test-Nutzer): 3 anklickbare Steps (Snippet→Figma→Erster Test) mit visuellem Done-Tracking. Dashboard-Brainstorming abgeschlossen, Roadmap in Sprint-Reihenfolge priorisiert. Build grün, deployed. |
 | 07.07.2026 | **Docs-Seite erstellt.** `/docs` mit 8 Sektionen (Overview, How it works, Installation, Figma Plugin, Chrome Extension, Experiments, Pricing, FAQ). Footer-Link auf Landingpage, Sitemap-Eintrag, JSON-LD. SEO: canonical, OG, Twitter-Card. |
 | 07.07.2026 | **Supabase-Agent erstellt.** `@supabase` als 9. Custom Agent — DB, Auth, Migrationen (idempotent), RLS-Policies (Defense-in-Depth), RPCs, Query-Performance. Doku: 3-Client-Architektur, Auth-Flow, 13-Migrationen-Übersicht. |
@@ -246,7 +247,7 @@ User klickt [+ New test]
 | Sprint | Inhalt | Status |
 |---|---|---|
 | **Sprint 1** | Setup-Checkliste (0-Test-Nutzer) + Snippet-Check-API | ✅ Deployed |
-| **Sprint 2** | Test-Cards aufwerten (Thumbnail, Dauer, Signifikanz-Pie, Three-Dot-Menü) | ⏳ |
+| **Sprint 2** | Test-Cards aufwerten (Thumbnail, Dauer, Signifikanz-Pie, Three-Dot-Menü) + Overview-Tabelle | ✅ Deployed |
 | **Sprint 3** | Results-Detailseite (Hero-Zahl + Sparkline + Signifikanz-Pie-Chart) | ⏳ |
 | **Sprint 4** | Overview restrukturieren (CRO-Snapshot, Top-3 Tests, Link zu /tests) | ⏳ |
 | **Sprint 5** | Account-Seite (/dashboard/account: Email/PW ändern, Danger Zone) | ⏳ |
