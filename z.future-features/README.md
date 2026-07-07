@@ -245,6 +245,66 @@ A/B-Testing hat heute drei Probleme: (1) Man muss wissen was man testen will, (2
 
 ---
 
+## ✂️ Text-Test vs. Element-Test — Zwei Test-Modi
+
+**Status:** Konzept, kein Code. Strategische Denkarbeit 07.07.2026.
+
+Variante bietet heute nur **Element-Tests**: Designer wählt ein ganzes DOM-Element, KI generiert alternatives HTML/CSS, `ab.js` tauscht das Element komplett aus. Das ist der USP („in Figma designen → live testen"). Aber nicht jeder Test braucht ein Redesign. Manchmal reicht ein anderer Text.
+
+Die Unterscheidung ist fundamental — beide nutzen dieselbe Chrome Extension zur Selektion, unterscheiden sich aber darin, *was* variiert wird und *wie* die Variante entsteht.
+
+### Option A: Text/Copy-Test
+
+Extension selektiert einen Text-Knoten → Variante ist ein anderer Text-String → `ab.js` tauscht nur `innerText`/`textContent`.
+
+| Pro | Contra |
+|---|---|
+| Triviales Varianten-Management — ein String, kein DOM | Deckt nur Copy ab, keine visuellen Änderungen |
+| Figma-Input perfekt — Designer schreibt Copy in Figma, Plugin exportiert reinen Text | Kein CSS-Reset nötig, aber auch kein CSS-Gestalten möglich |
+| `ab.js` extrem simpel — `el.textContent = variant` | Testet nicht das, was Designer eigentlich designen (Layout, Farbe, Struktur) |
+| Keine Styling-Konflikte — Variante erbt automatisch alle Styles des Originals | „Nur Text testen" fühlt sich für Designer nach halbem Produkt an |
+| KI-Generierung einfach — Prompt: „Schreib 3 alternative Headlines für X" | Geringere Differenzierung zu ChatGPT & Co. |
+| Schnellster Time-to-Test — 2 Klicks | — |
+
+### Option B: Element-Test (Status Quo)
+
+Extension selektiert ganzes DOM-Element → erfasst `outerHTML` + CSS + Framework → Variante ist komplett neues HTML/CSS → `ab.js` ersetzt das gesamte Element.
+
+| Pro | Contra |
+|---|---|
+| Testet was Designer designen — Farbe, Layout, Struktur, alles | `ab.js` muss DOM austauschen, Event-Listener können verloren gehen |
+| Figma→Code-Pipeline als USP — Designer designen Variante visuell, nicht textuell | KI muss HTML/CSS generieren — fehleranfälliger als reiner Text |
+| Höhere Differenzierung — kein anderes Tool macht „Design in Figma → live testen" | Varianten-Input nur via Figma sinnvoll (manuelles HTML schreibt kein Designer) |
+| Ganzheitlicher Test — CTA-Buttons, Hero-Sections, Formulare als Ganzes | CSS-Isolation nötig — Styles der Variante dürfen nicht nach außen leaken |
+| Höherer wahrgenommener Wert — „Ich designe eine bessere Variante" > „Ich schreibe anderen Text" | Komplexeres `ab.js`, mehr Edge Cases (JS-Frameworks, Shadow DOM) |
+
+### Architektonische Implikationen
+
+```
+                    Text-Test              Element-Test
+─────────────────────────────────────────────────────────
+Selektion           Extension (Text-Node)  Extension (DOM-Node)  ✅ beide gleich
+Input-Quelle        Figma + manuell        Figma (primär)
+KI-Generierung      String → String        Design-Tokens → HTML/CSS
+ab.js Komplexität   ~10 Zeilen             ~50+ Zeilen
+Flashing            Kein (gleiches CSS)    Möglich (CSS lädt nach)
+A/B-Pfad            replaceText()          replaceElement()
+Event-Listener      Bleiben erhalten       Müssen neu gebunden werden
+Shadow DOM          Nicht relevant         Problemfall
+```
+
+### Empfehlung
+
+**Beide anbieten, aber Element-Test zuerst als Aha-Moment, Text-Test als Quick-Win.**
+
+1. **Element-Test ist der USP.** „In Figma designen → live testen" kann sonst keiner. Text tauschen kann jeder Headline-Optimizer.
+2. **Text-Test ist der logische Next-Step.** Sobald der Element-Flow steht, ist Text ein trivialer Spezialfall davon (gleiche Extension, gleicher `ab.js`-Pfad, nur ohne HTML-Generierung).
+3. **Designer denken in Elementen, nicht in Strings.** Das Produkt holt sie da ab, wo sie arbeiten.
+
+Der Text-Test ist im Kern ein Element-Test, bei dem die Variante zufällig nur ein Text-Knoten ist — kein neuer Architekturpfad, nur ein reduzierter.
+
+---
+
 ## 💡 Ideen (noch nicht entschieden)
 
 - **Multivariate Tests** (A/B/C/D statt nur A/B)
