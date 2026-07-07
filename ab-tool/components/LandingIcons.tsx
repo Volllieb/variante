@@ -1,3 +1,9 @@
 'use client'
 
-export { Check, MousePointer2, Sparkles, Rocket, Zap } from 'lucide-react'
+export {
+  IconCheckFilled as Check,
+  IconPointerFilled as MousePointer2,
+  IconSparklesFilled as Sparkles,
+  IconRocket as Rocket,
+  IconBoltFilled as Zap,
+} from '@tabler/icons-react'
