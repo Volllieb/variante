@@ -63,7 +63,11 @@ export default function SignupPage() {
     if (norm(email) === password) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
-      const nextPath = source ? `/onboarding?source=${encodeURIComponent(source)}` : '/onboarding'
+      const qsParts: string[] = []
+      if (source) qsParts.push(`source=${encodeURIComponent(source)}`)
+      if (signupPlan) qsParts.push(`plan=${encodeURIComponent(signupPlan)}`)
+      const qs = qsParts.length > 0 ? '?' + qsParts.join('&') : ''
+      const nextPath = '/onboarding' + qs
       const normalEmail = norm(email)
       const { data, error } = await supabase.auth.signUp({
         email: normalEmail,
@@ -122,11 +126,15 @@ export default function SignupPage() {
     setLoading(true)
     try {
       const supabase = getBrowserSupabase()
+      const qsPartsR: string[] = []
+      if (source) qsPartsR.push(`source=${encodeURIComponent(source)}`)
+      if (signupPlan) qsPartsR.push(`plan=${encodeURIComponent(signupPlan)}`)
+      const qsR = qsPartsR.length > 0 ? '?' + qsPartsR.join('&') : ''
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: norm(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding' + qsR)}`,
         },
       })
       if (error) { setErr(error.message); setLoading(false); return }
