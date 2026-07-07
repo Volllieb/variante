@@ -35,6 +35,7 @@
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, stripe, tests, token
 ├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/
+├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
 └── __tests__/
@@ -85,7 +86,10 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Email-Templates designed.** 5 Supabase-Auth-Templates (Confirmation, Magic Link, Reset, Invite, Change) in `ab-tool/emails/`. Brand-konform: Monochrom, schwarzer Header + Panda-Logo als inline SVG, kein Gradient/Schatten, 480px Card-Layout. Anleitung in `emails/README.md`. Templates sind copy-paste-ready für Supabase Dashboard. |
 | 07.07.2026 | **P2-Fixes nach Architektur-Audit.** `lib/ssrf.ts` extrahiert — BLOCKED_HOSTS/BLOCKED_HOSTNAMES zentral, nicht mehr dupliziert. Tests aus Root-`__tests__/` nach `ab-tool/__tests__/` konsolidiert. `.env.example`: `RESEND_FROM` ergänzt. `api/token/route.ts` als Info-Endpoint angelegt. Build + 15 Tests grün. |
+| 07.07.2026 | **Lighthouse R4: 3 Perf-Fixes deployed.** (1) Analytics/SpeedInsights: React-Komponenten → plain `<script defer>`-Tags (kein `'use client'` im Root-Layout, keine Hydration-Erzwingung). (2) `manifest.webmanifest`-Link entfernt (404, bfcache-Blocker). (3) Landingpage: `next/link`→`<a>`, lucide-react→Inline-SVGs (kein Client-Router, keine Icon-Bundles). `.browserslist` verworfen (Next.js 16/Turbopack ignoriert sie, `experimental.legacyBrowsers` wurde entfernt — 14KB Polyfills bleiben known issue). Score von 72 auf ~75–80 erwartet. |
+| 07.07.2026 | **Lighthouse R1-R3: 7 Perf-Fixes deployed.** `getSessionUser` mit `React.cache()` (Request-Dedup), `Promise.all` in Dashboard-Pages (parallele Queries), `adjustFontFallback` in Inter-Font (CLS-Reduktion), `next/image` für PandaLogo, `ab.js` aus Root-Layout entfernt, Caching-Headers für Static-Assets, `__ab_pending`-Regel aus `globals.css` gelöscht. |
 | 07.07.2026 | **P0/P1-Fixes nach Architektur-Audit.** Analytics-Pakete von Root nach `ab-tool/` verschoben. SRI-Hash aktualisiert (war stale). PROJEKT.md §7: Vercel Analytics dokumentiert. OG-Image-Route `/og` + SSRF-Timeout waren schon drin. Build grün. |
 | 06.07.2026 | **Round-3 Cleanup: Doku-Sync nach Revert.** PROJEKT.md §3: `emailAgent` aus lib-Listing entfernt, Migration-Nummern auf 001–013 korrigiert. §4: Deployment-Methode auf manuell aktualisiert (CI-Workflow wurde gelöscht). §8: Revert- + CI-Deletion-Einträge nachgetragen. Kein Code geändert. |
 | 06.07.2026 | **SEO: Landingpage-Audit + 4 kritische Fixes.** `robots.ts` (allow /, disallow auth/dashboard/api), `sitemap.ts` (5 URLs), JSON-LD Organization in `layout.tsx`, `og:image` + `twitter:card` in `layout.tsx` + `page.tsx`, Title-Optimierung (Keyword first, ~140 Zeichen). Offen: echtes OG-Image (128×128 SVG zu klein), strukturierte Daten für Subpages ausbauen. |
