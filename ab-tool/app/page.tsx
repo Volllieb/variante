@@ -195,7 +195,7 @@ export default function HomePage() {
 
             {/* Pro */}
             <div className="relative flex flex-col rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-8">
-              <span className="absolute -top-3 right-6 rounded-full border border-pro bg-pro px-3 py-1 text-[11px] font-semibold text-black">
+              <span className="absolute -top-3 right-6 rounded-full border border-pro bg-black px-3 py-1 text-[11px] font-semibold text-pro">
                 Most popular
               </span>
               <p className="text-xs font-semibold uppercase tracking-wider text-pro">
@@ -262,6 +262,38 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* JSON-LD SoftwareApplication — Rich Result für Software-Kategorie */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'Variante',
+            applicationCategory: 'DesignApplication',
+            operatingSystem: 'Web',
+            url: 'https://www.getvariante.com',
+            description:
+              'A/B Testing from Figma — pick, generate, ship without a developer.',
+            offers: [
+              {
+                '@type': 'Offer',
+                name: 'Free',
+                price: '0',
+                priceCurrency: 'EUR',
+              },
+              {
+                '@type': 'Offer',
+                name: 'Pro',
+                price: '35',
+                priceCurrency: 'EUR',
+                description: 'Unlimited experiments, significance analysis, auto-winner detection',
+              },
+            ],
+          }),
+        }}
+      />
     </div>
   )
 }
