@@ -126,35 +126,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Problem → Solution ── */}
-      <section className="px-4 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">The old way</p>
-              <p className="mt-3 text-lg font-semibold text-white">
-                &ldquo;Can we A/B test this?&rdquo;<br />
-                <span className="text-white/45">— two weeks later, still waiting.</span>
-              </p>
-            </div>
-            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">The cost</p>
-              <p className="mt-3 text-lg font-semibold text-white">
-                Every untested design<br />
-                <span className="text-white/45">is a guess that loses conversions.</span>
-              </p>
-            </div>
-            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">The shift</p>
-              <p className="mt-3 text-lg font-semibold text-white">
-                You don&rsquo;t need a dev<br />
-                <span className="text-white/45">to know what converts. You need Variante.</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── How It Works ── */}
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
