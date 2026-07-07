@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointer2, Sparkles, Rocket, Zap } from 'lucide-react'
+import { Check, MousePointer2, Sparkles, Rocket, Zap } from '@/components/LandingIcons'
 
 export const metadata: Metadata = {
   title: 'A/B Testing from Figma — No Dev Needed | Variante',
