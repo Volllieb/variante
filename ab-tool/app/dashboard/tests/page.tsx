@@ -25,18 +25,23 @@ export default async function TestsPage() {
   const profile = profileRes.data
   const tests = testsRes.data
 
+  const isPro = profile?.plan === 'pro'
+
   if (!profile) {
     await ensureProfile(user.id)
-    return <TestsClient apiToken="" tests={[]} hasFigmaPlugin={false} />
+    return <TestsClient apiToken="" tests={[]} hasFigmaPlugin={false} isAtFreeLimit={false} />
   }
 
   if (!profile.onboarded) redirect('/onboarding')
+
+  const activeTests = (tests ?? []).filter(t => t.status !== 'done').length
 
   return (
     <TestsClient
       apiToken={profile.api_token ?? ''}
       tests={tests ?? []}
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
+      isAtFreeLimit={!isPro && activeTests >= 1}
     />
   )
 }

@@ -40,10 +40,12 @@ export function TestsClient({
   apiToken,
   tests,
   hasFigmaPlugin,
+  isAtFreeLimit,
 }: {
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
+  isAtFreeLimit: boolean
 }) {
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -99,6 +101,7 @@ export function TestsClient({
           apiToken={apiToken}
           currentTestCount={tests.length}
           hasFigmaPlugin={hasFigmaPlugin}
+          isAtFreeLimit={isAtFreeLimit}
           onClose={() => setNewTestOpen(false)}
         />
       )}
