@@ -13,7 +13,7 @@ Gehe zu **[supabase.com/dashboard](https://supabase.com/dashboard)** → dein Pr
 
 ### 2. Templates ersetzen
 
-Du siehst 5 Template-Tabs. Für jeden Tab:
+Die Dateinamen entsprechen 1:1 den Supabase-Template-Tabs. Für jeden Tab:
 
 1. HTML-Inhalt aus der entsprechenden `.html`-Datei in diesem Ordner kopieren
 2. In das Textfeld unter dem Tab einfügen
@@ -21,14 +21,15 @@ Du siehst 5 Template-Tabs. Für jeden Tab:
 
 | Tab | Datei | Subject |
 |---|---|---|
-| **Confirm Signup** | `confirmation.html` | `Confirm your email for variante` |
-| **Magic Link** | `magic-link.html` | `Your login link for variante` |
-| **Reset Password** | `reset-password.html` | `Reset your variante password` |
-| **Invite User** | `invite.html` | `You've been invited to variante` |
-| **Change Email** | `email-change.html` | `Confirm your new email for variante` |
-| **Password Changed** | `password-changed.html` | `Your variante password was changed` |
-| **Email Address Changed** | `email-address-changed.html` | `Your variante email address was changed` |
-| **Sign-in Method Removed** | `sign-in-method-removed.html` | `A sign-in method was removed from variante` |
+| **Confirm sign up** | `confirm-sign-up.html` | `Confirm your email for variante` |
+| **Magic link or OTP** | `magic-link-or-otp.html` | `Your login link for variante` |
+| **Reset password** | `reset-password.html` | `Reset your variante password` |
+| **Invite user** | `invite-user.html` | `You've been invited to variante` |
+| **Change email address** | `change-email-address.html` | `Confirm your new email for variante` |
+| **Reauthentication** | `reauthentication.html` | `Verify your identity for variante` |
+| **Password changed** | `password-changed.html` | `Your variante password was changed` |
+| **Email address changed** | `email-address-changed.html` | `Your variante email address was changed` |
+| **Sign-in method removed** | `sign-in-method-removed.html` | `A sign-in method was removed from variante` |
 
 ### Security-Templates (Notifications)
 
