@@ -26,6 +26,17 @@ Du siehst 5 Template-Tabs. Für jeden Tab:
 | **Reset Password** | `reset-password.html` | `Reset your variante password` |
 | **Invite User** | `invite.html` | `You've been invited to variante` |
 | **Change Email** | `email-change.html` | `Confirm your new email for variante` |
+| **Password Changed** | `password-changed.html` | `Your variante password was changed` |
+| **Email Address Changed** | `email-address-changed.html` | `Your variante email address was changed` |
+| **Sign-in Method Removed** | `sign-in-method-removed.html` | `A sign-in method was removed from variante` |
+
+### Security-Templates (Notifications)
+
+Die 3 Security-Templates sind **reine Benachrichtigungen**, keine Action-Emails. Design-Unterschiede:
+- Kein großer CTA-Button — stattdessen ein kleiner Text-Link zum Login
+- `Security notice`-Badge in `--pro`-Gelb
+- "Not you?"-Infobox mit Handlungsempfehlung
+- `email-address-changed` zeigt Old/New-Email nebeneinander in Monospace (siehe `{{ .NewEmail }}`)
 
 ### 3. Logo hochladen (optional, aber empfohlen)
 
