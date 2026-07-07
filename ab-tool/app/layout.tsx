@@ -15,17 +15,17 @@ const inter = Inter({
 
 export const metadata = {
   title: {
-    default: 'A/B Testing from Figma — No Dev Needed | Variante',
+    default: 'A/B Testing for Designers — No Developer Needed | Variante',
     template: '%s | Variante',
   },
   description:
-    'Pick an element on your live site, redesign it in Figma, and let AI generate Variant B. One snippet serves and tracks everything.',
+    'Every designer can now run A/B tests. Pick an element, redesign in Figma, AI ships Variant B. No dev, no pipeline.',
   alternates: {
     canonical: 'https://www.getvariante.com',
   },
   openGraph: {
-    title: 'A/B Testing from Figma — No Dev Needed | Variante',
-    description: 'Pick → Generate → Ship. A/B testing without a developer.',
+    title: 'A/B Testing for Designers — No Developer Needed | Variante',
+    description: 'Every designer can now improve conversions with A/B testing. Pick → Generate → Ship. No developer needed.',
     url: 'https://www.getvariante.com',
     siteName: 'Variante',
     images: [
@@ -39,8 +39,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'A/B Testing from Figma — No Dev Needed | Variante',
-    description: 'Pick → Generate → Ship. A/B testing without a developer.',
+    title: 'A/B Testing for Designers — No Developer Needed | Variante',
+    description: 'Every designer can now improve conversions with A/B testing. No developer needed.',
     images: ['https://www.getvariante.com/og'],
   },
 }

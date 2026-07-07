@@ -3,12 +3,12 @@ import { PandaLogo } from '@/components/PandaLogo'
 import { Check, MousePointer2, Sparkles, Rocket, Zap } from '@/components/LandingIcons'
 
 export const metadata: Metadata = {
-  title: 'A/B Testing from Figma — No Dev Needed | Variante',
+  title: 'A/B Testing for Designers — No Developer Needed | Variante',
   description:
-    'Pick any element, redesign in Figma, AI generates Variant B. One snippet tracks everything. Start free.',
+    'Every designer can now run A/B tests. Pick an element, redesign in Figma, AI ships Variant B. No dev, no pipeline. Start free.',
   openGraph: {
-    title: 'A/B Testing from Figma — No Dev Needed | Variante',
-    description: 'Pick → Generate → Ship. A/B testing without a developer.',
+    title: 'A/B Testing for Designers — No Developer Needed | Variante',
+    description: 'Every designer can now improve conversions with A/B testing. Pick → Generate → Ship. No developer needed.',
     url: 'https://www.getvariante.com',
     siteName: 'Variante',
     images: [
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'A/B Testing from Figma — No Dev Needed | Variante',
-    description: 'Pick → Generate → Ship. A/B testing without a developer.',
+    title: 'A/B Testing for Designers — No Developer Needed | Variante',
+    description: 'Every designer can now improve conversions with A/B testing. No developer needed.',
     images: ['https://www.getvariante.com/og'],
   },
 }
@@ -104,20 +104,20 @@ export default function HomePage() {
       <section className="px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-32">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            A/B Testing for AI-built sites.
+            Every designer can now
             <br className="hidden sm:block" />
-            From Figma. No dev needed.
+            improve conversions with A/B testing.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/55 sm:text-lg">
-            Pick an element on your live site, redesign it in Figma, and let AI generate Variant B.
-            One snippet serves and tracks everything.
+            Pick any element on your live site, redesign it in Figma, and AI generates Variant B.
+            One snippet. No developer. No deploy pipeline.
           </p>
           <div className="mt-8 sm:mt-9">
             <a
               href="/signup"
               className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
             >
-              Start free — install Figma plugin
+              Start free — no developer needed
             </a>
           </div>
           <p className="mt-4 text-xs text-text-3">
@@ -160,7 +160,7 @@ export default function HomePage() {
                 <span className="text-4xl font-semibold text-white">0 €</span>
               </div>
               <p className="mt-1 text-xs text-text-3">Forever free. No credit card.</p>
-              <ul className="mt-6 space-y-2.5 text-sm">
+              <ul className="mt-6 mb-6 space-y-2.5 text-sm">
                 {freeFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 shrink-0 text-ok" />
@@ -189,7 +189,7 @@ export default function HomePage() {
                 <span className="text-sm text-text-3">/mo</span>
               </div>
               <p className="mt-1 text-xs text-text-3">Everything in Free, plus:</p>
-              <ul className="mt-6 space-y-2.5 text-sm">
+              <ul className="mt-6 mb-6 space-y-2.5 text-sm">
                 {proFeatures.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     {f.pro ? (
