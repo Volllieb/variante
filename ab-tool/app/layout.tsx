@@ -22,9 +22,6 @@ export const metadata = {
     'Pick an element on your live site, redesign it in Figma, and let AI generate Variant B. One snippet serves and tracks everything.',
   alternates: {
     canonical: 'https://www.getvariante.com',
-    languages: {
-      'en': 'https://www.getvariante.com',
-    },
   },
   openGraph: {
     title: 'A/B Testing from Figma — No Dev Needed | Variante',
@@ -65,24 +62,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               description:
                 'A/B Testing from Figma — pick, generate, ship without a developer.',
               sameAs: ['https://github.com/valentinbu/variante'],
-            }),
-          }}
-        />
-        {/* JSON-LD BreadcrumbList — Root-Level */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                {
-                  '@type': 'ListItem',
-                  position: 1,
-                  name: 'Variante',
-                  item: 'https://www.getvariante.com',
-                },
-              ],
             }),
           }}
         />
