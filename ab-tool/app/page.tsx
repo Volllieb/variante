@@ -165,7 +165,7 @@ export default function HomePage() {
                 key={s.step}
                 className="rounded-[10px] border border-border bg-bg-1 p-6"
               >
-                <s.icon className="mb-4 h-8 w-8 text-white" />
+                <s.icon className="mb-4 h-8 w-8 text-white" strokeWidth={2.5} />
                 <p className="mb-2 text-xs font-medium text-white/25">{s.step}</p>
                 <h3 className="mb-2 text-sm font-semibold text-white">{s.title}</h3>
                 <p className="text-sm text-white/50">{s.body}</p>
