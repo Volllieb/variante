@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             <h1 className="text-3xl font-semibold text-text">
               Privacy Policy
             </h1>
-            <p className="mt-1.5 text-sm text-text-3">Last updated: July 6, 2026</p>
+            <p className="mt-1.5 text-sm text-text-3">Last updated: July 7, 2026</p>
 
             <div className="mt-10 space-y-8 text-sm leading-relaxed">
 
@@ -49,6 +49,7 @@ export default function PrivacyPage() {
                     { label: 'Payment data', body: 'Credit card details are processed directly by Stripe. We never have access to full card numbers. Stripe shares only: status, payment method type, and last 4 digits.' },
                     { label: 'Waitlist', body: 'email address if you submit the coming-soon form.' },
                     { label: 'Usage data', body: 'the ab.js snippet sends only the domain name (host) to our servers to check for active tests — never the full page path. Variant assignment and conversion events are collected as anonymized counters only. No personal visitor data or browsing history is stored.' },
+                    { label: 'Analytics data (Vercel)', body: 'anonymous page view counts, referrer, browser/device type, and country-level geo. No cookies, no IP storage, no fingerprinting. Vercel Web Analytics and Speed Insights are cookieless and GDPR-compliant by default. Data is aggregated and never contains personal identifiers.' },
                   ].map(({ label, body }) => (
                     <li key={label} className="flex gap-2.5">
                       <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-2/40" />
@@ -87,6 +88,7 @@ export default function PrivacyPage() {
                     ['Event log', 'deleted automatically when the associated test is deleted (cascade).'],
                     ['Waitlist entries', '12 months after submission, then automatically deleted.'],
                     ['Logs (Vercel)', '7 days.'],
+                    ['Analytics data (Vercel)', 'aggregated page view statistics, retained 12 months. Raw data: 1 month. No personal reference.'],
                     ['Anonymized statistics', 'retained indefinitely (no personal reference).'],
                   ].map(([label, body]) => (
                     <li key={label} className="flex gap-2.5">
@@ -115,7 +117,7 @@ export default function PrivacyPage() {
                     <tbody>
                       {[
                         ['Supabase Inc.', 'Database, Auth & Google OAuth', 'Frankfurt, DE', 'DPA + SCCs'],
-                        ['Vercel Inc.', 'Hosting', 'us-east, USA', 'DPA + SCCs (EU-US DPF)'],
+                        ['Vercel Inc.', 'Hosting + Web Analytics & Speed Insights', 'us-east, USA', 'DPA + SCCs (EU-US DPF)'],
                         ['Stripe Inc.', 'Payments', 'Global', 'DPF certified'],
                         ['OpenAI', 'AI generation', 'US', 'API only, no storage'],
                         ['Resend Inc.', 'Email notifications', 'US (us-east)', 'DPA + SCCs'],
@@ -150,6 +152,7 @@ export default function PrivacyPage() {
                     <tbody>
                       {[
                         ['sb-*-auth-token', 'Cookie', 'Session auth', '1 year'],
+                        ['_vercel_insights', '—', 'Vercel Analytics & Speed Insights are cookieless. No cookies or local storage are used for analytics.', '—'],
                         ['__ab_visitor_id', 'localStorage', 'Anonymous visitor ID', 'Persistent'],
                         ['ab_<test_id>', 'localStorage', 'Variant assignment (sticky)', 'Per experiment'],
                         ['ab_conv_<test_id>', 'sessionStorage', 'Conversion deduplication', 'Session'],
