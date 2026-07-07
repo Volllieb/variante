@@ -52,7 +52,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
       <head>
-        <link rel="manifest" href="/manifest.webmanifest" />
         {/* JSON-LD Organization — Root-fallback für alle Seiten */}
         <script
           type="application/ld+json"
