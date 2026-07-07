@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { FlaskConical, Loader2, Check, Copy, Puzzle, Code, Link2, X } from 'lucide-react'
+import { FlaskConical, Loader2, Check, Copy, Puzzle, Code, X } from 'lucide-react'
 
 /* ── Token palette ── */
 const T = {
@@ -114,35 +114,43 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, onClos
                 <p className="text-[12px] font-semibold text-[#ededed]">Figma plugin required</p>
                 <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
                   Tests are created in the Figma plugin and synced to your dashboard.
-                  Copy your plugin token and paste it into the plugin to get started.
+                  Follow the steps below to connect and create your first test.
                 </p>
               </div>
             </div>
 
-            <div>
-              <p className="text-[11px] font-semibold text-[#ededed]/62">Your plugin token</p>
-              <div className="mt-1.5 flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2 font-mono text-[13px] text-[#ededed]/62">
-                  {apiToken}
-                </code>
-                <button onClick={copyToken}
-                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]">
-                  {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 rounded-[6px] px-3 py-2.5" style={{ background: '#111111' }}>
-              <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ededed]/40" />
-              <p className="text-[11px] text-[#ededed]/40">
-                Install the Variante Figma plugin, paste this token, and create a test.
-                It will appear here automatically.
-              </p>
-            </div>
+            {/* Step-by-step */}
+            <ol className="space-y-2.5">
+              {[
+                { step: '1', text: 'Copy your plugin token', el: (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2 font-mono text-[13px] text-[#ededed]/62">
+                      {apiToken}
+                    </code>
+                    <button onClick={copyToken}
+                      className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]">
+                      {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                )},
+                { step: '2', text: 'Open the Variante Figma plugin and paste the token', el: null },
+                { step: '3', text: 'Select a frame, create a variant, and publish it', el: null },
+              ].map((s) => (
+                <li key={s.step} className="flex items-start gap-2.5 rounded-[6px] px-3 py-2.5" style={{ background: '#111111' }}>
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-black mt-px">
+                    {s.step}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[12px] text-[#ededed]/62">{s.text}</p>
+                    {s.el}
+                  </div>
+                </li>
+              ))}
+            </ol>
 
             <button onClick={() => setState('awaiting_figma')}
               className="w-full cursor-pointer rounded-[6px] bg-white py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85">
-              Start listening
+              I&apos;m ready — start listening
             </button>
           </div>
         )}

@@ -50,7 +50,7 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <link rel="preconnect" href="https://www.getvariante.com">
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://www.getvariante.com/ab.js" integrity="sha384-btDuwXoWfKgcfKYngl7VREILNLiiXYb66pGhFyRH9W+TV9xUiEdEwAfucgepvQTj" crossorigin="anonymous"><\/script>`
+<script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
 const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
@@ -256,8 +256,32 @@ export function DashboardClient({
               </div>
             )}
 
-            {/* Test grid */}
-            {tests.length > 0 && (
+            {/* Test grid — empty state or real grid */}
+            {tests.length === 0 ? (
+              <div className="flex flex-col items-center rounded-[10px] border border-dashed border-white/[0.14] bg-[#0a0a0a] px-6 py-10 text-center">
+                <FlaskConical className="mb-4 h-10 w-10 text-[#ededed]/25" />
+                <h3 className="text-[15px] font-semibold text-[#ededed]">Ready to run your first A/B test?</h3>
+                <p className="mt-1.5 max-w-xs text-[13px] leading-relaxed text-[#ededed]/40">
+                  Install the extension, connect Figma, create your first variant — all without a developer.
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                  <a
+                    href="#plugin-token"
+                    className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[12px] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                  >
+                    <Puzzle className="h-3.5 w-3.5" />
+                    Install extension &amp; connect Figma
+                  </a>
+                  <button
+                    onClick={() => setNewTestOpen(true)}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Create first test
+                  </button>
+                </div>
+              </div>
+            ) : (
               <div>
                 {/* Toolbar */}
                 <div className="mb-3 flex items-center gap-2">
@@ -411,7 +435,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-btDuwXoWfKgcfKYngl7VREILNLiiXYb66pGhFyRH9W+TV9xUiEdEwAfucgepvQTj" crossorigin="anonymous" />
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous" />
       </head>
       <body>{children}</body>
     </html>
@@ -433,7 +457,7 @@ export default function Document() {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-btDuwXoWfKgcfKYngl7VREILNLiiXYb66pGhFyRH9W+TV9xUiEdEwAfucgepvQTj" crossorigin="anonymous" />
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous" />
       </Head>
       <body><Main /><NextScript /></body>
     </Html>
@@ -449,7 +473,7 @@ export default function Document() {
   <link rel="preconnect" href="https://www.getvariante.com">
   <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
   <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-btDuwXoWfKgcfKYngl7VREILNLiiXYb66pGhFyRH9W+TV9xUiEdEwAfucgepvQTj" crossorigin="anonymous"><\/script>
+  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>
 </head>
 <body><!-- your content --></body>
 </html>`,
