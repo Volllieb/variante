@@ -2,10 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
-
-// Private/Reserved Hosts — SSRF-Schutz für Domain-Verification
-const BLOCKED_HOSTS = /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|0\.0\.0\.0|\[::1\]|[0-9a-f:]+:[0-9a-f:]*:[0-9a-f:]+)$/i
-const BLOCKED_HOSTNAMES = ['metadata.google.internal', '169.254.169.254']
+import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
 
 export async function OPTIONS() {
   return preflight('GET, POST, DELETE, OPTIONS')

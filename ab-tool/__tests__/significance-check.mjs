@@ -3,7 +3,7 @@
 // Fails with non-zero exit if any assertion breaks.
 
 import { strict as assert } from 'node:assert'
-import { calcSignificance } from '../../__tests__/helpers.mjs'
+import { calcSignificance } from './helpers.mjs'
 
 const WINNER_MIN_SIGNIFICANCE = 0.95
 

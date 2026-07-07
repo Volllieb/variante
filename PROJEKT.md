@@ -27,7 +27,7 @@
 | Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
 | Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
-| **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 8 Custom Agents: `@ponytail`, `@redesign`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
+| KI-Agenten | Cline (DeepSeek V4 Pro) + GitHub Copilot · 7 Custom Agents: `@ponytail`, `@redesign`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo` · Config: `.github/agents/`, `.agents/skills/` |
 
 ## §3 Struktur
 
@@ -79,14 +79,12 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 - Auth: Supabase JWT, bcrypt, HTTP-only Cookies, API-Key UUID v4.
 - Daten: Nur selektiertes Figma-Element transient an OpenAI API. Kein Storage.
 - Reporting: `hello@getvariante.com`, 24h-Bestätigung, 30d-Fix.
-- Vercel Analytics + Speed Insights (server-seitig, kein Consent nötig). Keine Kreditkarten auf eigenem Server.
+- Kein CDN/Analytics-Drittanbieter. Keine Kreditkarten auf eigenem Server.
 
 ## §8 Historie (letzte Einträge)
 
 | Datum | Eintrag |
 |---|---|
-| 07.07.2026 | **Wrapup-Agent erstellt.** `@wrapup` als 8. Custom Agent — Session-Abschluss mit Git-Hygiene, Ponytail-Review, Dead-File-Scan, TODO-Scan, Build-Check, PROJEKT.md-Update. Definition: `.github/agents/wrapup.agent.md`. |
-| 07.07.2026 | **P0/P1-Fixes nach Architektur-Audit.** `@vercel/analytics` + `@vercel/speed-insights` von Root nach `ab-tool/` verschoben (falsches package.json). SRI-Hash in `DashboardClient.tsx` + `README.md` aktualisiert (war stale nach ab.js-Änderungen). PROJEKT.md §7: "Kein Analytics-Drittanbieter" → Vercel Analytics (server-seitig). OG-Image-Route `/og` (Edge, 1200×630 PNG) existierte bereits. SSRF-Timeout in `domains/verify` war schon drin. Build grün. |
 | 06.07.2026 | **Round-3 Cleanup: Doku-Sync nach Revert.** PROJEKT.md §3: `emailAgent` aus lib-Listing entfernt, Migration-Nummern auf 001–013 korrigiert. §4: Deployment-Methode auf manuell aktualisiert (CI-Workflow wurde gelöscht). §8: Revert- + CI-Deletion-Einträge nachgetragen. Kein Code geändert. |
 | 06.07.2026 | **SEO: Landingpage-Audit + 4 kritische Fixes.** `robots.ts` (allow /, disallow auth/dashboard/api), `sitemap.ts` (5 URLs), JSON-LD Organization in `layout.tsx`, `og:image` + `twitter:card` in `layout.tsx` + `page.tsx`, Title-Optimierung (Keyword first, ~140 Zeichen). Offen: echtes OG-Image (128×128 SVG zu klein), strukturierte Daten für Subpages ausbauen. |
 | 06.07.2026 | **Email-Agent rückgängig.** Cold-Outreach Reverse-Funnel komplett entfernt (Auto-Reply, OpenAI-Klassifikation, Resend Inbound). Migration 014, `emailAgent.ts`, `/api/email/inbound` gelöscht. Bleibt manuell. |
@@ -168,9 +166,8 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 | # | Thema | Status | Aktion |
 |---|---|---|---|
 | 1 | Upstash Redis Env-Vars | ✅ Erledigt | `amazing-mudfish-98038.upstash.io`, Free Tier, beide Env-Vars in Vercel gesetzt (Production + Preview). |
-| 2 | SRI-Hash bei ab.js-Update | ✅ Erledigt | Hash am 07.07.2026 aktualisiert (`sha384-btDuwXoWfKg...`). Prozess bei künftigen Releases wiederholen. |
-| 3 | OG-Image-Route | ✅ Erledigt | `app/og/route.tsx` (Edge Runtime, ImageResponse, 1200×630 PNG, Inter-Font). Live unter `/og`. |
-| 4 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 012. |
+| 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
+| 3 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 012. |
 
 ## §12 Dashboard-Architektur
 
