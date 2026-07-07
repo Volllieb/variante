@@ -27,7 +27,7 @@
 | Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
 | Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
-| KI-Agenten | Cline (DeepSeek V4 Pro) + GitHub Copilot · 7 Custom Agents: `@ponytail`, `@redesign`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo` · Config: `.github/agents/`, `.agents/skills/` |
+| **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 8 Custom Agents: `@ponytail`, `@redesign`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
 
 ## §3 Struktur
 
@@ -85,6 +85,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Wrapup-Agent erstellt.** `@wrapup` als 8. Custom Agent — Session-Abschluss mit Git-Hygiene, Ponytail-Review, Dead-File-Scan, TODO-Scan, Build-Check, PROJEKT.md-Update. Definition: `.github/agents/wrapup.agent.md`. |
 | 07.07.2026 | **P0/P1-Fixes nach Architektur-Audit.** `@vercel/analytics` + `@vercel/speed-insights` von Root nach `ab-tool/` verschoben (falsches package.json). SRI-Hash in `DashboardClient.tsx` + `README.md` aktualisiert (war stale nach ab.js-Änderungen). PROJEKT.md §7: "Kein Analytics-Drittanbieter" → Vercel Analytics (server-seitig). OG-Image-Route `/og` (Edge, 1200×630 PNG) existierte bereits. SSRF-Timeout in `domains/verify` war schon drin. Build grün. |
 | 06.07.2026 | **Round-3 Cleanup: Doku-Sync nach Revert.** PROJEKT.md §3: `emailAgent` aus lib-Listing entfernt, Migration-Nummern auf 001–013 korrigiert. §4: Deployment-Methode auf manuell aktualisiert (CI-Workflow wurde gelöscht). §8: Revert- + CI-Deletion-Einträge nachgetragen. Kein Code geändert. |
 | 06.07.2026 | **SEO: Landingpage-Audit + 4 kritische Fixes.** `robots.ts` (allow /, disallow auth/dashboard/api), `sitemap.ts` (5 URLs), JSON-LD Organization in `layout.tsx`, `og:image` + `twitter:card` in `layout.tsx` + `page.tsx`, Title-Optimierung (Keyword first, ~140 Zeichen). Offen: echtes OG-Image (128×128 SVG zu klein), strukturierte Daten für Subpages ausbauen. |

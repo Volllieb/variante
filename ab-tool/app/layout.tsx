@@ -1,8 +1,6 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,6 +22,9 @@ export const metadata = {
     'Pick an element on your live site, redesign it in Figma, and let AI generate Variant B. One snippet serves and tracks everything.',
   alternates: {
     canonical: 'https://www.getvariante.com',
+    languages: {
+      'en': 'https://www.getvariante.com',
+    },
   },
   openGraph: {
     title: 'A/B Testing from Figma — No Dev Needed | Variante',
@@ -51,6 +52,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        {/* JSON-LD Organization — Root-fallback für alle Seiten */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -66,11 +69,31 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             }),
           }}
         />
+        {/* JSON-LD BreadcrumbList — Root-Level */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                {
+                  '@type': 'ListItem',
+                  position: 1,
+                  name: 'Variante',
+                  item: 'https://www.getvariante.com',
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body className="min-h-screen bg-bg-0 text-white/80 antialiased">
         {children}
-        <Analytics />
-        <SpeedInsights />
+        {/* Plain script tags — zero client JS (React wrappers force hydration of the entire tree).
+            Vercel scripts use History API for SPA navigation detection, no React needed. */}
+        <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics/next" />
+        <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights/next" />
       </body>
     </html>
   )

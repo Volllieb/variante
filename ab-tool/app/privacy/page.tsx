@@ -219,6 +219,21 @@ export default function PrivacyPage() {
           </div>
         </main>
       </div>
+
+      {/* JSON-LD BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Variante', item: 'https://www.getvariante.com' },
+              { '@type': 'ListItem', position: 2, name: 'Privacy Policy', item: 'https://www.getvariante.com/privacy' },
+            ],
+          }),
+        }}
+      />
     </div>
   )
 }

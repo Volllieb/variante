@@ -159,6 +159,21 @@ export default function ImprintPage() {
           </div>
         </main>
       </div>
+
+      {/* JSON-LD BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Variante', item: 'https://www.getvariante.com' },
+              { '@type': 'ListItem', position: 2, name: 'Impressum', item: 'https://www.getvariante.com/imprint' },
+            ],
+          }),
+        }}
+      />
     </div>
   )
 }
