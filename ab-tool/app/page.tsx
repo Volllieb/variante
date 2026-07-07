@@ -153,7 +153,7 @@ export default function HomePage() {
           <h2 className="text-center text-xl font-semibold text-white">Pricing</h2>
           <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
             {/* Free */}
-            <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-8">
+            <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-8">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
                 Free
               </p>
@@ -171,15 +171,15 @@ export default function HomePage() {
               </ul>
               <Link
                 href="/signup"
-                className="mt-8 inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
+                className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
                 Start free
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="relative rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-8">
-              <span className="absolute -top-3 right-6 rounded-full bg-pro-bg px-3 py-1 text-[11px] font-semibold text-pro">
+            <div className="relative flex flex-col rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-8">
+              <span className="absolute -top-3 right-6 rounded-full border border-pro bg-pro px-3 py-1 text-[11px] font-semibold text-black">
                 Most popular
               </span>
               <p className="text-xs font-semibold uppercase tracking-wider text-pro">
@@ -206,7 +206,7 @@ export default function HomePage() {
               </ul>
               <Link
                 href="/signup"
-                className="mt-8 inline-flex w-full justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
+                className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
               >
                 Start free trial
               </Link>
