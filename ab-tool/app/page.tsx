@@ -143,13 +143,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Works With ── */}
-      <section className="px-4 py-8 sm:px-6 sm:py-10">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-sm text-white/35">
+          <p className="mt-8 text-center text-sm text-white/35">
             One snippet. Works with{' '}
             <span className="text-white/55">WordPress</span>,{' '}
             <span className="text-white/55">React</span>,{' '}
