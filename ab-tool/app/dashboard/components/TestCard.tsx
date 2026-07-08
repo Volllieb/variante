@@ -173,7 +173,7 @@ export function TestCard({
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
       {/* ── Row 1: favicon | name+url | pie chart ── */}
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-center gap-2.5">
         {/* Favicon */}
         {domain ? (
           <img
@@ -181,11 +181,11 @@ export function TestCard({
             alt=""
             width={18}
             height={18}
-            className="mt-0.5 shrink-0 rounded-[4px]"
+            className="shrink-0 rounded-[4px]"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         ) : (
-          <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
+          <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
             <span className="text-[8px] text-[#ededed]/25">WWW</span>
           </div>
         )}
