@@ -21,7 +21,7 @@ export type StatusFilter = (typeof STATUS_OPTIONS)[number]
 export const DATE_OPTIONS = ['all', '7d', '30d', '90d'] as const
 export type DateFilter = (typeof DATE_OPTIONS)[number]
 
-export const WINNER_OPTIONS = ['all', 'yes', 'no'] as const
+export const WINNER_OPTIONS = ['all', 'yes', 'inprogress'] as const
 export type WinnerFilter = (typeof WINNER_OPTIONS)[number]
 
 export interface FilterState {
@@ -54,7 +54,7 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
 const WINNER_LABELS: Record<WinnerFilter, string> = {
   all: 'All',
   yes: 'Has winner',
-  no: 'No winner',
+  inprogress: 'In progress',
 }
 
 /* ── Helpers ── */

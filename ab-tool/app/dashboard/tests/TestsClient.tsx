@@ -74,7 +74,7 @@ export function TestsClient({
     // Winner filter
     if (filter.winner === 'yes') {
       result = result.filter((t) => t.winner !== null)
-    } else if (filter.winner === 'no') {
+    } else if (filter.winner === 'inprogress') {
       result = result.filter((t) => t.winner === null)
     }
 
