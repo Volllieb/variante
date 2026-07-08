@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   // gleiche Limit wie /api/event (das ebenfalls pro Seitenaufruf feuert).
   const ip = getClientIp(req)
   if (!await checkRateLimit(`resolve:${ip}`, 30, 60_000)) {
-    return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('GET, OPTIONS') })
+    return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeaders('GET, OPTIONS'), 'Retry-After': '60' } })
   }
 
   const url = new URL(req.url)

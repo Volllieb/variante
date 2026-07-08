@@ -64,7 +64,15 @@ export function DashboardClient({
   const [query, setQuery] = useState('')
   const [sortAsc, setSortAsc] = useState(false)
   const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
+  const [billingError, setBillingError] = useState<string | null>(null)
   const isPro = plan === 'pro' || plan === 'agency'
+
+  useEffect(() => {
+    if (billingError) {
+      const t = setTimeout(() => setBillingError(null), 6000)
+      return () => clearTimeout(t)
+    }
+  }, [billingError])
 
   useEffect(() => {
     if (openNewTest) setNewTestOpen(true)
@@ -99,9 +107,9 @@ export function DashboardClient({
       }
       const data = await res.json()
       if (data.url) window.location.href = data.url
-      else alert(data.error || 'Error')
+      else setBillingError(data.error || 'Something went wrong. Please try again.')
     } catch {
-      alert('Connection failed. Check your internet and try again.')
+      setBillingError('Connection failed. Check your internet and try again.')
     } finally {
       setBusy(false)
     }
@@ -177,6 +185,17 @@ export function DashboardClient({
             <p className="text-[13px] text-[#2fd76c]">
               You&apos;re now on <strong className="font-semibold">Pro</strong> — unlimited experiments, full statistics, no badge.
             </p>
+          </div>
+        )}
+
+        {/* Error toast */}
+        {billingError && (
+          <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[#f5455c]/20 bg-[#f5455c]/5 px-5 py-3.5">
+            <X className="h-4 w-4 shrink-0 text-[#f5455c]" />
+            <p className="flex-1 text-[13px] text-[#f5455c]">{billingError}</p>
+            <button onClick={() => setBillingError(null)} className="cursor-pointer text-[#f5455c]/60 hover:text-[#f5455c]">
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         )}
 

@@ -61,8 +61,16 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [busy, setBusy] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [showRawData, setShowRawData] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    if (deleteError) {
+      const t = setTimeout(() => setDeleteError(null), 6000)
+      return () => clearTimeout(t)
+    }
+  }, [deleteError])
 
   // Fetch analytics (Pro only, 402 if not)
   useEffect(() => {
@@ -93,7 +101,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
         router.refresh()
       } else {
         const err = await res.json()
-        alert(err.error || 'Failed to delete test')
+        setDeleteError(err.error || 'Failed to delete test')
       }
     } finally {
       setDeleting(false)
@@ -248,6 +256,19 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           )}
         </div>
       </div>
+
+      {/* Error toast */}
+      {deleteError && (
+        <div className="mx-auto max-w-2xl px-6 pt-5">
+          <div className="flex items-center gap-3 rounded-[10px] border border-[#f5455c]/20 bg-[#f5455c]/5 px-5 py-3.5">
+            <X className="h-4 w-4 shrink-0 text-[#f5455c]" />
+            <p className="flex-1 text-[13px] text-[#f5455c]">{deleteError}</p>
+            <button onClick={() => setDeleteError(null)} className="cursor-pointer text-[#f5455c]/60 hover:text-[#f5455c]">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-2xl px-6 py-8 space-y-5">
 

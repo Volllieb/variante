@@ -1236,6 +1236,23 @@ function afetch(url, opts) {
   return fetch(url, opts)
 }
 
+function apiErrorMessage(status, body) {
+  // 422 = PII detected → show what was found
+  if (status === 422 && body && body.findings) {
+    var types = Object.keys(body.findings).filter(function(k) { return body.findings[k] })
+    if (types.length) {
+      return 'Your content contains sensitive data (' + types.join(', ') + '). Please remove it and try again.'
+    }
+    return 'Your content contains sensitive data. Please remove personal information and try again.'
+  }
+  if (status === 402) return 'This feature requires a Pro plan. Upgrade to continue.'
+  if (status === 429) return 'Too many requests. Please wait a moment and try again.'
+  if (status === 401) return 'Your session expired. Please reconnect on the Connect tab.'
+  if (status >= 500) return 'Server error \u2014 something went wrong on our end. Please try again.'
+  if (status === 404) return 'Not found. It may have been deleted.'
+  return 'Request failed. Please try again.'
+}
+
 function $(id) { return document.getElementById(id) }
 function escapeHtml(s) {
   return (s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))
@@ -1485,7 +1502,7 @@ async function showDashboard() {
     '<div class="sk sk-card" aria-hidden="true" style="height:56px"></div></div>'
   try {
     const res = await afetch(API + '/api/tests')
-    if (!res.ok) throw new Error('API ' + res.status)
+    if (!res.ok) { var eb = {}; try { eb = await res.json() } catch (_) {} throw new Error(apiErrorMessage(res.status, eb)) }
     const { tests, plan } = await res.json()
     if (plan) state.plan = plan
     activeTestCount = tests ? tests.filter(t => t.status !== 'done').length : 0
@@ -1689,7 +1706,7 @@ async function createTest() {
         showUpgradeBanner(eb.message || 'Free plan allows 1 active experiment. Upgrade for unlimited.')
         throw new Error(eb.message || 'Free plan limit reached')
       }
-      throw new Error('API ' + res.status)
+      throw new Error(apiErrorMessage(res.status, eb))
     }
     const data = await res.json()
     hideUpgradeBanner()
@@ -2133,7 +2150,7 @@ async function generate() {
         showUpgradeBanner(eb.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
         throw new Error(eb.message || 'Generation limit reached')
       }
-      throw new Error('Generation failed (' + res.status + ')')
+      throw new Error(apiErrorMessage(res.status, eb))
     }
     const data = await res.json()
     state.html = data.html
@@ -2180,7 +2197,7 @@ async function refine() {
         showUpgradeBanner(eb.message || 'Generation limit reached.')
         throw new Error(eb.message || 'Generation limit reached')
       }
-      throw new Error('Refine failed (' + res.status + ')')
+      throw new Error(apiErrorMessage(res.status, eb))
     }
     const data = await res.json()
     state.html = data.html
@@ -2274,14 +2291,21 @@ function lockCopyBtn(btn) {
 function copySnippet(btn) { copyText(buildSnippetCode()); flashCopied('cp-snippet'); lockCopyBtn(btn) }
 function copyAiPrompt(btn) { copyText(buildAiPrompt()); flashCopied('cp-ai'); lockCopyBtn(btn) }
 
-function togglePause(id, currentStatus) {
+async function togglePause(id, currentStatus) {
   const next = currentStatus === 'paused' ? 'active' : 'paused'
-  afetch(API + '/api/tests/' + id, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: next })
-  })
-    .then(r => { if (!r.ok) throw new Error('API ' + r.status); showDashboard() })
-    .catch(e => err('dashboard', 'Error: ' + (e.message || e)))
+  try {
+    const r = await afetch(API + '/api/tests/' + id, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: next })
+    })
+    if (!r.ok) {
+      var eb = {}; try { eb = await r.json() } catch (_) {}
+      throw new Error(apiErrorMessage(r.status, eb))
+    }
+    showDashboard()
+  } catch (e) {
+    err('dashboard', e.message)
+  }
 }
 function showUndoToast(message, onUndo) {
   let t = $('toast')
@@ -2327,7 +2351,7 @@ async function commitPendingDelete() {
   hideToast()
   try {
     const res = await afetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
-    if (!res.ok) throw new Error('API ' + res.status)
+    if (!res.ok) { var eb = {}; try { eb = await res.json() } catch (_) {} throw new Error(apiErrorMessage(res.status, eb)) }
     showDashboard()
   } catch (e) {
     if (card) { card.classList.remove('deleting'); card.removeAttribute('aria-hidden') }
