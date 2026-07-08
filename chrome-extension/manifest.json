@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "variante — A/B Test Element Picker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Browser extension companion to the variante Figma plugin: pick an element on your live site as the target for an A/B test.",
   "homepage_url": "https://www.getvariante.com",
   "icons": {

@@ -8,7 +8,7 @@ Kein Build-Schritt nötig. Die Extension besteht aus Plain-JS-Dateien. Installat
 |-------|-------|
 | `manifest.json` | Extension-Konfiguration (MV3, Permissions, Entry Points) |
 | `background.js` | Service Worker: Hash-Parsing, Auto-Flow-Koordination, Popup-Kommunikation |
-| `content-picker.js` | On-Demand: Element-Picker + Goal-Picker (wird via `scripting.executeScript` injiziert) |
+| `content-picker.js` | On-Demand: Element-Picker + Goal-Picker (wird via `scripting.executeScript` injiziert). Nach erfolgreichem Capture schließt der Tab automatisch — keine Overlay-Bestätigung mehr, das Figma-Plugin/Dashboard zeigt das Ergebnis. |
 | `popup.html` / `popup.js` | Popup-UI: manueller Test-ID-Input, Picker-Start |
 | `welcome.html` | Post-Install-Welcome-Seite |
 | `store-listing.md` | CWS-Listing-Texte (nicht Teil der Extension) |

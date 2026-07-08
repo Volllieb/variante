@@ -165,53 +165,28 @@ document.documentElement.setAttribute('data-ab-picker-injected', '1')
     if (__abBanner) { try { __abBanner.remove() } catch (_) {}; __abBanner = null }
   }
 
-  // --- Cleaner Overlay mit "Tab schließen" -----------------------------------
-  function overlay(msg, ok) {
+  // --- Overlay (nur noch für Fehler) ----------------------------------------
+  // ponytail: Erfolgs-Overlay entfernt — Tab schließt direkt, Figma-Plugin
+  // refreshed selbst und zeigt das erfasste Element. Nur Fehler zeigen ein
+  // Overlay, das nach 3.2s auto-dismisst.
+  function overlay(msg, _ok) {
+    // guard: kein doppeltes Overlay
+    if (document.getElementById('__ab_overlay')) return
     hideBanner()
     if (window.__abCleanup) window.__abCleanup()
     var wrap = document.createElement('div')
+    wrap.id = '__ab_overlay'
     wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);font-family:-apple-system,Segoe UI,sans-serif;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)'
     var card = document.createElement('div')
     card.style.cssText = 'background:#0a0a0a;color:#ededed;padding:32px 36px;border-radius:16px;text-align:center;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.10)'
-    if (ok) {
-      card.innerHTML =
-        '<div style="width:56px;height:56px;border-radius:28px;background:rgba(47,215,108,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#2fd76c">\u2713</div>' +
-        '<div style="font-size:17px;font-weight:700;margin-bottom:4px;line-height:1.4">' + msg + '</div>' +
-        '<div style="font-size:13px;color:rgba(237,237,237,.62);margin-bottom:20px;line-height:1.5">Element captured. What\u2019s next?</div>' +
-        '<button id="__ab_close_btn" style="display:block;width:100%;padding:12px;border:none;border-radius:10px;background:#ffffff;color:#000000;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-bottom:8px" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'">Close tab \u2192 back to Figma</button>' +
-        '<button id="__ab_reselect_btn" style="display:block;width:100%;padding:12px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:transparent;color:#ededed;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'transparent\'">\u27F3 Reselect element</button>'
-      setTimeout(function () {
-        var closeBtn = document.getElementById('__ab_close_btn')
-        var reselectBtn = document.getElementById('__ab_reselect_btn')
-        if (closeBtn) {
-          closeBtn.onclick = function () {
-            closeBtn.textContent = 'Closing tab...'
-            closeBtn.style.background = '#2fd76c'
-            closeBtn.style.color = '#000000'
-            closeBtn.style.opacity = '1'
-            closeBtn.disabled = true
-            if (reselectBtn) reselectBtn.style.display = 'none'
-            try { chrome.runtime.sendMessage({ type: 'CLOSE_TAB' }) } catch (_) {}
-            try { window.close() } catch (_) {}
-          }
-        }
-        if (reselectBtn) {
-          reselectBtn.onclick = function () {
-            wrap.remove()
-            startPicker(window.__abLastMode || 'element')
-          }
-        }
-      }, 50)
-    } else {
-      card.innerHTML =
-        '<div style="width:56px;height:56px;border-radius:28px;background:rgba(245,69,92,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#f5455c">!</div>' +
-        '<div style="font-size:16px;font-weight:600;margin-bottom:4px;line-height:1.4;color:#f5455c">' + msg + '</div>' +
-        '<div style="font-size:12px;color:rgba(237,237,237,.40);margin-top:14px">Dismissing in a moment\u2026</div>'
-    }
+    card.innerHTML =
+      '<div style="width:56px;height:56px;border-radius:28px;background:rgba(245,69,92,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#f5455c">!</div>' +
+      '<div style="font-size:16px;font-weight:600;margin-bottom:4px;line-height:1.4;color:#f5455c">' + msg + '</div>' +
+      '<div style="font-size:12px;color:rgba(237,237,237,.40);margin-top:14px">Dismissing in a moment\u2026</div>'
     wrap.appendChild(card)
     wrap.addEventListener('click', function (e) { if (e.target === wrap) { wrap.remove() } })
     document.body.appendChild(wrap)
-    if (!ok) setTimeout(function () { wrap.remove() }, 3200)
+    setTimeout(function () { wrap.remove() }, 3200)
   }
 
   // --- Picker starten --------------------------------------------------------
@@ -266,8 +241,12 @@ document.documentElement.setAttribute('data-ab-picker-injected', '1')
               }),
             })
           }
-          if (res.ok) { overlay(mode === 'goal' ? 'Goal saved' : 'Element saved', true) }
-          else { overlay('Save failed (' + res.status + ')', false) }
+          if (res.ok) {
+            // ponytail: Kein Overlay — Tab schließen. Figma-Plugin/Dashboard
+            // refreshed selbst und zeigt das erfasste Element als Bestätigung.
+            try { chrome.runtime.sendMessage({ type: 'CLOSE_TAB' }) } catch (_) {}
+            try { window.close() } catch (_) {}
+          } else { overlay('Save failed (' + res.status + ')', false) }
         } catch (err) { overlay('Network error while saving.', false) }
       }
 
