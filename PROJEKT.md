@@ -233,10 +233,10 @@ User klickt [+ New test]
 
 - **Sidebar:** Overview, Tests (separate Page), Setup (Health Check), Billing, Account
 - **Overview (`/dashboard`):** Zweispaltig — 30% Metric-Cards + 70% Test-Grid.
-  - Linke Spalte (30%): **Overview-Card** (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon/Name/Wert-Zeilen mit Trennlinien) + **Health/Setup-Card** (Snippet/Plugin/Extension-Status, verlinkt auf `/dashboard/setup`).
+  - Linke Spalte (30%): **Overview-Card** (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon/Name/Wert-Zeilen mit Trennlinien) + **Health/Setup-Card** (Snippet/Plugin-Status, verlinkt auf `/dashboard/setup`).
   - Rechte Spalte (70%): **Tests-Überschrift** + Toolbar (Suchleiste breit, Sort-Icon, Filter-Dropdown für Status/Zeitraum/Winner, New-Test-Button) + **TestCard-Grid** (3 pro Zeile).
 - **TestCard (neu):** Row 1: Favicon | Name+URL | Significance-Pie-Chart (Visitor-Count im Zentrum, Arc-Füllung = Signifikanz-Fortschritt). Row 2: Status-Dot (grün/orange/grau) | Dauer (d/h/m/s granular) | Variant-Leader (A/B-Pill).
-- **Setup:** `/dashboard/setup` — Health-Check-Seite mit 3 expandable CheckCards (Snippet auto-check via API, Plugin via Server-Flag, Extension always-ok).
+- **Setup:** `/dashboard/setup` — Health-Check-Seite mit 2 expandable CheckCards (Snippet auto-check via API, Plugin via Server-Flag).
 - **Tests:** `/dashboard/tests` — Grid mit Search, Filter-Dropdown (Status/Zeitraum/Winner), NewTestFlow-Trigger.
 
 ### 12.4 Gateway-Architektur
@@ -245,7 +245,7 @@ User klickt [+ New test]
 |---|---|---|
 | Landingpage → Signup | CTA | `/signup` |
 | Signup → Dashboard | Registrierung | `/dashboard` (direkt, kein Onboarding-Gate) |
-| Dashboard → Setup | Health-Check-Card | `/dashboard/setup` (Snippet/Plugin/Extension-Status) |
+| Dashboard → Setup | Health-Check-Card | `/dashboard/setup` (Snippet/Plugin-Status) |
 | Dashboard → Figma | „+ New test" | Figma Plugin (später: `figma://` Deep Link) |
 | Figma → Dashboard | Plugin pusht Test via API | Dashboard erkennt neuen Test per Polling |
 

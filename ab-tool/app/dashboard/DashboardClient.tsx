@@ -22,7 +22,6 @@ import {
   Percent,
   HeartPulse,
   Puzzle,
-  Globe,
   Code2,
   Search,
   ArrowUpDown,
@@ -239,7 +238,6 @@ export function DashboardClient({
                   label="Figma Plugin"
                   value={hasFigmaPlugin ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
                 />
-                <MetricRow icon={Globe} label="Extension" value={<Check className="h-3.5 w-3.5 text-[#2fd76c]" />} />
               </div>
             </Link>
           </div>
