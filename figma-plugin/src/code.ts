@@ -5,6 +5,14 @@ figma.clientStorage.getAsync('ab_token').then((token) => {
   figma.ui.postMessage({ type: 'TOKEN', token: typeof token === 'string' ? token : '' })
 })
 
+// Gespeicherten Wizard-Draft laden (testId + Screen), damit der User nach
+// Schließen/Wiederöffnen des Plugins nicht von vorne anfangen muss.
+figma.clientStorage.getAsync('ab_draft').then((draft) => {
+  if (draft && typeof draft === 'object') {
+    figma.ui.postMessage({ type: 'DRAFT_LOADED', draft })
+  }
+})
+
 // Zusammenfassung der aktuellen Leinwand-Auswahl für die UI.
 // Variante B wird per Klick in Figma gewählt (analog zur Browser Extension),
 // damit auch Unter-Elemente wie ein einzelner Button exportiert werden können.
@@ -191,6 +199,20 @@ figma.ui.onmessage = async (msg) => {
 
     case 'TOKEN_SAVE': {
       await figma.clientStorage.setAsync('ab_token', typeof msg.token === 'string' ? msg.token : '')
+      break
+    }
+
+    case 'SAVE_DRAFT': {
+      // Sichert den aktuellen Wizard-Stand (testId + Screen), damit der User
+      // nach Schließen/Wiederöffnen weitermachen kann.
+      if (msg.draft && typeof msg.draft === 'object') {
+        await figma.clientStorage.setAsync('ab_draft', msg.draft)
+      }
+      break
+    }
+
+    case 'CLEAR_DRAFT': {
+      await figma.clientStorage.deleteAsync('ab_draft')
       break
     }
 

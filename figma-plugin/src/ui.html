@@ -1171,6 +1171,7 @@ let elTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
 let navHistory = []
+let pendingDraft = null  // { testId, screen } — vom code.ts beim Boot geladen
 
 function afetch(url, opts) {
   opts = opts || {}
@@ -1217,13 +1218,30 @@ function go(id) {
   if (id !== 'metric')  stopMetricPoll()
   if (id !== 'dashboard' && pendingDelete) commitPendingDelete()
 }
-async function navPush(id) { navHistory.push(id); go(id) }
+// ponytail: Wizard-Screen sind setup/element/design/metric/generate/snippet.
+// Dashboard & connect sind keine Wizard-Screens — da wird der Draft gelöscht.
+const WIZARD_SCREENS = ['setup', 'element', 'design', 'metric', 'generate', 'snippet']
+function saveDraft(id) {
+  if (!WIZARD_SCREENS.includes(id) || !state.testId) return
+  parent.postMessage({ pluginMessage: { type: 'SAVE_DRAFT', draft: { testId: state.testId, screen: id } } }, '*')
+}
+function clearDraft() {
+  parent.postMessage({ pluginMessage: { type: 'CLEAR_DRAFT' } }, '*')
+}
+async function navPush(id) {
+  navHistory.push(id)
+  go(id)
+  saveDraft(id)
+}
 function navBack() {
-  if (navHistory.length < 2) { navHistory = ['dashboard']; go('dashboard'); return }
+  if (navHistory.length < 2) { navHistory = ['dashboard']; go('dashboard'); clearDraft(); return }
   navHistory.pop()
   let prev = navHistory[navHistory.length - 1]
-  if (prev === 'connect') { navHistory = ['dashboard']; go('dashboard'); return }
+  if (prev === 'connect') { navHistory = ['dashboard']; go('dashboard'); clearDraft(); return }
   go(prev)
+  // Wenn wir zurück zum Dashboard gehen, Draft löschen
+  if (prev === 'dashboard') clearDraft()
+  else saveDraft(prev)
 }
 
 function err(id, msg) {
@@ -1272,20 +1290,139 @@ function showWelcomeMode() {
   $('c-welcome').style.display = 'block'
   $('connect-hdr').style.display = 'none'
 }
+
+// Stellt einen gespeicherten Wizard-Draft wieder her.
+// Lädt den Test vom Server und navigiert zum gespeicherten Screen.
+async function restoreDraft(draft) {
+  const { testId, screen } = draft
+  if (!testId || !WIZARD_SCREENS.includes(screen)) {
+    showDashboard()
+    return
+  }
+  try {
+    const res = await afetch(API + '/api/tests/' + testId)
+    if (!res.ok) { clearDraft(); showDashboard(); return }
+    const t = await res.json()
+    // State aus Server-Daten befüllen
+    state.testId = t.id
+    state.snippetKey = t.snippet_key || ''
+    state.name = t.name || ''
+    state.url = t.site_url || ''
+    state.selector = t.selector || ''
+    state.goal = t.goal || ''
+    state.originalHtml = t.original_html || ''
+    state.goalCandidates = t.goal_candidates || []
+    state.html = t.variant_html || ''
+    if (t.site_css) state.siteCss = t.site_css
+
+    // UI zurücksetzen
+    $('f-name').value = state.name
+    $('f-url').value = state.url
+    $('el-testid-val').textContent = state.testId || '—'
+    hideUpgradeBanner()
+
+    // Je nach gespeichertem Screen den richtigen Zustand herstellen
+    if (screen === 'setup') {
+      navHistory = ['dashboard', 'setup']
+      go('setup')
+    } else if (screen === 'element') {
+      navHistory = ['dashboard', 'setup', 'element']
+      if (state.selector) {
+        renderElementChip(state.selector, state.originalHtml)
+        $('el-waiting').style.display = 'none'
+        $('el-done').style.display = 'block'
+        var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = 'none'
+        $('btn-el-next').disabled = false
+      } else {
+        $('el-waiting').style.display = 'flex'
+        $('el-done').style.display = 'none'
+        $('btn-el-next').disabled = true
+        startElementPoll()
+      }
+      go('element')
+    } else if (screen === 'design') {
+      navHistory = ['dashboard', 'setup', 'element', 'design']
+      go('design')
+      requestSelection()
+    } else if (screen === 'metric') {
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'metric']
+      go('metric')
+      // Metric-Setup inline (ohne navPush, da navHistory schon gesetzt ist)
+      $('m-waiting').style.display = 'none'
+      $('m-goal-display').style.display = 'none'
+      $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
+      $('m-pick-wrap').style.display = 'none'
+      $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
+      $('adv-toggle').classList.remove('open')
+      $('adv-toggle').setAttribute('aria-expanded', 'false')
+      $('adv-section').classList.remove('open')
+      $('m-custom-selector').value = ''
+      const clickable = isClickable(state.originalHtml)
+      if (clickable) {
+        state.goal = state.selector
+        $('m-default-opt').classList.add('m-selected')
+        $('m-default-opt').classList.remove('m-disabled', 'm-highlight')
+        $('m-default-opt').style.opacity = ''
+        $('m-default-desc').textContent = ''; $('m-default-desc').style.display = 'none'
+        $('m-generate').disabled = false
+      } else {
+        state.goal = ''
+        $('m-default-opt').classList.remove('m-selected')
+        $('m-default-opt').classList.add('m-disabled')
+        $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
+        $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
+        $('m-generate').disabled = true
+        $('m-pick-opt').classList.add('m-selected', 'm-highlight')
+        $('m-pick-wrap').style.display = 'block'
+      }
+      renderGoalChip()
+    } else if (screen === 'generate') {
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'metric', 'generate']
+      go('generate')
+      if (state.html) {
+        fillPreviews()
+        $('gen-html').textContent = state.html || ''
+        $('gen-result').style.display = 'block'
+        $('gen-ftr').style.display = 'block'
+        generateDone = true
+        buildSnippet()
+      } else {
+        generate()
+      }
+    } else if (screen === 'snippet') {
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'metric', 'generate', 'snippet']
+      buildSnippet()
+      go('snippet')
+    }
+  } catch (_) {
+    clearDraft()
+    showDashboard()
+  }
+}
 function goToTokenMode() { showTokenMode(); go('connect') }
-function saveToken() {
+async function saveToken() {
   const v = ($('connect-token').value || '').trim()
   if (!v) { err('connect', 'Please paste your token.'); return }
-  API_TOKEN = v
-  saveInputHistory('token', v)
-  parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
   const btn = document.querySelector('#c-token .btn-primary')
-  if (btn) { btn.textContent = '✓ Connected!'; btn.disabled = true }
-  setTimeout(showDashboard, 1200)
+  if (btn) { btn.textContent = 'Checking…'; btn.disabled = true }
+  try {
+    // Token validieren, bevor wir ihn akzeptieren
+    const res = await fetch(API + '/api/profile', { headers: { Authorization: 'Bearer ' + v } })
+    if (!res.ok) throw new Error('Invalid token — please check your dashboard for the correct token.')
+    API_TOKEN = v
+    saveInputHistory('token', v)
+    parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
+    if (btn) { btn.textContent = '✓ Connected!' }
+    setTimeout(showDashboard, 800)
+  } catch (e) {
+    if (btn) { btn.textContent = 'Connect →'; btn.disabled = false }
+    err('connect', e.message || 'Invalid token')
+  }
 }
 
 async function showDashboard() {
   if (pendingDelete) commitPendingDelete()
+  clearDraft()
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
@@ -1444,6 +1581,7 @@ function newTest() {
     showUpgradeBanner('Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.')
     return
   }
+  clearDraft()
   state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
   state.originalHtml = ''; state.goalCandidates = []
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
@@ -2109,8 +2247,25 @@ window.onmessage = (event) => {
   if (msg.type === 'TOKEN') {
     tokenReceived = true
     API_TOKEN = msg.token || ''
-    if (API_TOKEN) { $('connect-token').value = API_TOKEN; showDashboard() }
-    else go('connect')
+    if (API_TOKEN) {
+      $('connect-token').value = API_TOKEN
+      // Wenn ein Draft existiert, versuche ihn wiederherzustellen
+      if (pendingDraft && pendingDraft.testId) {
+        restoreDraft(pendingDraft)
+      } else {
+        showDashboard()
+      }
+    } else go('connect')
+    return
+  }
+
+  if (msg.type === 'DRAFT_LOADED') {
+    pendingDraft = msg.draft
+    // Falls Token schon da ist, sofort restoren
+    if (tokenReceived && API_TOKEN && pendingDraft && pendingDraft.testId) {
+      restoreDraft(pendingDraft)
+      pendingDraft = null
+    }
     return
   }
 

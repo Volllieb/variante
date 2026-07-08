@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabase
     .from('profiles')
-    .update({ api_token: newToken })
+    .update({ api_token: newToken, has_figma_plugin: false })
     .eq('user_id', user.userId)
     .select('api_token')
     .single()
