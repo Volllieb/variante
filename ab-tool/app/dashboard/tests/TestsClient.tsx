@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NewTestFlow } from '../NewTestFlow'
 import { TestCard, type TestRow } from '../components/TestCard'
 import {
@@ -37,6 +37,14 @@ export function TestsClient({
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [newTestOpen, setNewTestOpen] = useState(false)
+  const [testList, setTestList] = useState(tests)
+
+  // Sync when server re-renders with fresh data
+  useEffect(() => { setTestList(tests) }, [tests])
+
+  function handleDeleteTest(id: string) {
+    setTestList((prev) => prev.filter((t) => t.id !== id))
+  }
 
   function cycleFilter() {
     setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
@@ -44,11 +52,11 @@ export function TestsClient({
 
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return tests.filter((t) => {
+    return testList.filter((t) => {
       const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
       return mq && (statusFilter === 'all' || t.status === statusFilter)
     })
-  }, [tests, query, statusFilter])
+  }, [testList, query, statusFilter])
 
   return (
     <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
@@ -86,7 +94,7 @@ export function TestsClient({
       {newTestOpen && (
         <NewTestFlow
           apiToken={apiToken}
-          currentTestCount={tests.length}
+          currentTestCount={testList.length}
           hasFigmaPlugin={hasFigmaPlugin}
           isAtFreeLimit={isAtFreeLimit}
           onClose={() => setNewTestOpen(false)}
@@ -94,7 +102,7 @@ export function TestsClient({
       )}
 
       {/* Empty / No results */}
-      {tests.length === 0 ? (
+      {testList.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
             <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
@@ -113,7 +121,7 @@ export function TestsClient({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredTests.map((t) => (
-            <TestCard key={t.id} t={t} />
+            <TestCard key={t.id} t={t} onDelete={handleDeleteTest} />
           ))}
         </div>
       )}
