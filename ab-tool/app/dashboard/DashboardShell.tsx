@@ -94,7 +94,6 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
         {/* ── Page content ── */}
         <div className="min-w-0 flex-1">
           {children}
-          {children}
         </div>
       </div>
     </div>
