@@ -7,6 +7,13 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import {
+  FilterDropdown,
+  type FilterState,
+  DEFAULT_FILTER,
+  getDateCutoff,
+  hasActiveFilters,
+} from './components/FilterDropdown'
+import {
   Check,
   X,
   AlertTriangle,
@@ -59,6 +66,7 @@ export function DashboardClient({
   const [testList, setTestList] = useState(tests)
   const [query, setQuery] = useState('')
   const [sortAsc, setSortAsc] = useState(false)
+  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
   const isPro = plan === 'pro' || plan === 'agency'
 
   useEffect(() => {
@@ -137,11 +145,36 @@ export function DashboardClient({
 
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return sortedTests
-    return sortedTests.filter((t) =>
-      t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-    )
-  }, [sortedTests, query])
+    const dateCutoff = getDateCutoff(filter.date)
+
+    let result = sortedTests
+
+    // Text search
+    if (q) {
+      result = result.filter((t) =>
+        t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
+      )
+    }
+
+    // Status filter
+    if (filter.status !== 'all') {
+      result = result.filter((t) => t.status === filter.status)
+    }
+
+    // Date filter
+    if (dateCutoff !== null) {
+      result = result.filter((t) => new Date(t.created_at).getTime() >= dateCutoff)
+    }
+
+    // Winner filter
+    if (filter.winner === 'yes') {
+      result = result.filter((t) => t.winner !== null)
+    } else if (filter.winner === 'no') {
+      result = result.filter((t) => t.winner === null)
+    }
+
+    return result
+  }, [sortedTests, query, filter])
 
   return (
     <>
@@ -228,6 +261,7 @@ export function DashboardClient({
               >
                 <ArrowUpDown className="h-3.5 w-3.5" />
               </button>
+              <FilterDropdown filter={filter} onChange={setFilter} />
               <button
                 onClick={() => setNewTestOpen(true)}
                 className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"

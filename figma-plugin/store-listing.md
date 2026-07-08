@@ -27,8 +27,8 @@ You designed it in Figma, an AI turned it into a live site (Custom HTML, WordPre
 
 ### How it works
 1. **Open the plugin** in Figma and start a test.
-2. **Pick the element** to test on your live page (the companion Browser extension highlights it — one click).
-3. **Write the variant** — new copy, color, layout — right in the plugin.
+2. **Pick the element** — the plugin opens your live site with a built-in hover picker (no extension needed). Click the element, done.
+3. **Write the variant** — new copy, color, layout — right in the plugin. AI can generate it from your Figma selection.
 4. **Ship it.** variante serves both versions, splits traffic, and tracks the conversion goal you choose.
 5. **Read the result** — clear winner, lift %, and confidence — back in the plugin dashboard.
 
@@ -39,8 +39,8 @@ You designed it in Figma, an AI turned it into a live site (Custom HTML, WordPre
 - **Free to start.** Run your first live test on the Free tier (carries a small "powered by variante" badge; removable on Pro).
 
 ### What you need
-- A live website you can add a single snippet to.
-- The free **variante Element Picker** Browser extension (linked on first run) to select elements on your live page.
+- A live website where you can add the variante snippet (one `<script>` tag).
+- The element picker runs directly in your browser — no extension install required.
 
 Privacy: we only store the element you pick, your variant, the page URL, and the conversion events you define. Full policy: https://www.getvariante.com/privacy
 

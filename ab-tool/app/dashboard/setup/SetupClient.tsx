@@ -389,38 +389,6 @@ export function SetupClient({ data }: { data: SetupData }) {
               )}
             </div>
           </CheckCard>
-
-          {/* Extension check */}
-          <CheckCard
-            check={checks.extension}
-            expanded={expanded === 'extension'}
-            onToggle={() => setExpanded(expanded === 'extension' ? null : 'extension')}
-            icon={Globe}
-            statusIcon={statusIcon(checks.extension.status)}
-            statusBg={statusBg(checks.extension.status)}
-            statusBorder={statusBorder(checks.extension.status)}
-          >
-            <div className="space-y-4">
-              <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                The Chrome extension adds a &quot;Pick element&quot; button directly on your site, so you can select
-                exactly which element to test — no manual CSS selectors needed.
-              </p>
-
-              <a
-                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors hover:bg-white/90"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                Install from Chrome Web Store
-              </a>
-
-              <p className="text-[11px] text-[#ededed]/40">
-                After installing, open your site from the extension popup and start picking elements.
-              </p>
-            </div>
-          </CheckCard>
         </div>
 
         {/* Privacy note */}

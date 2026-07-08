@@ -4,9 +4,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { NewTestFlow } from '../NewTestFlow'
 import { TestCard, type TestRow } from '../components/TestCard'
 import {
+  FilterDropdown,
+  type FilterState,
+  DEFAULT_FILTER,
+  getDateCutoff,
+} from '../components/FilterDropdown'
+import {
   Search,
   Plus,
-  ListFilter,
   FlaskConical,
 } from 'lucide-react'
 
@@ -20,9 +25,6 @@ const T = {
   err: '#f5455c',
 }
 
-const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
-type StatusFilter = (typeof STATUS_FILTERS)[number]
-
 export function TestsClient({
   apiToken,
   tests,
@@ -35,7 +37,7 @@ export function TestsClient({
   isAtFreeLimit: boolean
 }) {
   const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
   const [newTestOpen, setNewTestOpen] = useState(false)
   const [testList, setTestList] = useState(tests)
 
@@ -46,17 +48,38 @@ export function TestsClient({
     setTestList((prev) => prev.filter((t) => t.id !== id))
   }
 
-  function cycleFilter() {
-    setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
-  }
-
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return testList.filter((t) => {
-      const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-      return mq && (statusFilter === 'all' || t.status === statusFilter)
-    })
-  }, [testList, query, statusFilter])
+    const dateCutoff = getDateCutoff(filter.date)
+
+    let result = testList
+
+    // Text search
+    if (q) {
+      result = result.filter((t) =>
+        t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
+      )
+    }
+
+    // Status filter
+    if (filter.status !== 'all') {
+      result = result.filter((t) => t.status === filter.status)
+    }
+
+    // Date filter
+    if (dateCutoff !== null) {
+      result = result.filter((t) => new Date(t.created_at).getTime() >= dateCutoff)
+    }
+
+    // Winner filter
+    if (filter.winner === 'yes') {
+      result = result.filter((t) => t.winner !== null)
+    } else if (filter.winner === 'no') {
+      result = result.filter((t) => t.winner === null)
+    }
+
+    return result
+  }, [testList, query, filter])
 
   return (
     <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
@@ -71,16 +94,7 @@ export function TestsClient({
             className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
           />
         </div>
-        <button
-          onClick={cycleFilter}
-          title={`Filter: ${statusFilter}`}
-          className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-        >
-          <ListFilter className="h-3.5 w-3.5" />
-          {statusFilter !== 'all' && (
-            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
-          )}
-        </button>
+        <FilterDropdown filter={filter} onChange={setFilter} />
         <button
           onClick={() => setNewTestOpen(true)}
           className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
