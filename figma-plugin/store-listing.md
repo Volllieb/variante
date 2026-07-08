@@ -1,11 +1,10 @@
 # Figma Community — Store Listing (variante)
 
 > Texte zum Einfügen in den Figma-„Publish"-Dialog.
-> Icon + Cover-Art + Screenshots werden **im Publish-Dialog hochgeladen**, nicht im manifest.
+> Icon + Cover-Art werden **im Publish-Dialog hochgeladen**, nicht im manifest.
 > Brand-Farbe: `#0D99FF`. Privacy: https://www.getvariante.com/privacy
 > Kategorie im Publish-Dialog: **Design tools**
 > Support-Kontakt (Publish-Pflichtfeld): `hello@getvariante.com` — steht auch in der Privacy Policy §7
-> Offizielle Figma-Asset-Specs: Icon 128×128, Cover 1920×1080 (16:9), Screenshots empfohlen 1280×800 (16:10)
 
 ---
 
@@ -87,40 +86,6 @@ The plugin extracts only the user-selected Figma element (layer type, name, text
 | **Manage updates** | I'm a solo developer. I manage and update my plugin myself. |
 
 ## Assets-Checklist (im Publish-Dialog hochladen)
-
-### Icon
-- **128×128 px PNG** — quadratisch, Brand-Mark (Panda-Logo) auf `#0D99FF`
-- Wird als kleines Quadrat im Listing + in der Sidebar angezeigt
-- Keine Schrift im Icon (bei 128px nicht lesbar)
-- Dateigröße: < 100 KB
-
-### Cover-Art (Hero / Thumbnail)
-- **1920×1080 px PNG** (16:9) — das ist der offizielle Figma-Standard (nicht 1920×960!)
-- Wird im Listing groß oben angezeigt, oft in Raster-Übersichten beschnitten
-- Safe-Zone: Wichtige Inhalte (Logo, Tagline) innerhalb 1540×800 zentriert halten
-- Aufbau: Links Plugin-UI / rechts Tagline + Value Props — oder zentriertes Hero-Layout
-- Kein reiner Screenshot — das ist das „Plakat" deines Plugins
-- Dateigröße: < 500 KB
-
-### Screenshots (Carousel, max. 9)
-- Keine fixe Vorgabe von Figma, aber **empfohlen: 1920×1080 oder 1280×800** (16:9 oder 16:10)
-- Zeigen die Plugin-UI in Figmas nativer Umgebung (Dark + Light Mode jeweils ein Screenshot)
-- **Alle Screenshots gleiche Größe** — inkonsistente Maße sehen unprofessionell aus
-- Reihenfolge = User Journey: Welcome → Setup → Variant-Editor → Dashboard/Results
-- Optional: 1× Demo-Video/GIF (zeigt den Flow in 15–30 Sekunden)
-
-### Empfohlene Screenshots für variante (5 Stück):
-1. **Welcome/Connect** — Erster Screen, Token-Eingabe, „Connect your account"
-2. **Test Setup** — Test-Details (Name, URL), zeigt den Start-Workflow
-3. **Variant Editor** — Variant B schreiben/designen, der Core-Loop
-4. **Element Picker** — Seite im Browser mit Pick-Overlay (zeigt das Zusammenspiel Plugin↔Extension)
-5. **Dashboard/Results** — Live-Test mit Stats (Lift %, Confidence, Winner)
-
-- [ ] **Icon** (128×128 PNG)
-- [ ] **Cover-Art** (1920×1080 PNG, 16:9)
-- [ ] **Screenshot 1** — Welcome/Connect (1280×800 PNG)
-- [ ] **Screenshot 2** — Test Setup (1280×800 PNG)
-- [ ] **Screenshot 3** — Variant Editor (1280×800 PNG)
-- [ ] **Screenshot 4** — Element Picker in Action (1280×800 PNG)
-- [ ] **Screenshot 5** — Dashboard/Results (1280×800 PNG)
-- [ ] Optional: Demo-GIF (15–30s, max 5 MB)
+- [ ] **Plugin-Icon** (128×128 PNG, quadratisch) — Brand-Mark auf `#0D99FF`
+- [ ] **Cover-Art** (1920×960 PNG) — Plugin-UI + Tagline
+- [ ] **3–5 Screenshots** der Plugin-Screens (Onboarding, Variant-Editor, Dashboard/Results)
