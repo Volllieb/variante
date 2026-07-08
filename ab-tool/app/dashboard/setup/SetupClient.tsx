@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import {
   HeartPulse,
   Code2,
@@ -16,7 +15,6 @@ import {
   ChevronDown,
   ExternalLink,
   Shield,
-  ArrowRight,
 } from 'lucide-react'
 import type { SetupData } from './page'
 
@@ -359,16 +357,6 @@ export function SetupClient({ data }: { data: SetupData }) {
           </p>
         </div>
 
-        {/* Bottom nav */}
-        <div className="border-t border-white/10 pt-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-[11px] text-[#ededed]/40 transition-colors hover:text-[#ededed]"
-          >
-            <ArrowRight className="h-3 w-3 rotate-180" />
-            Back to Dashboard
-          </Link>
-        </div>
       </div>
     </main>
   )
