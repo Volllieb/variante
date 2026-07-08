@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 07.07.2026 | **Dashboard-Restrukturierung: Setup-Health-Check, Overview-Bereinigung.** `/dashboard/setup` als dedizierte Health-Check-Seite mit 3 expandable CheckCards (Snippet auto-check via `/api/snippet-check`, Plugin via `has_figma_plugin`-Flag, Extension always-ok). Snippet-Code, Plugin-Token, Extension-CTA komplett aus Overview entfernt. Overview zeigt nur kompakten HealthBanner (Link zu `/dashboard/setup`). EmptyState für 0-Test-Nutzer mit kontextuellem CTA. Sidebar: Setup-Link mit HeartPulse-Icon statt alter Anchor-Links. Build grün, deployed. |
 | 07.07.2026 | **Sprint 2: Test-Cards + Overview-Tabelle.** Shared `TestCard`-Komponente mit Favicon-Thumbnail, Test-Dauer („Running for 3d"), Signifikanz-Mini-Donut (24×24 SVG), Three-Dot-Menü (Pause/Resume/Delete). `OverviewTable` im Dashboard: kompakte Tabelle aller Tests mit Status, Visitors, Conversions, Signifikanz, Lift. `TestsClient` nutzt jetzt dieselbe Shared-Komponente. Code-Deduplizierung: ~120 Zeilen entfernt. Build grün, deployed. |
 | 07.07.2026 | **Sprint 1: Setup-Checkliste + Snippet-Check-API.** `POST /api/snippet-check` — server-seitiger Fetch (SSRF-geschützt, 5s Timeout) prüft ob `ab.js`/`__ab_hide` auf externer Site lebt. `SetupChecklist`-Komponente ersetzt Empty-State im Dashboard (0-Test-Nutzer): 3 anklickbare Steps (Snippet→Figma→Erster Test) mit visuellem Done-Tracking. Dashboard-Brainstorming abgeschlossen, Roadmap in Sprint-Reihenfolge priorisiert. Build grün, deployed. |
 | 07.07.2026 | **Docs-Seite erstellt.** `/docs` mit 8 Sektionen (Overview, How it works, Installation, Figma Plugin, Chrome Extension, Experiments, Pricing, FAQ). Footer-Link auf Landingpage, Sitemap-Eintrag, JSON-LD. SEO: canonical, OG, Twitter-Card. |
@@ -218,10 +219,11 @@ User klickt [+ New test]
 
 ### 12.3 Dashboard-Layout
 
-- **Sidebar:** Overview, Tests (separate Page), Setup-Tools (Plugin & Extension, Snippet), Billing + Account (unten gruppiert)
-- **Overview:** Stats-Bar (Active tests, Visitors, Conversions, Plan) + Winner-Alert (Pro-only)
+- **Sidebar:** Overview, Tests (separate Page), Setup (Health Check), Billing, Account
+- **Overview:** Stats-Bar (Active tests, Visitors, Conversions, Plan) + Winner-Alert (Pro-only) + HealthBanner (kompakt, verlinkt auf `/dashboard/setup`). Kein Setup-Cruft (Snippet/Token/Extension sind aus Overview entfernt).
+- **Setup:** `/dashboard/setup` — Health-Check-Seite mit 3 Checks (Snippet, Plugin, Extension). Snippet-Check auto-verified via `/api/snippet-check`. Plugin-Status aus Server-Flag `has_figma_plugin`. Extension immer `ok`. Expandable CheckCards mit Details + Actions (Copy Token, Code-Beispiele, Framework-Integrationen).
 - **Tests:** Eigene `/dashboard/tests`-Seite mit Search, Status-Filter, Test-Cards (Visitor-Bar, CR, Uplift-Badge)
-- **Sektionen unter Overview/Tests:** Plugin-Token + Extension (2-Col), Snippet (Collapsible), Billing, Account
+- **Empty State (0 Tests):** Overview zeigt EmptyState-Komponente mit kontextuellem CTA (Setup prüfen oder Figma Plugin installieren) statt voller SetupChecklist.
 
 ### 12.4 Gateway-Architektur
 
