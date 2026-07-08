@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 08.07.2026 — Sprint: Figma-Plugin auf native Tokens umgestellt, Picker-Success-Overlay redesigned |
+| **Stand** | 08.07.2026 — 🎉 Figma-Plugin LIVE im Community Store, 1 Design-Partner angefragt |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -26,7 +26,7 @@
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
 | Snippet | `ab.js` (Vanilla JS, ~8 KB, kein Build-Step, eingebauter Element-Picker) |
 | Chrome-Extension | ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im Snippet |
-| Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
+| Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) · [Community](https://www.figma.com/community/plugin/1653734891132085565) |
 | **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
 
 ## §3 Struktur
@@ -86,6 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 08.07.2026 | **🎉 Figma-Plugin LIVE im Community Store!** [Plugin #1653734891132085565](https://www.figma.com/community/plugin/1653734891132085565) freigegeben nach 9 Tagen Review. Der Burggraben steht. Erster Design-Partner angefragt. |
 | 08.07.2026 | **Dashboard Overview-Redesign: 30/70-Layout, Metric-Cards, Pie-Chart-TestCards.** Overview-Seite komplett umgebaut: Zweispaltig (30% Metric-Cards / 70% Test-Grid). Linke Spalte: Overview-Card (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon+Name+Wert pro Zeile, getrennt durch subtile Linien) + Health/Setup-Card (Snippet/Plugin/Extension-Status, verlinkt auf `/dashboard/setup`). Rechte Spalte: Tests-Überschrift + Toolbar (Suchleiste, Sort-Icon, New-Test-Button) + TestCard-Grid (3 pro Zeile). Stats-Bar, CRO-Snapshot, Winner-Alert, Overview-Tabelle, HealthBanner entfernt. TestCard neu designt: Row 1 (Favicon, Name+URL, Significance-Pie-Chart mit Visitor-Count im Zentrum), Row 2 (Status-Dot, Dauer d/h/m/s, Variant-Leader A/B). Build grün, deployed. |
 | 07.07.2026 | **Chrome-Extension deprecated — Picker jetzt direkt im Snippet.** `content-picker.js` in `ab.js` integriert: Element-Picker läuft ohne Extension direkt auf der Kundenseite. `chrome-extension/` auf Read-only-Archiv gesetzt (DEPRECATED.md). `ab.js` von ~8 KB auf ~14 KB gewachsen. Build grün. |
 | 07.07.2026 | **Dogfooding: ab.js in layout.tsx integriert.** `ab.js`-Snippet lädt jetzt im Root-Layout der eigenen Landingpage (www.getvariante.com). Ermöglicht echte Dogfood-Tests auf der eigenen Site. |
@@ -144,18 +145,19 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ## §10 Roadmap & Nordstern
 
 ### Aktueller Stand
-- Chrome-Extension ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im `ab.js`-Snippet
-- Figma-Plugin-Review läuft (eingereicht 29.06.)
+- 🎉 **Figma-Plugin LIVE** — [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
+- Chrome-Extension ⚠️ Deprecated (08.07.2026) — Picker jetzt direkt im `ab.js`-Snippet
+- **Design-Partner:** 1 von 5 angefragt
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
-- **Auth-Guard:** Results nur für Besitzer sichtbar
-- **E2E:** ✅ M1 abgeschlossen — kompletter Loop auf Fremd-Site getestet
-- **Nächster Schritt:** M2 — Store-Freigaben + erste Design-Partner
+- **E2E:** ✅ M1 abgeschlossen
+- **Nächster Schritt:** Design-Partner-Onboarding → Case-Studies → Product Hunt
 
 ### Meilensteine
 
 1. ~~**M1: Fremd-Site-Test**~~ ✅ — Snippet → Traffic → Conversions → Winner funktioniert.
-2. **M2: Store-Freigaben + Design-Partner** (Ziel: August) — 3–5 Partner, 1–2 Case-Studies.
-3. **M3: Erster Pro-Kunde** (Ziel: September) — Checkout → Webhook → Badge-aus.
+2. ~~**M2: Store-Freigaben**~~ 🎉 — Figma-Plugin LIVE. Jetzt: Design-Partner-Onboarding (1/5 angefragt).
+3. **M3: Product Hunt Launch** (Ziel: nächste Woche, Dienstag) — Demo-GIF + Case-Studies.
+4. **M4: Erster Pro-Kunde** (Ziel: September) — Checkout → Webhook → Badge-aus.
 
 ### Nordstern
 
