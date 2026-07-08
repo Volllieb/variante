@@ -143,7 +143,7 @@ input, select, textarea {
   border: 1px solid transparent; border-radius: var(--r);
   font-size: var(--fs-md); font-family: inherit;
   color: var(--text); background: var(--bg-1);
-  outline: none; transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
+  outline: none; transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
 }
 input:hover, select:hover, textarea:hover { border-color: var(--text-2); }
 input:focus, select:focus, textarea:focus {
@@ -182,21 +182,20 @@ textarea { resize: vertical; }
   font-size: var(--fs-md); font-weight: var(--fw-semibold);
   cursor: pointer; border: none; font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: background var(--dur-fast), opacity var(--dur-fast), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
+  transition: background var(--dur-fast), opacity var(--dur-fast), transform var(--dur-fast) var(--ease-out);
   line-height: 1.2;
 }
 .btn:active:not(:disabled) { transform: scale(.98); }
 .btn-primary { background: var(--accent); color: #fff;  }
-.btn-primary:hover:not(:disabled) { background: var(--accent-hover);  }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .btn-primary:disabled {
   background: var(--bg-1); color: var(--text-3);
-  border: 1px solid var(--border); cursor: not-allowed; box-shadow: none;
+  border: 1px solid var(--border); cursor: not-allowed;
 }
 .btn-secondary {
   background: var(--bg-1);
   border: 1px solid var(--border);
   color: var(--text);
-  
 }
 .btn-secondary:hover:not(:disabled) { background: var(--bg-2); border-color: var(--text-2); }
 .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
@@ -204,7 +203,6 @@ textarea { resize: vertical; }
 .btn-ghost {
   background: transparent; border: none; color: var(--text-2);
   font-weight: var(--fw-med); width: auto; min-height: auto; padding: 6px 8px;
-  box-shadow: none;
 }
 .btn-ghost:hover { color: var(--text); background: var(--bg-1); }
 .btn-icon-left { justify-content: flex-start; }
@@ -221,12 +219,11 @@ textarea { resize: vertical; }
   font-family: inherit; font-size: var(--fs-sm); font-weight: var(--fw-med);
   color: var(--text-2);
   border-radius: calc(var(--r) - 2px);
-  transition: background var(--dur-fast), color var(--dur-fast), box-shadow var(--dur-fast);
+  transition: background var(--dur-fast), color var(--dur-fast);
 }
 .toggle-btn:hover { color: var(--text); }
 .toggle-btn.on {
   background: var(--bg-0); color: var(--text);
-  
 }
 .toggle-icon { display: inline-flex; }
 .toggle-icon .toggle-btn { flex: 0 0 auto; width: 30px; padding: 5px 0; display: flex; align-items: center; justify-content: center; }
@@ -295,8 +292,7 @@ textarea { resize: vertical; }
 .notice-icon {
   width: 30px; height: 30px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--accent); color: #fff; border-radius: 10px;
-  
+  background: var(--bg-2); color: var(--accent); border-radius: var(--rsm);
 }
 .notice-head .notice-title { margin-bottom: 2px; }
 .notice-head .notice-body { margin-bottom: 0; }
@@ -323,7 +319,7 @@ textarea { resize: vertical; }
   padding: 14px 14px;
   border: 1px solid var(--border);
   border-radius: var(--r); cursor: pointer; margin-bottom: 8px;
-  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
+  transition: border-color var(--dur-fast), background var(--dur-fast);
 }
 .m-opt:hover:not(.m-disabled) { border-color: var(--accent); background: var(--accent-subtle); }
 .m-opt.m-selected {
@@ -468,7 +464,7 @@ code {
   border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 13px 14px; margin-bottom: 10px; cursor: pointer;
-  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+  transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
   display: flex; flex-direction: column; gap: 8px;
 }
 .test-card::before {
@@ -521,11 +517,10 @@ code {
   display: flex; flex-direction: column; align-items: center;
 }
 .dash-empty-icon {
-  width: 56px; height: 56px; border-radius: 16px;
-  background: var(--bg-1);
+  width: 48px; height: 48px; border-radius: var(--r);
+  background: var(--bg-1); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 14px; color: var(--text-2);
-  
 }
 .dash-empty h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 6px; }
 .dash-empty p  { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.6; margin-bottom: 16px; }
@@ -597,7 +592,7 @@ code {
 .overlay-sheet {
   background: var(--bg-0);
   border-radius: var(--r) var(--r) 0 0;
-  
+  border-top: 1px solid var(--border);
   padding: 20px 16px 16px; max-height: 70%;
   display: flex; flex-direction: column; gap: 12px;
   animation: slideUp var(--dur-med) var(--ease-spring);
@@ -624,7 +619,7 @@ code {
 }
 /* Focus ring */
 *:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
+  outline: 2px solid var(--accent); outline-offset: 1px;
 }
 summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 @keyframes sk-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
@@ -1121,6 +1116,26 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="notice notice-green">
       <div class="notice-title">One snippet — every page</div>
       <div class="notice-body">Add it once in the <code>&lt;head&gt;</code> of every page. Selector and goal load from the server automatically.</div>
+    </div>
+
+    <!-- Health check status -->
+    <div id="snip-health" style="display:none;margin-bottom:14px;border-radius:var(--r);padding:12px 14px;font-size:var(--fs-sm);line-height:1.5">
+      <div id="snip-health-ok" style="display:none;color:var(--ok)">
+        <strong style="font-weight:var(--fw-semibold)">✓ Snippet already installed</strong>
+        <div style="color:var(--text-2);margin-top:2px">ab.js detected on <span id="snip-health-url">your site</span>. No action needed — data is flowing.</div>
+      </div>
+      <div id="snip-health-warn" style="display:none;color:var(--pro)">
+        <strong style="font-weight:var(--fw-semibold)">⚠ Snippet not detected</strong>
+        <div style="color:var(--text-2);margin-top:2px">Could not find ab.js on <span id="snip-health-url-warn">your site</span>. Install it below.</div>
+      </div>
+      <div id="snip-health-err" style="display:none;color:var(--err)">
+        <strong style="font-weight:var(--fw-semibold)">✗ Check failed</strong>
+        <div id="snip-health-err-msg" style="color:var(--text-2);margin-top:2px"></div>
+      </div>
+      <div id="snip-health-chk" style="display:flex;align-items:center;gap:6px;color:var(--text-3)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"/></svg>
+        Checking snippet…
+      </div>
     </div>
 
     <!-- Copy prompt -->
@@ -2169,6 +2184,50 @@ function buildSnippetCode() {
 function buildSnippet() {
   $('snippet-code').textContent = buildSnippetCode()
   var urlEl = $('cp-ai-url'); if (urlEl) urlEl.textContent = state.url || '(your site URL)'
+  checkSnippetHealth()
+}
+
+async function checkSnippetHealth() {
+  const healthEl = $('snip-health')
+  if (!healthEl || !state.url) return
+  healthEl.style.display = 'block'
+  // reset all sub-states
+  $('snip-health-ok').style.display = 'none'
+  $('snip-health-warn').style.display = 'none'
+  $('snip-health-err').style.display = 'none'
+  $('snip-health-chk').style.display = 'flex'
+
+  try {
+    const res = await afetch(API + '/api/snippet-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_url: state.url })
+    })
+    const json = await res.json()
+    $('snip-health-chk').style.display = 'none'
+    if (json.detected) {
+      $('snip-health-ok').style.display = 'block'
+      $('snip-health-url').textContent = state.url
+      healthEl.style.background = 'var(--ok-subtle)'
+      healthEl.style.border = '1px solid var(--ok-border)'
+    } else if (json.reason) {
+      $('snip-health-warn').style.display = 'block'
+      $('snip-health-url-warn').textContent = state.url
+      healthEl.style.background = 'var(--pro-subtle)'
+      healthEl.style.border = '1px solid var(--pro-border)'
+    } else {
+      $('snip-health-warn').style.display = 'block'
+      $('snip-health-url-warn').textContent = state.url
+      healthEl.style.background = 'var(--pro-subtle)'
+      healthEl.style.border = '1px solid var(--pro-border)'
+    }
+  } catch {
+    $('snip-health-chk').style.display = 'none'
+    $('snip-health-err').style.display = 'block'
+    $('snip-health-err-msg').textContent = 'Could not reach your site. Install the snippet below, then verify in the dashboard.'
+    healthEl.style.background = 'var(--err-subtle)'
+    healthEl.style.border = '1px solid var(--err-border)'
+  }
 }
 
 function buildAiPrompt() {
