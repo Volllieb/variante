@@ -5,44 +5,49 @@
 <style>
 /* ── Design Tokens ─────────────────────────────────────────────────────── */
 :root {
-  --brand:          #0D99FF;
-  --brand-hover:    #0B87E0;
-  --brand-subtle:   rgba(13,153,255,.10);
-  --brand-border:   rgba(13,153,255,.24);
-  --ok:             #14AE5C;
-  --ok-subtle:      rgba(20,174,92,.12);
-  --ok-border:      rgba(20,174,92,.30);
-  --warn:           #E59E0B;
-  --warn-subtle:    rgba(229,158,11,.13);
-  --warn-border:    rgba(229,158,11,.30);
-  --danger:         #dc2626;
-  --danger-subtle:  rgba(220,38,38,.09);
-  --danger-border:  rgba(220,38,38,.25);
-  --danger-hover:   rgba(220,38,38,.12);
-  --r:   12px;
-  --rsm: 8px;
-  --rxs: 6px;
+  /* Panda Light — wie Dashboard, invertiert */
+  --bg-0:          #ffffff;
+  --bg-1:          #f5f5f5;
+  --bg-2:          #ececec;
+  --border:        rgba(0,0,0,.08);
+  --border-strong: rgba(0,0,0,.12);
+  --text:          #171717;
+  --text-2:        rgba(23,23,23,.58);
+  --text-3:        rgba(23,23,23,.36);
+  /* Akzent: Blau (einziger Farbakzent) */
+  --accent:        #0D99FF;
+  --accent-hover:  #0B87E0;
+  --accent-subtle: rgba(13,153,255,.10);
+  --accent-border: rgba(13,153,255,.24);
+  /* Status-Farben — identisch mit Dashboard */
+  --ok:            #2fd76c;
+  --ok-subtle:     rgba(47,215,108,.12);
+  --ok-border:     rgba(47,215,108,.30);
+  --pro:           #f5a623;
+  --pro-subtle:    rgba(245,166,35,.13);
+  --pro-border:    rgba(245,166,35,.30);
+  --err:           #f5455c;
+  --err-subtle:    rgba(245,69,92,.09);
+  --err-border:    rgba(245,69,92,.25);
+  --err-hover:     rgba(245,69,92,.12);
+  /* Radii — vereinheitlicht mit Dashboard */
+  --r:   10px;
+  --rsm: 6px;
+  --rxs: 4px;
+  /* Spacing, Typo, Motion — unverändert */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px; --sp-8: 32px;
   --fs-xs: 10px; --fs-sm: 11px; --fs-md: 12px; --fs-lg: 13px; --fs-xl: 16px; --fs-2xl: 20px;
   --fw-med: 500; --fw-semibold: 600; --fw-bold: 700;
   --dur-fast: 150ms; --dur-med: 250ms; --dur-slow: 400ms;
   --ease-out: cubic-bezier(.16,1,.3,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
-  --elev-0: 0 0 0 1px rgba(15,23,42,.06);
-  --elev-1: 0 8px 24px rgba(15,23,42,.07), 0 0 0 1px rgba(15,23,42,.04);
-  --elev-2: 0 14px 34px rgba(15,23,42,.11), 0 0 0 1px rgba(15,23,42,.05);
-  --elev-3: 0 20px 44px rgba(15,23,42,.16), 0 0 0 1px rgba(15,23,42,.06);
-  --panel: var(--figma-color-bg-secondary);
-  --panel-strong: var(--figma-color-bg);
-  --text-soft: var(--figma-color-text-secondary);
-  --border-soft: var(--figma-color-border);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: var(--fs-md);
-  color: var(--figma-color-text);
-  background: var(--figma-color-bg);
+  color: var(--text);
+  background: var(--bg-0);
   display: flex; flex-direction: column;
   height: 560px; overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -57,28 +62,27 @@ body {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: 14px 16px 12px;
   flex-shrink: 0;
-  background: var(--figma-color-bg);
-  border-bottom: 1px solid var(--figma-color-border);
+  background: var(--bg-0);
+  border-bottom: 1px solid var(--border);
 }
 .back-btn {
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--figma-color-border); background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--border); background: var(--bg-1);
   cursor: pointer;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   border-radius: 6px; flex-shrink: 0; padding: 0;
   transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
 }
-.back-btn:hover { background: var(--figma-color-bg); color: var(--figma-color-text); transform: translateY(-1px); }
+.back-btn:hover { background: var(--bg-0); color: var(--text); transform: translateY(-1px); }
 .back-btn svg { display: block; }
 .hdr-title { flex: 1; font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: -.2px; line-height: 1.3; }
 .hdr-step {
   flex-shrink: 0;
   font-size: var(--fs-xs); font-weight: var(--fw-semibold);
-  color: var(--figma-color-text-secondary);
-  background: var(--figma-color-bg-secondary);
+  color: var(--text-2);
+  background: var(--bg-1);
   padding: 3px 8px; border-radius: 999px;
-  box-shadow: var(--elev-0);
 }
 
 /* ── Progress bar ──────────────────────────────────────────────────────── */
@@ -88,15 +92,15 @@ body {
 }
 .step-dot {
   flex: 1; height: 4px; border-radius: 999px;
-  background: var(--figma-color-border);
+  background: var(--border);
   transition: background var(--dur-med) var(--ease-out);
 }
-.step-dot.on { background: var(--brand); }
+.step-dot.on { background: var(--accent); }
 
 /* ── Content / scroll area ─────────────────────────────────────────────── */
 .body {
   flex: 1; overflow-y: auto;
-  padding: 18px 16px 12px;
+  padding: 16px 16px 12px;
 }
 .body::-webkit-scrollbar { width: 5px; }
 .body::-webkit-scrollbar-thumb { background: rgba(15,23,42,.18); border-radius: 999px; }
@@ -105,9 +109,8 @@ body {
 .ftr {
   padding: 14px 16px 16px;
   flex-shrink: 0;
-  border-top: 1px solid var(--figma-color-border);
+  border-top: 1px solid var(--border);
   display: flex; flex-direction: column; gap: var(--sp-2);
-  background: var(--figma-color-bg);
 }
 
 /* ── Typography ─────────────────────────────────────────────────────────── */
@@ -115,23 +118,23 @@ body {
   display: block;
   font-size: var(--fs-xs); font-weight: var(--fw-semibold);
   text-transform: uppercase; letter-spacing: .6px;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   margin-bottom: 6px;
 }
 .hint {
-  font-size: var(--fs-sm); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); color: var(--text-2);
   line-height: 1.6; margin-bottom: 16px;
 }
 .hint-strong {
   font-size: var(--fs-md); font-weight: var(--fw-med);
-  color: var(--figma-color-text); line-height: 1.5;
+  color: var(--text); line-height: 1.5;
   margin-bottom: 14px;
   text-align: center;
   padding: 12px 14px;
-  background: var(--panel);
-  border: 1px solid var(--border-soft);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
   border-radius: var(--r);
-  box-shadow: var(--elev-0);
+  
 }
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
@@ -139,15 +142,14 @@ input, select, textarea {
   width: 100%; padding: 10px 12px;
   border: 1px solid transparent; border-radius: var(--r);
   font-size: var(--fs-md); font-family: inherit;
-  color: var(--figma-color-text); background: var(--panel);
+  color: var(--text); background: var(--bg-1);
   outline: none; transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
 }
-input:hover, select:hover, textarea:hover { border-color: var(--figma-color-text-secondary); }
+input:hover, select:hover, textarea:hover { border-color: var(--text-2); }
 input:focus, select:focus, textarea:focus {
-  border-color: var(--brand); background: var(--panel-strong);
-  box-shadow: 0 0 0 3px var(--brand-subtle);
+  border-color: var(--accent); background: var(--bg-0);
 }
-input.err { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-subtle); }
+input.err { border-color: var(--err); }
 textarea { resize: vertical; }
 
 .input-wrap { position: relative; margin-bottom: var(--sp-1); }
@@ -160,14 +162,14 @@ textarea { resize: vertical; }
 .input-icon-left {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; display: flex;
-  color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary));
+  color: var(--text-2));
 }
 
 .field-err {
-  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--danger);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--err);
   display: none; padding: 7px 10px; margin-top: 4px;
-  background: var(--danger-subtle);
-  border: 1px solid var(--danger-border);
+  background: var(--err-subtle);
+  border: 1px solid var(--err-border);
   border-radius: var(--rsm);
 }
 .field-err.vis { display: block; }
@@ -184,118 +186,117 @@ textarea { resize: vertical; }
   line-height: 1.2;
 }
 .btn:active:not(:disabled) { transform: scale(.98); }
-.btn-primary { background: var(--brand); color: #fff; box-shadow: var(--elev-1); }
-.btn-primary:hover:not(:disabled) { background: var(--brand-hover); box-shadow: var(--elev-2); }
+.btn-primary { background: var(--accent); color: #fff;  }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover);  }
 .btn-primary:disabled {
-  background: var(--figma-color-bg-secondary); color: var(--figma-color-text-disabled, #aaa);
-  border: 1px solid var(--figma-color-border); cursor: not-allowed; box-shadow: none;
+  background: var(--bg-1); color: var(--text-3);
+  border: 1px solid var(--border); cursor: not-allowed; box-shadow: none;
 }
 .btn-secondary {
-  background: var(--panel);
-  border: 1px solid var(--figma-color-border);
-  color: var(--figma-color-text);
-  box-shadow: var(--elev-0);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  
 }
-.btn-secondary:hover:not(:disabled) { background: var(--figma-color-bg-hover); border-color: var(--figma-color-text-secondary); }
+.btn-secondary:hover:not(:disabled) { background: var(--bg-2); border-color: var(--text-2); }
 .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
 .btn-sm { width: auto; padding: 7px 12px; min-height: 32px; font-size: var(--fs-sm); font-weight: var(--fw-med); }
 .btn-ghost {
-  background: transparent; border: none; color: var(--figma-color-text-secondary);
+  background: transparent; border: none; color: var(--text-2);
   font-weight: var(--fw-med); width: auto; min-height: auto; padding: 6px 8px;
   box-shadow: none;
 }
-.btn-ghost:hover { color: var(--figma-color-text); background: var(--figma-color-bg-secondary); }
+.btn-ghost:hover { color: var(--text); background: var(--bg-1); }
 .btn-icon-left { justify-content: flex-start; }
 
 /* ── Toggle switch (replaces segmented control) ────────────────────────── */
 .toggle-row {
   display: flex; align-items: center; gap: var(--sp-2);
-  background: var(--figma-color-bg-secondary);
+  background: var(--bg-1);
   border-radius: var(--r); padding: 3px;
 }
 .toggle-btn {
   flex: 1; padding: 5px 10px; min-height: 26px;
   border: none; background: none; cursor: pointer;
   font-family: inherit; font-size: var(--fs-sm); font-weight: var(--fw-med);
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   border-radius: calc(var(--r) - 2px);
   transition: background var(--dur-fast), color var(--dur-fast), box-shadow var(--dur-fast);
 }
-.toggle-btn:hover { color: var(--figma-color-text); }
+.toggle-btn:hover { color: var(--text); }
 .toggle-btn.on {
-  background: var(--figma-color-bg); color: var(--figma-color-text);
-  box-shadow: var(--elev-1);
+  background: var(--bg-0); color: var(--text);
+  
 }
 .toggle-icon { display: inline-flex; }
 .toggle-icon .toggle-btn { flex: 0 0 auto; width: 30px; padding: 5px 0; display: flex; align-items: center; justify-content: center; }
 
 /* ── Cards ──────────────────────────────────────────────────────────────── */
 .card {
-  background: var(--panel);
-  border-radius: var(--r); padding: 13px 14px; margin-bottom: 12px;
-  border: 1px solid var(--figma-color-border);
+  background: var(--bg-1);
+  border-radius: var(--r); padding: 14px; margin-bottom: 12px;
+  border: 1px solid var(--border);
 }
 .card-lbl {
   font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
-  letter-spacing: .5px; color: var(--figma-color-text-secondary); margin-bottom: 5px;
+  letter-spacing: .5px; color: var(--text-2); margin-bottom: 5px;
 }
 .card-val { font-size: var(--fs-md); font-weight: var(--fw-med); line-height: 1.4; }
 
 /* ── Welcome / hero shell ─────────────────────────────────────────────── */
 .welcome-shell {
   display: flex; flex-direction: column; gap: 14px;
-  padding: 18px 16px 16px;
+  padding: 20px 16px 16px;
   border-radius: var(--r);
-  background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
 }
 .welcome-hero {
-  text-align: center; padding: 6px 6px 4px;
+  text-align: center; padding: 4px 6px 2px;
 }
-.welcome-badge {
-  width: 52px; height: 52px; margin: 0 auto 12px;
-  border-radius: 12px; display: flex; align-items: center; justify-content: center;
-  background: var(--brand);
-  color: #fff;
+.welcome-logo {
+  font-size: 22px; font-weight: 700; letter-spacing: -.3px; color: var(--text);
+  margin-bottom: 2px;
 }
-.welcome-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
-.welcome-sub { font-size: var(--fs-sm); color: var(--text-soft); margin-top: 4px; }
+.welcome-sub { font-size: var(--fs-sm); color: var(--text-2); margin-top: 2px; }
 .welcome-steps {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
 }
 .welcome-step {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--figma-color-bg);
-  border: 1px solid var(--figma-color-border);
+  border-radius: var(--rsm);
+  background: var(--bg-0);
+  border: 1px solid var(--border);
 }
-.welcome-step-icon {
-  width: 30px; height: 30px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  background: var(--brand-subtle); color: var(--brand);
+.welcome-step-num {
+  width: 22px; height: 22px; flex-shrink: 0; border-radius: var(--rxs);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-2); color: var(--text-2);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold);
 }
-.welcome-step-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--figma-color-text); }
+.welcome-step-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .welcome-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 2px; }
 
 /* ── Notice ──────────────────────────────────────────────────────────────── */
 .notice {
   border-radius: var(--r); padding: 12px 14px; margin-bottom: 14px;
-  box-shadow: var(--elev-0);
+  
 }
-.notice-blue { background: var(--brand-subtle); border: 1px solid var(--brand-border); }
+.notice-blue { background: var(--accent-subtle); border: 1px solid var(--accent-border); }
 .notice-green { background: var(--ok-subtle); border: 1px solid var(--ok-border); }
-.notice-amber { background: var(--warn-subtle); border: 1px solid var(--warn-border); }
+.notice-amber { background: var(--pro-subtle); border: 1px solid var(--pro-border); }
 .notice-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 4px; }
-.notice-blue .notice-title { color: var(--brand); }
-.notice-green .notice-title { color: var(--figma-color-text-success, var(--ok)); }
-.notice-amber .notice-title { color: var(--figma-color-text-warning, var(--warn)); }
-.notice-body { font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 10px; color: var(--figma-color-text-secondary); }
+.notice-blue .notice-title { color: var(--accent); }
+.notice-green .notice-title { color: var(--ok)); }
+.notice-amber .notice-title { color: var(--pro)); }
+.notice-body { font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 10px; color: var(--text-2); }
 .notice-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
 .notice-icon {
   width: 30px; height: 30px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--brand); color: #fff; border-radius: 10px;
-  box-shadow: var(--elev-1);
+  background: var(--accent); color: #fff; border-radius: 10px;
+  
 }
 .notice-head .notice-title { margin-bottom: 2px; }
 .notice-head .notice-body { margin-bottom: 0; }
@@ -304,10 +305,10 @@ textarea { resize: vertical; }
 .el-chip {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 7px 12px;
-  background: var(--brand-subtle);
-  border: 1px solid var(--brand-border);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
   border-radius: var(--r);
-  font-size: var(--fs-md); color: var(--brand); font-weight: var(--fw-med);
+  font-size: var(--fs-md); color: var(--accent); font-weight: var(--fw-med);
   max-width: 100%; overflow: hidden;
 }
 .el-chip-type {
@@ -320,33 +321,32 @@ textarea { resize: vertical; }
 .m-opt {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 14px 14px;
-  border: 1px solid var(--figma-color-border);
+  border: 1px solid var(--border);
   border-radius: var(--r); cursor: pointer; margin-bottom: 8px;
   transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
 }
-.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); }
+.m-opt:hover:not(.m-disabled) { border-color: var(--accent); background: var(--accent-subtle); }
 .m-opt.m-selected {
-  border-color: var(--brand); background: var(--brand-subtle);
-  box-shadow: 0 0 0 1px var(--brand);
+  border-color: var(--accent); background: var(--accent-subtle);
 }
 .m-opt.m-highlight {
-  border-color: var(--warn); background: var(--warn-subtle);
+  border-color: var(--pro); background: var(--pro-subtle);
 }
 .m-opt.m-disabled { opacity: .45; cursor: not-allowed; }
 .m-radio {
   width: 16px; height: 16px; border-radius: 50%;
-  border: 2px solid var(--figma-color-border);
+  border: 2px solid var(--border);
   margin-top: 1px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: border-color var(--dur-fast);
 }
-.m-selected .m-radio, .m-highlight .m-radio { border-color: var(--brand); }
+.m-selected .m-radio, .m-highlight .m-radio { border-color: var(--accent); }
 .m-selected .m-radio::after, .m-highlight .m-radio::after {
   content: ''; width: 8px; height: 8px;
-  border-radius: 50%; background: var(--brand);
+  border-radius: 50%; background: var(--accent);
 }
 .m-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
-.m-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-top: 2px; line-height: 1.4; }
+.m-desc { font-size: var(--fs-sm); color: var(--text-2); margin-top: 2px; line-height: 1.4; }
 
 /* ── Scope buttons (segmented control) ─────────────────────────────────── */
 .scope-options {
@@ -355,9 +355,9 @@ textarea { resize: vertical; }
 .scope-btn {
   flex: 1;
   padding: 9px 4px;
-  border: 1px solid var(--figma-color-border);
-  background: var(--figma-color-bg-secondary);
-  color: var(--figma-color-text);
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text);
   border-radius: var(--rsm);
   font-size: var(--fs-sm);
   font-weight: var(--fw-med);
@@ -366,16 +366,16 @@ textarea { resize: vertical; }
   text-align: center;
   transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast), color var(--dur-fast);
 }
-.scope-btn:hover { background: var(--figma-color-bg); transform: translateY(-1px); }
+.scope-btn:hover { background: var(--bg-0); transform: translateY(-1px); }
 .scope-btn.on {
-  border-color: var(--brand);
-  background: var(--brand-subtle);
-  color: var(--brand);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  color: var(--accent);
   font-weight: var(--fw-semibold);
 }
 .scope-desc {
   font-size: var(--fs-xs);
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   margin-top: 3px;
   text-align: center;
   line-height: 1.3;
@@ -384,39 +384,39 @@ textarea { resize: vertical; }
 /* ── Advanced toggle ─────────────────────────────────────────────────────── */
 .adv-toggle {
   display: flex; align-items: center; gap: 5px;
-  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--text-2);
   cursor: pointer; margin-bottom: 10px; user-select: none; margin-top: 6px;
   background: none; border: none; padding: 0;
   font-family: inherit; width: 100%; text-align: left;
   border-radius: var(--rsm); min-height: 24px;
 }
-.adv-toggle:hover { color: var(--figma-color-text); }
+.adv-toggle:hover { color: var(--text); }
 .adv-toggle .adv-arrow { transition: transform var(--dur-fast) var(--ease-out); }
 .adv-toggle.open .adv-arrow { transform: rotate(90deg); }
 .adv-section { display: none; padding: 0 2px 4px; }
 .adv-section.open { display: block; }
 .adv-group { margin-bottom: 14px; }
 .adv-group-title { display: flex; align-items: center; gap: 5px; font-size: var(--fs-sm); font-weight: var(--fw-med); margin-bottom: 4px; }
-.adv-group-title svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
-.adv-group-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-bottom: 8px; line-height: 1.4; }
+.adv-group-title svg { flex-shrink: 0; color: var(--text-2)); }
+.adv-group-desc { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: 8px; line-height: 1.4; }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
   display: flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--fs-sm); color: var(--figma-color-text-secondary); padding: 8px 0;
+  font-size: var(--fs-sm); color: var(--text-2); padding: 8px 0;
 }
 .loading-center { justify-content: center; padding: 24px 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
   width: 14px; height: 14px; flex-shrink: 0;
-  border: 2px solid var(--figma-color-border);
-  border-top-color: var(--brand);
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
 
 /* ── Divider ─────────────────────────────────────────────────────────────── */
-.divider { height: 1px; background: var(--figma-color-border); margin: 14px 0; }
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
 
 /* ── Badges ──────────────────────────────────────────────────────────────── */
 .badge {
@@ -424,17 +424,17 @@ textarea { resize: vertical; }
   padding: 1px 7px; border-radius: var(--rxs); font-size: var(--fs-xs); font-weight: var(--fw-bold);
   text-transform: uppercase; letter-spacing: .3px; line-height: 1.7;
 }
-.ba { background: var(--brand-subtle); color: var(--brand); }
-.bb { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
-.bs-draft   { background: var(--figma-color-bg-secondary); color: var(--figma-color-text-secondary); border: 1px solid var(--figma-color-border); }
-.bs-active  { background: var(--brand-subtle); color: var(--brand); }
-.bs-done    { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
-.bs-paused  { background: var(--warn-subtle); color: var(--figma-color-text-warning, var(--warn)); }
+.ba { background: var(--accent-subtle); color: var(--accent); }
+.bb { background: var(--ok-subtle); color: var(--ok)); }
+.bs-draft   { background: var(--bg-1); color: var(--text-2); border: 1px solid var(--border); }
+.bs-active  { background: var(--accent-subtle); color: var(--accent); }
+.bs-done    { background: var(--ok-subtle); color: var(--ok)); }
+.bs-paused  { background: var(--pro-subtle); color: var(--pro)); }
 
 /* ── Code pre ────────────────────────────────────────────────────────────── */
 pre {
-  background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
   border-radius: var(--r); padding: 10px 12px;
   font-size: var(--fs-xs); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   white-space: pre-wrap; word-break: break-all;
@@ -442,20 +442,20 @@ pre {
   line-height: 1.5;
 }
 code {
-  background: var(--figma-color-bg-secondary);
+  background: var(--bg-1);
   padding: 1px 5px; border-radius: var(--rxs); font-size: var(--fs-sm);
 }
 
 /* ── Upgrade banner ──────────────────────────────────────────────────────── */
 .upgrade-banner {
   display: none;
-  background: var(--warn-subtle); border: 1px solid var(--warn-border);
+  background: var(--pro-subtle); border: 1px solid var(--pro-border);
   border-radius: var(--r); padding: 13px 14px; margin-bottom: 14px; text-align: center;
 }
-.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 5px; }
-.ub-sub   { font-size: var(--fs-sm); color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 12px; line-height: 1.4; }
+.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--pro)); margin-bottom: 5px; }
+.ub-sub   { font-size: var(--fs-sm); color: var(--pro)); margin-bottom: 12px; line-height: 1.4; }
 .btn-upgrade {
-  background: var(--warn); color: #fff; padding: 8px 16px;
+  background: var(--pro); color: #fff; padding: 8px 16px;
   border-radius: var(--r); font-size: var(--fs-md); font-weight: var(--fw-semibold);
   cursor: pointer; border: none; transition: background var(--dur-fast);
 }
@@ -464,8 +464,8 @@ code {
 /* ── Dashboard: Test-Karte ───────────────────────────────────────────────── */
 .test-card {
   position: relative;
-  background: var(--panel);
-  border: 1px solid var(--figma-color-border);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 13px 14px; margin-bottom: 10px; cursor: pointer;
   transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
@@ -474,34 +474,34 @@ code {
 .test-card::before {
   content: ''; position: absolute; left: 0; top: 5px; bottom: 5px;
   width: 4px; border-radius: 0 999px 999px 0;
-  background: var(--figma-color-border);
+  background: var(--border);
   transition: background var(--dur-fast);
 }
-.test-card.st-active::before { background: var(--brand); }
+.test-card.st-active::before { background: var(--accent); }
 .test-card.st-done::before   { background: var(--ok); }
-.test-card.st-paused::before { background: var(--warn); }
-.test-card:hover { border-color: var(--brand-border); background: var(--panel-strong); transform: translateY(-1px); }
+.test-card.st-paused::before { background: var(--pro); }
+.test-card:hover { border-color: var(--accent-border); background: var(--bg-0); transform: translateY(-1px); }
 .test-card.deleting { opacity: .35; pointer-events: none; transform: scale(.98); }
 
 .tc-row1 { display: flex; align-items: center; gap: 8px; }
 .tc-name {
   flex: 1; min-width: 0;
-  font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--figma-color-text);
+  font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3;
 }
 .tc-domain {
-  font-size: var(--fs-xs); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-xs); color: var(--text-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   margin-top: 1px;
 }
 .tc-row2 { display: flex; align-items: center; gap: 8px; }
 .tc-stats { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
-.tc-stat { display: flex; align-items: center; gap: 3px; font-size: var(--fs-sm); color: var(--figma-color-text-secondary); }
+.tc-stat { display: flex; align-items: center; gap: 3px; font-size: var(--fs-sm); color: var(--text-2); }
 .tc-stat svg { flex-shrink: 0; }
-.tc-stat b { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; color: var(--figma-color-text); }
-.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--figma-color-text-success, var(--ok)); }
-.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--danger); }
-.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--figma-color-text-success, var(--ok)); font-weight: var(--fw-bold); }
+.tc-stat b { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; color: var(--text); }
+.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--ok)); }
+.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--err); }
+.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--ok)); font-weight: var(--fw-bold); }
 
 .tc-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .icon-btn {
@@ -509,11 +509,11 @@ code {
   border: none; border-radius: var(--rsm);
   background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   transition: background var(--dur-fast), color var(--dur-fast);
 }
-.icon-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
-.icon-btn.danger:hover { background: var(--danger-hover); color: var(--danger); }
+.icon-btn:hover { background: var(--bg-2); color: var(--text); }
+.icon-btn.danger:hover { background: var(--err-hover); color: var(--err); }
 
 /* ── Dashboard: empty state ──────────────────────────────────────────────── */
 .dash-empty {
@@ -522,19 +522,19 @@ code {
 }
 .dash-empty-icon {
   width: 56px; height: 56px; border-radius: 16px;
-  background: var(--panel);
+  background: var(--bg-1);
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px; color: var(--figma-color-text-secondary);
-  box-shadow: var(--elev-0);
+  margin-bottom: 14px; color: var(--text-2);
+  
 }
 .dash-empty h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 6px; }
-.dash-empty p  { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); line-height: 1.6; margin-bottom: 16px; }
+.dash-empty p  { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.6; margin-bottom: 16px; }
 
 /* ── Plan chip ──────────────────────────────────────────────────────────── */
 .plan-chip {
   font-size: 10px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   padding: 4px 16px 0; flex-shrink: 0;
 }
 
@@ -544,46 +544,46 @@ code {
   margin: 16px 0 8px; padding: 0 2px;
 }
 .dash-section:first-of-type { margin-top: 4px; }
-.dash-section-icon { display: flex; flex-shrink: 0; color: var(--figma-color-text-secondary); }
+.dash-section-icon { display: flex; flex-shrink: 0; color: var(--text-2); }
 .dash-section-label {
-  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-2);
   text-transform: uppercase; letter-spacing: .4px;
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dash-section-count {
-  font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary);
-  background: var(--figma-color-bg-secondary); border-radius: 8px; padding: 2px 8px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-2);
+  background: var(--bg-1); border-radius: 8px; padding: 2px 8px;
 }
 
 /* ── Previews ────────────────────────────────────────────────────────────── */
 .frame      {
-  border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  border: 1px solid var(--border); border-radius: var(--r);
   background: #fff; color: #111; overflow: hidden;
 }
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
-.err { color: var(--danger); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
-.ok  { color: var(--figma-color-text-success, var(--ok)); font-size: var(--fs-sm); padding: 4px 0; }
+.err { color: var(--err); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
+.ok  { color: var(--ok)); font-size: var(--fs-sm); padding: 4px 0; }
 .copy-ok { display: none; }
 .copy-ok.vis { display: inline; }
 
 /* ── Link button (used in toast undo) ───────────────────────────────────── */
 .link-btn {
   background: none; border: none; padding: 6px 0 0; cursor: pointer;
-  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--brand); font-family: inherit;
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--accent); font-family: inherit;
   transition: opacity var(--dur-fast);
 }
 .link-btn:hover { opacity: .8; }
 
 /* ── Generate: preview note ──────────────────────────────────────────────── */
 .preview-note {
-  font-size: var(--fs-xs); color: var(--figma-color-text-disabled, #bbb);
+  font-size: var(--fs-xs); color: var(--text-3);
   margin: 5px 0 12px; font-style: italic;
 }
 
 /* ── Generate: code drawer ───────────────────────────────────────────────── */
 .code-drawer summary {
-  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--text-2);
   cursor: pointer; user-select: none; padding: 4px 0;
 }
 .code-drawer pre { margin-top: 6px; }
@@ -595,9 +595,9 @@ code {
 }
 .overlay.open { display: flex; }
 .overlay-sheet {
-  background: var(--figma-color-bg);
+  background: var(--bg-0);
   border-radius: var(--r) var(--r) 0 0;
-  box-shadow: var(--elev-3);
+  
   padding: 20px 16px 16px; max-height: 70%;
   display: flex; flex-direction: column; gap: 12px;
   animation: slideUp var(--dur-med) var(--ease-spring);
@@ -611,8 +611,8 @@ code {
   display: none;
   position: fixed; left: 14px; right: 14px; bottom: 14px;
   align-items: center; justify-content: space-between; gap: 10px;
-  background: var(--figma-color-bg); border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); box-shadow: var(--elev-3);
+  background: var(--bg-0); border: 1px solid var(--border);
+  border-radius: var(--r); 
   padding: 12px 14px; font-size: var(--fs-sm); z-index: 1000;
 }
 .toast.vis { display: flex; }
@@ -624,12 +624,12 @@ code {
 }
 /* Focus ring */
 *:focus-visible {
-  outline: 2px solid var(--brand); outline-offset: 2px;
+  outline: 2px solid var(--accent); outline-offset: 2px;
 }
 summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 @keyframes sk-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 .sk {
-  background: var(--figma-color-bg-secondary);
+  background: var(--bg-1);
   border-radius: var(--rsm);
   animation: sk-pulse 1.2s ease-in-out infinite;
 }
@@ -640,7 +640,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 .dots { display: flex; gap: 5px; justify-content: center; }
 .dots span {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--figma-color-text-secondary);
+  background: var(--text-2);
   animation: dots-bounce 1.2s ease-in-out infinite;
 }
 .dots span:nth-child(2) { animation-delay: .15s; }
@@ -697,7 +697,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
           <div class="welcome-step-text">Turn a Figma concept into a polished Variant B with AI in a few taps.</div>
         </div>
         <div class="welcome-step">
-          <div class="welcome-step-icon" style="background:var(--ok-subtle);color:var(--figma-color-text-success, var(--ok));">
+          <div class="welcome-step-icon" style="background:var(--ok-subtle);color:var(--ok));">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
           </div>
           <div class="welcome-step-text">Ship it and watch the uplift without touching your codebase.</div>
@@ -792,7 +792,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url" onkeydown="if(event.key==='Enter')createTest()"/>
       <datalist id="dl-url"></datalist>
     </div>
-    <div id="url-hint" style="font-size:var(--fs-xs);color:var(--figma-color-text-secondary);margin:4px 0 0">The exact page this test will run on.</div>
+    <div id="url-hint" style="font-size:var(--fs-xs);color:var(--text-2);margin:4px 0 0">The exact page this test will run on.</div>
     <div class="field-err" id="url-err" role="alert"></div>
 
     <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:6px">
@@ -923,6 +923,107 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 
 
 <!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 4 · Scope & Generate Variant B
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-generate" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Generate Variant B</span>
+    <span class="hdr-step">4 / 6</span>
+  </div>
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <!-- Scope picker — what the AI should change -->
+    <div id="gen-scope-area">
+      <span class="lbl">What should the AI change?</span>
+      <div class="scope-options" role="radiogroup" aria-label="Generation scope">
+        <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
+        <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
+        <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
+      </div>
+      <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
+
+      <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+    </div>
+
+    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
+      <div class="spinner" aria-hidden="true"></div>
+      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
+    </div>
+
+    <div id="gen-result" style="display:none">
+      <!-- Toggle switches: A/B and Light/Dark -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span class="lbl" style="margin-bottom:0">Preview</span>
+        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
+          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
+          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
+        </div>
+        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
+          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </button>
+          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
+      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+
+      <!-- Generated HTML drawer — directly under preview -->
+      <details class="code-drawer">
+        <summary>Show generated HTML</summary>
+        <pre id="gen-html"></pre>
+      </details>
+
+      <div class="divider"></div>
+
+      <!-- Change scope & regenerate -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:var(--fs-sm);color:var(--text-2);flex-shrink:0">Scope:</span>
+        <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
+        <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
+        <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+      </div>
+
+      <!-- Refine: opens overlay -->
+      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        Refine with AI
+      </button>
+      <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+    </div>
+
+    <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
+    <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
+  </div>
+  <div class="ftr" id="gen-ftr" style="display:none">
+    <button class="btn btn-primary" onclick="goToGoal()">Continue to Goal →</button>
+  </div>
+</div>
+
+<!-- Refine overlay -->
+<div class="overlay" id="refine-overlay">
+  <div class="overlay-sheet">
+    <label class="lbl" for="gen-feedback">What should change?</label>
+    <textarea id="gen-feedback" rows="3" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
+    <div class="overlay-actions">
+      <button class="btn btn-secondary" onclick="closeRefine()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRefine()">Apply →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
      SCREEN 5 · Conversion Goal
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-metric" class="screen">
@@ -1012,107 +1113,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCREEN 4 · Scope & Generate Variant B
-════════════════════════════════════════════════════════════════════ -->
-<div id="s-generate" class="screen">
-  <div class="hdr">
-    <button class="back-btn" onclick="navBack()" aria-label="Back">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6"/>
-      </svg>
-    </button>
-    <span class="hdr-title">Generate Variant B</span>
-    <span class="hdr-step">4 / 6</span>
-  </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
-  </div>
-  <div class="body">
-    <!-- Scope picker — what the AI should change -->
-    <div id="gen-scope-area">
-      <span class="lbl">What should the AI change?</span>
-      <div class="scope-options" role="radiogroup" aria-label="Generation scope">
-        <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
-        <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
-        <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
-      </div>
-      <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
-
-      <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
-    </div>
-
-    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
-      <div class="spinner" aria-hidden="true"></div>
-      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
-    </div>
-
-    <div id="gen-result" style="display:none">
-      <!-- Toggle switches: A/B and Light/Dark -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <span class="lbl" style="margin-bottom:0">Preview</span>
-        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
-          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
-          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
-        </div>
-        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
-          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          </button>
-          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
-      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
-
-      <!-- Generated HTML drawer — directly under preview -->
-      <details class="code-drawer">
-        <summary>Show generated HTML</summary>
-        <pre id="gen-html"></pre>
-      </details>
-
-      <div class="divider"></div>
-
-      <!-- Change scope & regenerate -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-        <span style="font-size:var(--fs-sm);color:var(--figma-color-text-secondary);flex-shrink:0">Scope:</span>
-        <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
-        <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
-        <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
-      </div>
-
-      <!-- Refine: opens overlay -->
-      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-        Refine with AI
-      </button>
-      <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
-    </div>
-
-    <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
-    <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
-  </div>
-  <div class="ftr" id="gen-ftr" style="display:none">
-    <button class="btn btn-primary" onclick="goToGoal()">Continue to Goal →</button>
-  </div>
-</div>
-
-<!-- Refine overlay -->
-<div class="overlay" id="refine-overlay">
-  <div class="overlay-sheet">
-    <label class="lbl" for="gen-feedback">What should change?</label>
-    <textarea id="gen-feedback" rows="3" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
-    <div class="overlay-actions">
-      <button class="btn btn-secondary" onclick="closeRefine()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitRefine()">Apply →</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════════
      SCREEN 6 · Install Snippet
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-snippet" class="screen">
@@ -1150,7 +1150,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     </button>
     <div class="copy-ok ok" id="cp-snippet" aria-live="polite" style="margin:6px 0 0 2px;font-size:var(--fs-xs);font-weight:var(--fw-bold)">✓ Copied</div>
     <details style="margin:8px 0 0">
-      <summary style="font-size:var(--fs-sm);font-weight:var(--fw-med);color:var(--figma-color-text-secondary);cursor:pointer">Show snippet code</summary>
+      <summary style="font-size:var(--fs-sm);font-weight:var(--fw-med);color:var(--text-2);cursor:pointer">Show snippet code</summary>
       <pre id="snippet-code" style="margin-top:8px"></pre>
     </details>
 
@@ -2039,7 +2039,7 @@ function renderVariantPreview() {
   el.style.background = bgColor
   el.innerHTML = html
     ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bg)) + '" style="width:100%;height:200px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
-    : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:10px">No preview available.</div>'
+    : '<div style="color:var(--text-2);font-size:11px;padding:10px">No preview available.</div>'
 }
 function syncToggleBtns(el, val) {
   el.querySelectorAll('.toggle-btn').forEach(b => {
