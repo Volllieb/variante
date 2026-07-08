@@ -43,6 +43,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
       highlightNew={searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
+      openNewTest={searchParams.newTest === '1'}
     />
   )
 }
