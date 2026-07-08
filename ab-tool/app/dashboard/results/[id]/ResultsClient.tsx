@@ -8,7 +8,6 @@ import Link from 'next/link'
 import {
   ArrowLeft,
   RefreshCw,
-  TrendingUp,
   Users,
   Target,
   Lock,
@@ -18,6 +17,9 @@ import {
   Pencil,
   X,
   Trash2,
+  Activity,
+  BarChart3,
+  Table2,
 } from 'lucide-react'
 
 const T = {
@@ -26,8 +28,30 @@ const T = {
   err: '#f5455c',
 }
 
+type DailyRow = {
+  date: string
+  visitors_a: number
+  visitors_b: number
+  conversions_a: number
+  conversions_b: number
+}
+
+type AnalyticsData = {
+  current: {
+    visitors_a: number
+    visitors_b: number
+    conversions_a: number
+    conversions_b: number
+    significance: number
+    winner: string | null
+  }
+  daily: DailyRow[]
+}
+
 export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
   const [data, setData] = useState(initial)
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
   const [saved, setSaved] = useState(false)
@@ -37,7 +61,17 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [busy, setBusy] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showRawData, setShowRawData] = useState(false)
   const router = useRouter()
+
+  // Fetch analytics (Pro only, 402 if not)
+  useEffect(() => {
+    if (!data.pro || analyticsLoaded) return
+    fetch(`/api/analytics/${experimentId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(json => { if (json) setAnalytics(json) })
+      .finally(() => setAnalyticsLoaded(true))
+  }, [experimentId, data.pro, analyticsLoaded])
 
   async function upgrade() {
     setBusy(true)
@@ -90,6 +124,19 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const lift = a.views > 0 && a.conversions > 0
     ? ((b.cr - a.cr) / a.cr) * 100
     : null
+
+  // Sparkline helpers — cumulative daily totals
+  const cumA = (analytics?.daily || []).map((d) => d.visitors_a)
+  const cumB = (analytics?.daily || []).map((d) => d.visitors_b)
+  const cumConvA = (analytics?.daily || []).map((d) => d.conversions_a)
+  const cumConvB = (analytics?.daily || []).map((d) => d.conversions_b)
+  const cumTotal = cumA.map((v, i) => v + cumB[i])
+  const allValues = [...cumA, ...cumB]
+  const sparkMax = Math.max(1, ...allValues)
+  const dates = (analytics?.daily || []).map((d) => {
+    const date = new Date(d.date)
+    return `${date.getDate()}.${date.getMonth() + 1}.`
+  })
 
   async function saveConfig() {
     try {
@@ -204,37 +251,188 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
 
       <div className="mx-auto max-w-2xl px-6 py-8 space-y-5">
 
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-[6px] bg-[#111111] text-[#ededed]/40">
-                <TrendingUp className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                  Current status
-                </p>
-                <p className="mt-2 text-lg font-semibold text-[#ededed]">
-                  {done
-                    ? 'Completed and ready to review'
-                    : status === 'active'
-                    ? 'Active and collecting data'
-                    : 'Paused for now'}
-                </p>
-                <p className="mt-1 text-[13px] text-[#ededed]/62">
-                  {done
-                    ? 'This test has enough signal to evaluate the winner.'
-                    : status === 'active'
-                    ? 'Visitors are currently being split between A and B while the experiment runs.'
-                    : 'Traffic is paused until you resume this experiment.'}
-                </p>
-              </div>
+        {/* Hero stat */}
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6 text-center">
+          {done && winner ? (
+            <>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                {winner} is leading
+              </p>
+              <p className={`mt-3 text-5xl font-bold tracking-tight ${lift !== null && lift > 0 ? 'text-ok' : lift !== null && lift < 0 ? 'text-err' : 'text-[#ededed]'}`}>
+                {lift !== null ? `${lift > 0 ? '+' : ''}${lift.toFixed(1)}%` : '—'}
+              </p>
+              <p className="mt-2 text-[13px] text-[#ededed]/62">
+                {lift !== null
+                  ? `Conversion rate uplift vs Variant ${winner === 'B' ? 'A' : 'B'}`
+                  : 'Not enough data yet'}
+              </p>
+            </>
+          ) : !done && lift !== null ? (
+            <>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                {lift > 0 ? 'B ahead' : lift < 0 ? 'A ahead' : 'Tied'}
+              </p>
+              <p className={`mt-3 text-5xl font-bold tracking-tight ${lift > 0 ? 'text-ok' : lift < 0 ? 'text-pro' : 'text-[#ededed]'}`}>
+                {lift > 0 ? '+' : ''}{lift.toFixed(1)}%
+              </p>
+              <p className="mt-2 text-[13px] text-[#ededed]/62">
+                B conversion uplift over A · {totalVisitors.toLocaleString()} visitors
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Collecting data
+              </p>
+              <p className="mt-3 text-5xl font-bold tracking-tight text-[#ededed]/30">
+                {totalVisitors.toLocaleString()}
+              </p>
+              <p className="mt-2 text-[13px] text-[#ededed]/62">
+                visitors so far
+              </p>
+            </>
+          )}
+          {/* Visitor bar */}
+          <div className="mx-auto mt-5 max-w-[240px]">
+            <div className="mb-1 flex justify-between text-[10px] text-[#ededed]/30">
+              <span>Towards significance</span>
+              <span>{visitorPct}%</span>
             </div>
-            <div className={`rounded-[6px] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
-              {winner ? `${winner} won` : status}
+            <div className="h-1 overflow-hidden rounded-full bg-[#111111]">
+              <div
+                className="h-full rounded-full bg-[#ededed]/20 transition-all duration-500"
+                style={{ width: `${visitorPct}%` }}
+              />
             </div>
           </div>
         </div>
+
+        {/* Sparkline (Pro only) */}
+        {pro && analytics && analytics.daily.length >= 2 ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Daily Visitors
+              </span>
+            </div>
+            <div className="relative h-[100px] w-full">
+              <svg viewBox={`0 0 ${analytics.daily.length - 1} 100`} preserveAspectRatio="none" className="h-full w-full">
+                {/* Grid lines */}
+                {[25, 50, 75].map((y) => (
+                  <line key={y} x1={0} y1={y} x2={analytics.daily.length - 1} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
+                ))}
+                {/* B line */}
+                <polyline
+                  fill="none"
+                  stroke={T.pro}
+                  strokeWidth={1.5}
+                  vectorEffect="non-scaling-stroke"
+                  points={cumB.map((v, i) => `${i},${100 - (v / sparkMax) * 100}`).join(' ')}
+                />
+                {/* A line */}
+                <polyline
+                  fill="none"
+                  stroke="rgba(255,255,255,0.25)"
+                  strokeWidth={1.5}
+                  vectorEffect="non-scaling-stroke"
+                  points={cumA.map((v, i) => `${i},${100 - (v / sparkMax) * 100}`).join(' ')}
+                />
+              </svg>
+            </div>
+            <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: T.pro }} /> B
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }} /> A
+              </span>
+            </div>
+          </div>
+        ) : pro && analyticsLoaded ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2">
+              <Activity className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Daily Visitors
+              </span>
+              <span className="ml-auto text-[11px] text-[#ededed]/30">Not enough data yet</span>
+            </div>
+          </div>
+        ) : !pro ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2">
+              <Lock className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Daily Analytics
+              </span>
+              <span className="ml-auto text-[11px] text-[#ededed]/30">Pro feature</span>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Significance donut (Pro only) */}
+        {pro ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Significance
+              </span>
+            </div>
+            <div className="flex items-center justify-center">
+              <div className="relative h-[120px] w-[120px]">
+                <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                  <circle
+                    cx="18" cy="18" r="14"
+                    fill="none"
+                    stroke="#111111"
+                    strokeWidth="3"
+                  />
+                  <circle
+                    cx="18" cy="18" r="14"
+                    fill="none"
+                    stroke={significance >= 0.95 ? T.ok : significance >= 0.7 ? T.pro : 'rgba(255,255,255,0.2)'}
+                    strokeWidth="3"
+                    strokeDasharray={`${significance * 87.96} 87.96`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={`text-2xl font-bold ${significance >= 0.95 ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
+                    {Math.round(significance * 100)}%
+                  </span>
+                  <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/30">Confidence</span>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-center text-[12px] text-[#ededed]/40">
+              {significance >= 0.95
+                ? 'Statistical significance reached — result is reliable.'
+                : significance >= 0.7
+                ? 'Approaching significance — more data needed.'
+                : 'Not enough data for a reliable conclusion yet.'}
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lock className="h-3.5 w-3.5 text-[#ededed]/40" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                  Significance &amp; auto-winner
+                </span>
+              </div>
+              <button
+                onClick={upgrade}
+                disabled={busy}
+                className="cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+              >
+                {busy ? '…' : 'Upgrade'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* A/B Stats cards */}
         <div className="grid grid-cols-2 gap-4">
@@ -295,29 +493,58 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           })}
         </div>
 
-        {/* Significance */}
-        {pro ? (
-          <div className="flex items-center gap-3 rounded-[10px] border border-white/10 bg-[#0a0a0a] px-5 py-4">
-            <TrendingUp className="h-4 w-4 shrink-0 text-[#ededed]/40" />
-            <span className="text-[13px] text-[#ededed]/62">
-              Statistical significance:{' '}
-              <strong className={`font-semibold ${significance >= 0.95 ? 'text-ok' : 'text-[#ededed]'}`}>
-                {Math.round(significance * 100)}%
-              </strong>
-              {significance >= 0.95 && <span className="ml-2 text-xs text-ok/70">— result is reliable</span>}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 rounded-[10px] border border-white/10 bg-[#0a0a0a] px-5 py-4">
-            <Lock className="h-4 w-4 shrink-0 text-[#ededed]/40" />
-            <span className="text-[13px] text-[#ededed]/40">Significance &amp; auto-winner are Pro features.</span>
+        {/* Raw data table (Pro only) */}
+        {pro && analytics && analytics.daily.length > 0 && (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
             <button
-              onClick={upgrade}
-              disabled={busy}
-              className="ml-auto shrink-0 cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+              onClick={() => setShowRawData(!showRawData)}
+              className="flex w-full items-center gap-2 cursor-pointer"
             >
-              {busy ? 'Redirecting…' : 'Upgrade'}
+              <Table2 className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Raw Data
+              </span>
+              <span className="ml-auto text-[11px] text-[#ededed]/20">
+                {analytics.daily.length} days
+              </span>
             </button>
+            {showRawData && (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-white/10 text-[#ededed]/30">
+                      <th className="pb-2 pr-3 font-medium">Date</th>
+                      <th className="pb-2 pr-3 font-medium text-right">Vis A</th>
+                      <th className="pb-2 pr-3 font-medium text-right">Vis B</th>
+                      <th className="pb-2 pr-3 font-medium text-right">CR A</th>
+                      <th className="pb-2 pr-3 font-medium text-right">CR B</th>
+                      <th className="pb-2 font-medium text-right">Lift</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.daily.map((row: DailyRow) => {
+                      const crA = row.visitors_a > 0 ? ((row.conversions_a / row.visitors_a) * 100).toFixed(1) : '—'
+                      const crB = row.visitors_b > 0 ? ((row.conversions_b / row.visitors_b) * 100).toFixed(1) : '—'
+                      const rowLift = row.visitors_a > 0 && row.conversions_a > 0 && row.visitors_b > 0
+                        ? (((row.conversions_b / row.visitors_b) - (row.conversions_a / row.visitors_a)) / (row.conversions_a / row.visitors_a)) * 100
+                        : null
+                      return (
+                        <tr key={row.date} className="border-b border-white/5 text-[#ededed]/50 hover:text-[#ededed]/80">
+                          <td className="py-1.5 pr-3">{new Date(row.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</td>
+                          <td className="py-1.5 pr-3 text-right">{row.visitors_a.toLocaleString()}</td>
+                          <td className="py-1.5 pr-3 text-right">{row.visitors_b.toLocaleString()}</td>
+                          <td className="py-1.5 pr-3 text-right">{crA}%</td>
+                          <td className="py-1.5 pr-3 text-right">{crB}%</td>
+                          <td className={`py-1.5 text-right ${rowLift !== null ? (rowLift > 0 ? 'text-ok' : rowLift < 0 ? 'text-err' : '') : ''}`}>
+                            {rowLift !== null ? `${rowLift > 0 ? '+' : ''}${rowLift.toFixed(1)}%` : '—'}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 

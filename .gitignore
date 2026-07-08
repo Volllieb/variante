@@ -10,3 +10,4 @@ chrome-extension/cws-assets/
 __pycache__/
 
 .vercel
+.env*.local
