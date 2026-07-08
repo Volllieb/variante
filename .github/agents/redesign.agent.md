@@ -29,7 +29,7 @@ Du bist der Redesign-Agent für Variante. Dein Job: **mutige, komplette visuelle
 ## Kontext: Dashboard (ab-tool/)
 
 - **Tech:** Next.js 16 App Router + Tailwind CSS + shadcn/ui (Radix)
-- Dateien unter `ab-tool/app/dashboard/`, `ab-tool/app/results/`, `ab-tool/app/onboarding/`, `ab-tool/app/`
+- Dateien unter `ab-tool/app/dashboard/`, `ab-tool/app/results/`, `ab-tool/app/`
 
 ## Vorgehen bei jedem Redesign
 

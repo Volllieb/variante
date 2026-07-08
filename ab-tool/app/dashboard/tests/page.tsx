@@ -32,8 +32,6 @@ export default async function TestsPage() {
     return <TestsClient apiToken="" tests={[]} hasFigmaPlugin={false} isAtFreeLimit={false} />
   }
 
-  if (!profile.onboarded) redirect('/onboarding')
-
   const activeTests = (tests ?? []).filter(t => t.status !== 'done').length
 
   return (

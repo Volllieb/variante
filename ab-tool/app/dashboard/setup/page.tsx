@@ -38,8 +38,6 @@ export default async function SetupPage() {
     return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, lastPluginSyncAt: null, siteUrl: null, testCount: 0 }} />
   }
 
-  if (!profile.onboarded) redirect('/onboarding')
-
   const siteUrl = testsRes.data?.[0]?.site_url ?? null
 
   return (

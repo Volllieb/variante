@@ -43,13 +43,13 @@ export default function LoginPage() {
   const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
-  // UX: Bereits eingeloggt → zum Dashboard (oder Onboarding bei plan=pro)
+  // UX: Bereits eingeloggt → zum Dashboard
   // PASSWORD_RECOVERY-Event: User kommt aus alter Reset-Mail → redirect zu /update-password
   useEffect(() => {
     const supabase = getBrowserSupabase()
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.push(plan ? `/onboarding?${new URLSearchParams({ plan, source }).toString()}` : '/dashboard')
+        router.push('/dashboard')
         return
       }
       setSessionChecked(true)
@@ -65,7 +65,7 @@ export default function LoginPage() {
     if (errorParam) setErr(decodeURIComponent(errorParam))
     return () => subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, plan, source])
+  }, [router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -105,7 +105,7 @@ export default function LoginPage() {
         type: 'signup',
         email: norm(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
         },
       })
       if (error) { setErr(error.message); setLoading(false); return }

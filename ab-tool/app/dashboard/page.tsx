@@ -33,8 +33,6 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} lastPluginSyncAt={null} highlightNew={searchParams.new === '1'} upgraded={false} />
   }
 
-  if (!profile.onboarded) redirect('/onboarding')
-
   return (
     <DashboardClient
       plan={profile.plan ?? 'free'}

@@ -43,16 +43,16 @@ export default function SignupPage() {
   const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
-  // UX: Bereits eingeloggt → direkt zum Dashboard (oder Onboarding bei plan=pro)
+  // UX: Bereits eingeloggt → direkt zum Dashboard
   useEffect(() => {
     getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.push(signupPlan ? `/onboarding?${new URLSearchParams({ plan: signupPlan, source }).toString()}` : '/dashboard')
+        router.push('/dashboard')
         return
       }
       setSessionChecked(true)
     })
-  }, [router, signupPlan, source])
+  }, [router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -63,11 +63,7 @@ export default function SignupPage() {
     if (norm(email) === password) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
-      const qsParts: string[] = []
-      if (source) qsParts.push(`source=${encodeURIComponent(source)}`)
-      if (signupPlan) qsParts.push(`plan=${encodeURIComponent(signupPlan)}`)
-      const qs = qsParts.length > 0 ? '?' + qsParts.join('&') : ''
-      const nextPath = '/onboarding' + qs
+      const nextPath = '/dashboard'
       const normalEmail = norm(email)
       const { data, error } = await supabase.auth.signUp({
         email: normalEmail,
@@ -104,11 +100,7 @@ export default function SignupPage() {
         return
       }
       if (data.session) {
-        const qsParts2: string[] = []
-        if (source) qsParts2.push(`source=${encodeURIComponent(source)}`)
-        if (signupPlan) qsParts2.push(`plan=${encodeURIComponent(signupPlan)}`)
-        const qs2 = qsParts2.length > 0 ? '?' + qsParts2.join('&') : ''
-        router.push('/onboarding' + qs2)
+        router.push('/dashboard')
         router.refresh()
       } else {
         setInfo('Almost there — confirm your email address, then you can log in.')
@@ -134,7 +126,7 @@ export default function SignupPage() {
         type: 'signup',
         email: norm(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding' + qsR)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
         },
       })
       if (error) { setErr(error.message); setLoading(false); return }
@@ -156,7 +148,7 @@ export default function SignupPage() {
       if (source) qsPartsG.push(`source=${encodeURIComponent(source)}`)
       if (signupPlan) qsPartsG.push(`plan=${encodeURIComponent(signupPlan)}`)
       const qsG = qsPartsG.length > 0 ? '?' + qsPartsG.join('&') : ''
-      const nextPath = '/onboarding' + qsG
+      const nextPath = '/dashboard'
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

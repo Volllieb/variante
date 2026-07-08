@@ -5,15 +5,12 @@ import {
   HeartPulse,
   Code2,
   Puzzle,
-  Globe,
-  KeyRound,
   Check,
   AlertTriangle,
   X,
   Loader2,
   Copy,
   ChevronDown,
-  ExternalLink,
   Shield,
 } from 'lucide-react'
 import type { SetupData } from './page'
@@ -42,7 +39,7 @@ function formatRelativeTime(ms: number): string {
   return `${days}d ago`
 }
 
-type CheckId = 'snippet' | 'plugin' | 'extension'
+type CheckId = 'snippet' | 'plugin'
 
 type CheckResult = {
   status: 'pending' | 'loading' | 'ok' | 'warn' | 'err'
@@ -59,7 +56,6 @@ export function SetupClient({ data }: { data: SetupData }) {
   const [checks, setChecks] = useState<Record<CheckId, CheckResult>>({
     snippet: { status: 'pending', label: 'Snippet installed', summary: 'Checking if ab.js is on your site…' },
     plugin: { status: 'pending', label: 'Figma plugin connected', summary: 'Checking plugin status…' },
-    extension: { status: 'pending', label: 'Chrome extension', summary: 'Ready to install' },
   })
 
   // ── Snippet auto-check ──
@@ -154,14 +150,6 @@ export function SetupClient({ data }: { data: SetupData }) {
       }))
     }
   }, [data.hasFigmaPlugin, data.lastPluginSyncAt])
-
-  // ── Extension check (always ready to install) ──
-  useEffect(() => {
-    setChecks((prev) => ({
-      ...prev,
-      extension: { status: 'ok', label: 'Chrome extension', summary: 'Install from the Chrome Web Store to pick elements on your site.' },
-    }))
-  }, [])
 
   // ── Run snippet check on mount if we have a URL ──
   useEffect(() => {

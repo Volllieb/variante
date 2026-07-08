@@ -9,11 +9,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('plan, onboarded')
+    .select('plan')
     .eq('user_id', user.id)
     .single()
-
-  if (profile && !profile.onboarded) redirect('/onboarding')
 
   return (
     <DashboardShell email={user.email ?? ''} plan={profile?.plan ?? 'free'}>

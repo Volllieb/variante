@@ -34,7 +34,7 @@
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, snippet-check, stripe, tests, token
-├── app/dashboard/ tests/ login/ onboarding/ signup/ results/ imprint/ privacy/ docs/
+├── app/dashboard/ tests/ login/ signup/ results/ imprint/ privacy/ docs/
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
@@ -88,6 +88,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 |---|---|
 | 09.07.2026 | **Figma-Plugin: Scope-Picker vor Generation, neuer Wizard-Flow.** Scope-Auswahl (Everything/Text/Colors) jetzt Screen 4, vor der KI-Generation. Alte Reihenfolge Design→Goal→Generate ersetzt durch Design→Scope&Generate→Goal→Snippet. `setScope()`/`startGeneration()`/`goToGoal()`/`startOver()` neu. `getScope()` liest jetzt `scope`-Variable. `restoreDraft` + `newTest` aktualisiert. Keine API-Änderung nötig — Backend nutzt bereits `SCOPE_RULE`-Map.
 |---|---|
+| 28.03. | **Onboarding entfernt** — /dashboard/setup (Health-Check) deckt Setup-Flow komplett ab, separates onboarding-Gate ist redundant. Signup/Login routen direkt auf /dashboard. |
 | 08.07.2026 | **🎉 Figma-Plugin LIVE im Community Store!** [Plugin #1653734891132085565](https://www.figma.com/community/plugin/1653734891132085565) freigegeben nach 9 Tagen Review. Der Burggraben steht. Erster Design-Partner angefragt. |
 | 08.07.2026 | **Dashboard Overview-Redesign: 30/70-Layout, Metric-Cards, Pie-Chart-TestCards.** Overview-Seite komplett umgebaut: Zweispaltig (30% Metric-Cards / 70% Test-Grid). Linke Spalte: Overview-Card (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon+Name+Wert pro Zeile, getrennt durch subtile Linien) + Health/Setup-Card (Snippet/Plugin/Extension-Status, verlinkt auf `/dashboard/setup`). Rechte Spalte: Tests-Überschrift + Toolbar (Suchleiste, Sort-Icon, New-Test-Button) + TestCard-Grid (3 pro Zeile). Stats-Bar, CRO-Snapshot, Winner-Alert, Overview-Tabelle, HealthBanner entfernt. TestCard neu designt: Row 1 (Favicon, Name+URL, Significance-Pie-Chart mit Visitor-Count im Zentrum), Row 2 (Status-Dot, Dauer d/h/m/s, Variant-Leader A/B). Build grün, deployed. |
 | 07.07.2026 | **Chrome-Extension deprecated — Picker jetzt direkt im Snippet.** `content-picker.js` in `ab.js` integriert: Element-Picker läuft ohne Extension direkt auf der Kundenseite. `chrome-extension/` auf Read-only-Archiv gesetzt (DEPRECATED.md). `ab.js` von ~8 KB auf ~14 KB gewachsen. Build grün. |
@@ -201,10 +202,9 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Ebene | Ort | Zweck |
 |---|---|---|
-| **Onboarding** | `/onboarding` | Einmaliges Setup: Chrome Extension installieren + Figma Plugin verbinden. Danach nie wieder. |
+| **Setup** | `/dashboard/setup` | Health-Check: Snippet, Figma Plugin, Extension-Status — permanenter Check, kein One-Time-Gate. |
 | **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. Kein Setup-Cruft. |
 | **Creation** | Figma Plugin | Wizard zum Erstellen von Varianten. Browser wartet per Polling auf neue Tests. |
-| **Quick-Check** | Chrome Extension | „Läuft auf dieser Seite ein Test? Welche Variante sehe ich?" — kein Creation-Tool. |
 
 ### 12.2 „New test"-Flow
 
@@ -217,7 +217,7 @@ User klickt [+ New test]
          │    → "Open Figma" → Polling startet
          │
          └─ has_figma_plugin === false
-              → "Install Figma Plugin first" → Link zu /onboarding
+              → "Install Figma Plugin first" → Link zu `/dashboard/setup` (Health-Check)
 ```
 
 **Polling-Zustandsmaschine:** `idle → awaiting_figma → test_received | timeout | cancelled`
@@ -244,8 +244,8 @@ User klickt [+ New test]
 | Gateway | Trigger | Ziel |
 |---|---|---|
 | Landingpage → Signup | CTA | `/signup` |
-| Signup → Onboarding | Registrierung | `/onboarding` |
-| Onboarding → Dashboard | „Go to Dashboard" + `PATCH /api/profile { onboarded: true }` | `/dashboard` |
+| Signup → Dashboard | Registrierung | `/dashboard` (direkt, kein Onboarding-Gate) |
+| Dashboard → Setup | Health-Check-Card | `/dashboard/setup` (Snippet/Plugin/Extension-Status) |
 | Dashboard → Figma | „+ New test" | Figma Plugin (später: `figma://` Deep Link) |
 | Figma → Dashboard | Plugin pusht Test via API | Dashboard erkennt neuen Test per Polling |
 

@@ -141,7 +141,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       { userAgent: '*', allow: '/' },
-      { userAgent: '*', disallow: ['/dashboard/', '/login/', '/signup/', '/onboarding/', '/api/'] },
+      { userAgent: '*', disallow: ['/dashboard/', '/login/', '/signup/', '/api/'] },
     ],
     sitemap: 'https://variante.app/sitemap.xml',
   }

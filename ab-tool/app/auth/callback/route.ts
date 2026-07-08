@@ -6,14 +6,10 @@ import { ensureProfile } from '@/lib/auth'
  * Supabase Auth Callback — verarbeitet sowohl OAuth (Google) als auch Email-Links.
  *
  * Flows:
- * - OAuth (code)     → Session via Cookie-Austausch → next-Param (Login: /dashboard, Signup: /onboarding)
+ * - OAuth (code)     → Session via Cookie-Austausch → next-Param (Login: /dashboard, Signup: /dashboard)
  * - type=recovery    → /update-password
- * - type=signup      → next-Param (Signup setzt /onboarding via emailRedirectTo)
+ * - type=signup      → next-Param (Signup setzt /dashboard via emailRedirectTo)
  * - default (token)  → /dashboard
- *
- * /dashboard selbst gated zusätzlich auf profiles.onboarded — falls ein User
- * trotzdem ohne next-Param oder über einen alten Link landet, wird er beim
- * ersten Dashboard-Aufruf serverseitig nach /onboarding umgeleitet.
  */
 export async function GET(req: NextRequest) {
   const requestUrl = new URL(req.url)
