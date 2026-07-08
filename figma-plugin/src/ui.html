@@ -162,7 +162,7 @@ textarea { resize: vertical; }
 .input-icon-left {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; display: flex;
-  color: var(--text-2));
+  color: var(--text-2);
 }
 
 .field-err {
@@ -288,8 +288,8 @@ textarea { resize: vertical; }
 .notice-amber { background: var(--pro-subtle); border: 1px solid var(--pro-border); }
 .notice-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 4px; }
 .notice-blue .notice-title { color: var(--accent); }
-.notice-green .notice-title { color: var(--ok)); }
-.notice-amber .notice-title { color: var(--pro)); }
+.notice-green .notice-title { color: var(--ok); }
+.notice-amber .notice-title { color: var(--pro); }
 .notice-body { font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 10px; color: var(--text-2); }
 .notice-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
 .notice-icon {
@@ -397,7 +397,7 @@ textarea { resize: vertical; }
 .adv-section.open { display: block; }
 .adv-group { margin-bottom: 14px; }
 .adv-group-title { display: flex; align-items: center; gap: 5px; font-size: var(--fs-sm); font-weight: var(--fw-med); margin-bottom: 4px; }
-.adv-group-title svg { flex-shrink: 0; color: var(--text-2)); }
+.adv-group-title svg { flex-shrink: 0; color: var(--text-2); }
 .adv-group-desc { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: 8px; line-height: 1.4; }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
@@ -425,11 +425,11 @@ textarea { resize: vertical; }
   text-transform: uppercase; letter-spacing: .3px; line-height: 1.7;
 }
 .ba { background: var(--accent-subtle); color: var(--accent); }
-.bb { background: var(--ok-subtle); color: var(--ok)); }
+.bb { background: var(--ok-subtle); color: var(--ok); }
 .bs-draft   { background: var(--bg-1); color: var(--text-2); border: 1px solid var(--border); }
 .bs-active  { background: var(--accent-subtle); color: var(--accent); }
-.bs-done    { background: var(--ok-subtle); color: var(--ok)); }
-.bs-paused  { background: var(--pro-subtle); color: var(--pro)); }
+.bs-done    { background: var(--ok-subtle); color: var(--ok); }
+.bs-paused  { background: var(--pro-subtle); color: var(--pro); }
 
 /* ── Code pre ────────────────────────────────────────────────────────────── */
 pre {
@@ -452,8 +452,8 @@ code {
   background: var(--pro-subtle); border: 1px solid var(--pro-border);
   border-radius: var(--r); padding: 13px 14px; margin-bottom: 14px; text-align: center;
 }
-.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--pro)); margin-bottom: 5px; }
-.ub-sub   { font-size: var(--fs-sm); color: var(--pro)); margin-bottom: 12px; line-height: 1.4; }
+.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--pro); margin-bottom: 5px; }
+.ub-sub   { font-size: var(--fs-sm); color: var(--pro); margin-bottom: 12px; line-height: 1.4; }
 .btn-upgrade {
   background: var(--pro); color: #fff; padding: 8px 16px;
   border-radius: var(--r); font-size: var(--fs-md); font-weight: var(--fw-semibold);
@@ -499,9 +499,9 @@ code {
 .tc-stat { display: flex; align-items: center; gap: 3px; font-size: var(--fs-sm); color: var(--text-2); }
 .tc-stat svg { flex-shrink: 0; }
 .tc-stat b { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; color: var(--text); }
-.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--ok)); }
+.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--ok); }
 .tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--err); }
-.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--ok)); font-weight: var(--fw-bold); }
+.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--ok); font-weight: var(--fw-bold); }
 
 .tc-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .icon-btn {
@@ -563,7 +563,7 @@ code {
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
 .err { color: var(--err); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
-.ok  { color: var(--ok)); font-size: var(--fs-sm); padding: 4px 0; }
+.ok  { color: var(--ok); font-size: var(--fs-sm); padding: 4px 0; }
 .copy-ok { display: none; }
 .copy-ok.vis { display: inline; }
 
@@ -673,40 +673,28 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:20px 16px 16px">
     <div class="welcome-shell">
       <div class="welcome-hero">
-        <div class="welcome-badge">
-          <svg width="24" height="24" fill="none" viewBox="0 0 14 14">
-            <rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/>
-            <rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/>
-          </svg>
-        </div>
-        <div class="welcome-title">Variante</div>
-        <div class="welcome-sub">A/B testing from Figma — no dev needed</div>
+        <div class="welcome-logo">variante</div>
+        <div class="welcome-sub">Pick, design, ship — no developer.</div>
       </div>
 
       <div class="welcome-steps">
         <div class="welcome-step">
-          <div class="welcome-step-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>
-          </div>
-          <div class="welcome-step-text">Pick any element on your live site and let the flow guide the rest.</div>
+          <div class="welcome-step-num">1</div>
+          <div class="welcome-step-text">Pick any element on your live site.</div>
         </div>
         <div class="welcome-step">
-          <div class="welcome-step-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-          </div>
-          <div class="welcome-step-text">Turn a Figma concept into a polished Variant B with AI in a few taps.</div>
+          <div class="welcome-step-num">2</div>
+          <div class="welcome-step-text">Design a Variant B in Figma using AI.</div>
         </div>
         <div class="welcome-step">
-          <div class="welcome-step-icon" style="background:var(--ok-subtle);color:var(--ok));">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          </div>
+          <div class="welcome-step-num">3</div>
           <div class="welcome-step-text">Ship it and watch the uplift without touching your codebase.</div>
         </div>
       </div>
 
       <div id="c-welcome" class="welcome-actions">
-        <button class="btn btn-primary" onclick="createAccount()">Create free account →</button>
-        <button class="btn btn-secondary" onclick="showTokenMode()">I have an account — connect</button>
+        <button class="btn btn-primary" onclick="createAccount()">Sign up free →</button>
+        <button class="btn btn-secondary" onclick="showTokenMode()">I have an account</button>
       </div>
 
       <div id="c-token" style="display:none">
@@ -2188,7 +2176,7 @@ function buildAiPrompt() {
   const testName = state.name || 'my test'
   const snippet = buildSnippetCode()
   return [
-    'Add the Variante A/B testing snippet below to ' + url + ' (test: "' + testName + '").',
+    'Add the variante A/B testing snippet below to ' + url + ' (test: "' + testName + '").',
     '',
     '## 1. Check if already installed',
     'Search the codebase for `id="__ab_hide"` or `ab.js`. If found, confirm the snippet is already present and skip the rest.',
@@ -2218,7 +2206,7 @@ function buildAiPrompt() {
     '',
     '## 6. Your response',
     'When the snippet is inserted, respond ONLY with this short confirmation — no analysis, no caveats:',
-    '"✅ Variante snippet added to ' + url + '. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard"',
+    '"✅ variante snippet added to ' + url + '. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard"',
   ].join('\n')
 }
 
