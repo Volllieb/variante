@@ -248,7 +248,7 @@ export function TestCard({
       <div className="mt-2.5 flex items-center gap-1.5">
         {/* Status pill */}
         <span
-          className="inline-flex items-center gap-1.5 rounded-[5px] border border-white/10 px-2 py-0.5 text-[11px]"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2 py-0.5 text-[11px]"
           style={{ color: status === 'active' ? T.ok : status === 'paused' ? T.pro : '#ededed' }}
         >
           <span
@@ -264,20 +264,20 @@ export function TestCard({
         </span>
 
         {/* Duration pill */}
-        <span className="rounded-[5px] border border-white/10 px-2 py-0.5 text-[11px] text-[#ededed]/50">
+        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] text-[#ededed]/50">
           {formatDuration(t.created_at)}
         </span>
 
         {/* Variant leader pill */}
         {leader && isLive && (
-          <span className="rounded-[5px] border border-white/10 px-2 py-0.5 text-[11px] font-medium text-[#ededed]/70">
+          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] font-medium text-[#ededed]/70">
             Variant {leader}
           </span>
         )}
 
         {/* Winner badge */}
         {t.winner === 'B' && status === 'done' && (
-          <span className="rounded-[5px] border border-[#2fd76c]/20 bg-[#2fd76c]/10 px-2 py-0.5 text-[11px] font-semibold text-[#2fd76c]">
+          <span className="rounded-full border border-[#2fd76c]/20 bg-[#2fd76c]/10 px-2 py-0.5 text-[11px] font-semibold text-[#2fd76c]">
             Winner
           </span>
         )}
