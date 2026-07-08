@@ -8,21 +8,15 @@ import { calcSignificance } from '@/lib/significance'
 import { NewTestFlow } from './NewTestFlow'
 import { TestCard, StatusDot, type TestRow } from './components/TestCard'
 import {
-  Copy,
   Check,
-  ChevronDown,
   FlaskConical,
   Users,
   TrendingUp,
   Zap,
-  Shield,
-  Puzzle,
   Plus,
   ArrowRight,
-  Circle,
-  CircleCheck,
-  Code2,
   BarChart3,
+  HeartPulse,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -35,12 +29,6 @@ const T = {
   err: '#f5455c',
 }
 
-const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
-<link rel="preconnect" href="https://www.getvariante.com">
-<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
-<script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
-
 export function DashboardClient({
   plan,
   apiToken,
@@ -48,6 +36,7 @@ export function DashboardClient({
   hasFigmaPlugin,
   highlightNew,
   upgraded,
+  openNewTest,
 }: {
   plan: string
   apiToken: string
@@ -55,15 +44,18 @@ export function DashboardClient({
   hasFigmaPlugin: boolean
   highlightNew?: boolean
   upgraded?: boolean
+  openNewTest?: boolean
 }) {
   const router = useRouter()
-  const [copied, setCopied] = useState(false)
-  const [snippetCopied, setSnippetCopied] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [snippetOpen, setSnippetOpen] = useState(false)
-  const [newTestOpen, setNewTestOpen] = useState(false)
+  const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [testList, setTestList] = useState(tests)
   const isPro = plan === 'pro' || plan === 'agency'
+
+  // Open NewTestFlow when ?newTest=1 is in URL
+  useEffect(() => {
+    if (openNewTest) setNewTestOpen(true)
+  }, [openNewTest])
 
   // Sync when server re-renders with fresh data
   useEffect(() => { setTestList(tests) }, [tests])
@@ -102,36 +94,6 @@ export function DashboardClient({
     } finally {
       setBusy(false)
     }
-  }
-
-  function copyToken() {
-    navigator.clipboard.writeText(apiToken).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  function copySnippet() {
-    navigator.clipboard.writeText(SNIPPET_CODE).then(() => {
-      setSnippetCopied(true)
-      setTimeout(() => setSnippetCopied(false), 2000)
-    })
-  }
-
-  // Setup-Checkliste: lokale Schritt-Verfolgung
-  const [doneSteps, setDoneSteps] = useState<Set<number>>(new Set())
-  function toggleStep(n: number) { setDoneSteps((s) => { const ns = new Set(s); if (ns.has(n)) ns.delete(n); else ns.add(n); return ns }) }
-
-  function handleSetupStep(step: 1 | 2 | 3) {
-    if (step === 1) {
-      setSnippetOpen(true)
-      setTimeout(() => document.getElementById('snippet')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-    } else if (step === 2) {
-      document.getElementById('plugin-token')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    } else {
-      setNewTestOpen(true)
-    }
-    toggleStep(step)
   }
 
   /* ── Aggregate stats ── */
@@ -247,9 +209,9 @@ export function DashboardClient({
               <OverviewTable tests={testList} />
             )}
 
-            {/* Test grid — empty state (setup checklist) or top 3 cards */}
+            {/* Test grid — empty state or top 3 cards */}
             {testList.length === 0 ? (
-              <SetupChecklist doneSteps={doneSteps} onStep={handleSetupStep} />
+              <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} />
             ) : (
               <div>
                 {/* Toolbar: New test + View all */}
@@ -295,205 +257,72 @@ export function DashboardClient({
             )}
         </div>
 
-        {/* ═══ Scroll sections ═══ */}
-        <div className="mt-10 flex flex-col gap-5 border-t border-white/10 pt-8">
-          {/* Plugin token + Extension side by side */}
-          <div id="plugin-token" className="grid scroll-mt-24 gap-5 sm:grid-cols-2">
-            <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-              <p className="text-[13px] font-medium text-[#ededed]">Plugin token</p>
-              <p className="mt-1 text-[11px] text-[#ededed]/40">
-                Paste once into the Figma plugin to link your tests — this is where new tests are created.
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2.5 font-mono text-[13px] text-[#ededed]/62">
-                  {apiToken}
-                </code>
-                <button
-                  onClick={copyToken}
-                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-                >
-                  {copied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-              <p className="text-[13px] font-medium text-[#ededed]">Element Picker</p>
-              <p className="mt-1 text-[11px] text-[#ededed]/40">
-                Built into the snippet — no extension needed. Open your site from the Figma plugin and click any
-                element to capture it.
-              </p>
-              <div className="mt-3 flex items-center gap-2 rounded-[6px] border border-[#14AE5C]/20 bg-[#14AE5C]/[0.06] px-3 py-2 text-[11px] text-[#14AE5C]">
-                <Check className="h-3.5 w-3.5" />
-                Ready — picker runs from snippet
-              </div>
-            </div>
-          </div>
-
-          {/* Snippet */}
-          <div id="snippet" className="scroll-mt-24 overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
-            <button
-              onClick={() => setSnippetOpen((o) => !o)}
-              className="flex w-full cursor-pointer items-center justify-between px-3.5 py-3 text-left transition-colors hover:bg-white/[0.02]"
-            >
-              <div>
-                <p className="text-[13px] font-medium text-[#ededed]">Snippet installation</p>
-                <p className="mt-0.5 text-[11px] text-[#ededed]/40">
-                  Paste one block into your site&apos;s{' '}
-                  <code className="rounded-[5px] bg-white/[0.08] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
-                    &lt;head&gt;
-                  </code>{' '}
-                  — universal, framework-agnostic
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 shrink-0 text-[#ededed]/40 transition-transform ${snippetOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {snippetOpen && (
-              <div className="space-y-4 border-t border-white/10 px-3.5 pb-4 pt-3.5">
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-[#ededed]/62">Universal snippet</span>
-                    <button
-                      onClick={copySnippet}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-                    >
-                      {snippetCopied ? <Check className="h-3.5 w-3.5" style={{ color: T.ok }} /> : <Copy className="h-3.5 w-3.5" />}
-                      {snippetCopied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                  <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
-{SNIPPET_CODE}
-                  </pre>
-                </div>
-
-                {[
-                  {
-                    label: 'Next.js App Router',
-                    file: 'app/layout.tsx',
-                    code: `// app/layout.tsx
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://www.getvariante.com" />
-        <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
-        <script dangerouslySetInnerHTML={{
-          __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
-        }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous" />
-      </head>
-      <body>{children}</body>
-    </html>
-  )
-}`,
-                  },
-                  {
-                    label: 'Next.js Pages Router',
-                    file: 'pages/_document.tsx',
-                    code: `// pages/_document.tsx
-import { Html, Head, Main, NextScript } from 'next/document'
-
-export default function Document() {
-  return (
-    <Html>
-      <Head>
-        <link rel="preconnect" href="https://www.getvariante.com" />
-        <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
-        <script dangerouslySetInnerHTML={{
-          __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
-        }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous" />
-      </Head>
-      <body><Main /><NextScript /></body>
-    </Html>
-  )
-}`,
-                  },
-                  {
-                    label: 'Plain HTML',
-                    file: '<head>',
-                    code: `<!DOCTYPE html>
-<html>
-<head>
-  <link rel="preconnect" href="https://www.getvariante.com">
-  <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
-  <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>
-</head>
-<body><!-- your content --></body>
-</html>`,
-                  },
-                ].map(({ label, file, code }) => (
-                  <details key={label} className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
-                    <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
-                      <span>{label}</span>
-                      <span className="flex items-center gap-2">
-                        <code className="rounded-[5px] bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] text-[#ededed]/40">
-                          {file}
-                        </code>
-                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                      </span>
-                    </summary>
-                    <pre className="overflow-x-auto border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62">
-{code}
-                    </pre>
-                  </details>
-                ))}
-
-                <details className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
-                  <summary className="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
-                    <span>Vue · Svelte · Astro · others</span>
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <p className="border-t border-white/10 px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/40">
-                    Inject the three lines into the{' '}
-                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
-                      &lt;head&gt;
-                    </code>{' '}
-                    of your root layout or template. The snippet is framework-agnostic. Make sure the anti-flicker{' '}
-                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
-                      &lt;style&gt;
-                    </code>{' '}
-                    and inline{' '}
-                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
-                      &lt;script&gt;
-                    </code>{' '}
-                    come{' '}
-                    <strong className="font-semibold text-[#ededed]/62">before</strong> the async{' '}
-                    <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">
-                      ab.js
-                    </code>{' '}
-                    tag.
-                  </p>
-                </details>
-
-                <div
-                  className="flex items-start gap-3 rounded-[6px] px-4 py-3.5"
-                  style={{ background: `${T.pro}0f`, border: `1px solid ${T.pro}33` }}
-                >
-                  <Shield className="mt-0.5 h-4 w-4 shrink-0" style={{ color: T.pro }} />
-                  <p className="text-[11px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
-                    <strong className="font-semibold">Privacy:</strong> ab.js stores a random visitor ID in{' '}
-                    <code className="rounded-[5px] px-1 font-mono text-[11px]" style={{ background: `${T.pro}1a` }}>
-                      localStorage
-                    </code>{' '}
-                    (no cookies). No personal data is collected or transmitted.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-        </div>
+        {/* ── Health check banner ── */}
+        <HealthBanner testsExist={testList.length > 0} />
       </main>
     </>
   )
 }
 
 /* ── Sub-components ── */
+
+/** Compact health banner linking to /dashboard/setup for full diagnostics. */
+function HealthBanner({ testsExist }: { testsExist: boolean }) {
+  return (
+    <div className="mt-6 border-t border-white/10 pt-5">
+      <Link
+        href="/dashboard/setup"
+        className="flex items-center gap-3 rounded-[8px] border border-white/[0.08] bg-[#0a0a0a] px-4 py-3 transition-colors hover:border-white/[0.14]"
+      >
+        <HeartPulse className="h-4 w-4 shrink-0 text-[#ededed]/50" />
+        <div className="flex-1">
+          <span className="text-[12px] font-medium text-[#ededed]/70">Setup health check</span>
+          <span className="ml-2 text-[11px] text-[#ededed]/40">
+            {testsExist ? 'Verify snippet, plugin & extension status' : 'Run setup diagnostics to get started'}
+          </span>
+        </div>
+        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#ededed]/30" />
+      </Link>
+    </div>
+  )
+}
+
+/** Empty state when no tests exist — guides to /dashboard/setup. */
+function EmptyState({ onNewTest, hasFigmaPlugin }: { onNewTest: () => void; hasFigmaPlugin: boolean }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
+        <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
+      </div>
+      <p className="mt-4 text-[14px] font-medium text-[#ededed]">No tests yet</p>
+      <p className="mt-1.5 max-w-[340px] text-[12px] leading-relaxed text-[#ededed]/40">
+        {hasFigmaPlugin
+          ? 'Create your first variant in Figma and push it here.'
+          : 'Run the setup health check first — it walks you through snippet, plugin, and your first test.'}
+      </p>
+      <div className="mt-5 flex items-center gap-3">
+        {!hasFigmaPlugin && (
+          <Link
+            href="/dashboard/setup"
+            className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.18] px-3.5 py-2 text-[12px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]"
+          >
+            <HeartPulse className="h-3.5 w-3.5" />
+            Run setup check
+          </Link>
+        )}
+        {hasFigmaPlugin && (
+          <button
+            onClick={onNewTest}
+            className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            New test
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function StatCard({
   label,

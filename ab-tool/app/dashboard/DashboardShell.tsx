@@ -5,10 +5,10 @@ import { PandaLogo } from '@/components/PandaLogo'
 import {
   FlaskConical,
   LayoutGrid,
-  KeyRound,
-  Code2,
   CreditCard,
   Settings,
+  HeartPulse,
+  Plus,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -25,6 +25,7 @@ type DashboardShellProps = {
   email: string
   plan: string
   children: React.ReactNode
+  newTestHref?: string
 }
 
 function avatarColor(email: string): string {
@@ -39,7 +40,7 @@ function initials(email: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-export function DashboardShell({ email, plan, children }: DashboardShellProps) {
+export function DashboardShell({ email, plan, children, newTestHref }: DashboardShellProps) {
 
   return (
     <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
@@ -61,12 +62,10 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
             <NavLink icon={LayoutGrid} label="Tests" href="/dashboard/tests" />
           </nav>
 
-          {/* Nav — setup tools */}
+          {/* Nav — health check */}
           <div className="mt-3 border-t border-white/[0.06] pt-3">
-            <p className="mb-1.5 px-[9px] text-[10px] font-semibold uppercase tracking-wider text-[#ededed]/30">Setup</p>
             <nav className="flex flex-col gap-0.5">
-              <NavLink icon={KeyRound} label="Plugin & Extension" anchor="#plugin-token" />
-              <NavLink icon={Code2} label="Snippet" anchor="#snippet" />
+              <NavLink icon={HeartPulse} label="Setup" href="/dashboard/setup" />
             </nav>
           </div>
 
@@ -95,7 +94,21 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
         </aside>
 
         {/* ── Page content ── */}
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1">
+          {/* Header bar */}
+          <div className="sticky top-0 z-10 flex items-center justify-end border-b border-white/[0.06] bg-black/80 px-5 py-2 backdrop-blur-sm">
+            {newTestHref ? (
+              <Link
+                href={newTestHref}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New test
+              </Link>
+            ) : null}
+          </div>
+          {children}
+        </div>
       </div>
     </div>
   )
