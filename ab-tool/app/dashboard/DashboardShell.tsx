@@ -75,13 +75,13 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
 
           {/* Nav — account (bottom) */}
           <nav className="flex flex-col gap-0.5 border-t border-white/[0.06] pt-3">
-            <NavLink icon={CreditCard} label="Billing" anchor="#billing" />
-            <NavLink icon={Settings} label="Account" anchor="#account-settings" />
+            <NavLink icon={CreditCard} label="Billing" href="/dashboard/billing" />
+            <NavLink icon={Settings} label="Account" href="/dashboard/account" />
           </nav>
 
           {/* Profile — bottom of sidebar */}
-          <a
-            href="#account-settings"
+          <Link
+            href="/dashboard/account"
             className="flex items-center gap-2.5 rounded-[6px] p-[7px] transition-colors duration-150 hover:bg-[#111111]"
           >
             <div
@@ -91,7 +91,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
               {initials(email)}
             </div>
             <span className="truncate text-[11px] font-medium text-[#ededed]/62">{email}</span>
-          </a>
+          </Link>
         </aside>
 
         {/* ── Page content ── */}

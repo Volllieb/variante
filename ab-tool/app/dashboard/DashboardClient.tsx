@@ -18,11 +18,7 @@ import {
   Shield,
   Puzzle,
   ExternalLink,
-  Key,
-  LogOut,
-  Search,
   Plus,
-  ListFilter,
   ArrowRight,
   Circle,
   CircleCheck,
@@ -46,18 +42,6 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
-const STATUS_FILTERS = ['all', 'active', 'draft', 'done'] as const
-type StatusFilter = (typeof STATUS_FILTERS)[number]
-
-function timeAgo(iso: string): string {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
-}
-
 export function DashboardClient({
   plan,
   apiToken,
@@ -78,8 +62,6 @@ export function DashboardClient({
   const [snippetCopied, setSnippetCopied] = useState(false)
   const [busy, setBusy] = useState(false)
   const [snippetOpen, setSnippetOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [newTestOpen, setNewTestOpen] = useState(false)
   const [testList, setTestList] = useState(tests)
   const isPro = plan === 'pro' || plan === 'agency'
@@ -90,18 +72,6 @@ export function DashboardClient({
   function handleDeleteTest(id: string) {
     setTestList((prev) => prev.filter((t) => t.id !== id))
   }
-
-  function cycleFilter() {
-    setStatusFilter((f) => STATUS_FILTERS[(STATUS_FILTERS.indexOf(f) + 1) % STATUS_FILTERS.length])
-  }
-
-  const filteredTests = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return testList.filter((t) => {
-      const mq = !q || t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-      return mq && (statusFilter === 'all' || t.status === statusFilter)
-    })
-  }, [testList, query, statusFilter])
 
   // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
   useEffect(() => {
@@ -133,26 +103,6 @@ export function DashboardClient({
     } finally {
       setBusy(false)
     }
-  }
-
-  async function logout() {
-    await getBrowserSupabase().auth.signOut()
-    window.location.href = '/'
-  }
-
-  async function changePassword() {
-    const {
-      data: { user },
-    } = await getBrowserSupabase().auth.getUser()
-    if (!user?.email) {
-      alert('Could not retrieve your email address.')
-      return
-    }
-    const { error } = await getBrowserSupabase().auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${window.location.origin}/update-password`,
-    })
-    if (error) alert(error.message)
-    else alert('Password reset link sent to your email.')
   }
 
   function copyToken() {
@@ -201,6 +151,14 @@ export function DashboardClient({
   // Winner alert (Pro only, active tests with a winner)
   const winnerTest = isPro ? testList.find((t) => t.winner && t.status !== 'done') : null
 
+  // CRO-Snapshot
+  const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
+  const positiveLifts = lifts.filter((l) => l > 0).length
+  const top3 = useMemo(
+    () => [...testList].sort((a, b) => ((b.visitors_a ?? 0) + (b.visitors_b ?? 0)) - ((a.visitors_a ?? 0) + (a.visitors_b ?? 0))).slice(0, 3),
+    [testList]
+  )
+
   return (
     <>
       <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
@@ -237,52 +195,51 @@ export function DashboardClient({
               />
             </div>
 
-            {/* Winner alert */}
-            {winnerTest && (
-              <Link
-                href={`/dashboard/results/${winnerTest.id}`}
-                className="flex items-center gap-3 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
-              >
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                  style={{ background: `${T.ok}1f` }}
-                >
-                  <TrendingUp className="h-3.5 w-3.5" style={{ color: T.ok }} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-[#ededed]">{winnerTest.name}</p>
-                  <p className="text-[11px]" style={{ color: T.ok }}>
-                    B leads — significant winner detected
-                  </p>
+            {/* CRO-Snapshot + Winner alert */}
+            {testList.length > 0 && (
+              <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">CRO Snapshot</span>
                 </div>
-                <span className="text-[11px] text-[#ededed]/40">View →</span>
-              </Link>
-            )}
-
-            {/* Significance card */}
-            {isPro && !winnerTest && (
-              <div className="flex items-center gap-2.5 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
-                <p className="text-[13px] text-[#ededed]/62">
-                  Significance enabled — winners are detected and declared automatically.
-                </p>
-              </div>
-            )}
-
-            {!isPro && (
-              <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-                <p className="text-[13px] font-semibold text-[#ededed]">See when a variant actually wins</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/40">
-                  Free shows raw visitor and conversion counts. Pro calculates statistical significance
-                  and declares a winner automatically.
-                </p>
-                <button
-                  onClick={() => billing('checkout')}
-                  disabled={busy}
-                  className="mt-3 cursor-pointer rounded-[6px] border border-white/[0.18] px-3 py-1.5 text-[11px] font-semibold text-[#ededed] transition-colors hover:border-white/25 disabled:opacity-50"
-                >
-                  Upgrade to Pro
-                </button>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-2xl font-bold text-[#ededed]">{overallCR.toFixed(1)}%</p>
+                    <p className="mt-0.5 text-[10px] text-[#ededed]/40">Overall CR</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-[#ededed]">{running}</p>
+                    <p className="mt-0.5 text-[10px] text-[#ededed]/40">Running</p>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${positiveLifts > 0 ? 'text-ok' : 'text-[#ededed]'}`}>{positiveLifts}</p>
+                    <p className="mt-0.5 text-[10px] text-[#ededed]/40">Tests ahead</p>
+                  </div>
+                </div>
+                {winnerTest && (
+                  <Link
+                    href={`/dashboard/results/${winnerTest.id}`}
+                    className="mt-3 flex items-center gap-2.5 rounded-[6px] border border-ok/20 bg-ok-bg px-3 py-2 transition-colors hover:border-ok/30"
+                  >
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
+                    <span className="flex-1 truncate text-[12px] text-ok">{winnerTest.name}: B leads — View →</span>
+                  </Link>
+                )}
+                {isPro && !winnerTest && (
+                  <p className="mt-3 text-[11px] text-[#ededed]/40">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full mr-1.5" style={{ background: T.ok }} />
+                    Significance monitoring active — winners auto-detected.
+                  </p>
+                )}
+                {!isPro && (
+                  <button
+                    onClick={() => billing('checkout')}
+                    disabled={busy}
+                    className="mt-3 cursor-pointer rounded-[6px] border border-white/[0.18] px-3 py-1.5 text-[11px] font-semibold text-[#ededed] transition-colors hover:border-white/25 disabled:opacity-50"
+                  >
+                    Upgrade to see significance →
+                  </button>
+                )}
               </div>
             )}
 
@@ -291,32 +248,24 @@ export function DashboardClient({
               <OverviewTable tests={testList} />
             )}
 
-            {/* Test grid — empty state (setup checklist) or real grid */}
+            {/* Test grid — empty state (setup checklist) or top 3 cards */}
             {testList.length === 0 ? (
               <SetupChecklist doneSteps={doneSteps} onStep={handleSetupStep} />
             ) : (
               <div>
-                {/* Toolbar */}
+                {/* Toolbar: New test + View all */}
                 <div className="mb-3 flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
-                    <input
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Find test…"
-                      className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
-                    />
-                  </div>
-                  <button
-                    onClick={cycleFilter}
-                    title={`Filter: ${statusFilter}`}
-                    className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                    Top Tests
+                  </span>
+                  <div className="flex-1" />
+                  <Link
+                    href="/dashboard/tests"
+                    className="flex items-center gap-1 text-[11px] font-medium text-[#ededed]/40 transition-colors hover:text-[#ededed]"
                   >
-                    <ListFilter className="h-3.5 w-3.5" />
-                    {statusFilter !== 'all' && (
-                      <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full" style={{ background: T.pro }} />
-                    )}
-                  </button>
+                    View all {testList.length} tests
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
                   <button
                     onClick={() => setNewTestOpen(true)}
                     className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
@@ -337,20 +286,12 @@ export function DashboardClient({
                   />
                 )}
 
-                {/* Grid */}
-                {filteredTests.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-10 text-center">
-                    <p className="text-[13px] font-medium text-[#ededed]/62">
-                      {query ? `No tests match "${query}"` : 'No tests in this filter'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {filteredTests.map((t, i) => (
-                      <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} />
-                    ))}
-                  </div>
-                )}
+                {/* Top 3 grid */}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {top3.map((t, i) => (
+                    <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} />
+                  ))}
+                </div>
               </div>
             )}
         </div>
@@ -553,74 +494,6 @@ export default function Document() {
             )}
           </div>
 
-          {/* Billing */}
-          <div id="billing" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-            <p className="text-[13px] font-medium text-[#ededed]">Billing</p>
-            <p className="mt-1 text-[11px] text-[#ededed]/40">Last 30 days</p>
-            <div className="mt-3 flex flex-col divide-y divide-white/[0.06]">
-              <QuotaRow
-                icon={FlaskConical}
-                label="Active experiments"
-                value={isPro ? `${running}` : `${running} / 1`}
-                atLimit={!isPro && running >= 1}
-              />
-              <QuotaRow icon={Users} label="Total experiments" value={`${testList.length}`} />
-              <QuotaRow icon={TrendingUp} label="Total visitors" value={totalVisitors.toLocaleString()} />
-              <QuotaRow icon={Zap} label="Total conversions" value={totalConversions.toLocaleString()} />
-              {avgLift !== null && (
-                <QuotaRow
-                  icon={TrendingUp}
-                  label="Avg lift"
-                  value={`${avgLift > 0 ? '+' : ''}${(avgLift * 100).toFixed(1)}%`}
-                  tone={avgLift > 0 ? 'ok' : avgLift < 0 ? 'err' : undefined}
-                />
-              )}
-            </div>
-            <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
-              <span className="text-[11px] text-[#ededed]/40">
-                Plan: <span className="text-[#ededed]/62">{plan.toUpperCase()}</span>
-              </span>
-              {isPro ? (
-                <button
-                  onClick={() => billing('portal')}
-                  disabled={busy}
-                  className="cursor-pointer text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed] disabled:opacity-50"
-                >
-                  Manage →
-                </button>
-              ) : (
-                <button
-                  onClick={() => billing('checkout')}
-                  disabled={busy}
-                  className="cursor-pointer rounded-[5px] bg-white px-2.5 py-1 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-50"
-                >
-                  Upgrade
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Account settings */}
-          <div id="account-settings" className="scroll-mt-24 rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-            <p className="text-[13px] font-medium text-[#ededed]">Account settings</p>
-            <p className="mt-1 text-[11px] text-[#ededed]/40">Manage your security and session.</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <button
-                onClick={changePassword}
-                className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-              >
-                <Key className="h-3.5 w-3.5" />
-                Change password
-              </button>
-              <button
-                onClick={logout}
-                className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                Log out
-              </button>
-            </div>
-          </div>
         </div>
       </main>
     </>
@@ -756,33 +629,6 @@ function OverviewTable({ tests }: { tests: TestRow[] }) {
           </tbody>
         </table>
       </div>
-    </div>
-  )
-}
-
-function QuotaRow({
-  icon: Icon,
-  label,
-  value,
-  atLimit,
-  tone,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  value: string
-  atLimit?: boolean
-  tone?: 'ok' | 'err'
-}) {
-  const color = atLimit ? T.pro : tone === 'ok' ? T.ok : tone === 'err' ? T.err : undefined
-  return (
-    <div className="flex items-center justify-between gap-3 py-1.5">
-      <span className="flex items-center gap-2 text-[13px] text-[#ededed]/62">
-        <Icon className="h-3.5 w-3.5 shrink-0" />
-        {label}
-      </span>
-      <span className="font-mono text-[13px] text-[#ededed]/62" style={color ? { color } : undefined}>
-        {value}
-      </span>
     </div>
   )
 }

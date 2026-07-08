@@ -251,7 +251,7 @@ User klickt [+ New test]
 | **Sprint 3** | Results-Detailseite (Hero-Zahl + Sparkline + Signifikanz-Donut + Raw-Data-Tabelle) | ✅ Deployed |
 | **Sprint 4** | Overview restrukturieren (CRO-Snapshot, Top-3 Tests, Link zu /tests) | ⏳ |
 | **Sprint 5** | Account-Seite (/dashboard/account: Email/PW ändern, Danger Zone) | ⏳ |
-| **Sprint 6** | Inline-Billing (Plan, Rechnungen, Stripe-Portal-Link) | ⏳ |
+| **Sprint 6** | Inline-Billing (Plan, Rechnungen, Stripe-Portal-Link) | ✅ Deployed |
 
 **In z.future-features geparkt:** Mobile-Optimierung, Text-Tests, Bulk-Actions, ROI-Rechner, Badge-Vorschau, Referral-System, Public Share-Link.
 
