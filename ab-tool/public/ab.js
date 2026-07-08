@@ -147,7 +147,73 @@
         return out.slice(0, 15)
       }
 
-      // --- UI: Banner + Overlay -------------------------------------------\n      var __banner = null\n      function showBanner(msg) {\n        hideBanner()\n        var b = document.createElement('div')\n        b.id = '__ab_banner'\n        b.textContent = msg || 'Click element (ESC cancels).'\n        b.style.cssText = 'position:fixed;z-index:2147483647;top:0;left:0;right:0;padding:12px 40px;font:700 14px -apple-system,Segoe UI,sans-serif;color:#ededed;text-align:center;background:#0a0a0a;border-bottom:1px solid rgba(255,255,255,.10);box-shadow:0 4px 24px rgba(0,0,0,.6);letter-spacing:.3px;user-select:none'\n        var closeBtn = document.createElement('span')\n        closeBtn.textContent = '\\u2716'\n        closeBtn.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;opacity:.7'\n        closeBtn.onclick = function (e) { e.stopPropagation(); cleanup(); hideBanner() }\n        b.appendChild(closeBtn)\n        b.onclick = function () { cleanup(); hideBanner() }\n        document.body.appendChild(b)\n        __banner = b\n      }\n      function hideBanner() { if (__banner) { try { __banner.remove() } catch (_) {}; __banner = null } }\n\n      function showOverlay(title, selectorText, isError) {\n        hideBanner()\n        var old = document.getElementById('__ab_picker_overlay')\n        if (old) old.remove()\n\n        var wrap = document.createElement('div')\n        wrap.id = '__ab_picker_overlay'\n        wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);font-family:-apple-system,Segoe UI,sans-serif;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:__abFadeIn .2s ease-out'\n\n        var card = document.createElement('div')\n        card.style.cssText = 'background:#0a0a0a;color:#ededed;padding:32px 32px 24px;border-radius:16px;max-width:380px;width:calc(100vw - 48px);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);text-align:center'\n\n        if (isError) {\n          card.innerHTML =\n            '<div style=\"width:56px;height:56px;border-radius:28px;background:rgba(245,69,92,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;color:#f5455c;border:1px solid rgba(245,69,92,.20)\">!</div>' +\n            '<div style=\"font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.4;color:#f5455c\">' + title + '</div>' +\n            '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:20px\">Dismissing in a moment\\u2026</div>' +\n            '<button id=\"__ab_overlay_close\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\\'rgba(255,255,255,.10)\\'\" onmouseout=\"this.style.background=\\'rgba(255,255,255,.06)\\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\\'__ab_picker_overlay\\');if(o)o.remove()})(event)\">Close</button>'\n        } else {\n          var selDisplay = selectorText\n            ? '<div style=\"display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(13,153,255,.08);border:1px solid rgba(13,153,255,.18);border-radius:8px;font:500 12px \\'SF Mono\\',\\'Fira Code\\',monospace;color:#0D99FF;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto 18px\">' + selectorText + '</div>'\n            : ''\n          card.innerHTML =\n            '<div style=\"width:56px;height:56px;border-radius:28px;background:rgba(20,174,92,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;color:#14AE5C;border:1px solid rgba(20,174,92,.20)\">\\u2713</div>' +\n            '<div style=\"font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.4;color:#14AE5C\">' + title + '</div>' +\n            '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:4px\">Return to Figma to continue</div>' +\n            selDisplay +\n            '<div style=\"display:flex;gap:8px;justify-content:center;margin-top:20px\">' +\n            '<button id=\"__ab_overlay_reselect\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\\'rgba(255,255,255,.10)\\'\" onmouseout=\"this.style.background=\\'rgba(255,255,255,.06)\\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\\'__ab_picker_overlay\\');if(o)o.remove();if(window.__abRekindlePicker)window.__abRekindlePicker()})(event)\">' +\n            '<svg width=\\\"13\\\" height=\\\"13\\\" viewBox=\\\"0 0 24 24\\\" fill=\\\"none\\\" stroke=\\\"currentColor\\\" stroke-width=\\\"2\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" style=\\\"flex-shrink:0\\\"><path d=\\\"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8\\\"/><path d=\\\"M21 3v5h-5\\\"/></svg>' +\n            'Reselect</button>' +\n            '<button id=\"__ab_overlay_close\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\\'rgba(255,255,255,.10)\\'\" onmouseout=\"this.style.background=\\'rgba(255,255,255,.06)\\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\\'__ab_picker_overlay\\');if(o)o.remove()})(event)\">Close</button>' +\n            '</div>'\n        }\n\n        wrap.appendChild(card)\n        wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.remove() })\n\n        // Fade-in animation keyframes (inject once)\n        if (!document.getElementById('__ab_fadein_style')) {\n          var s = document.createElement('style')\n          s.id = '__ab_fadein_style'\n          s.textContent = '@keyframes __abFadeIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}'\n          document.head.appendChild(s)\n        }\n\n        document.body.appendChild(wrap)\n        if (isError) setTimeout(function () { try { wrap.remove() } catch (_) {} }, 3200)\n      }
+      // --- UI: Banner + Overlay -------------------------------------------
+      var __banner = null
+      function showBanner(msg) {
+        hideBanner()
+        var b = document.createElement('div')
+        b.id = '__ab_banner'
+        b.textContent = msg || 'Click element (ESC cancels).'
+        b.style.cssText = 'position:fixed;z-index:2147483647;top:0;left:0;right:0;padding:12px 40px;font:700 14px -apple-system,Segoe UI,sans-serif;color:#ededed;text-align:center;background:#0a0a0a;border-bottom:1px solid rgba(255,255,255,.10);box-shadow:0 4px 24px rgba(0,0,0,.6);letter-spacing:.3px;user-select:none'
+        var closeBtn = document.createElement('span')
+        closeBtn.textContent = '\u2716'
+        closeBtn.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;opacity:.7'
+        closeBtn.onclick = function (e) { e.stopPropagation(); cleanup(); hideBanner() }
+        b.appendChild(closeBtn)
+        b.onclick = function () { cleanup(); hideBanner() }
+        document.body.appendChild(b)
+        __banner = b
+      }
+      function hideBanner() { if (__banner) { try { __banner.remove() } catch (_) {}; __banner = null } }
+
+      function showOverlay(title, selectorText, isError) {
+        hideBanner()
+        var old = document.getElementById('__ab_picker_overlay')
+        if (old) old.remove()
+
+        var wrap = document.createElement('div')
+        wrap.id = '__ab_picker_overlay'
+        wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);font-family:-apple-system,Segoe UI,sans-serif;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:__abFadeIn .2s ease-out'
+
+        var card = document.createElement('div')
+        card.style.cssText = 'background:#0a0a0a;color:#ededed;padding:32px 32px 24px;border-radius:16px;max-width:380px;width:calc(100vw - 48px);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);text-align:center'
+
+        if (isError) {
+          card.innerHTML =
+            '<div style=\"width:56px;height:56px;border-radius:28px;background:rgba(245,69,92,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;color:#f5455c;border:1px solid rgba(245,69,92,.20)\">!</div>' +
+            '<div style=\"font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.4;color:#f5455c\">' + title + '</div>' +
+            '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:20px\">Dismissing in a moment\u2026</div>' +
+            '<button id=\"__ab_overlay_close\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\\'rgba(255,255,255,.10)\\'\" onmouseout=\"this.style.background=\\'rgba(255,255,255,.06)\\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\\'__ab_picker_overlay\\');if(o)o.remove()})(event)\">Close</button>'
+        } else {
+          var selDisplay = selectorText
+            ? '<div style=\"display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(13,153,255,.08);border:1px solid rgba(13,153,255,.18);border-radius:8px;font:500 12px \\'SF Mono\\',\\'Fira Code\\',monospace;color:#0D99FF;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto 18px\">' + selectorText + '</div>'
+            : ''
+          card.innerHTML =
+            '<div style=\"width:56px;height:56px;border-radius:28px;background:rgba(20,174,92,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;color:#14AE5C;border:1px solid rgba(20,174,92,.20)\">\u2713</div>' +
+            '<div style=\"font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.4;color:#14AE5C\">' + title + '</div>' +
+            '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:4px\">Return to Figma to continue</div>' +
+            selDisplay +
+            '<div style=\"display:flex;gap:8px;justify-content:center;margin-top:20px\">' +
+            '<button id=\"__ab_overlay_reselect\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\\'rgba(255,255,255,.10)\\'\" onmouseout=\"this.style.background=\\'rgba(255,255,255,.06)\\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\\'__ab_picker_overlay\\');if(o)o.remove();if(window.__abRekindlePicker)window.__abRekindlePicker()})(event)\">' +
+            '\u21BA Reselect</button>' +
+            '<button id=\"__ab_overlay_close\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\\'rgba(255,255,255,.10)\\'\" onmouseout=\"this.style.background=\\'rgba(255,255,255,.06)\\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\\'__ab_picker_overlay\\');if(o)o.remove()})(event)\">Close</button>' +
+            '</div>'
+        }
+
+        wrap.appendChild(card)
+        wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.remove() })
+
+        // Fade-in animation keyframes (inject once)
+        if (!document.getElementById('__ab_fadein_style')) {
+          var s = document.createElement('style')
+          s.id = '__ab_fadein_style'
+          s.textContent = '@keyframes __abFadeIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}'
+          document.head.appendChild(s)
+        }
+
+        document.body.appendChild(wrap)
+        if (isError) setTimeout(function () { try { wrap.remove() } catch (_) {} }, 3200)
+      }
 
       // --- Picker starten -------------------------------------------------
       function boot() {
