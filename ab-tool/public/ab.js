@@ -148,7 +148,7 @@
       }
 
       // --- UI: Banner + Overlay -------------------------------------------
-      var __banner = null
+      var __banner = null, __pickerCleanup = null
       function showBanner(msg) {
         hideBanner()
         var b = document.createElement('div')
@@ -158,9 +158,9 @@
         var closeBtn = document.createElement('span')
         closeBtn.textContent = '\u2716'
         closeBtn.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;opacity:.7'
-        closeBtn.onclick = function (e) { e.stopPropagation(); cleanup(); hideBanner() }
+        closeBtn.onclick = function (e) { e.stopPropagation(); if (__pickerCleanup) __pickerCleanup(); hideBanner() }
         b.appendChild(closeBtn)
-        b.onclick = function () { cleanup(); hideBanner() }
+        b.onclick = function () { if (__pickerCleanup) __pickerCleanup(); hideBanner() }
         document.body.appendChild(b)
         __banner = b
       }
@@ -258,6 +258,7 @@
           document.removeEventListener('keydown', onKey, true)
           window.__abPickerActive = false
         }
+        __pickerCleanup = cleanup
 
         // Reselect: overlay calls this to re-activate the picker
         window.__abRekindlePicker = function () {
