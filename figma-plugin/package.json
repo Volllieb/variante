@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "esbuild src/code.ts --bundle --outfile=dist/code.js --target=es2017 && copy /Y src\\ui.html dist\\ui.html",
-    "watch": "esbuild src/code.ts --bundle --outfile=dist/code.js --target=es2017 --watch"
+    "watch": "esbuild src/code.ts --bundle --outfile=dist/code.js --target=es2017 --watch",
+    "screenshots": "node screenshots/generate.mjs",
+    "screenshots:dark": "node screenshots/generate.mjs --dark"
   },
   "keywords": [],
   "author": "",

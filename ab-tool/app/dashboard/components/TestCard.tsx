@@ -206,7 +206,7 @@ export function TestCard({
           <div ref={menuRef} className="relative">
             <button
               onClick={openMenu}
-              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-[#ededed]/25 opacity-0 transition-all hover:bg-white/[0.06] hover:text-[#ededed]/50 group-hover/card:opacity-100"
+              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-[#ededed]/40 transition-all hover:bg-white/[0.06] hover:text-[#ededed]/70"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>

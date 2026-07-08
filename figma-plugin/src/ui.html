@@ -371,6 +371,39 @@ textarea { resize: vertical; }
 .m-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
 .m-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-top: 2px; line-height: 1.4; }
 
+/* ── Scope buttons (segmented control) ─────────────────────────────────── */
+.scope-options {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.scope-btn {
+  flex: 1;
+  padding: 9px 4px;
+  border: 1px solid var(--figma-color-border);
+  background: var(--figma-color-bg-secondary);
+  color: var(--figma-color-text);
+  border-radius: var(--rsm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-med);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast), color var(--dur-fast);
+}
+.scope-btn:hover { background: var(--figma-color-bg); transform: translateY(-1px); }
+.scope-btn.on {
+  border-color: var(--brand);
+  background: var(--brand-subtle);
+  color: var(--brand);
+  font-weight: var(--fw-semibold);
+}
+.scope-desc {
+  font-size: var(--fs-xs);
+  color: var(--figma-color-text-secondary);
+  margin-top: 3px;
+  text-align: center;
+  line-height: 1.3;
+}
+
 /* ── Advanced toggle ─────────────────────────────────────────────────────── */
 .adv-toggle {
   display: flex; align-items: center; gap: 5px;
@@ -919,13 +952,13 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-design" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
-    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Goal →</button>
+    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Scope →</button>
   </div>
 </div>
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCREEN 4 · Conversion Goal
+     SCREEN 5 · Conversion Goal
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-metric" class="screen">
   <div class="hdr">
@@ -935,11 +968,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Conversion Goal</span>
-    <span class="hdr-step">4 / 6</span>
+    <span class="hdr-step">5 / 6</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="5" aria-label="Step 5 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
   </div>
   <div class="body">
     <!-- Active goal — inline chip, not a separate section -->
@@ -1008,13 +1041,13 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-metric" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
-    <button class="btn btn-primary" id="m-generate" onclick="goGenerate()" disabled>Generate HTML →</button>
+    <button class="btn btn-primary" id="m-generate" onclick="navPush('snippet'); buildSnippet()">Continue to Snippet →</button>
   </div>
 </div>
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCREEN 5 · Generate Variant B
+     SCREEN 4 · Scope & Generate Variant B
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-generate" class="screen">
   <div class="hdr">
@@ -1024,13 +1057,26 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Generate Variant B</span>
-    <span class="hdr-step">5 / 6</span>
+    <span class="hdr-step">4 / 6</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="5" aria-label="Step 5 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
+    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
+    <!-- Scope picker — what the AI should change -->
+    <div id="gen-scope-area">
+      <span class="lbl">What should the AI change?</span>
+      <div class="scope-options" role="radiogroup" aria-label="Generation scope">
+        <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
+        <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
+        <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
+      </div>
+      <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
+
+      <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+    </div>
+
     <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
       <div class="spinner" aria-hidden="true"></div>
       <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
@@ -1064,19 +1110,27 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 
       <div class="divider"></div>
 
+      <!-- Change scope & regenerate -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:var(--fs-sm);color:var(--figma-color-text-secondary);flex-shrink:0">Scope:</span>
+        <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
+        <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
+        <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+      </div>
+
       <!-- Refine: opens overlay -->
       <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
         Refine with AI
       </button>
-      <button class="btn btn-ghost" onclick="generate()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+      <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
     </div>
 
     <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
     <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
   </div>
   <div class="ftr" id="gen-ftr" style="display:none">
-    <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good — Install Snippet →</button>
+    <button class="btn btn-primary" onclick="goToGoal()">Continue to Goal →</button>
   </div>
 </div>
 
@@ -1161,6 +1215,7 @@ let activeTestCount = 0
 let generating = false
 let generateDone = false
 let generateFailed = false
+let scope = 'all'
 let previewVariant = 'b'
 let elTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
@@ -1215,7 +1270,7 @@ function go(id) {
 }
 // ponytail: Wizard-Screen sind setup/element/design/metric/generate/snippet.
 // Dashboard & connect sind keine Wizard-Screens — da wird der Draft gelöscht.
-const WIZARD_SCREENS = ['setup', 'element', 'design', 'metric', 'generate', 'snippet']
+const WIZARD_SCREENS = ['setup', 'element', 'design', 'generate', 'metric', 'snippet']
 function saveDraft(id) {
   if (!WIZARD_SCREENS.includes(id) || !state.testId) return
   parent.postMessage({ pluginMessage: { type: 'SAVE_DRAFT', draft: { testId: state.testId, screen: id } } }, '*')
@@ -1340,7 +1395,7 @@ async function restoreDraft(draft) {
       go('design')
       requestSelection()
     } else if (screen === 'metric') {
-      navHistory = ['dashboard', 'setup', 'element', 'design', 'metric']
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric']
       go('metric')
       // Metric-Setup inline (ohne navPush, da navHistory schon gesetzt ist)
       $('m-waiting').style.display = 'none'
@@ -1372,20 +1427,21 @@ async function restoreDraft(draft) {
       }
       renderGoalChip()
     } else if (screen === 'generate') {
-      navHistory = ['dashboard', 'setup', 'element', 'design', 'metric', 'generate']
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate']
       go('generate')
       if (state.html) {
         fillPreviews()
         $('gen-html').textContent = state.html || ''
         $('gen-result').style.display = 'block'
         $('gen-ftr').style.display = 'block'
+        $('gen-scope-area').style.display = 'none'
+        setScope(scope)
         generateDone = true
-        buildSnippet()
       } else {
-        generate()
+        goGenerate()
       }
     } else if (screen === 'snippet') {
-      navHistory = ['dashboard', 'setup', 'element', 'design', 'metric', 'generate', 'snippet']
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric', 'snippet']
       buildSnippet()
       go('snippet')
     }
@@ -1581,8 +1637,12 @@ function newTest() {
   state.originalHtml = ''; state.goalCandidates = []
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
   previewVariant = 'b'
+  scope = 'all'
   generateDone = false; generateFailed = false
   $('btn-gen-retry').style.display = 'none'
+  var sa = $('gen-scope-area'); if (sa) sa.style.display = 'block'
+  var gr = $('gen-result'); if (gr) gr.style.display = 'none'
+  var gf = $('gen-ftr'); if (gf) gf.style.display = 'none'
   $('f-name').value = ''; $('f-url').value = ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'flex'; $('el-done').style.display = 'none'
@@ -1930,14 +1990,60 @@ function stopMetricPoll() {
   if (mDotTimer) { clearInterval(mDotTimer); mDotTimer = null }
 }
 function goGenerate() {
-  if ($('m-generate').disabled) return
-  navPush('generate')
+  // Only called from restoreDraft when arriving at generate screen without html.
+  // In the new flow, we don't auto-generate — scope picker is shown instead.
+  $('gen-scope-area').style.display = 'block'
+  $('gen-result').style.display = 'none'
+  $('gen-ftr').style.display = 'none'
+}
+
+function getScope() { return scope || 'all' }
+
+const SCOPE_DESCRIPTIONS = {
+  all: 'Full visual redesign — layout, colors, and copy can all change.',
+  text: 'Only text content changes. Layout, colors, and structure stay exactly as they are.',
+  color: 'Only colors and backgrounds change. Text and structure stay exactly as they are.'
+}
+
+function setScope(val) {
+  scope = val
+  // Update scope buttons in the initial picker
+  var btns = document.querySelectorAll('#gen-scope-area .scope-btn')
+  btns.forEach(function(b) {
+    var on = b.getAttribute('data-scope') === val
+    b.classList.toggle('on', on)
+    b.setAttribute('aria-checked', on ? 'true' : 'false')
+  })
+  // Update scope buttons in the result area (regenerate row)
+  var resBtns = document.querySelectorAll('#gen-result .scope-btn')
+  resBtns.forEach(function(b) {
+    var on = b.getAttribute('data-scope') === val
+    b.classList.toggle('on', on)
+    b.setAttribute('aria-checked', on ? 'true' : 'false')
+  })
+  // Update description
+  var desc = document.getElementById('scope-desc')
+  if (desc) desc.textContent = SCOPE_DESCRIPTIONS[val] || ''
+}
+
+function startGeneration() {
   if (generating) return
-  if (generateDone) return
+  var scopeArea = $('gen-scope-area')
+  if (scopeArea) scopeArea.style.display = 'none'
   generate()
 }
 
-function getScope() { return 'all' }
+function goToGoal() {
+  enterMetric()
+}
+
+function startOver() {
+  $('gen-result').style.display = 'none'
+  $('gen-ftr').style.display = 'none'
+  $('btn-gen-retry').style.display = 'none'
+  var scopeArea = $('gen-scope-area')
+  if (scopeArea) scopeArea.style.display = 'block'
+}
 
 function buildPreviewDoc(html, bg, cssOverride) {
   const siteCss = cssOverride !== undefined ? cssOverride : state.siteCss
@@ -2037,6 +2143,7 @@ async function generate() {
     $('gen-result').style.display = 'block'
     $('gen-ftr').style.display = 'block'
     $('btn-gen-retry').style.display = 'none'
+    setScope(scope)
     generateDone = true
   } catch (e) {
     generateFailed = true
@@ -2291,8 +2398,7 @@ window.onmessage = (event) => {
     $('l-design').style.display = 'none'
     const exportBtn = $('btn-export')
     if (exportBtn) exportBtn.disabled = false
-    enterMetric()
-    generate()
+    navPush('generate')
     return
   }
 
