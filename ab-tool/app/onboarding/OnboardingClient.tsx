@@ -92,7 +92,7 @@ export function OnboardingClient({
                 <strong className="font-semibold">Next:</strong>{' '}
                 Open the{' '}
                 <a
-                  href="https://www.figma.com/community/plugin/123456/variante"
+                  href="https://www.figma.com/community/plugin/1653734891132085565"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold underline transition-colors hover:opacity-80"
@@ -245,7 +245,16 @@ export function OnboardingClient({
               <ArrowRight className="h-4 w-4" />
             </button>
             <p className="mt-3 text-xs text-text-3">
-              Or open the Figma plugin and paste your token to create your first test.
+              Or{' '}
+              <a
+                href="https://www.figma.com/community/plugin/1653734891132085565"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline transition-colors hover:opacity-80"
+              >
+                open the Figma plugin
+              </a>
+              {' '}and paste your token to create your first test.
             </p>
           </div>
         </main>

@@ -105,7 +105,7 @@ export function SetupClient({ data }: { data: SetupData }) {
       ...prev,
       plugin: data.hasFigmaPlugin
         ? { status: 'ok', label: 'Figma plugin connected', summary: 'Plugin is linked to your account.' }
-        : { status: 'err', label: 'Figma plugin not connected', summary: 'Install the plugin and paste your token to link it.' },
+        : { status: 'err', label: 'Figma plugin not connected', summary: 'Install the plugin from the Figma Community and paste your token to link it.' },
     }))
   }, [data.hasFigmaPlugin])
 
@@ -282,8 +282,16 @@ export function SetupClient({ data }: { data: SetupData }) {
               {checks.plugin.status === 'err' ? (
                 <>
                   <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                    The Figma plugin lets you create A/B variants directly from your designs. Paste the token below into
-                    the plugin once — it links the plugin to your account. No config, no API keys.
+                    The Figma plugin lets you create A/B variants directly from your designs.{' '}
+                    <a
+                      href="https://www.figma.com/community/plugin/1653734891132085565"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold underline transition-colors hover:opacity-80"
+                    >
+                      Install from Figma Community
+                    </a>
+                    , then paste the token below — it links the plugin to your account. No config, no API keys.
                   </p>
 
                   <div>

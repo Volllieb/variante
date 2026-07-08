@@ -169,7 +169,18 @@ export default function Document() {
           dashboard, and select the frame or component you want to use as Variant B.
         </p>
         <ol className="list-decimal space-y-2 pl-5">
-          <li>Open the Variante plugin in Figma (<strong className="font-semibold text-white/70">Plugins → Variante</strong>).</li>
+          <li>
+            Open the{' '}
+            <a
+              href="https://www.figma.com/community/plugin/1653734891132085565"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold underline transition-colors hover:opacity-80"
+            >
+              Variante plugin
+            </a>
+            {' '}in Figma (<strong className="font-semibold text-white/70">Plugins → Variante</strong>).
+          </li>
           <li>Paste your API token (find it in your dashboard under &quot;Plugin token&quot;).</li>
           <li>Click &quot;+ New test&quot; in the dashboard to start a new experiment.</li>
           <li>Select your Variant B design in Figma — the plugin captures it and sends it to Variante.</li>

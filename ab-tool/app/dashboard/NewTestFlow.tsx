@@ -142,7 +142,18 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFr
                     </button>
                   </div>
                 )},
-                { step: '2', text: 'Open the Variante Figma plugin and paste the token', el: null },
+                { step: '2', text: 'Open the Variante Figma plugin and paste the token', el: (
+                  <p className="mt-1 text-[11px] text-[#ededed]/40">
+                    <a
+                      href="https://www.figma.com/community/plugin/1653734891132085565"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold underline transition-colors hover:opacity-80"
+                    >
+                      Install from Figma Community
+                    </a>
+                  </p>
+                ) },
                 { step: '3', text: 'Select a frame, create a variant, and publish it', el: null },
               ].map((s) => (
                 <li key={s.step} className="flex items-start gap-2.5 rounded-[6px] px-3 py-2.5" style={{ background: '#111111' }}>
