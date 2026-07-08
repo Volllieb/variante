@@ -17,6 +17,8 @@
   --warn-border:    rgba(229,158,11,.30);
   --danger:         #dc2626;
   --danger-subtle:  rgba(220,38,38,.09);
+  --danger-border:  rgba(220,38,38,.25);
+  --danger-hover:   rgba(220,38,38,.12);
   --r:   12px;
   --rsm: 8px;
   --rxs: 6px;
@@ -33,17 +35,14 @@
   --panel: var(--figma-color-bg-secondary);
   --panel-strong: var(--figma-color-bg);
   --text-soft: var(--figma-color-text-secondary);
-  --border-soft: rgba(15,23,42,.08);
+  --border-soft: var(--figma-color-border);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: var(--fs-md);
   color: var(--figma-color-text);
-  background:
-    radial-gradient(120% 120% at top left, rgba(13,153,255,.12), transparent 35%),
-    linear-gradient(180deg, rgba(255,255,255,.04), transparent),
-    var(--figma-color-bg);
+  background: var(--figma-color-bg);
   display: flex; flex-direction: column;
   height: 560px; overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -58,17 +57,16 @@ body {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: 14px 16px 12px;
   flex-shrink: 0;
-  background: rgba(255,255,255,.5);
-  border-bottom: 1px solid rgba(15,23,42,.06);
+  background: var(--figma-color-bg);
+  border-bottom: 1px solid var(--figma-color-border);
 }
 .back-btn {
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  border: none; background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border); background: var(--figma-color-bg-secondary);
   cursor: pointer;
   color: var(--figma-color-text-secondary);
-  border-radius: 10px; flex-shrink: 0; padding: 0;
-  box-shadow: var(--elev-0);
+  border-radius: 6px; flex-shrink: 0; padding: 0;
   transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
 }
 .back-btn:hover { background: var(--figma-color-bg); color: var(--figma-color-text); transform: translateY(-1px); }
@@ -90,7 +88,7 @@ body {
 }
 .step-dot {
   flex: 1; height: 4px; border-radius: 999px;
-  background: rgba(15,23,42,.12);
+  background: var(--figma-color-border);
   transition: background var(--dur-med) var(--ease-out);
 }
 .step-dot.on { background: var(--brand); }
@@ -107,9 +105,9 @@ body {
 .ftr {
   padding: 14px 16px 16px;
   flex-shrink: 0;
-  border-top: 1px solid rgba(15,23,42,.08);
+  border-top: 1px solid var(--figma-color-border);
   display: flex; flex-direction: column; gap: var(--sp-2);
-  background: linear-gradient(180deg, transparent, rgba(13,153,255,.03));
+  background: var(--figma-color-bg);
 }
 
 /* ── Typography ─────────────────────────────────────────────────────────── */
@@ -144,7 +142,7 @@ input, select, textarea {
   color: var(--figma-color-text); background: var(--panel);
   outline: none; transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
 }
-input:hover, select:hover, textarea:hover { border-color: rgba(15,23,42,.14); }
+input:hover, select:hover, textarea:hover { border-color: var(--figma-color-text-secondary); }
 input:focus, select:focus, textarea:focus {
   border-color: var(--brand); background: var(--panel-strong);
   box-shadow: 0 0 0 3px var(--brand-subtle);
@@ -169,7 +167,7 @@ textarea { resize: vertical; }
   font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--danger);
   display: none; padding: 7px 10px; margin-top: 4px;
   background: var(--danger-subtle);
-  border: 1px solid rgba(220,38,38,.25);
+  border: 1px solid var(--danger-border);
   border-radius: var(--rsm);
 }
 .field-err.vis { display: block; }
@@ -194,7 +192,7 @@ textarea { resize: vertical; }
 }
 .btn-secondary {
   background: var(--panel);
-  border: 1px solid rgba(15,23,42,.08);
+  border: 1px solid var(--figma-color-border);
   color: var(--figma-color-text);
   box-shadow: var(--elev-0);
 }
@@ -235,8 +233,7 @@ textarea { resize: vertical; }
 .card {
   background: var(--panel);
   border-radius: var(--r); padding: 13px 14px; margin-bottom: 12px;
-  border: 1px solid rgba(15,23,42,.06);
-  box-shadow: var(--elev-0);
+  border: 1px solid var(--figma-color-border);
 }
 .card-lbl {
   font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
@@ -248,19 +245,18 @@ textarea { resize: vertical; }
 .welcome-shell {
   display: flex; flex-direction: column; gap: 14px;
   padding: 18px 16px 16px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.42));
-  border: 1px solid rgba(15,23,42,.06);
-  box-shadow: var(--elev-1);
+  border-radius: var(--r);
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
 }
 .welcome-hero {
   text-align: center; padding: 6px 6px 4px;
 }
 .welcome-badge {
   width: 52px; height: 52px; margin: 0 auto 12px;
-  border-radius: 14px; display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--brand), #5bb8ff);
-  color: #fff; box-shadow: 0 12px 24px rgba(13,153,255,.25);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  background: var(--brand);
+  color: #fff;
 }
 .welcome-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
 .welcome-sub { font-size: var(--fs-sm); color: var(--text-soft); margin-top: 4px; }
@@ -270,9 +266,9 @@ textarea { resize: vertical; }
 .welcome-step {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.72);
-  border: 1px solid rgba(15,23,42,.06);
+  border-radius: 8px;
+  background: var(--figma-color-bg);
+  border: 1px solid var(--figma-color-border);
 }
 .welcome-step-icon {
   width: 30px; height: 30px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center;
@@ -459,23 +455,22 @@ code {
 .test-card {
   position: relative;
   background: var(--panel);
-  border: 1px solid rgba(15,23,42,.06);
+  border: 1px solid var(--figma-color-border);
   border-radius: var(--r);
   padding: 13px 14px; margin-bottom: 10px; cursor: pointer;
   transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
   display: flex; flex-direction: column; gap: 8px;
-  box-shadow: var(--elev-0);
 }
 .test-card::before {
   content: ''; position: absolute; left: 0; top: 5px; bottom: 5px;
   width: 4px; border-radius: 0 999px 999px 0;
-  background: rgba(15,23,42,.14);
+  background: var(--figma-color-border);
   transition: background var(--dur-fast);
 }
 .test-card.st-active::before { background: var(--brand); }
 .test-card.st-done::before   { background: var(--ok); }
 .test-card.st-paused::before { background: var(--warn); }
-.test-card:hover { border-color: rgba(13,153,255,.2); background: var(--panel-strong); box-shadow: var(--elev-1); transform: translateY(-1px); }
+.test-card:hover { border-color: var(--brand-border); background: var(--panel-strong); transform: translateY(-1px); }
 .test-card.deleting { opacity: .35; pointer-events: none; transform: scale(.98); }
 
 .tc-row1 { display: flex; align-items: center; gap: 8px; }
@@ -508,7 +503,7 @@ code {
   transition: background var(--dur-fast), color var(--dur-fast);
 }
 .icon-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
-.icon-btn.danger:hover { background: rgba(220,38,38,.12); color: var(--danger); }
+.icon-btn.danger:hover { background: var(--danger-hover); color: var(--danger); }
 
 /* ── Dashboard: empty state ──────────────────────────────────────────────── */
 .dash-empty {
