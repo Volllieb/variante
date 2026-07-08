@@ -17,7 +17,6 @@ import {
   Zap,
   Shield,
   Puzzle,
-  ExternalLink,
   Plus,
   ArrowRight,
   Circle,
@@ -319,21 +318,15 @@ export function DashboardClient({
             </div>
 
             <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
-              <p className="text-[13px] font-medium text-[#ededed]">Browser Extension</p>
+              <p className="text-[13px] font-medium text-[#ededed]">Element Picker</p>
               <p className="mt-1 text-[11px] text-[#ededed]/40">
-                Pick elements directly on your live site. Install once from the Chrome Web Store — the picker runs
-                locally.
+                Built into the snippet — no extension needed. Open your site from the Figma plugin and click any
+                element to capture it.
               </p>
-              <a
-                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-2 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-colors hover:bg-white/90"
-              >
-                <Puzzle className="h-3.5 w-3.5" />
-                Install from Chrome Web Store
-                <ExternalLink className="h-3 w-3 opacity-60" />
-              </a>
+              <div className="mt-3 flex items-center gap-2 rounded-[6px] border border-[#14AE5C]/20 bg-[#14AE5C]/[0.06] px-3 py-2 text-[11px] text-[#14AE5C]">
+                <Check className="h-3.5 w-3.5" />
+                Ready — picker runs from snippet
+              </div>
             </div>
           </div>
 
@@ -649,8 +642,8 @@ const SETUP_STEPS = [
   {
     n: 2,
     title: 'Connect Figma',
-    desc: 'Install the Chrome extension and paste your token into the Figma plugin.',
-    action: 'Copy token & open extension',
+    desc: 'Paste your token into the Figma plugin to link it to your account.',
+    action: 'Copy token & open plugin',
     icon: Puzzle,
     target: '#plugin-token',
   },

@@ -24,7 +24,222 @@
   try {
     origin = script && script.src ? new URL(script.src).origin : ''
   } catch (_) {}
+  // =========================================================================
+  // PICKER MODE — Element & Goal Picker (replaces Chrome Extension)
+  // Figma plugin opens https://site.com?ab_pick=<testId>&ab_token=...
+  // ab.js detects the params and switches into visual picker mode instead
+  // of running the normal A/B flow.
+  // =========================================================================
 
+  var __abPickerCfg = (function () {
+    try {
+      var s = location.search
+      if (!s) return null
+      var p = new URLSearchParams(s)
+      var tid = p.get('ab_pick') || p.get('ab_goal')
+      if (!tid) return null
+      return {
+        testId: tid,
+        token: p.get('ab_token') || '',
+        apiBase: (p.get('ab_api') || origin || 'https://www.getvariante.com').replace(/\/+$/, ''),
+        mode: p.get('ab_goal') ? 'goal' : 'element',
+      }
+    } catch (_) { return null }
+  })()
+
+  if (__abPickerCfg) {
+    ;(function startPicker(cfg) {
+      if (window.__abPickerActive) return
+      window.__abPickerActive = true
+
+      // --- CSS-Selektor: möglichst eindeutiger Pfad zum Element ------------
+      function cssSelector(el) {
+        if (el.id) return '#' + CSS.escape(el.id)
+        var parts = [], node = el
+        while (node && node.nodeType === 1 && node.tagName.toLowerCase() !== 'html') {
+          var part = node.tagName.toLowerCase()
+          if (node.id) { part = '#' + CSS.escape(node.id); parts.unshift(part); break }
+          if (node.className && typeof node.className === 'string') {
+            var cls = node.className.trim().split(/\s+/).filter(function (c) { return c && c.indexOf(':') === -1 && c.indexOf('/') === -1 && c.length > 1 }).slice(0, 2)
+            if (cls.length) part += '.' + cls.map(function (c) { return CSS.escape(c) }).join('.')
+          }
+          var parent = node.parentNode
+          if (parent) {
+            var siblings = Array.prototype.filter.call(parent.children, function (c) { return c.tagName === node.tagName })
+            if (siblings.length > 1) part += ':nth-of-type(' + (siblings.indexOf(node) + 1) + ')'
+          }
+          parts.unshift(part)
+          node = node.parentNode
+        }
+        return parts.join(' > ')
+      }
+
+      // --- Framework-Erkennung --------------------------------------------
+      function detectFramework() {
+        var html = document.documentElement.outerHTML.slice(0, 50000)
+        var links = Array.prototype.map.call(document.querySelectorAll('link[href], script[src]'), function (n) { return n.href || n.src }).join(' ').toLowerCase()
+        if (links.indexOf('tailwind') > -1 || /class="[^"]*\b(flex|grid|px-\d|py-\d|text-\w+-\d{3})\b/.test(html)) return 'tailwind'
+        if (links.indexOf('bootstrap') > -1 || /class="[^"]*\b(container|row|col-|btn-)\b/.test(html)) return 'bootstrap'
+        return 'custom'
+      }
+
+      // --- Relevantes CSS (Zielelement + :root + Pseudo-Klassen) ----------
+      var PSEUDO_RE = /:(hover|focus|active|focus-visible|focus-within)\b/
+      function matchesPseudo(el, sel) {
+        var base = sel.replace(/:(hover|focus|active|focus-visible|focus-within)\b/g, '').trim()
+        if (!base) return false
+        try { return el.matches(base) } catch (_) { return false }
+      }
+      function computedBlock(el) {
+        try {
+          var cs = getComputedStyle(el)
+          var props = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
+          var lines = []
+          for (var i = 0; i < props.length; i++) {
+            var v = cs.getPropertyValue(props[i])
+            if (v && v !== 'none' && v !== 'normal') lines.push('  ' + props[i] + ': ' + v + ';')
+          }
+          if (!lines.length) return ''
+          return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
+        } catch (_) { return '' }
+      }
+      function collectCss(el) {
+        var out = [], seen = {}
+        function push(rule) { if (!seen[rule.cssText]) { seen[rule.cssText] = true; out.push(rule.cssText) } }
+        function consider(rule) {
+          try {
+            var sel = rule.selectorText; if (!sel) return
+            if (sel.indexOf(':root') > -1 || rule.cssText.indexOf('--') > -1) { push(rule); return }
+            if (PSEUDO_RE.test(sel)) { if (matchesPseudo(el, sel)) push(rule); return }
+            if (el.matches(sel)) push(rule)
+          } catch (_) {}
+        }
+        try {
+          var sheets = document.styleSheets
+          for (var i = 0; i < sheets.length; i++) {
+            var rules; try { rules = sheets[i].cssRules } catch (_) { continue }
+            if (!rules) continue
+            for (var j = 0; j < rules.length; j++) {
+              var rule = rules[j]
+              if (rule.type === CSSRule.STYLE_RULE) consider(rule)
+              else if (rule.cssRules) { for (var k = 0; k < rule.cssRules.length; k++) { if (rule.cssRules[k].type === CSSRule.STYLE_RULE) consider(rule.cssRules[k]) } }
+            }
+          }
+        } catch (_) {}
+        var rulesText = out.join('\n').slice(0, 18000)
+        var comp = computedBlock(el)
+        return (comp ? rulesText + '\n\n' + comp : rulesText).slice(0, 24000)
+      }
+
+      // --- Goal-Kandidaten: klickbare Elemente fürs Plugin-Dropdown --------
+      function collectGoalCandidates(picked) {
+        var out = [], seen = {}
+        function add(el) {
+          if (!el || el.nodeType !== 1) return
+          var sel = cssSelector(el); if (!sel || seen[sel]) return
+          seen[sel] = true
+          var text = (el.innerText || el.textContent || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 40)
+          out.push({ selector: sel, text: text })
+        }
+        add(picked)
+        var nodes = document.querySelectorAll('button, a[href], [role="button"], input[type="submit"], input[type="button"]')
+        for (var i = 0; i < nodes.length && out.length < 15; i++) add(nodes[i])
+        return out.slice(0, 15)
+      }
+
+      // --- UI: Banner + Overlay -------------------------------------------
+      var __banner = null
+      function showBanner(msg) {
+        hideBanner()
+        var b = document.createElement('div')
+        b.id = '__ab_banner'
+        b.textContent = msg || 'Click element (ESC cancels).'
+        b.style.cssText = 'position:fixed;z-index:2147483647;top:0;left:0;right:0;padding:12px 40px;font:700 14px -apple-system,Segoe UI,sans-serif;color:#ededed;text-align:center;background:#0a0a0a;border-bottom:1px solid rgba(255,255,255,.10);box-shadow:0 4px 24px rgba(0,0,0,.6);letter-spacing:.3px;user-select:none'
+        var closeBtn = document.createElement('span')
+        closeBtn.textContent = '\u2716'
+        closeBtn.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;opacity:.7'
+        closeBtn.onclick = function (e) { e.stopPropagation(); cleanup(); hideBanner() }
+        b.appendChild(closeBtn)
+        b.onclick = function () { cleanup(); hideBanner() }
+        document.body.appendChild(b)
+        __banner = b
+      }
+      function hideBanner() { if (__banner) { try { __banner.remove() } catch (_) {}; __banner = null } }
+
+      function showOverlay(msg, isError) {
+        hideBanner()
+        if (document.getElementById('__ab_picker_overlay')) return
+        var wrap = document.createElement('div')
+        wrap.id = '__ab_picker_overlay'
+        wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);font-family:-apple-system,Segoe UI,sans-serif;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)'
+        var card = document.createElement('div')
+        card.style.cssText = 'background:#0a0a0a;color:#ededed;padding:32px 36px;border-radius:16px;text-align:center;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.10)'
+        if (isError) {
+          card.innerHTML = '<div style="width:56px;height:56px;border-radius:28px;background:rgba(245,69,92,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#f5455c">!</div><div style="font-size:16px;font-weight:600;margin-bottom:4px;line-height:1.4;color:#f5455c">' + msg + '</div><div style="font-size:12px;color:rgba(237,237,237,.40);margin-top:14px">Dismissing in a moment\u2026</div>'
+        } else {
+          card.innerHTML = '<div style="width:56px;height:56px;border-radius:28px;background:rgba(20,174,92,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#14AE5C">\u2713</div><div style="font-size:16px;font-weight:600;margin-bottom:4px;line-height:1.4;color:#14AE5C">' + msg + '</div><div style="font-size:12px;color:rgba(237,237,237,.40);margin-top:14px">Return to Figma to continue.</div>'
+        }
+        wrap.appendChild(card)
+        wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.remove() })
+        document.body.appendChild(wrap)
+        if (isError) setTimeout(function () { try { wrap.remove() } catch (_) {} }, 3200)
+      }
+
+      // --- Picker starten -------------------------------------------------
+      function boot() {
+        if (!document.body) { setTimeout(boot, 50); return }
+        showBanner(cfg.mode === 'goal' ? 'Click goal element (ESC cancels).' : 'Click element (ESC cancels).')
+
+        var lastEl = null, HL = '2px solid #2563eb'
+        function onOver(e) { if (lastEl) lastEl.style.outline = ''; lastEl = e.target; lastEl.style.outline = HL }
+        function onOut(e) { if (e.target && e.target.style) e.target.style.outline = '' }
+
+        function onClick(e) {
+          e.preventDefault(); e.stopPropagation()
+          var el = e.target
+          cleanup(); hideBanner()
+
+          var headers = { 'Content-Type': 'application/json' }
+          if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
+
+          var url, body
+          if (cfg.mode === 'goal') {
+            url = cfg.apiBase + '/api/tests/' + cfg.testId
+            body = JSON.stringify({ goal: cssSelector(el) })
+          } else {
+            url = cfg.apiBase + '/api/capture'
+            body = JSON.stringify({ testId: cfg.testId, selector: cssSelector(el), original_html: el.outerHTML, site_css: collectCss(el), framework: detectFramework(), goal_candidates: collectGoalCandidates(el) })
+          }
+          fetch(url, { method: cfg.mode === 'goal' ? 'PATCH' : 'POST', headers: headers, body: body })
+            .then(function (r) {
+              if (r.ok) showOverlay(cfg.mode === 'goal' ? 'Goal saved' : 'Element captured', false)
+              else showOverlay('Save failed (' + r.status + ')', true)
+            })
+            .catch(function () { showOverlay('Network error while saving.', true) })
+        }
+
+        function onKey(e) { if (e.key === 'Escape') { cleanup(); hideBanner() } }
+
+        function cleanup() {
+          if (lastEl) lastEl.style.outline = ''
+          document.removeEventListener('mouseover', onOver, true)
+          document.removeEventListener('mouseout', onOut, true)
+          document.removeEventListener('click', onClick, true)
+          document.removeEventListener('keydown', onKey, true)
+          window.__abPickerActive = false
+        }
+
+        document.addEventListener('mouseover', onOver, true)
+        document.addEventListener('mouseout', onOut, true)
+        document.addEventListener('click', onClick, true)
+        document.addEventListener('keydown', onKey, true)
+      }
+
+      boot()
+    })(__abPickerCfg)
+
+    return // ← picker mode: normalen A/B-Flow NICHT ausführen
+  }
   // Anti-Flicker: Klasse auf <html> entfernen (vom Snippet gesetzt). Idempotent.
   function reveal() {
     window.__ab_pending_resolve = true // inline fallback: hör auf zu polln

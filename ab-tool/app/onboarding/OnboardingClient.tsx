@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Copy, Check, ArrowRight, Zap, Puzzle } from 'lucide-react'
+import { Copy, Check, ArrowRight, Zap } from 'lucide-react'
 
 export function OnboardingClient({
   email,
@@ -64,49 +64,10 @@ export function OnboardingClient({
 
         <main className="mx-auto max-w-xl px-6 py-12 space-y-5">
 
-          {/* 1. Browser Extension — step 1 */}
-          <div className="rounded-[10px] border border-border bg-bg-1 overflow-hidden">
-            <div className="px-6 py-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-bg-2 text-xs font-semibold text-text-3">1</span>
-                <div>
-                  <p className="text-sm font-semibold text-white">Install the Browser Extension</p>
-                  <p className="mt-0.5 text-xs text-text-3">The element picker runs locally — install once, works everywhere.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-border px-6 pb-6 pt-5 space-y-4">
-              <a
-                href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-[6px] bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
-              >
-                <Puzzle className="h-4 w-4" /> Install from Chrome Web Store
-              </a>
-              <p className="text-xs text-text-3">— or install manually —</p>
-              <a
-                href="/chrome-extension.zip"
-                download
-                className="inline-flex items-center gap-2 rounded-[6px] border border-border px-5 py-2 text-sm font-semibold text-text transition-colors duration-200 hover:border-border-strong hover:text-white"
-              >
-                ⬇ Download ZIP
-              </a>
-              <ol className="space-y-2 text-xs text-text-3 ml-1">
-                <li className="flex gap-2"><span className="shrink-0 text-text-3">1.</span>Unzip the downloaded file</li>
-                <li className="flex gap-2"><span className="shrink-0 text-text-3">2.</span>Open Chrome → <code className="rounded-[4px] bg-bg-2 px-1.5 py-0.5 font-mono text-[10px] text-text">chrome://extensions</code></li>
-                <li className="flex gap-2"><span className="shrink-0 text-text-3">3.</span>Enable <strong className="text-text-2">Developer mode</strong> (top right)</li>
-                <li className="flex gap-2"><span className="shrink-0 text-text-3">4.</span>Click <strong className="text-text-2">Load unpacked</strong> → select the unzipped folder</li>
-                <li className="flex gap-2"><span className="shrink-0 text-text-3">5.</span>Done — you only need to do this once</li>
-              </ol>
-            </div>
-          </div>
-
-          {/* 2. Plugin Token — step 2 */}
+          {/* 1. Plugin Token — step 1 */}
           <div className="rounded-[10px] border border-border bg-bg-1 p-6">
             <div className="mb-1 flex items-center gap-2">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-bg-2 text-xs font-semibold text-text-3">2</span>
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-bg-2 text-xs font-semibold text-text-3">1</span>
               <p className="text-sm font-semibold text-white">Connect the Figma Plugin</p>
             </div>
             <p className="mt-1 text-xs text-text-3">

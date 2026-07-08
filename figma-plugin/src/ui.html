@@ -833,7 +833,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <span class="testid-copied" id="el-testid-copied">✓ Copied</span>
     </div>
 
-    <!-- Extension notice -->
+    <!-- Picker notice (no extension needed — built into the snippet) -->
     <div class="notice notice-blue" id="el-ext-notice">
       <div class="notice-head">
         <span class="notice-icon">
@@ -842,16 +842,10 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
           </svg>
         </span>
         <div>
-          <div class="notice-title">Browser Extension required</div>
-          <div class="notice-body">The element picker runs in your browser. Install once — works across plugin updates.</div>
+          <div class="notice-title">Element picker is built-in</div>
+          <div class="notice-body">No extension needed — the picker runs directly from your site's snippet. Just click below to open your site and select any element.</div>
         </div>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="downloadExtension()" style="width:100%">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
-        </svg>
-        Download Extension
-      </button>
     </div>
 
     <!-- Waiting state — centered with dot animation -->
@@ -1526,7 +1520,8 @@ function siteTriggerUrl(mode) {
   if (!state.url) return ''
   const base = /^https?:\/\//i.test(state.url) ? state.url : 'https://' + state.url
   const param = mode === 'goal' ? 'ab_goal' : 'ab_pick'
-  return base + '#' + param + '=' + encodeURIComponent(state.testId) +
+  const sep = base.indexOf('?') > -1 ? '&' : '?'
+  return base + sep + param + '=' + encodeURIComponent(state.testId) +
     '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
 }
 async function openSite(mode) {
@@ -1542,9 +1537,6 @@ async function openSite(mode) {
   }
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url } }, '*')
   if (mode === 'goal') { $('m-waiting').style.display = 'flex'; startMetricPoll() }
-}
-function downloadExtension() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: API + '/chrome-extension.zip' } }, '*')
 }
 function copyTestId() {
   const id = state.testId

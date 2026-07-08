@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 07.07.2026 — Sprint 2: Test-Cards aufgewertet + Overview-Tabelle deployed |
+| **Stand** | 08.07.2026 — Sprint: Chrome-Extension durch Snippet-Picker ersetzt |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -24,8 +24,8 @@
 | Datenbank + Auth | Supabase (Postgres + JWT) |
 | Billing | Stripe (Checkout, Portal, Webhooks) |
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
-| Snippet | `ab.js` (Vanilla JS, <5 KB, kein Build-Step) |
-| Chrome-Extension | MV3 (Vanilla JS, on-demand injection) |
+| Snippet | `ab.js` (Vanilla JS, ~8 KB, kein Build-Step, eingebauter Element-Picker) |
+| Chrome-Extension | ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im Snippet |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) |
 | **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
 
@@ -39,7 +39,7 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
 └── __tests__/
-chrome-extension/       # MV3 — content-picker.js, background.js, popup.*, welcome.html
+chrome-extension/       # ⚠️ Deprecated — MV3 Extension (Element-Picker jetzt im Snippet)
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
 db/migrations/          # Supabase SQL (001–013)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch

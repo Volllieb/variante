@@ -4,10 +4,10 @@ import { PandaLogo } from '@/components/PandaLogo'
 export const metadata: Metadata = {
   title: 'Documentation — How Variante Works',
   description:
-    'Complete guide to A/B testing with Variante. Learn how to install the snippet, use the Figma plugin, connect the Chrome Extension, and run your first experiment.',
+    'Complete guide to A/B testing with Variante. Learn how to install the snippet, use the Figma plugin, pick elements, and run your first experiment.',
   openGraph: {
     title: 'Variante Documentation — A/B Testing from Figma',
-    description: 'Complete guide: installation, Figma plugin, Chrome Extension, experiment setup, and pricing.',
+    description: 'Complete guide: installation, Figma plugin, element picker, experiment setup, and pricing.',
     url: 'https://www.getvariante.com/docs',
     siteName: 'Variante',
     images: [{ url: 'https://www.getvariante.com/og', width: 1200, height: 630, alt: 'Variante Docs' }],
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Variante Documentation — A/B Testing from Figma',
-    description: 'Complete guide: installation, Figma plugin, Chrome Extension, experiment setup, and pricing.',
+    description: 'Complete guide: installation, Figma plugin, element picker, experiment setup, and pricing.',
     images: ['https://www.getvariante.com/og'],
   },
   alternates: { canonical: 'https://www.getvariante.com/docs' },
@@ -185,36 +185,29 @@ export default function Document() {
     ),
   },
   {
-    id: 'chrome-extension',
-    title: 'Chrome Extension',
+    id: 'element-picker',
+    title: 'Element Picker',
     body: (
       <>
         <p>
-          The Chrome Extension lets you pick elements directly on your live site. Click the extension
-          icon, enter picker mode, and hover over any element to select it.
+          The element picker is built directly into the site snippet — no extra installation needed.
+          When you start a test from the Figma plugin, it opens your live site with the picker
+          activated. Hover over any element to highlight it, click to capture its HTML, CSS, and
+          context.
         </p>
         <ol className="list-decimal space-y-2 pl-5">
-          <li>
-            <a
-              href="https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-white/70 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
-            >
-              Install from the Chrome Web Store
-            </a>
-            .
-          </li>
-          <li>Navigate to your live site and click the Variante extension icon.</li>
-          <li>Click &quot;Pick element&quot; and hover over the component you want to test.</li>
-          <li>The picker captures the element&apos;s HTML, CSS, and context. This data is sent to
-          Figma for variant generation.</li>
+          <li>Start a test in the Figma plugin — enter your site URL and test name.</li>
+          <li>The plugin opens your live site. A banner at the top confirms picker mode is active.</li>
+          <li>Hover over the element you want to test — it highlights with a blue outline.</li>
+          <li>Click the element. The picker captures its HTML, CSS, framework info, and suggests
+          conversion goals.</li>
+          <li>Return to Figma — the captured element is ready for you to design Variant B.</li>
         </ol>
         <div className="mt-4 rounded-[6px] border border-white/10 bg-white/[0.02] p-4">
           <p className="text-[13px] text-[#ededed]/50">
-            <strong className="font-semibold text-white/70">Privacy:</strong> The extension runs
-            locally. Element data is only sent when you explicitly trigger a pick. No data is
-            collected in the background.
+            <strong className="font-semibold text-white/70">No extension needed:</strong> The picker
+            runs directly from your snippet. Element data is only sent when you explicitly click an
+            element. No data is collected in the background.
           </p>
         </div>
       </>
@@ -301,7 +294,7 @@ window.__ab_track_conversion()`}
           },
           {
             q: 'How does AI variant generation work?',
-            a: 'You pick an element on your site (via Chrome Extension) and select a replacement design in Figma. The AI reads the original HTML/CSS and your Figma design, then generates a pixel-perfect variant that matches your existing code style and framework conventions.',
+            a: 'You pick an element on your site (built-in picker, no extension) and select a replacement design in Figma. The AI reads the original HTML/CSS and your Figma design, then generates a pixel-perfect variant that matches your existing code style and framework conventions.',
           },
           {
             q: 'What happens when a winner is detected?',
@@ -416,7 +409,7 @@ export default function DocsPage() {
             '@context': 'https://schema.org',
             '@type': 'WebPage',
             name: 'Variante Documentation',
-            description: 'Complete guide to A/B testing with Variante — installation, Figma plugin, Chrome Extension, experiments, and pricing.',
+            description: 'Complete guide to A/B testing with Variante — installation, Figma plugin, element picker, experiments, and pricing.',
             url: 'https://www.getvariante.com/docs',
             isPartOf: { '@type': 'WebSite', name: 'Variante', url: 'https://www.getvariante.com' },
           }),
