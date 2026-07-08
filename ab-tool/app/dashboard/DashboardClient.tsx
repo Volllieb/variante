@@ -16,7 +16,6 @@ import {
 import {
   Check,
   X,
-  AlertTriangle,
   FlaskConical,
   Users,
   TrendingUp,
@@ -46,7 +45,6 @@ export function DashboardClient({
   apiToken,
   tests,
   hasFigmaPlugin,
-  lastPluginSyncAt,
   highlightNew,
   upgraded,
   openNewTest,
@@ -55,7 +53,6 @@ export function DashboardClient({
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
-  lastPluginSyncAt: string | null
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
@@ -126,12 +123,6 @@ export function DashboardClient({
   const avgUplift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
 
   const hasSiteUrl = testList.some((t) => t.site_url)
-
-  // Plugin-Health: verbunden + kürzlich synchronisiert?
-  const PLUGIN_STALE_DAYS = 7
-  const pluginStale = hasFigmaPlugin && lastPluginSyncAt != null
-    && (Date.now() - new Date(lastPluginSyncAt).getTime()) > PLUGIN_STALE_DAYS * 86400000
-  const pluginNeverSynced = hasFigmaPlugin && lastPluginSyncAt == null
 
   // Sorting + Filtering
   const sortedTests = useMemo(() => {
@@ -227,11 +218,7 @@ export function DashboardClient({
                 <MetricRow
                   icon={Puzzle}
                   label="Figma Plugin"
-                  value={
-                    !hasFigmaPlugin ? <X className="h-3.5 w-3.5 text-[#f5455c]" /> :
-                    pluginStale || pluginNeverSynced ? <AlertTriangle className="h-3.5 w-3.5 text-[#f5a623]" /> :
-                    <Check className="h-3.5 w-3.5 text-[#2fd76c]" />
-                  }
+                  value={hasFigmaPlugin ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
                 />
                 <MetricRow icon={Globe} label="Extension" value={<Check className="h-3.5 w-3.5 text-[#2fd76c]" />} />
               </div>

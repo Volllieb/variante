@@ -28,17 +28,6 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
-function formatRelativeTime(ms: number): string {
-  const secs = Math.floor(ms / 1000)
-  if (secs < 60) return 'just now'
-  const mins = Math.floor(secs / 60)
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
-}
-
 type CheckId = 'snippet' | 'plugin'
 
 type CheckResult = {
@@ -106,50 +95,15 @@ export function SetupClient({ data }: { data: SetupData }) {
     }
   }, [])
 
-  // ── Plugin check (server-provided flag + last sync timestamp) ──
+  // ── Plugin check (server-provided flag) ──
   useEffect(() => {
-    const PLUGIN_STALE_DAYS = 7
-    const now = Date.now()
-    const lastSync = data.lastPluginSyncAt ? new Date(data.lastPluginSyncAt).getTime() : null
-    const stale = lastSync != null && (now - lastSync) > PLUGIN_STALE_DAYS * 86400000
-    const neverSynced = data.hasFigmaPlugin && lastSync == null
-
-    if (!data.hasFigmaPlugin) {
-      setChecks((prev) => ({
-        ...prev,
-        plugin: { status: 'err', label: 'Figma plugin not connected', summary: 'Install the plugin and paste your token to link it.' },
-      }))
-    } else if (neverSynced) {
-      setChecks((prev) => ({
-        ...prev,
-        plugin: {
-          status: 'warn',
-          label: 'Plugin connected but never synced',
-          summary: 'The plugin was linked but has never pushed data. It may be disconnected.',
-        },
-      }))
-    } else if (stale) {
-      const days = Math.floor((now - lastSync!) / 86400000)
-      setChecks((prev) => ({
-        ...prev,
-        plugin: {
-          status: 'warn',
-          label: 'Plugin may be disconnected',
-          summary: `Last sync was ${days} days ago. The plugin may have been disconnected.`,
-        },
-      }))
-    } else {
-      const ago = lastSync ? formatRelativeTime(now - lastSync) : ''
-      setChecks((prev) => ({
-        ...prev,
-        plugin: {
-          status: 'ok',
-          label: 'Figma plugin connected',
-          summary: `Plugin is linked to your account.${ago ? ` Last sync: ${ago}.` : ''}`,
-        },
-      }))
-    }
-  }, [data.hasFigmaPlugin, data.lastPluginSyncAt])
+    setChecks((prev) => ({
+      ...prev,
+      plugin: data.hasFigmaPlugin
+        ? { status: 'ok', label: 'Figma plugin connected', summary: 'Plugin is linked to your account.' }
+        : { status: 'err', label: 'Figma plugin not connected', summary: 'Install the plugin and paste your token to link it.' },
+    }))
+  }, [data.hasFigmaPlugin])
 
   // ── Run snippet check on mount if we have a URL ──
   useEffect(() => {
@@ -313,30 +267,7 @@ export function SetupClient({ data }: { data: SetupData }) {
             statusBorder={statusBorder(checks.plugin.status)}
           >
             <div className="space-y-4">
-              {checks.plugin.status === 'warn' ? (
-                <div className="space-y-4">
-                  <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                    The plugin was previously connected but {data.lastPluginSyncAt ? `hasn't sent data since ${new Date(data.lastPluginSyncAt).toLocaleDateString()}` : 'has never sent data'}. It may have been disconnected.
-                  </p>
-                  <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                    Open the Figma plugin and check if your token is still set. If you see a 401 error, paste your token again.
-                  </p>
-                  <div>
-                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Your plugin token</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2 font-mono text-[13px] text-[#ededed]/62">
-                        {data.apiToken || 'No token yet'}
-                      </code>
-                      <button
-                        onClick={copyToken}
-                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-                      >
-                        {tokenCopied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : checks.plugin.status === 'err' ? (
+              {checks.plugin.status === 'err' ? (
                 <>
                   <p className="text-[12px] leading-relaxed text-[#ededed]/62">
                     The Figma plugin lets you create A/B variants directly from your designs.{' '}

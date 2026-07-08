@@ -8,7 +8,6 @@ export type SetupData = {
   plan: string
   apiToken: string
   hasFigmaPlugin: boolean
-  lastPluginSyncAt: string | null
   siteUrl: string | null
   testCount: number
 }
@@ -20,7 +19,7 @@ export default async function SetupPage() {
   const [profileRes, testsRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('plan, api_token, has_figma_plugin, onboarded, last_plugin_sync_at')
+      .select('plan, api_token, has_figma_plugin, onboarded')
       .eq('user_id', user.id)
       .single(),
     supabase
@@ -35,7 +34,7 @@ export default async function SetupPage() {
 
   if (!profile) {
     await ensureProfile(user.id)
-    return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, lastPluginSyncAt: null, siteUrl: null, testCount: 0 }} />
+    return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, siteUrl: null, testCount: 0 }} />
   }
 
   const siteUrl = testsRes.data?.[0]?.site_url ?? null
@@ -46,7 +45,6 @@ export default async function SetupPage() {
         plan: profile.plan ?? 'free',
         apiToken: profile.api_token ?? '',
         hasFigmaPlugin: profile.has_figma_plugin ?? false,
-        lastPluginSyncAt: profile.last_plugin_sync_at ?? null,
         siteUrl,
         testCount: testsRes.data?.length ?? 0,
       }}
