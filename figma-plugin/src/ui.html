@@ -316,29 +316,6 @@ textarea { resize: vertical; }
 }
 .el-chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── Test-ID row ─────────────────────────────────────────────────────────── */
-.testid-row {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--figma-color-bg-secondary);
-  border-radius: var(--r); padding: 8px 12px; margin-bottom: 14px;
-  cursor: pointer; transition: background var(--dur-fast);
-}
-.testid-row:hover { background: var(--figma-color-bg-hover); }
-.testid-lbl {
-  font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
-  letter-spacing: .5px; color: var(--figma-color-text-secondary); flex-shrink: 0;
-}
-.testid-val {
-  font-size: var(--fs-sm); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  color: var(--figma-color-text); flex: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.testid-copy { flex-shrink: 0; display: flex; align-items: center; color: var(--figma-color-text-secondary); }
-.testid-row:hover .testid-copy { color: var(--brand); }
-.testid-copied { flex-shrink: 0; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--ok); display: none; }
-.testid-row.copied .testid-copy { display: none; }
-.testid-row.copied .testid-copied { display: inline; }
-
 /* ── Metric options (radio cards) ───────────────────────────────────────── */
 .m-opt {
   display: flex; align-items: flex-start; gap: 10px;
@@ -848,18 +825,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-
-    <!-- Test-ID -->
-    <div class="testid-row" id="el-testid-row" onclick="copyTestId()" title="Click to copy" tabindex="0" role="button" aria-label="Copy test ID" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyTestId()}">
-      <span class="testid-lbl">Test ID</span>
-      <span class="testid-val" id="el-testid-val">—</span>
-      <span class="testid-copy" id="el-testid-copy">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-        </svg>
-      </span>
-      <span class="testid-copied" id="el-testid-copied">✓ Copied</span>
-    </div>
 
     <!-- Picker notice (no extension needed — built into the snippet) -->
     <div class="notice notice-blue" id="el-ext-notice">
@@ -1385,7 +1350,6 @@ async function restoreDraft(draft) {
     // UI zurücksetzen
     $('f-name').value = state.name
     $('f-url').value = state.url
-    $('el-testid-val').textContent = state.testId || '—'
     hideUpgradeBanner()
 
     // Je nach gespeichertem Screen den richtigen Zustand herstellen
@@ -1668,7 +1632,6 @@ function newTest() {
   $('btn-el-next').disabled = true
   $('btn-export').disabled = true
   $('el-chip-wrap').innerHTML = ''
-  $('el-testid-val').textContent = '—'
   hideUpgradeBanner()
   navPush('setup')
   populateDatalist('dl-url', 'url')
@@ -1714,7 +1677,6 @@ async function createTest() {
     state.snippetKey = data.snippet_key
     state.name = name; state.url = url
     saveInputHistory('url', url)
-    $('el-testid-val').textContent = data.id
     navPush('element')
     startElementPoll()
     openSite('element')
@@ -1748,18 +1710,7 @@ async function openSite(mode) {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url } }, '*')
   if (mode === 'goal') { $('m-waiting').style.display = 'flex'; startMetricPoll() }
 }
-function copyTestId() {
-  const id = state.testId
-  if (!id) return
-  const ta = document.createElement('textarea')
-  ta.value = id; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
-  document.body.appendChild(ta); ta.focus(); ta.select()
-  try { document.execCommand('copy') } catch (_) {}
-  document.body.removeChild(ta)
-  const row = $('el-testid-row'); if (!row) return
-  row.classList.add('copied')
-  setTimeout(() => row.classList.remove('copied'), 1600)
-}
+
 
 function makeElementLabel(selector, html) {
   const TAG_NAMES = { button:'Button', a:'Link', h1:'Heading', h2:'Heading', h3:'Heading', h4:'Heading', h5:'Heading', p:'Paragraph', input:'Input', img:'Image', div:'Section', span:'Text', nav:'Navigation', header:'Header', section:'Section', form:'Form', textarea:'Textarea', select:'Select', li:'List item' }
@@ -1807,7 +1758,6 @@ function startElementPoll() {
           state.selector      = t.selector
           state.originalHtml  = t.original_html || ''
           state.goalCandidates = t.goal_candidates || []
-          $('el-testid-val').textContent = state.testId || '—'
           renderElementChip(t.selector, state.originalHtml)
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
