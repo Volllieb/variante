@@ -78,7 +78,7 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
         style={{ transition: 'stroke-dasharray 0.5s ease' }}
       />
       {/* Center text: visitor count */}
-      <text x={c} y={c + 1} textAnchor="middle" fontSize="10" fontWeight="600" fill={T.text}>
+      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="10" fontWeight="600" fill={T.text}>
         {visitors >= 1000 ? `${(visitors / 1000).toFixed(0)}k` : visitors}
       </text>
     </svg>

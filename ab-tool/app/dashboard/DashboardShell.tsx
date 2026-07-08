@@ -8,7 +8,6 @@ import {
   CreditCard,
   Settings,
   HeartPulse,
-  Plus,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -25,7 +24,6 @@ type DashboardShellProps = {
   email: string
   plan: string
   children: React.ReactNode
-  newTestHref?: string
 }
 
 function avatarColor(email: string): string {
@@ -40,7 +38,7 @@ function initials(email: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-export function DashboardShell({ email, plan, children, newTestHref }: DashboardShellProps) {
+export function DashboardShell({ email, plan, children }: DashboardShellProps) {
 
   return (
     <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
@@ -95,18 +93,7 @@ export function DashboardShell({ email, plan, children, newTestHref }: Dashboard
 
         {/* ── Page content ── */}
         <div className="min-w-0 flex-1">
-          {/* Header bar */}
-          <div className="sticky top-0 z-10 flex items-center justify-end border-b border-white/[0.06] bg-black/80 px-5 py-2 backdrop-blur-sm">
-            {newTestHref ? (
-              <Link
-                href={newTestHref}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                New test
-              </Link>
-            ) : null}
-          </div>
+          {children}
           {children}
         </div>
       </div>

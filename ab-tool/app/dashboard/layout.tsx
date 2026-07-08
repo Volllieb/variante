@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (profile && !profile.onboarded) redirect('/onboarding')
 
   return (
-    <DashboardShell email={user.email ?? ''} plan={profile?.plan ?? 'free'} newTestHref="/dashboard?newTest=1">
+    <DashboardShell email={user.email ?? ''} plan={profile?.plan ?? 'free'}>
       {children}
     </DashboardShell>
   )

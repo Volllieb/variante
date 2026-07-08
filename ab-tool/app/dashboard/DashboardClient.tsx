@@ -8,6 +8,7 @@ import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import {
   Check,
+  X,
   FlaskConical,
   Users,
   TrendingUp,
@@ -150,11 +151,9 @@ export function DashboardClient({
         <div className="flex gap-5">
           {/* ═══ LEFT COLUMN (30%) ═══ */}
           <div className="w-[30%] shrink-0 space-y-4">
-            {/* Card 1: Overview metrics */}
+            {/* Overview */}
+            <h2 className="mb-0 text-[13px] font-semibold text-[#ededed]">Overview</h2>
             <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
-              <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Overview
-              </h3>
               <div>
                 <MetricRow icon={FlaskConical} label="Active Tests" value={isPro ? running.toString() : `${running} / 1`} />
                 <MetricRow icon={Users} label="Total Visitors" value={totalVisitors.toLocaleString()} />
@@ -168,31 +167,27 @@ export function DashboardClient({
               </div>
             </div>
 
-            {/* Card 2: Health / Setup */}
+            {/* Health / Setup */}
+            <div className="flex items-center gap-2">
+              <h2 className="text-[13px] font-semibold text-[#ededed]">Health / Setup</h2>
+              <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/25" />
+            </div>
             <Link
               href="/dashboard/setup"
               className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 transition-colors hover:border-white/[0.18]"
             >
-              <div className="mb-3 flex items-center gap-2">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                  Health / Setup
-                </h3>
-                <ArrowRight className="h-3 w-3 text-[#ededed]/25" />
-              </div>
               <div>
                 <MetricRow
                   icon={Code2}
                   label="Snippet"
-                  value={hasSiteUrl ? 'Detected' : 'Check'}
-                  tone={hasSiteUrl ? 'ok' : 'pro'}
+                  value={hasSiteUrl ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
                 />
                 <MetricRow
                   icon={Puzzle}
                   label="Figma Plugin"
-                  value={hasFigmaPlugin ? 'Connected' : 'Not connected'}
-                  tone={hasFigmaPlugin ? 'ok' : 'pro'}
+                  value={hasFigmaPlugin ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
                 />
-                <MetricRow icon={Globe} label="Extension" value="Available" tone="ok" />
+                <MetricRow icon={Globe} label="Extension" value={<Check className="h-3.5 w-3.5 text-[#2fd76c]" />} />
               </div>
             </Link>
           </div>
@@ -273,7 +268,7 @@ function MetricRow({
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
-  value: string
+  value: React.ReactNode
   tone?: 'ok' | 'pro' | 'err'
 }) {
   const color = tone === 'ok' ? T.ok : tone === 'pro' ? T.pro : tone === 'err' ? T.err : undefined
@@ -284,8 +279,8 @@ function MetricRow({
         <span className="truncate text-[12px] text-[#ededed]/62">{label}</span>
       </div>
       <span
-        className="ml-3 shrink-0 text-[12px] font-medium tabular-nums text-[#ededed]"
-        style={color ? { color } : undefined}
+        className="ml-3 flex shrink-0 items-center text-[12px] font-medium tabular-nums text-[#ededed]"
+        style={typeof value === 'string' && color ? { color } : undefined}
       >
         {value}
       </span>
