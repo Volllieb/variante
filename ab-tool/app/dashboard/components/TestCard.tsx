@@ -38,53 +38,49 @@ function extractDomain(url: string | null): string | null {
   }
 }
 
-function testDuration(iso: string, status: string): string {
+function formatDuration(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(ms / 60000)
+  const secs = Math.floor(ms / 1000)
+  const mins = Math.floor(secs / 60)
   const hours = Math.floor(mins / 60)
   const days = Math.floor(hours / 24)
 
-  const dur = days > 0 ? `${days}d` : hours > 0 ? `${hours}h` : `${mins}m`
-
-  if (status === 'active') return `Running for ${dur}`
-  if (status === 'paused') return `Paused · Ran for ${dur}`
-  if (status === 'done') return `Completed · Ran for ${dur}`
-  return `Draft · Created ${dur} ago`
+  if (days >= 1) return `${days}d`
+  if (hours >= 1) return `${hours}h`
+  if (mins >= 1) return `${mins}m`
+  return `${secs}s`
 }
 
-/* ── 24×24 Mini-Donut ── */
-function SigDonut({ significance, size }: { significance: number; size: number }) {
-  const r = 9
+/* ── Pie chart: significance progress, visitors in center ── */
+function SigPie({ significance, visitors, size }: { significance: number; visitors: number; size: number }) {
+  const r = size / 2 - 3
   const c = size / 2
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, Math.max(0, significance))
-  const strokeColor = pct >= 0.95 ? T.ok : pct >= 0.7 ? T.pro : '#ffffff40'
+  const strokeColor = pct >= 0.95 ? T.ok : pct >= 0.7 ? T.pro : '#ffffff26'
+  const bgColor = pct >= 0.95 ? `${T.ok}1f` : pct >= 0.7 ? `${T.pro}1f` : '#ffffff0d'
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="2" />
+      {/* Background circle */}
+      <circle cx={c} cy={c} r={r} fill={bgColor} stroke="rgba(255,255,255,.06)" strokeWidth="1.5" />
+      {/* Progress arc */}
       <circle
         cx={c}
         cy={c}
         r={r}
         fill="none"
         stroke={strokeColor}
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeDasharray={`${circ * pct} ${circ * (1 - pct)}`}
         transform={`rotate(-90 ${c} ${c})`}
-        style={{ transition: 'stroke-dasharray 0.4s ease' }}
+        style={{ transition: 'stroke-dasharray 0.5s ease' }}
       />
-      {pct >= 0.95 && (
-        <text x={c} y={c + 0.5} textAnchor="middle" fontSize="8" fontWeight="700" fill={T.ok}>
-          ✓
-        </text>
-      )}
-      {pct < 0.95 && pct >= 0.7 && (
-        <text x={c} y={c + 0.5} textAnchor="middle" fontSize="7" fontWeight="600" fill={T.pro}>
-          {Math.round(pct * 100)}
-        </text>
-      )}
+      {/* Center text: visitor count */}
+      <text x={c} y={c + 1} textAnchor="middle" fontSize="10" fontWeight="600" fill={T.text}>
+        {visitors >= 1000 ? `${(visitors / 1000).toFixed(0)}k` : visitors}
+      </text>
     </svg>
   )
 }
@@ -104,7 +100,6 @@ export function TestCard({
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Close menu on outside click
   useEffect(() => {
     if (!menuOpen) return
     function handleClick(e: MouseEvent) {
@@ -120,13 +115,15 @@ export function TestCard({
   const cb = t.conversions_b ?? 0
   const crA = va > 0 ? ca / va : 0
   const crB = vb > 0 ? cb / vb : 0
-  const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
   const totalV = va + vb
-  const pctA = totalV > 0 ? (va / totalV) * 100 : 50
   const sig = totalV > 0 ? calcSignificance(va, ca, vb, cb) : 0
   const domain = extractDomain(t.site_url)
-
   const status = localStatus
+
+  // Variant leader
+  const leadA = crA > crB
+  const leadB = crB > crA
+  const leader = leadB ? 'B' : leadA ? 'A' : null
 
   async function togglePause(e: React.MouseEvent) {
     e.preventDefault()
@@ -167,47 +164,49 @@ export function TestCard({
     setMenuOpen((o) => !o)
   }
 
+  const isLive = status === 'active' || status === 'paused'
+
   return (
     <Link
       href={`/dashboard/results/${t.id}`}
       className="group/card relative block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
-      {/* Header row: favicon + name/url + menu */}
+      {/* ── Row 1: favicon | name+url | pie chart ── */}
       <div className="flex items-start gap-2.5">
         {/* Favicon */}
         {domain ? (
           <img
             src={`https://www.google.com/s2/favicons?domain=${domain}&sz=48`}
             alt=""
-            width={20}
-            height={20}
+            width={18}
+            height={18}
             className="mt-0.5 shrink-0 rounded-[4px]"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         ) : (
-          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
-            <span className="text-[9px] text-[#ededed]/30">WWW</span>
+          <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
+            <span className="text-[8px] text-[#ededed]/25">WWW</span>
           </div>
         )}
 
+        {/* Name + URL */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-medium text-[#ededed]">{t.name}</p>
-          {t.site_url && <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>}
+          <p className="truncate text-[14px] font-medium text-[#ededed]">{t.name}</p>
+          {t.site_url && (
+            <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>
+          )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-0.5">
-          {/* Significance mini-donut */}
-          {totalV > 0 && status !== 'draft' && <SigDonut significance={sig} size={24} />}
-
-          {/* Status dot */}
-          <StatusDot status={status} winner={t.winner} />
+        {/* Pie chart + menu */}
+        <div className="flex shrink-0 items-center gap-1">
+          {totalV > 0 && isLive && <SigPie significance={sig} visitors={totalV} size={40} />}
 
           {/* Three-dot menu */}
           <div ref={menuRef} className="relative">
             <button
               onClick={openMenu}
-              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-[#ededed]/30 opacity-0 transition-all hover:bg-white/[0.06] hover:text-[#ededed]/62 group-hover/card:opacity-100"
+              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-[#ededed]/25 opacity-0 transition-all hover:bg-white/[0.06] hover:text-[#ededed]/50 group-hover/card:opacity-100"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
@@ -217,7 +216,6 @@ export function TestCard({
                 className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-white/10 bg-[#111111] py-1 shadow-lg shadow-black/40"
                 style={{ backdropFilter: 'blur(12px)' }}
               >
-                {/* Pause / Resume */}
                 {(status === 'active' || status === 'paused') && (
                   <button
                     onClick={togglePause}
@@ -232,7 +230,6 @@ export function TestCard({
                   </button>
                 )}
 
-                {/* Delete */}
                 <button
                   onClick={handleDelete}
                   disabled={busy}
@@ -247,60 +244,65 @@ export function TestCard({
         </div>
       </div>
 
-      {/* Duration + uplift badge */}
-      <div className="mt-2 flex items-center gap-2">
-        <span className="text-[11px] text-[#ededed]/40">{testDuration(t.created_at, status)}</span>
-        {uplift !== null && uplift !== 0 && (
-          <span
-            className="rounded-[5px] px-1.5 py-0.5 text-[11px] font-semibold"
-            style={
-              uplift > 0
-                ? { background: `${T.ok}1f`, color: T.ok }
-                : { background: `${T.err}1f`, color: T.err }
-            }
-          >
-            {uplift > 0 ? '+' : ''}{uplift.toFixed(1)}%
-          </span>
+      {/* ── Row 2: status dot | duration | variant leader ── */}
+      <div className="mt-2.5 flex items-center gap-2">
+        {/* Status dot */}
+        <span
+          className="inline-block h-2 w-2 shrink-0 rounded-full"
+          style={{
+            background:
+              status === 'active' ? T.ok :
+              status === 'paused' ? T.pro :
+              t.winner === 'B' ? T.ok : '#ffffff33',
+          }}
+        />
+        <span className="text-[11px] text-[#ededed]/50">
+          {status === 'active' ? 'Active' : status === 'paused' ? 'Paused' : status === 'done' ? 'Done' : 'Draft'}
+        </span>
+
+        {/* Divider */}
+        <span className="text-[#ededed]/15">·</span>
+
+        {/* Duration */}
+        <span className="text-[11px] text-[#ededed]/40">{formatDuration(t.created_at)}</span>
+
+        {/* Variant leader */}
+        {leader && isLive && (
+          <>
+            <span className="text-[#ededed]/15">·</span>
+            <span className="rounded-[4px] bg-white/[0.06] px-1.5 py-px text-[11px] font-semibold text-[#ededed]/62">
+              {leader}
+            </span>
+          </>
         )}
-        {t.winner === 'B' && (
-          <span className="rounded-[5px] bg-white/[0.06] px-1.5 py-0.5 text-[11px] font-semibold text-[#ededed]/62">
-            Winner
-          </span>
+
+        {/* Winner badge */}
+        {t.winner === 'B' && status === 'done' && (
+          <>
+            <span className="text-[#ededed]/15">·</span>
+            <span className="rounded-[4px] bg-[#2fd76c]/10 px-1.5 py-px text-[11px] font-semibold text-[#2fd76c]">
+              Winner
+            </span>
+          </>
         )}
       </div>
-
-      {/* Visitor split bar */}
-      {totalV > 0 && (
-        <div className="mt-3">
-          <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-            <div className="bg-white/30 transition-all" style={{ width: `${pctA}%` }} />
-            <div className="bg-white transition-all" style={{ width: `${100 - pctA}%` }} />
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-[#ededed]/40">
-            <span>
-              A: {va.toLocaleString()}
-              {crA > 0 && <span className="ml-1 text-[#ededed]/62">{(crA * 100).toFixed(1)}% CR</span>}
-            </span>
-            <span>
-              {crB > 0 && <span className="mr-1 text-[#ededed]/62">{(crB * 100).toFixed(1)}% CR</span>}
-              B: {vb.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      )}
     </Link>
   )
 }
 
 export function StatusDot({ status, winner }: { status: string; winner?: string | null }) {
-  if (status === 'active') {
-    return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
+  if (winner === 'B' && status === 'done') {
+    return <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} title="Winner" />
   }
-  if (status === 'paused') {
-    return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.pro }} />
-  }
-  if (status === 'done' || winner) {
-    return <span className="h-2 w-2 shrink-0 rounded-full bg-[#ededed]/40" />
-  }
-  return <span className="h-2 w-2 shrink-0 rounded-full border border-dashed border-[#ededed]/40" />
+  return (
+    <span
+      className="inline-block h-2 w-2 shrink-0 rounded-full"
+      style={{
+        background:
+          status === 'active' ? T.ok :
+          status === 'paused' ? T.pro : '#ffffff33',
+      }}
+      title={status}
+    />
+  )
 }

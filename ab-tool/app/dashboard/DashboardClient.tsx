@@ -4,19 +4,22 @@ import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { calcSignificance } from '@/lib/significance'
 import { NewTestFlow } from './NewTestFlow'
-import { TestCard, StatusDot, type TestRow } from './components/TestCard'
+import { TestCard, type TestRow } from './components/TestCard'
 import {
   Check,
   FlaskConical,
   Users,
   TrendingUp,
-  Zap,
+  Percent,
+  HeartPulse,
+  Puzzle,
+  Globe,
+  Code2,
+  Search,
+  ArrowUpDown,
   Plus,
   ArrowRight,
-  BarChart3,
-  HeartPulse,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -50,21 +53,20 @@ export function DashboardClient({
   const [busy, setBusy] = useState(false)
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [testList, setTestList] = useState(tests)
+  const [query, setQuery] = useState('')
+  const [sortAsc, setSortAsc] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
 
-  // Open NewTestFlow when ?newTest=1 is in URL
   useEffect(() => {
     if (openNewTest) setNewTestOpen(true)
   }, [openNewTest])
 
-  // Sync when server re-renders with fresh data
   useEffect(() => { setTestList(tests) }, [tests])
 
   function handleDeleteTest(id: string) {
     setTestList((prev) => prev.filter((t) => t.id !== id))
   }
 
-  // Multi-Tab-Sync: Logout in Tab B → Tab A redirectet auf Landingpage
   useEffect(() => {
     const supabase = getBrowserSupabase()
     const {
@@ -100,165 +102,162 @@ export function DashboardClient({
   const totalVisitors = testList.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
   const totalConversions = testList.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
   const running = testList.filter((t) => t.status === 'active').length
+  const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
+
   const lifts = testList
     .map((t) => {
       const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
       const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
-      return crA > 0 ? (crB - crA) / crA : null
+      return crA > 0 ? ((crB - crA) / crA) * 100 : null
     })
     .filter((l): l is number => l !== null && isFinite(l))
-  const avgLift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
+  const avgUplift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
 
-  // Winner alert (Pro only, active tests with a winner)
-  const winnerTest = isPro ? testList.find((t) => t.winner && t.status !== 'done') : null
+  const hasSiteUrl = testList.some((t) => t.site_url)
 
-  // CRO-Snapshot
-  const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
-  const positiveLifts = lifts.filter((l) => l > 0).length
-  const top3 = useMemo(
-    () => [...testList].sort((a, b) => ((b.visitors_a ?? 0) + (b.visitors_b ?? 0)) - ((a.visitors_a ?? 0) + (a.visitors_b ?? 0))).slice(0, 3),
-    [testList]
-  )
+  // Sorting + Filtering
+  const sortedTests = useMemo(() => {
+    const sorted = [...testList].sort((a, b) => {
+      const va = (a.visitors_a ?? 0) + (a.visitors_b ?? 0)
+      const vb = (b.visitors_a ?? 0) + (b.visitors_b ?? 0)
+      return sortAsc ? va - vb : vb - va
+    })
+    return sorted
+  }, [testList, sortAsc])
+
+  const filteredTests = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return sortedTests
+    return sortedTests.filter((t) =>
+      t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
+    )
+  }, [sortedTests, query])
 
   return (
     <>
       <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
-        <div className="space-y-6">
-          {/* Upgraded banner — shown after successful Stripe checkout */}
-          {upgraded && (
-            <div className="flex items-center gap-3 rounded-[10px] border border-[#2fd76c]/20 bg-[#2fd76c]/5 px-5 py-3.5">
-              <Check className="h-4 w-4 shrink-0 text-[#2fd76c]" />
-              <p className="text-[13px] text-[#2fd76c]">
-                You&apos;re now on <strong className="font-semibold">Pro</strong> — unlimited experiments, full statistics, no badge.
-              </p>
-            </div>
-          )}
+        {/* Upgraded banner */}
+        {upgraded && (
+          <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[#2fd76c]/20 bg-[#2fd76c]/5 px-5 py-3.5">
+            <Check className="h-4 w-4 shrink-0 text-[#2fd76c]" />
+            <p className="text-[13px] text-[#2fd76c]">
+              You&apos;re now on <strong className="font-semibold">Pro</strong> — unlimited experiments, full statistics, no badge.
+            </p>
+          </div>
+        )}
 
-          {/* Stats bar */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard
-                label="Active tests"
-                value={isPro ? `${running}` : `${running} / 1`}
-                sub={!isPro && running >= 1 ? 'Upgrade for more' : undefined}
-                icon={FlaskConical}
-                tone={!isPro && running >= 1 ? 'pro' : 'ok'}
-              />
-              <StatCard label="Total visitors" value={totalVisitors.toLocaleString()} icon={Users} />
-              <StatCard label="Conversions" value={totalConversions.toLocaleString()} icon={Zap} />
-              <StatCard
-                label="Plan"
-                value={isPro ? 'Pro' : 'Free'}
-                sub={!isPro ? 'Upgrade →' : undefined}
-                icon={TrendingUp}
-                tone={isPro ? 'ok' : 'pro'}
-                onClick={!isPro ? () => billing('checkout') : undefined}
-                clickable={!isPro}
-              />
-            </div>
-
-            {/* CRO-Snapshot + Winner alert */}
-            {testList.length > 0 && (
-              <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">CRO Snapshot</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <p className="text-2xl font-bold text-[#ededed]">{overallCR.toFixed(1)}%</p>
-                    <p className="mt-0.5 text-[10px] text-[#ededed]/40">Overall CR</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-[#ededed]">{running}</p>
-                    <p className="mt-0.5 text-[10px] text-[#ededed]/40">Running</p>
-                  </div>
-                  <div>
-                    <p className={`text-2xl font-bold ${positiveLifts > 0 ? 'text-ok' : 'text-[#ededed]'}`}>{positiveLifts}</p>
-                    <p className="mt-0.5 text-[10px] text-[#ededed]/40">Tests ahead</p>
-                  </div>
-                </div>
-                {winnerTest && (
-                  <Link
-                    href={`/dashboard/results/${winnerTest.id}`}
-                    className="mt-3 flex items-center gap-2.5 rounded-[6px] border border-ok/20 bg-ok-bg px-3 py-2 transition-colors hover:border-ok/30"
-                  >
-                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} />
-                    <span className="flex-1 truncate text-[12px] text-ok">{winnerTest.name}: B leads — View →</span>
-                  </Link>
-                )}
-                {isPro && !winnerTest && (
-                  <p className="mt-3 text-[11px] text-[#ededed]/40">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full mr-1.5" style={{ background: T.ok }} />
-                    Significance monitoring active — winners auto-detected.
-                  </p>
-                )}
-                {!isPro && (
-                  <button
-                    onClick={() => billing('checkout')}
-                    disabled={busy}
-                    className="mt-3 cursor-pointer rounded-[6px] border border-white/[0.18] px-3 py-1.5 text-[11px] font-semibold text-[#ededed] transition-colors hover:border-white/25 disabled:opacity-50"
-                  >
-                    Upgrade to see significance →
-                  </button>
-                )}
+        {/* ── Two-column layout: 30% / 70% ── */}
+        <div className="flex gap-5">
+          {/* ═══ LEFT COLUMN (30%) ═══ */}
+          <div className="w-[30%] shrink-0 space-y-4">
+            {/* Card 1: Overview metrics */}
+            <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
+              <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Overview
+              </h3>
+              <div>
+                <MetricRow icon={FlaskConical} label="Active Tests" value={isPro ? running.toString() : `${running} / 1`} />
+                <MetricRow icon={Users} label="Total Visitors" value={totalVisitors.toLocaleString()} />
+                <MetricRow icon={Percent} label="Overall CR" value={`${overallCR.toFixed(1)}%`} />
+                <MetricRow
+                  icon={TrendingUp}
+                  label="Overall Uplift"
+                  value={avgUplift !== null ? `${avgUplift > 0 ? '+' : ''}${avgUplift.toFixed(1)}%` : '—'}
+                  tone={avgUplift !== null && avgUplift > 0 ? 'ok' : avgUplift !== null && avgUplift < 0 ? 'err' : undefined}
+                />
               </div>
+            </div>
+
+            {/* Card 2: Health / Setup */}
+            <Link
+              href="/dashboard/setup"
+              className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 transition-colors hover:border-white/[0.18]"
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                  Health / Setup
+                </h3>
+                <ArrowRight className="h-3 w-3 text-[#ededed]/25" />
+              </div>
+              <div>
+                <MetricRow
+                  icon={Code2}
+                  label="Snippet"
+                  value={hasSiteUrl ? 'Detected' : 'Check'}
+                  tone={hasSiteUrl ? 'ok' : 'pro'}
+                />
+                <MetricRow
+                  icon={Puzzle}
+                  label="Figma Plugin"
+                  value={hasFigmaPlugin ? 'Connected' : 'Not connected'}
+                  tone={hasFigmaPlugin ? 'ok' : 'pro'}
+                />
+                <MetricRow icon={Globe} label="Extension" value="Available" tone="ok" />
+              </div>
+            </Link>
+          </div>
+
+          {/* ═══ RIGHT COLUMN (70%) ═══ */}
+          <div className="w-[70%] shrink-0 min-w-0">
+            {/* Tests heading */}
+            <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Tests</h2>
+
+            {/* Toolbar */}
+            <div className="mb-4 flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search tests…"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={() => setSortAsc((v) => !v)}
+                title={sortAsc ? 'Sort: ascending' : 'Sort: descending'}
+                className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setNewTestOpen(true)}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New test
+              </button>
+            </div>
+
+            {/* New test flow overlay */}
+            {newTestOpen && (
+              <NewTestFlow
+                apiToken={apiToken}
+                currentTestCount={testList.length}
+                hasFigmaPlugin={hasFigmaPlugin}
+                isAtFreeLimit={!isPro && testList.filter(t => t.status !== 'done').length >= 1}
+                onClose={() => setNewTestOpen(false)}
+              />
             )}
 
-            {/* Overview info table — compact summary of all tests */}
-            {testList.length > 0 && (
-              <OverviewTable tests={testList} />
-            )}
-
-            {/* Test grid — empty state or top 3 cards */}
+            {/* Test grid or empty */}
             {testList.length === 0 ? (
               <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} />
+            ) : filteredTests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
+                <p className="text-[13px] font-medium text-[#ededed]/62">
+                  {query ? `No tests match "${query}"` : 'No tests found'}
+                </p>
+              </div>
             ) : (
-              <div>
-                {/* Toolbar: New test + View all */}
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                    Top Tests
-                  </span>
-                  <div className="flex-1" />
-                  <Link
-                    href="/dashboard/tests"
-                    className="flex items-center gap-1 text-[11px] font-medium text-[#ededed]/40 transition-colors hover:text-[#ededed]"
-                  >
-                    View all {testList.length} tests
-                    <ArrowRight className="h-3 w-3" />
-                  </Link>
-                  <button
-                    onClick={() => setNewTestOpen(true)}
-                    className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    New test
-                  </button>
-                </div>
-
-                {/* New test flow overlay */}
-                {newTestOpen && (
-                  <NewTestFlow
-                    apiToken={apiToken}
-                    currentTestCount={testList.length}
-                    hasFigmaPlugin={hasFigmaPlugin}
-                    isAtFreeLimit={!isPro && testList.filter(t => t.status !== 'done').length >= 1}
-                    onClose={() => setNewTestOpen(false)}
-                  />
-                )}
-
-                {/* Top 3 grid */}
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {top3.map((t, i) => (
-                    <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} />
-                  ))}
-                </div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredTests.map((t, i) => (
+                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} />
+                ))}
               </div>
             )}
+          </div>
         </div>
-
-        {/* ── Health check banner ── */}
-        <HealthBanner testsExist={testList.length > 0} />
       </main>
     </>
   )
@@ -266,28 +265,34 @@ export function DashboardClient({
 
 /* ── Sub-components ── */
 
-/** Compact health banner linking to /dashboard/setup for full diagnostics. */
-function HealthBanner({ testsExist }: { testsExist: boolean }) {
+function MetricRow({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+  tone?: 'ok' | 'pro' | 'err'
+}) {
+  const color = tone === 'ok' ? T.ok : tone === 'pro' ? T.pro : tone === 'err' ? T.err : undefined
   return (
-    <div className="mt-6 border-t border-white/10 pt-5">
-      <Link
-        href="/dashboard/setup"
-        className="flex items-center gap-3 rounded-[8px] border border-white/[0.08] bg-[#0a0a0a] px-4 py-3 transition-colors hover:border-white/[0.14]"
+    <div className="flex items-center justify-between border-b border-white/[0.06] py-2.5 last:border-b-0">
+      <div className="flex items-center gap-2 min-w-0">
+        <Icon className="h-3.5 w-3.5 shrink-0 text-[#ededed]/40" />
+        <span className="truncate text-[12px] text-[#ededed]/62">{label}</span>
+      </div>
+      <span
+        className="ml-3 shrink-0 text-[12px] font-medium tabular-nums text-[#ededed]"
+        style={color ? { color } : undefined}
       >
-        <HeartPulse className="h-4 w-4 shrink-0 text-[#ededed]/50" />
-        <div className="flex-1">
-          <span className="text-[12px] font-medium text-[#ededed]/70">Setup health check</span>
-          <span className="ml-2 text-[11px] text-[#ededed]/40">
-            {testsExist ? 'Verify snippet, plugin & extension status' : 'Run setup diagnostics to get started'}
-          </span>
-        </div>
-        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#ededed]/30" />
-      </Link>
+        {value}
+      </span>
     </div>
   )
 }
 
-/** Empty state when no tests exist — guides to /dashboard/setup. */
 function EmptyState({ onNewTest, hasFigmaPlugin }: { onNewTest: () => void; hasFigmaPlugin: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
@@ -319,137 +324,6 @@ function EmptyState({ onNewTest, hasFigmaPlugin }: { onNewTest: () => void; hasF
             New test
           </button>
         )}
-      </div>
-    </div>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  tone,
-  onClick,
-  clickable,
-}: {
-  label: string
-  value: string
-  sub?: string
-  icon: React.ComponentType<{ className?: string }>
-  tone?: 'ok' | 'pro'
-  onClick?: () => void
-  clickable?: boolean
-}) {
-  const color = tone === 'ok' ? T.ok : tone === 'pro' ? T.pro : undefined
-  return (
-    <div
-      onClick={onClick}
-      className={`rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 ${clickable ? 'cursor-pointer transition-colors hover:border-white/[0.18]' : ''}`}
-    >
-      <div className="mb-2 flex items-center gap-2">
-        <Icon className="h-3.5 w-3.5 text-[#ededed]/40" />
-        <span className="text-[11px] text-[#ededed]/40">{label}</span>
-      </div>
-      <p className="text-[22px] font-medium text-[#ededed]" style={color ? { color } : undefined}>
-        {value}
-      </p>
-      {sub && (
-        <p className="mt-0.5 text-[11px]" style={{ color: color ?? `${T.text}40` }}>
-          {sub}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function OverviewTable({ tests }: { tests: TestRow[] }) {
-  return (
-    <div className="overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
-      <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
-        <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
-        <span className="text-[13px] font-medium text-[#ededed]">Tests overview</span>
-        <span className="ml-auto text-[11px] text-[#ededed]/40">{tests.length} total</span>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-white/[0.06] text-[11px] text-[#ededed]/40">
-              <th className="py-2 pl-4 pr-3 font-medium">Name</th>
-              <th className="px-3 py-2 font-medium">Status</th>
-              <th className="px-3 py-2 font-medium text-right">Visitors</th>
-              <th className="px-3 py-2 font-medium text-right">Conv.</th>
-              <th className="px-3 py-2 font-medium text-right">Sig.</th>
-              <th className="px-3 py-2 font-medium text-right">Lift</th>
-              <th className="py-2 pl-3 pr-4 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/[0.06]">
-            {tests.map((t) => {
-              const va = t.visitors_a ?? 0
-              const vb = t.visitors_b ?? 0
-              const ca = t.conversions_a ?? 0
-              const cb = t.conversions_b ?? 0
-              const totalV = va + vb
-              const totalC = ca + cb
-              const crA = va > 0 ? ca / va : 0
-              const crB = vb > 0 ? cb / vb : 0
-              const uplift = crA > 0 ? ((crB - crA) / crA) * 100 : null
-              const sig = totalV > 0 ? calcSignificance(va, ca, vb, cb) : 0
-              const sigPct = Math.round(sig * 100)
-
-              // Use dynamic import - already available in scope
-              return (
-                <tr key={t.id} className="text-[12px] transition-colors hover:bg-white/[0.02]">
-                  <td className="py-2.5 pl-4 pr-3">
-                    <div className="max-w-[180px] truncate font-medium text-[#ededed]">{t.name}</div>
-                    {t.site_url && (
-                      <div className="mt-0.5 max-w-[180px] truncate text-[11px] text-[#ededed]/40">{t.site_url}</div>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <StatusDot status={t.status} winner={t.winner} />
-                      <span className="text-[#ededed]/62">
-                        {t.winner === 'B' ? 'B won' : t.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-[#ededed]/62">{totalV.toLocaleString()}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-[#ededed]/62">{totalC.toLocaleString()}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">
-                    <span
-                      className="font-semibold"
-                      style={{ color: sig >= 0.95 ? T.ok : sig >= 0.7 ? T.pro : `${T.text}62` }}
-                    >
-                      {totalV > 0 ? `${sigPct}%` : '—'}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">
-                    {uplift !== null && uplift !== 0 ? (
-                      <span
-                        className="font-semibold"
-                        style={{ color: uplift > 0 ? T.ok : T.err }}
-                      >
-                        {uplift > 0 ? '+' : ''}{uplift.toFixed(1)}%
-                      </span>
-                    ) : (
-                      <span className="text-[#ededed]/40">—</span>
-                    )}
-                  </td>
-                  <td className="py-2.5 pl-3 pr-4 text-right">
-                    <Link
-                      href={`/dashboard/results/${t.id}`}
-                      className="text-[11px] font-medium text-[#ededed]/40 transition-colors hover:text-[#ededed]"
-                    >
-                      View →
-                    </Link>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
       </div>
     </div>
   )
