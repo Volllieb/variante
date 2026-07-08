@@ -104,10 +104,17 @@ export async function POST(req: Request) {
     p_message: `Test "${name}" created`,
   })
 
-  // Erstmaliger Figma-Plugin-Token-Austausch → Flag setzen
+  // Plugin-Aktivität: Flag + Sync-Timestamp aktualisieren
+  const profileUpdate: Record<string, unknown> = { last_plugin_sync_at: new Date().toISOString() }
   await supabase
     .from('profiles')
-    .update({ has_figma_plugin: true })
+    .update(profileUpdate)
+    .eq('user_id', user.userId)
+
+  // Erstmaliger Figma-Plugin-Token-Austausch → Flag setzen (separat wegen .eq has_figma_plugin = false)
+  await supabase
+    .from('profiles')
+    .update({ has_figma_plugin: true, last_plugin_sync_at: new Date().toISOString() })
     .eq('user_id', user.userId)
     .eq('has_figma_plugin', false)
 

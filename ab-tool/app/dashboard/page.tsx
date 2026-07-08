@@ -14,7 +14,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const [profileRes, testsRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('api_token, plan, onboarded, has_figma_plugin')
+      .select('api_token, plan, onboarded, has_figma_plugin, last_plugin_sync_at')
       .eq('user_id', user.id)
       .single(),
     supabase
@@ -30,7 +30,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} highlightNew={searchParams.new === '1'} upgraded={false} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} lastPluginSyncAt={null} highlightNew={searchParams.new === '1'} upgraded={false} />
   }
 
   if (!profile.onboarded) redirect('/onboarding')
@@ -41,6 +41,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       apiToken={profile.api_token ?? ''}
       tests={tests ?? []}
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
+      lastPluginSyncAt={profile.last_plugin_sync_at ?? null}
       highlightNew={searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}
