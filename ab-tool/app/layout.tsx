@@ -49,20 +49,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
       <head>
-        {/* Variante Dogfooding — A/B-Snippet */}
-        <link rel="preconnect" href="https://www.getvariante.com" />
-        <style
-          id="__ab_hide"
-          dangerouslySetInnerHTML={{
-            __html: `html.__ab_pending{opacity:0!important}`,
-          }}
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var e=document.documentElement;e.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)e.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){e.classList.remove("__ab_pending")},10000)})();`,
-          }}
-        />
-        <script async src="https://www.getvariante.com/ab.js" />
         {/* JSON-LD Organization — Root-fallback für alle Seiten */}
         <script
           type="application/ld+json"

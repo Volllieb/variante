@@ -50,6 +50,11 @@
   if (__abPickerCfg) {
     ;(function startPicker(cfg) {
       if (window.__abPickerActive) return
+      // Guard gegen Chrome Extension: content-picker.js checkt dieses
+      // Attribut und verhindert so doppelte Injektion.
+      if (!document.documentElement.hasAttribute('data-ab-picker-injected')) {
+        document.documentElement.setAttribute('data-ab-picker-injected', '1')
+      }
       window.__abPickerActive = true
 
       // --- CSS-Selektor: möglichst eindeutiger Pfad zum Element ------------

@@ -12,9 +12,14 @@
   // src/code.ts
   var require_code = __commonJS({
     "src/code.ts"() {
-      figma.showUI(__html__, { width: 360, height: 560, title: "Variante" });
+      figma.showUI(__html__, { width: 360, height: 560, title: "variante" });
       figma.clientStorage.getAsync("ab_token").then((token) => {
         figma.ui.postMessage({ type: "TOKEN", token: typeof token === "string" ? token : "" });
+      });
+      figma.clientStorage.getAsync("ab_draft").then((draft) => {
+        if (draft && typeof draft === "object") {
+          figma.ui.postMessage({ type: "DRAFT_LOADED", draft });
+        }
       });
       function selectionSummary() {
         const sel = figma.currentPage.selection;
@@ -168,6 +173,16 @@
           }
           case "TOKEN_SAVE": {
             await figma.clientStorage.setAsync("ab_token", typeof msg.token === "string" ? msg.token : "");
+            break;
+          }
+          case "SAVE_DRAFT": {
+            if (msg.draft && typeof msg.draft === "object") {
+              await figma.clientStorage.setAsync("ab_draft", msg.draft);
+            }
+            break;
+          }
+          case "CLEAR_DRAFT": {
+            await figma.clientStorage.deleteAsync("ab_draft");
             break;
           }
           case "CLOSE":

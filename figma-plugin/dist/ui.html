@@ -5,45 +5,49 @@
 <style>
 /* ── Design Tokens ─────────────────────────────────────────────────────── */
 :root {
-  --brand:          #0D99FF;
-  --brand-hover:    #0B87E0;
-  --brand-subtle:   rgba(13,153,255,.10);
-  --brand-border:   rgba(13,153,255,.24);
-  --ok:             #14AE5C;
-  --ok-subtle:      rgba(20,174,92,.12);
-  --ok-border:      rgba(20,174,92,.30);
-  --warn:           #E59E0B;
-  --warn-subtle:    rgba(229,158,11,.13);
-  --warn-border:    rgba(229,158,11,.30);
-  --danger:         #dc2626;
-  --danger-subtle:  rgba(220,38,38,.09);
-  --r:   12px;
-  --rsm: 8px;
-  --rxs: 6px;
+  /* Panda Light — wie Dashboard, invertiert */
+  --bg-0:          #ffffff;
+  --bg-1:          #f5f5f5;
+  --bg-2:          #ececec;
+  --border:        rgba(0,0,0,.08);
+  --border-strong: rgba(0,0,0,.12);
+  --text:          #171717;
+  --text-2:        rgba(23,23,23,.58);
+  --text-3:        rgba(23,23,23,.36);
+  /* Akzent: Blau (einziger Farbakzent) */
+  --accent:        #0D99FF;
+  --accent-hover:  #0B87E0;
+  --accent-subtle: rgba(13,153,255,.10);
+  --accent-border: rgba(13,153,255,.24);
+  /* Status-Farben — identisch mit Dashboard */
+  --ok:            #2fd76c;
+  --ok-subtle:     rgba(47,215,108,.12);
+  --ok-border:     rgba(47,215,108,.30);
+  --pro:           #f5a623;
+  --pro-subtle:    rgba(245,166,35,.13);
+  --pro-border:    rgba(245,166,35,.30);
+  --err:           #f5455c;
+  --err-subtle:    rgba(245,69,92,.09);
+  --err-border:    rgba(245,69,92,.25);
+  --err-hover:     rgba(245,69,92,.12);
+  /* Radii — vereinheitlicht mit Dashboard */
+  --r:   10px;
+  --rsm: 6px;
+  --rxs: 4px;
+  /* Spacing, Typo, Motion — unverändert */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px; --sp-8: 32px;
   --fs-xs: 10px; --fs-sm: 11px; --fs-md: 12px; --fs-lg: 13px; --fs-xl: 16px; --fs-2xl: 20px;
   --fw-med: 500; --fw-semibold: 600; --fw-bold: 700;
   --dur-fast: 150ms; --dur-med: 250ms; --dur-slow: 400ms;
   --ease-out: cubic-bezier(.16,1,.3,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
-  --elev-0: 0 0 0 1px rgba(15,23,42,.06);
-  --elev-1: 0 8px 24px rgba(15,23,42,.07), 0 0 0 1px rgba(15,23,42,.04);
-  --elev-2: 0 14px 34px rgba(15,23,42,.11), 0 0 0 1px rgba(15,23,42,.05);
-  --elev-3: 0 20px 44px rgba(15,23,42,.16), 0 0 0 1px rgba(15,23,42,.06);
-  --panel: var(--figma-color-bg-secondary);
-  --panel-strong: var(--figma-color-bg);
-  --text-soft: var(--figma-color-text-secondary);
-  --border-soft: rgba(15,23,42,.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: var(--fs-md);
-  color: var(--figma-color-text);
-  background:
-    radial-gradient(120% 120% at top left, rgba(13,153,255,.12), transparent 35%),
-    linear-gradient(180deg, rgba(255,255,255,.04), transparent),
-    var(--figma-color-bg);
+  color: var(--text);
+  background: var(--bg-0);
   display: flex; flex-direction: column;
   height: 560px; overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -58,29 +62,27 @@ body {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: 14px 16px 12px;
   flex-shrink: 0;
-  background: rgba(255,255,255,.5);
-  border-bottom: 1px solid rgba(15,23,42,.06);
+  background: var(--bg-0);
+  border-bottom: 1px solid var(--border);
 }
 .back-btn {
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  border: none; background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--border); background: var(--bg-1);
   cursor: pointer;
-  color: var(--figma-color-text-secondary);
-  border-radius: 10px; flex-shrink: 0; padding: 0;
-  box-shadow: var(--elev-0);
+  color: var(--text-2);
+  border-radius: 6px; flex-shrink: 0; padding: 0;
   transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
 }
-.back-btn:hover { background: var(--figma-color-bg); color: var(--figma-color-text); transform: translateY(-1px); }
+.back-btn:hover { background: var(--bg-0); color: var(--text); transform: translateY(-1px); }
 .back-btn svg { display: block; }
 .hdr-title { flex: 1; font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: -.2px; line-height: 1.3; }
 .hdr-step {
   flex-shrink: 0;
   font-size: var(--fs-xs); font-weight: var(--fw-semibold);
-  color: var(--figma-color-text-secondary);
-  background: var(--figma-color-bg-secondary);
+  color: var(--text-2);
+  background: var(--bg-1);
   padding: 3px 8px; border-radius: 999px;
-  box-shadow: var(--elev-0);
 }
 
 /* ── Progress bar ──────────────────────────────────────────────────────── */
@@ -90,15 +92,15 @@ body {
 }
 .step-dot {
   flex: 1; height: 4px; border-radius: 999px;
-  background: rgba(15,23,42,.12);
+  background: var(--border);
   transition: background var(--dur-med) var(--ease-out);
 }
-.step-dot.on { background: var(--brand); }
+.step-dot.on { background: var(--accent); }
 
 /* ── Content / scroll area ─────────────────────────────────────────────── */
 .body {
   flex: 1; overflow-y: auto;
-  padding: 18px 16px 12px;
+  padding: 16px 16px 12px;
 }
 .body::-webkit-scrollbar { width: 5px; }
 .body::-webkit-scrollbar-thumb { background: rgba(15,23,42,.18); border-radius: 999px; }
@@ -107,9 +109,8 @@ body {
 .ftr {
   padding: 14px 16px 16px;
   flex-shrink: 0;
-  border-top: 1px solid rgba(15,23,42,.08);
+  border-top: 1px solid var(--border);
   display: flex; flex-direction: column; gap: var(--sp-2);
-  background: linear-gradient(180deg, transparent, rgba(13,153,255,.03));
 }
 
 /* ── Typography ─────────────────────────────────────────────────────────── */
@@ -117,23 +118,23 @@ body {
   display: block;
   font-size: var(--fs-xs); font-weight: var(--fw-semibold);
   text-transform: uppercase; letter-spacing: .6px;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   margin-bottom: 6px;
 }
 .hint {
-  font-size: var(--fs-sm); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); color: var(--text-2);
   line-height: 1.6; margin-bottom: 16px;
 }
 .hint-strong {
   font-size: var(--fs-md); font-weight: var(--fw-med);
-  color: var(--figma-color-text); line-height: 1.5;
+  color: var(--text); line-height: 1.5;
   margin-bottom: 14px;
   text-align: center;
   padding: 12px 14px;
-  background: var(--panel);
-  border: 1px solid var(--border-soft);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
   border-radius: var(--r);
-  box-shadow: var(--elev-0);
+  
 }
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
@@ -141,15 +142,14 @@ input, select, textarea {
   width: 100%; padding: 10px 12px;
   border: 1px solid transparent; border-radius: var(--r);
   font-size: var(--fs-md); font-family: inherit;
-  color: var(--figma-color-text); background: var(--panel);
+  color: var(--text); background: var(--bg-1);
   outline: none; transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
 }
-input:hover, select:hover, textarea:hover { border-color: rgba(15,23,42,.14); }
+input:hover, select:hover, textarea:hover { border-color: var(--text-2); }
 input:focus, select:focus, textarea:focus {
-  border-color: var(--brand); background: var(--panel-strong);
-  box-shadow: 0 0 0 3px var(--brand-subtle);
+  border-color: var(--accent); background: var(--bg-0);
 }
-input.err { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-subtle); }
+input.err { border-color: var(--err); }
 textarea { resize: vertical; }
 
 .input-wrap { position: relative; margin-bottom: var(--sp-1); }
@@ -162,14 +162,14 @@ textarea { resize: vertical; }
 .input-icon-left {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   pointer-events: none; display: flex;
-  color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary));
+  color: var(--text-2);
 }
 
 .field-err {
-  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--danger);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--err);
   display: none; padding: 7px 10px; margin-top: 4px;
-  background: var(--danger-subtle);
-  border: 1px solid rgba(220,38,38,.25);
+  background: var(--err-subtle);
+  border: 1px solid var(--err-border);
   border-radius: var(--rsm);
 }
 .field-err.vis { display: block; }
@@ -186,120 +186,117 @@ textarea { resize: vertical; }
   line-height: 1.2;
 }
 .btn:active:not(:disabled) { transform: scale(.98); }
-.btn-primary { background: var(--brand); color: #fff; box-shadow: var(--elev-1); }
-.btn-primary:hover:not(:disabled) { background: var(--brand-hover); box-shadow: var(--elev-2); }
+.btn-primary { background: var(--accent); color: #fff;  }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover);  }
 .btn-primary:disabled {
-  background: var(--figma-color-bg-secondary); color: var(--figma-color-text-disabled, #aaa);
-  border: 1px solid var(--figma-color-border); cursor: not-allowed; box-shadow: none;
+  background: var(--bg-1); color: var(--text-3);
+  border: 1px solid var(--border); cursor: not-allowed; box-shadow: none;
 }
 .btn-secondary {
-  background: var(--panel);
-  border: 1px solid rgba(15,23,42,.08);
-  color: var(--figma-color-text);
-  box-shadow: var(--elev-0);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  
 }
-.btn-secondary:hover:not(:disabled) { background: var(--figma-color-bg-hover); border-color: var(--figma-color-text-secondary); }
+.btn-secondary:hover:not(:disabled) { background: var(--bg-2); border-color: var(--text-2); }
 .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
 .btn-sm { width: auto; padding: 7px 12px; min-height: 32px; font-size: var(--fs-sm); font-weight: var(--fw-med); }
 .btn-ghost {
-  background: transparent; border: none; color: var(--figma-color-text-secondary);
+  background: transparent; border: none; color: var(--text-2);
   font-weight: var(--fw-med); width: auto; min-height: auto; padding: 6px 8px;
   box-shadow: none;
 }
-.btn-ghost:hover { color: var(--figma-color-text); background: var(--figma-color-bg-secondary); }
+.btn-ghost:hover { color: var(--text); background: var(--bg-1); }
 .btn-icon-left { justify-content: flex-start; }
 
 /* ── Toggle switch (replaces segmented control) ────────────────────────── */
 .toggle-row {
   display: flex; align-items: center; gap: var(--sp-2);
-  background: var(--figma-color-bg-secondary);
+  background: var(--bg-1);
   border-radius: var(--r); padding: 3px;
 }
 .toggle-btn {
   flex: 1; padding: 5px 10px; min-height: 26px;
   border: none; background: none; cursor: pointer;
   font-family: inherit; font-size: var(--fs-sm); font-weight: var(--fw-med);
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   border-radius: calc(var(--r) - 2px);
   transition: background var(--dur-fast), color var(--dur-fast), box-shadow var(--dur-fast);
 }
-.toggle-btn:hover { color: var(--figma-color-text); }
+.toggle-btn:hover { color: var(--text); }
 .toggle-btn.on {
-  background: var(--figma-color-bg); color: var(--figma-color-text);
-  box-shadow: var(--elev-1);
+  background: var(--bg-0); color: var(--text);
+  
 }
 .toggle-icon { display: inline-flex; }
 .toggle-icon .toggle-btn { flex: 0 0 auto; width: 30px; padding: 5px 0; display: flex; align-items: center; justify-content: center; }
 
 /* ── Cards ──────────────────────────────────────────────────────────────── */
 .card {
-  background: var(--panel);
-  border-radius: var(--r); padding: 13px 14px; margin-bottom: 12px;
-  border: 1px solid rgba(15,23,42,.06);
-  box-shadow: var(--elev-0);
+  background: var(--bg-1);
+  border-radius: var(--r); padding: 14px; margin-bottom: 12px;
+  border: 1px solid var(--border);
 }
 .card-lbl {
   font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
-  letter-spacing: .5px; color: var(--figma-color-text-secondary); margin-bottom: 5px;
+  letter-spacing: .5px; color: var(--text-2); margin-bottom: 5px;
 }
 .card-val { font-size: var(--fs-md); font-weight: var(--fw-med); line-height: 1.4; }
 
 /* ── Welcome / hero shell ─────────────────────────────────────────────── */
 .welcome-shell {
   display: flex; flex-direction: column; gap: 14px;
-  padding: 18px 16px 16px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.42));
-  border: 1px solid rgba(15,23,42,.06);
-  box-shadow: var(--elev-1);
+  padding: 20px 16px 16px;
+  border-radius: var(--r);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
 }
 .welcome-hero {
-  text-align: center; padding: 6px 6px 4px;
+  text-align: center; padding: 4px 6px 2px;
 }
-.welcome-badge {
-  width: 52px; height: 52px; margin: 0 auto 12px;
-  border-radius: 14px; display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--brand), #5bb8ff);
-  color: #fff; box-shadow: 0 12px 24px rgba(13,153,255,.25);
+.welcome-logo {
+  font-size: 22px; font-weight: 700; letter-spacing: -.3px; color: var(--text);
+  margin-bottom: 2px;
 }
-.welcome-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
-.welcome-sub { font-size: var(--fs-sm); color: var(--text-soft); margin-top: 4px; }
+.welcome-sub { font-size: var(--fs-sm); color: var(--text-2); margin-top: 2px; }
 .welcome-steps {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
 }
 .welcome-step {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.72);
-  border: 1px solid rgba(15,23,42,.06);
+  border-radius: var(--rsm);
+  background: var(--bg-0);
+  border: 1px solid var(--border);
 }
-.welcome-step-icon {
-  width: 30px; height: 30px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  background: var(--brand-subtle); color: var(--brand);
+.welcome-step-num {
+  width: 22px; height: 22px; flex-shrink: 0; border-radius: var(--rxs);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-2); color: var(--text-2);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold);
 }
-.welcome-step-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--figma-color-text); }
+.welcome-step-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .welcome-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 2px; }
 
 /* ── Notice ──────────────────────────────────────────────────────────────── */
 .notice {
   border-radius: var(--r); padding: 12px 14px; margin-bottom: 14px;
-  box-shadow: var(--elev-0);
+  
 }
-.notice-blue { background: var(--brand-subtle); border: 1px solid var(--brand-border); }
+.notice-blue { background: var(--accent-subtle); border: 1px solid var(--accent-border); }
 .notice-green { background: var(--ok-subtle); border: 1px solid var(--ok-border); }
-.notice-amber { background: var(--warn-subtle); border: 1px solid var(--warn-border); }
+.notice-amber { background: var(--pro-subtle); border: 1px solid var(--pro-border); }
 .notice-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); margin-bottom: 4px; }
-.notice-blue .notice-title { color: var(--brand); }
-.notice-green .notice-title { color: var(--figma-color-text-success, var(--ok)); }
-.notice-amber .notice-title { color: var(--figma-color-text-warning, var(--warn)); }
-.notice-body { font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 10px; color: var(--figma-color-text-secondary); }
+.notice-blue .notice-title { color: var(--accent); }
+.notice-green .notice-title { color: var(--ok); }
+.notice-amber .notice-title { color: var(--pro); }
+.notice-body { font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 10px; color: var(--text-2); }
 .notice-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
 .notice-icon {
   width: 30px; height: 30px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--brand); color: #fff; border-radius: 10px;
-  box-shadow: var(--elev-1);
+  background: var(--accent); color: #fff; border-radius: 10px;
+  
 }
 .notice-head .notice-title { margin-bottom: 2px; }
 .notice-head .notice-body { margin-bottom: 0; }
@@ -308,10 +305,10 @@ textarea { resize: vertical; }
 .el-chip {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 7px 12px;
-  background: var(--brand-subtle);
-  border: 1px solid var(--brand-border);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
   border-radius: var(--r);
-  font-size: var(--fs-md); color: var(--brand); font-weight: var(--fw-med);
+  font-size: var(--fs-md); color: var(--accent); font-weight: var(--fw-med);
   max-width: 100%; overflow: hidden;
 }
 .el-chip-type {
@@ -320,97 +317,106 @@ textarea { resize: vertical; }
 }
 .el-chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── Test-ID row ─────────────────────────────────────────────────────────── */
-.testid-row {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--figma-color-bg-secondary);
-  border-radius: var(--r); padding: 8px 12px; margin-bottom: 14px;
-  cursor: pointer; transition: background var(--dur-fast);
-}
-.testid-row:hover { background: var(--figma-color-bg-hover); }
-.testid-lbl {
-  font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
-  letter-spacing: .5px; color: var(--figma-color-text-secondary); flex-shrink: 0;
-}
-.testid-val {
-  font-size: var(--fs-sm); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  color: var(--figma-color-text); flex: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.testid-copy { flex-shrink: 0; display: flex; align-items: center; color: var(--figma-color-text-secondary); }
-.testid-row:hover .testid-copy { color: var(--brand); }
-.testid-copied { flex-shrink: 0; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--ok); display: none; }
-.testid-row.copied .testid-copy { display: none; }
-.testid-row.copied .testid-copied { display: inline; }
-
 /* ── Metric options (radio cards) ───────────────────────────────────────── */
 .m-opt {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 14px 14px;
-  border: 1px solid var(--figma-color-border);
+  border: 1px solid var(--border);
   border-radius: var(--r); cursor: pointer; margin-bottom: 8px;
   transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
 }
-.m-opt:hover:not(.m-disabled) { border-color: var(--brand); background: var(--brand-subtle); }
+.m-opt:hover:not(.m-disabled) { border-color: var(--accent); background: var(--accent-subtle); }
 .m-opt.m-selected {
-  border-color: var(--brand); background: var(--brand-subtle);
-  box-shadow: 0 0 0 1px var(--brand);
+  border-color: var(--accent); background: var(--accent-subtle);
 }
 .m-opt.m-highlight {
-  border-color: var(--warn); background: var(--warn-subtle);
+  border-color: var(--pro); background: var(--pro-subtle);
 }
 .m-opt.m-disabled { opacity: .45; cursor: not-allowed; }
 .m-radio {
   width: 16px; height: 16px; border-radius: 50%;
-  border: 2px solid var(--figma-color-border);
+  border: 2px solid var(--border);
   margin-top: 1px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: border-color var(--dur-fast);
 }
-.m-selected .m-radio, .m-highlight .m-radio { border-color: var(--brand); }
+.m-selected .m-radio, .m-highlight .m-radio { border-color: var(--accent); }
 .m-selected .m-radio::after, .m-highlight .m-radio::after {
   content: ''; width: 8px; height: 8px;
-  border-radius: 50%; background: var(--brand);
+  border-radius: 50%; background: var(--accent);
 }
 .m-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
-.m-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-top: 2px; line-height: 1.4; }
+.m-desc { font-size: var(--fs-sm); color: var(--text-2); margin-top: 2px; line-height: 1.4; }
+
+/* ── Scope buttons (segmented control) ─────────────────────────────────── */
+.scope-options {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.scope-btn {
+  flex: 1;
+  padding: 9px 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text);
+  border-radius: var(--rsm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-med);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast), color var(--dur-fast);
+}
+.scope-btn:hover { background: var(--bg-0); transform: translateY(-1px); }
+.scope-btn.on {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: var(--fw-semibold);
+}
+.scope-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  margin-top: 3px;
+  text-align: center;
+  line-height: 1.3;
+}
 
 /* ── Advanced toggle ─────────────────────────────────────────────────────── */
 .adv-toggle {
   display: flex; align-items: center; gap: 5px;
-  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--text-2);
   cursor: pointer; margin-bottom: 10px; user-select: none; margin-top: 6px;
   background: none; border: none; padding: 0;
   font-family: inherit; width: 100%; text-align: left;
   border-radius: var(--rsm); min-height: 24px;
 }
-.adv-toggle:hover { color: var(--figma-color-text); }
+.adv-toggle:hover { color: var(--text); }
 .adv-toggle .adv-arrow { transition: transform var(--dur-fast) var(--ease-out); }
 .adv-toggle.open .adv-arrow { transform: rotate(90deg); }
 .adv-section { display: none; padding: 0 2px 4px; }
 .adv-section.open { display: block; }
 .adv-group { margin-bottom: 14px; }
 .adv-group-title { display: flex; align-items: center; gap: 5px; font-size: var(--fs-sm); font-weight: var(--fw-med); margin-bottom: 4px; }
-.adv-group-title svg { flex-shrink: 0; color: var(--figma-color-icon-secondary, var(--figma-color-text-secondary)); }
-.adv-group-desc { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); margin-bottom: 8px; line-height: 1.4; }
+.adv-group-title svg { flex-shrink: 0; color: var(--text-2); }
+.adv-group-desc { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: 8px; line-height: 1.4; }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
   display: flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--fs-sm); color: var(--figma-color-text-secondary); padding: 8px 0;
+  font-size: var(--fs-sm); color: var(--text-2); padding: 8px 0;
 }
 .loading-center { justify-content: center; padding: 24px 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
   width: 14px; height: 14px; flex-shrink: 0;
-  border: 2px solid var(--figma-color-border);
-  border-top-color: var(--brand);
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
 
 /* ── Divider ─────────────────────────────────────────────────────────────── */
-.divider { height: 1px; background: var(--figma-color-border); margin: 14px 0; }
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
 
 /* ── Badges ──────────────────────────────────────────────────────────────── */
 .badge {
@@ -418,17 +424,17 @@ textarea { resize: vertical; }
   padding: 1px 7px; border-radius: var(--rxs); font-size: var(--fs-xs); font-weight: var(--fw-bold);
   text-transform: uppercase; letter-spacing: .3px; line-height: 1.7;
 }
-.ba { background: var(--brand-subtle); color: var(--brand); }
-.bb { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
-.bs-draft   { background: var(--figma-color-bg-secondary); color: var(--figma-color-text-secondary); border: 1px solid var(--figma-color-border); }
-.bs-active  { background: var(--brand-subtle); color: var(--brand); }
-.bs-done    { background: var(--ok-subtle); color: var(--figma-color-text-success, var(--ok)); }
-.bs-paused  { background: var(--warn-subtle); color: var(--figma-color-text-warning, var(--warn)); }
+.ba { background: var(--accent-subtle); color: var(--accent); }
+.bb { background: var(--ok-subtle); color: var(--ok); }
+.bs-draft   { background: var(--bg-1); color: var(--text-2); border: 1px solid var(--border); }
+.bs-active  { background: var(--accent-subtle); color: var(--accent); }
+.bs-done    { background: var(--ok-subtle); color: var(--ok); }
+.bs-paused  { background: var(--pro-subtle); color: var(--pro); }
 
 /* ── Code pre ────────────────────────────────────────────────────────────── */
 pre {
-  background: var(--figma-color-bg-secondary);
-  border: 1px solid var(--figma-color-border);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
   border-radius: var(--r); padding: 10px 12px;
   font-size: var(--fs-xs); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   white-space: pre-wrap; word-break: break-all;
@@ -436,20 +442,20 @@ pre {
   line-height: 1.5;
 }
 code {
-  background: var(--figma-color-bg-secondary);
+  background: var(--bg-1);
   padding: 1px 5px; border-radius: var(--rxs); font-size: var(--fs-sm);
 }
 
 /* ── Upgrade banner ──────────────────────────────────────────────────────── */
 .upgrade-banner {
   display: none;
-  background: var(--warn-subtle); border: 1px solid var(--warn-border);
+  background: var(--pro-subtle); border: 1px solid var(--pro-border);
   border-radius: var(--r); padding: 13px 14px; margin-bottom: 14px; text-align: center;
 }
-.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 5px; }
-.ub-sub   { font-size: var(--fs-sm); color: var(--figma-color-text-warning, var(--warn)); margin-bottom: 12px; line-height: 1.4; }
+.ub-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--pro); margin-bottom: 5px; }
+.ub-sub   { font-size: var(--fs-sm); color: var(--pro); margin-bottom: 12px; line-height: 1.4; }
 .btn-upgrade {
-  background: var(--warn); color: #fff; padding: 8px 16px;
+  background: var(--pro); color: #fff; padding: 8px 16px;
   border-radius: var(--r); font-size: var(--fs-md); font-weight: var(--fw-semibold);
   cursor: pointer; border: none; transition: background var(--dur-fast);
 }
@@ -458,45 +464,44 @@ code {
 /* ── Dashboard: Test-Karte ───────────────────────────────────────────────── */
 .test-card {
   position: relative;
-  background: var(--panel);
-  border: 1px solid rgba(15,23,42,.06);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 13px 14px; margin-bottom: 10px; cursor: pointer;
   transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
   display: flex; flex-direction: column; gap: 8px;
-  box-shadow: var(--elev-0);
 }
 .test-card::before {
   content: ''; position: absolute; left: 0; top: 5px; bottom: 5px;
   width: 4px; border-radius: 0 999px 999px 0;
-  background: rgba(15,23,42,.14);
+  background: var(--border);
   transition: background var(--dur-fast);
 }
-.test-card.st-active::before { background: var(--brand); }
+.test-card.st-active::before { background: var(--accent); }
 .test-card.st-done::before   { background: var(--ok); }
-.test-card.st-paused::before { background: var(--warn); }
-.test-card:hover { border-color: rgba(13,153,255,.2); background: var(--panel-strong); box-shadow: var(--elev-1); transform: translateY(-1px); }
+.test-card.st-paused::before { background: var(--pro); }
+.test-card:hover { border-color: var(--accent-border); background: var(--bg-0); transform: translateY(-1px); }
 .test-card.deleting { opacity: .35; pointer-events: none; transform: scale(.98); }
 
 .tc-row1 { display: flex; align-items: center; gap: 8px; }
 .tc-name {
   flex: 1; min-width: 0;
-  font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--figma-color-text);
+  font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3;
 }
 .tc-domain {
-  font-size: var(--fs-xs); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-xs); color: var(--text-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   margin-top: 1px;
 }
 .tc-row2 { display: flex; align-items: center; gap: 8px; }
 .tc-stats { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
-.tc-stat { display: flex; align-items: center; gap: 3px; font-size: var(--fs-sm); color: var(--figma-color-text-secondary); }
+.tc-stat { display: flex; align-items: center; gap: 3px; font-size: var(--fs-sm); color: var(--text-2); }
 .tc-stat svg { flex-shrink: 0; }
-.tc-stat b { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; color: var(--figma-color-text); }
-.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--figma-color-text-success, var(--ok)); }
-.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--danger); }
-.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--figma-color-text-success, var(--ok)); font-weight: var(--fw-bold); }
+.tc-stat b { font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; color: var(--text); }
+.tc-stat.pos, .tc-stat.pos svg, .tc-stat.pos b { color: var(--ok); }
+.tc-stat.neg, .tc-stat.neg svg, .tc-stat.neg b { color: var(--err); }
+.tc-stat.win, .tc-stat.win svg, .tc-stat.win b { color: var(--ok); font-weight: var(--fw-bold); }
 
 .tc-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .icon-btn {
@@ -504,11 +509,11 @@ code {
   border: none; border-radius: var(--rsm);
   background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   transition: background var(--dur-fast), color var(--dur-fast);
 }
-.icon-btn:hover { background: var(--figma-color-bg-hover); color: var(--figma-color-text); }
-.icon-btn.danger:hover { background: rgba(220,38,38,.12); color: var(--danger); }
+.icon-btn:hover { background: var(--bg-2); color: var(--text); }
+.icon-btn.danger:hover { background: var(--err-hover); color: var(--err); }
 
 /* ── Dashboard: empty state ──────────────────────────────────────────────── */
 .dash-empty {
@@ -517,19 +522,19 @@ code {
 }
 .dash-empty-icon {
   width: 56px; height: 56px; border-radius: 16px;
-  background: var(--panel);
+  background: var(--bg-1);
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px; color: var(--figma-color-text-secondary);
-  box-shadow: var(--elev-0);
+  margin-bottom: 14px; color: var(--text-2);
+  
 }
 .dash-empty h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); margin-bottom: 6px; }
-.dash-empty p  { font-size: var(--fs-sm); color: var(--figma-color-text-secondary); line-height: 1.6; margin-bottom: 16px; }
+.dash-empty p  { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.6; margin-bottom: 16px; }
 
 /* ── Plan chip ──────────────────────────────────────────────────────────── */
 .plan-chip {
   font-size: 10px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--figma-color-text-secondary);
+  color: var(--text-2);
   padding: 4px 16px 0; flex-shrink: 0;
 }
 
@@ -539,46 +544,46 @@ code {
   margin: 16px 0 8px; padding: 0 2px;
 }
 .dash-section:first-of-type { margin-top: 4px; }
-.dash-section-icon { display: flex; flex-shrink: 0; color: var(--figma-color-text-secondary); }
+.dash-section-icon { display: flex; flex-shrink: 0; color: var(--text-2); }
 .dash-section-label {
-  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-2);
   text-transform: uppercase; letter-spacing: .4px;
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dash-section-count {
-  font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--figma-color-text-secondary);
-  background: var(--figma-color-bg-secondary); border-radius: 8px; padding: 2px 8px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-2);
+  background: var(--bg-1); border-radius: 8px; padding: 2px 8px;
 }
 
 /* ── Previews ────────────────────────────────────────────────────────────── */
 .frame      {
-  border: 1px solid var(--figma-color-border); border-radius: var(--r);
+  border: 1px solid var(--border); border-radius: var(--r);
   background: #fff; color: #111; overflow: hidden;
 }
 
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
-.err { color: var(--danger); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
-.ok  { color: var(--figma-color-text-success, var(--ok)); font-size: var(--fs-sm); padding: 4px 0; }
+.err { color: var(--err); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
+.ok  { color: var(--ok); font-size: var(--fs-sm); padding: 4px 0; }
 .copy-ok { display: none; }
 .copy-ok.vis { display: inline; }
 
 /* ── Link button (used in toast undo) ───────────────────────────────────── */
 .link-btn {
   background: none; border: none; padding: 6px 0 0; cursor: pointer;
-  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--brand); font-family: inherit;
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--accent); font-family: inherit;
   transition: opacity var(--dur-fast);
 }
 .link-btn:hover { opacity: .8; }
 
 /* ── Generate: preview note ──────────────────────────────────────────────── */
 .preview-note {
-  font-size: var(--fs-xs); color: var(--figma-color-text-disabled, #bbb);
+  font-size: var(--fs-xs); color: var(--text-3);
   margin: 5px 0 12px; font-style: italic;
 }
 
 /* ── Generate: code drawer ───────────────────────────────────────────────── */
 .code-drawer summary {
-  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--figma-color-text-secondary);
+  font-size: var(--fs-sm); font-weight: var(--fw-med); color: var(--text-2);
   cursor: pointer; user-select: none; padding: 4px 0;
 }
 .code-drawer pre { margin-top: 6px; }
@@ -590,9 +595,9 @@ code {
 }
 .overlay.open { display: flex; }
 .overlay-sheet {
-  background: var(--figma-color-bg);
+  background: var(--bg-0);
   border-radius: var(--r) var(--r) 0 0;
-  box-shadow: var(--elev-3);
+  
   padding: 20px 16px 16px; max-height: 70%;
   display: flex; flex-direction: column; gap: 12px;
   animation: slideUp var(--dur-med) var(--ease-spring);
@@ -606,8 +611,8 @@ code {
   display: none;
   position: fixed; left: 14px; right: 14px; bottom: 14px;
   align-items: center; justify-content: space-between; gap: 10px;
-  background: var(--figma-color-bg); border: 1px solid var(--figma-color-border);
-  border-radius: var(--r); box-shadow: var(--elev-3);
+  background: var(--bg-0); border: 1px solid var(--border);
+  border-radius: var(--r); 
   padding: 12px 14px; font-size: var(--fs-sm); z-index: 1000;
 }
 .toast.vis { display: flex; }
@@ -619,12 +624,12 @@ code {
 }
 /* Focus ring */
 *:focus-visible {
-  outline: 2px solid var(--brand); outline-offset: 2px;
+  outline: 2px solid var(--accent); outline-offset: 2px;
 }
 summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 @keyframes sk-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 .sk {
-  background: var(--figma-color-bg-secondary);
+  background: var(--bg-1);
   border-radius: var(--rsm);
   animation: sk-pulse 1.2s ease-in-out infinite;
 }
@@ -635,7 +640,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 .dots { display: flex; gap: 5px; justify-content: center; }
 .dots span {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--figma-color-text-secondary);
+  background: var(--text-2);
   animation: dots-bounce 1.2s ease-in-out infinite;
 }
 .dots span:nth-child(2) { animation-delay: .15s; }
@@ -668,40 +673,28 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:20px 16px 16px">
     <div class="welcome-shell">
       <div class="welcome-hero">
-        <div class="welcome-badge">
-          <svg width="24" height="24" fill="none" viewBox="0 0 14 14">
-            <rect x="2" y="2" width="4" height="10" rx="1.5" fill="#fff" opacity=".9"/>
-            <rect x="8" y="5" width="4" height="7" rx="1.5" fill="#fff"/>
-          </svg>
-        </div>
-        <div class="welcome-title">Variante</div>
-        <div class="welcome-sub">A/B testing from Figma — no dev needed</div>
+        <div class="welcome-logo">variante</div>
+        <div class="welcome-sub">Pick, design, ship — no developer.</div>
       </div>
 
       <div class="welcome-steps">
         <div class="welcome-step">
-          <div class="welcome-step-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>
-          </div>
-          <div class="welcome-step-text">Pick any element on your live site and let the flow guide the rest.</div>
+          <div class="welcome-step-num">1</div>
+          <div class="welcome-step-text">Pick any element on your live site.</div>
         </div>
         <div class="welcome-step">
-          <div class="welcome-step-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-          </div>
-          <div class="welcome-step-text">Turn a Figma concept into a polished Variant B with AI in a few taps.</div>
+          <div class="welcome-step-num">2</div>
+          <div class="welcome-step-text">Design a Variant B in Figma using AI.</div>
         </div>
         <div class="welcome-step">
-          <div class="welcome-step-icon" style="background:var(--ok-subtle);color:var(--figma-color-text-success, var(--ok));">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          </div>
+          <div class="welcome-step-num">3</div>
           <div class="welcome-step-text">Ship it and watch the uplift without touching your codebase.</div>
         </div>
       </div>
 
       <div id="c-welcome" class="welcome-actions">
-        <button class="btn btn-primary" onclick="createAccount()">Create free account →</button>
-        <button class="btn btn-secondary" onclick="showTokenMode()">I have an account — connect</button>
+        <button class="btn btn-primary" onclick="createAccount()">Sign up free →</button>
+        <button class="btn btn-secondary" onclick="showTokenMode()">I have an account</button>
       </div>
 
       <div id="c-token" style="display:none">
@@ -787,7 +780,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url" onkeydown="if(event.key==='Enter')createTest()"/>
       <datalist id="dl-url"></datalist>
     </div>
-    <div id="url-hint" style="font-size:var(--fs-xs);color:var(--figma-color-text-secondary);margin:4px 0 0">The exact page this test will run on.</div>
+    <div id="url-hint" style="font-size:var(--fs-xs);color:var(--text-2);margin:4px 0 0">The exact page this test will run on.</div>
     <div class="field-err" id="url-err" role="alert"></div>
 
     <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:6px">
@@ -820,18 +813,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-
-    <!-- Test-ID -->
-    <div class="testid-row" id="el-testid-row" onclick="copyTestId()" title="Click to copy" tabindex="0" role="button" aria-label="Copy test ID" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyTestId()}">
-      <span class="testid-lbl">Test ID</span>
-      <span class="testid-val" id="el-testid-val">—</span>
-      <span class="testid-copy" id="el-testid-copy">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-        </svg>
-      </span>
-      <span class="testid-copied" id="el-testid-copied">✓ Copied</span>
-    </div>
 
     <!-- Picker notice (no extension needed — built into the snippet) -->
     <div class="notice notice-blue" id="el-ext-notice">
@@ -924,13 +905,114 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-design" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
-    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Goal →</button>
+    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Scope →</button>
   </div>
 </div>
 
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCREEN 4 · Conversion Goal
+     SCREEN 4 · Scope & Generate Variant B
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-generate" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Generate Variant B</span>
+    <span class="hdr-step">4 / 6</span>
+  </div>
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
+    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <!-- Scope picker — what the AI should change -->
+    <div id="gen-scope-area">
+      <span class="lbl">What should the AI change?</span>
+      <div class="scope-options" role="radiogroup" aria-label="Generation scope">
+        <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
+        <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
+        <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
+      </div>
+      <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
+
+      <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+    </div>
+
+    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
+      <div class="spinner" aria-hidden="true"></div>
+      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
+    </div>
+
+    <div id="gen-result" style="display:none">
+      <!-- Toggle switches: A/B and Light/Dark -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span class="lbl" style="margin-bottom:0">Preview</span>
+        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
+          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
+          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
+        </div>
+        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
+          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </button>
+          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
+      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+
+      <!-- Generated HTML drawer — directly under preview -->
+      <details class="code-drawer">
+        <summary>Show generated HTML</summary>
+        <pre id="gen-html"></pre>
+      </details>
+
+      <div class="divider"></div>
+
+      <!-- Change scope & regenerate -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:var(--fs-sm);color:var(--text-2);flex-shrink:0">Scope:</span>
+        <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
+        <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
+        <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+      </div>
+
+      <!-- Refine: opens overlay -->
+      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        Refine with AI
+      </button>
+      <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+    </div>
+
+    <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
+    <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
+  </div>
+  <div class="ftr" id="gen-ftr" style="display:none">
+    <button class="btn btn-primary" onclick="goToGoal()">Continue to Goal →</button>
+  </div>
+</div>
+
+<!-- Refine overlay -->
+<div class="overlay" id="refine-overlay">
+  <div class="overlay-sheet">
+    <label class="lbl" for="gen-feedback">What should change?</label>
+    <textarea id="gen-feedback" rows="3" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
+    <div class="overlay-actions">
+      <button class="btn btn-secondary" onclick="closeRefine()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRefine()">Apply →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 5 · Conversion Goal
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-metric" class="screen">
   <div class="hdr">
@@ -940,11 +1022,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Conversion Goal</span>
-    <span class="hdr-step">4 / 6</span>
+    <span class="hdr-step">5 / 6</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="5" aria-label="Step 5 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
   </div>
   <div class="body">
     <!-- Active goal — inline chip, not a separate section -->
@@ -978,7 +1060,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div id="m-pick-wrap" style="display:none;margin:8px 0 12px 36px">
       <button class="btn btn-primary btn-sm btn-icon-left" onclick="openSite('goal')" style="width:auto">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-        Open in Chrome
+        Open in Browser
       </button>
       <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:8px">
         <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -1013,87 +1095,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-metric" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
-    <button class="btn btn-primary" id="m-generate" onclick="goGenerate()" disabled>Generate HTML →</button>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SCREEN 5 · Generate Variant B
-════════════════════════════════════════════════════════════════════ -->
-<div id="s-generate" class="screen">
-  <div class="hdr">
-    <button class="back-btn" onclick="navBack()" aria-label="Back">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6"/>
-      </svg>
-    </button>
-    <span class="hdr-title">Generate Variant B</span>
-    <span class="hdr-step">5 / 6</span>
-  </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="5" aria-label="Step 5 of 6">
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
-  </div>
-  <div class="body">
-    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
-      <div class="spinner" aria-hidden="true"></div>
-      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
-    </div>
-
-    <div id="gen-result" style="display:none">
-      <!-- Toggle switches: A/B and Light/Dark -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <span class="lbl" style="margin-bottom:0">Preview</span>
-        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
-          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
-          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
-        </div>
-        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
-          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          </button>
-          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
-      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
-
-      <!-- Generated HTML drawer — directly under preview -->
-      <details class="code-drawer">
-        <summary>Show generated HTML</summary>
-        <pre id="gen-html"></pre>
-      </details>
-
-      <div class="divider"></div>
-
-      <!-- Refine: opens overlay -->
-      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-        Refine with AI
-      </button>
-      <button class="btn btn-ghost" onclick="generate()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
-    </div>
-
-    <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
-    <button class="btn btn-secondary btn-sm" id="btn-gen-retry" style="display:none;margin-top:6px" onclick="retryGenerate()">↻ Retry</button>
-  </div>
-  <div class="ftr" id="gen-ftr" style="display:none">
-    <button class="btn btn-primary" onclick="navPush('snippet'); buildSnippet()">Looks good — Install Snippet →</button>
-  </div>
-</div>
-
-<!-- Refine overlay -->
-<div class="overlay" id="refine-overlay">
-  <div class="overlay-sheet">
-    <label class="lbl" for="gen-feedback">What should change?</label>
-    <textarea id="gen-feedback" rows="3" placeholder="e.g. bolder button, more spacing, clearer hover feedback"></textarea>
-    <div class="overlay-actions">
-      <button class="btn btn-secondary" onclick="closeRefine()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitRefine()">Apply →</button>
-    </div>
+    <button class="btn btn-primary" id="m-generate" onclick="navPush('snippet'); buildSnippet()">Continue to Snippet →</button>
   </div>
 </div>
 
@@ -1136,7 +1138,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     </button>
     <div class="copy-ok ok" id="cp-snippet" aria-live="polite" style="margin:6px 0 0 2px;font-size:var(--fs-xs);font-weight:var(--fw-bold)">✓ Copied</div>
     <details style="margin:8px 0 0">
-      <summary style="font-size:var(--fs-sm);font-weight:var(--fw-med);color:var(--figma-color-text-secondary);cursor:pointer">Show snippet code</summary>
+      <summary style="font-size:var(--fs-sm);font-weight:var(--fw-med);color:var(--text-2);cursor:pointer">Show snippet code</summary>
       <pre id="snippet-code" style="margin-top:8px"></pre>
     </details>
 
@@ -1166,11 +1168,13 @@ let activeTestCount = 0
 let generating = false
 let generateDone = false
 let generateFailed = false
+let scope = 'all'
 let previewVariant = 'b'
 let elTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
 let tokenReceived = false
 let navHistory = []
+let pendingDraft = null  // { testId, screen } — vom code.ts beim Boot geladen
 
 function afetch(url, opts) {
   opts = opts || {}
@@ -1183,6 +1187,23 @@ function afetch(url, opts) {
   if (API_TOKEN) headers['Authorization'] = 'Bearer ' + API_TOKEN
   opts.headers = headers
   return fetch(url, opts)
+}
+
+function apiErrorMessage(status, body) {
+  // 422 = PII detected → show what was found
+  if (status === 422 && body && body.findings) {
+    var types = Object.keys(body.findings).filter(function(k) { return body.findings[k] })
+    if (types.length) {
+      return 'Your content contains sensitive data (' + types.join(', ') + '). Please remove it and try again.'
+    }
+    return 'Your content contains sensitive data. Please remove personal information and try again.'
+  }
+  if (status === 402) return 'This feature requires a Pro plan. Upgrade to continue.'
+  if (status === 429) return 'Too many requests. Please wait a moment and try again.'
+  if (status === 401) return 'Your session expired. Please reconnect on the Connect tab.'
+  if (status >= 500) return 'Server error \u2014 something went wrong on our end. Please try again.'
+  if (status === 404) return 'Not found. It may have been deleted.'
+  return 'Request failed. Please try again.'
 }
 
 function $(id) { return document.getElementById(id) }
@@ -1217,13 +1238,30 @@ function go(id) {
   if (id !== 'metric')  stopMetricPoll()
   if (id !== 'dashboard' && pendingDelete) commitPendingDelete()
 }
-async function navPush(id) { navHistory.push(id); go(id) }
+// ponytail: Wizard-Screen sind setup/element/design/metric/generate/snippet.
+// Dashboard & connect sind keine Wizard-Screens — da wird der Draft gelöscht.
+const WIZARD_SCREENS = ['setup', 'element', 'design', 'generate', 'metric', 'snippet']
+function saveDraft(id) {
+  if (!WIZARD_SCREENS.includes(id) || !state.testId) return
+  parent.postMessage({ pluginMessage: { type: 'SAVE_DRAFT', draft: { testId: state.testId, screen: id } } }, '*')
+}
+function clearDraft() {
+  parent.postMessage({ pluginMessage: { type: 'CLEAR_DRAFT' } }, '*')
+}
+async function navPush(id) {
+  navHistory.push(id)
+  go(id)
+  saveDraft(id)
+}
 function navBack() {
-  if (navHistory.length < 2) { navHistory = ['dashboard']; go('dashboard'); return }
+  if (navHistory.length < 2) { navHistory = ['dashboard']; go('dashboard'); clearDraft(); return }
   navHistory.pop()
   let prev = navHistory[navHistory.length - 1]
-  if (prev === 'connect') { navHistory = ['dashboard']; go('dashboard'); return }
+  if (prev === 'connect') { navHistory = ['dashboard']; go('dashboard'); clearDraft(); return }
   go(prev)
+  // Wenn wir zurück zum Dashboard gehen, Draft löschen
+  if (prev === 'dashboard') clearDraft()
+  else saveDraft(prev)
 }
 
 function err(id, msg) {
@@ -1272,20 +1310,139 @@ function showWelcomeMode() {
   $('c-welcome').style.display = 'block'
   $('connect-hdr').style.display = 'none'
 }
+
+// Stellt einen gespeicherten Wizard-Draft wieder her.
+// Lädt den Test vom Server und navigiert zum gespeicherten Screen.
+async function restoreDraft(draft) {
+  const { testId, screen } = draft
+  if (!testId || !WIZARD_SCREENS.includes(screen)) {
+    showDashboard()
+    return
+  }
+  try {
+    const res = await afetch(API + '/api/tests/' + testId)
+    if (!res.ok) { clearDraft(); showDashboard(); return }
+    const t = await res.json()
+    // State aus Server-Daten befüllen
+    state.testId = t.id
+    state.snippetKey = t.snippet_key || ''
+    state.name = t.name || ''
+    state.url = t.site_url || ''
+    state.selector = t.selector || ''
+    state.goal = t.goal || ''
+    state.originalHtml = t.original_html || ''
+    state.goalCandidates = t.goal_candidates || []
+    state.html = t.variant_html || ''
+    if (t.site_css) state.siteCss = t.site_css
+
+    // UI zurücksetzen
+    $('f-name').value = state.name
+    $('f-url').value = state.url
+    hideUpgradeBanner()
+
+    // Je nach gespeichertem Screen den richtigen Zustand herstellen
+    if (screen === 'setup') {
+      navHistory = ['dashboard', 'setup']
+      go('setup')
+    } else if (screen === 'element') {
+      navHistory = ['dashboard', 'setup', 'element']
+      if (state.selector) {
+        renderElementChip(state.selector, state.originalHtml)
+        $('el-waiting').style.display = 'none'
+        $('el-done').style.display = 'block'
+        var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = 'none'
+        $('btn-el-next').disabled = false
+      } else {
+        $('el-waiting').style.display = 'flex'
+        $('el-done').style.display = 'none'
+        $('btn-el-next').disabled = true
+        startElementPoll()
+      }
+      go('element')
+    } else if (screen === 'design') {
+      navHistory = ['dashboard', 'setup', 'element', 'design']
+      go('design')
+      requestSelection()
+    } else if (screen === 'metric') {
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric']
+      go('metric')
+      // Metric-Setup inline (ohne navPush, da navHistory schon gesetzt ist)
+      $('m-waiting').style.display = 'none'
+      $('m-goal-display').style.display = 'none'
+      $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
+      $('m-pick-wrap').style.display = 'none'
+      $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
+      $('adv-toggle').classList.remove('open')
+      $('adv-toggle').setAttribute('aria-expanded', 'false')
+      $('adv-section').classList.remove('open')
+      $('m-custom-selector').value = ''
+      const clickable = isClickable(state.originalHtml)
+      if (clickable) {
+        state.goal = state.selector
+        $('m-default-opt').classList.add('m-selected')
+        $('m-default-opt').classList.remove('m-disabled', 'm-highlight')
+        $('m-default-opt').style.opacity = ''
+        $('m-default-desc').textContent = ''; $('m-default-desc').style.display = 'none'
+        $('m-generate').disabled = false
+      } else {
+        state.goal = ''
+        $('m-default-opt').classList.remove('m-selected')
+        $('m-default-opt').classList.add('m-disabled')
+        $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
+        $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
+        $('m-generate').disabled = true
+        $('m-pick-opt').classList.add('m-selected', 'm-highlight')
+        $('m-pick-wrap').style.display = 'block'
+      }
+      renderGoalChip()
+    } else if (screen === 'generate') {
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate']
+      go('generate')
+      if (state.html) {
+        fillPreviews()
+        $('gen-html').textContent = state.html || ''
+        $('gen-result').style.display = 'block'
+        $('gen-ftr').style.display = 'block'
+        $('gen-scope-area').style.display = 'none'
+        setScope(scope)
+        generateDone = true
+      } else {
+        goGenerate()
+      }
+    } else if (screen === 'snippet') {
+      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric', 'snippet']
+      buildSnippet()
+      go('snippet')
+    }
+  } catch (_) {
+    clearDraft()
+    showDashboard()
+  }
+}
 function goToTokenMode() { showTokenMode(); go('connect') }
-function saveToken() {
+async function saveToken() {
   const v = ($('connect-token').value || '').trim()
   if (!v) { err('connect', 'Please paste your token.'); return }
-  API_TOKEN = v
-  saveInputHistory('token', v)
-  parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
   const btn = document.querySelector('#c-token .btn-primary')
-  if (btn) { btn.textContent = '✓ Connected!'; btn.disabled = true }
-  setTimeout(showDashboard, 1200)
+  if (btn) { btn.textContent = 'Checking…'; btn.disabled = true }
+  try {
+    // Token validieren, bevor wir ihn akzeptieren
+    const res = await fetch(API + '/api/profile', { headers: { Authorization: 'Bearer ' + v } })
+    if (!res.ok) throw new Error('Invalid token — please check your dashboard for the correct token.')
+    API_TOKEN = v
+    saveInputHistory('token', v)
+    parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
+    if (btn) { btn.textContent = '✓ Connected!' }
+    setTimeout(showDashboard, 800)
+  } catch (e) {
+    if (btn) { btn.textContent = 'Connect →'; btn.disabled = false }
+    err('connect', e.message || 'Invalid token')
+  }
 }
 
 async function showDashboard() {
   if (pendingDelete) commitPendingDelete()
+  clearDraft()
   navHistory = ['dashboard']
   go('dashboard')
   const list = $('dash-list')
@@ -1297,7 +1454,7 @@ async function showDashboard() {
     '<div class="sk sk-card" aria-hidden="true" style="height:56px"></div></div>'
   try {
     const res = await afetch(API + '/api/tests')
-    if (!res.ok) throw new Error('API ' + res.status)
+    if (!res.ok) { var eb = {}; try { eb = await res.json() } catch (_) {} throw new Error(apiErrorMessage(res.status, eb)) }
     const { tests, plan } = await res.json()
     if (plan) state.plan = plan
     activeTestCount = tests ? tests.filter(t => t.status !== 'done').length : 0
@@ -1444,12 +1601,17 @@ function newTest() {
     showUpgradeBanner('Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.')
     return
   }
+  clearDraft()
   state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
   state.originalHtml = ''; state.goalCandidates = []
   state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
   previewVariant = 'b'
+  scope = 'all'
   generateDone = false; generateFailed = false
   $('btn-gen-retry').style.display = 'none'
+  var sa = $('gen-scope-area'); if (sa) sa.style.display = 'block'
+  var gr = $('gen-result'); if (gr) gr.style.display = 'none'
+  var gf = $('gen-ftr'); if (gf) gf.style.display = 'none'
   $('f-name').value = ''; $('f-url').value = ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'flex'; $('el-done').style.display = 'none'
@@ -1458,7 +1620,6 @@ function newTest() {
   $('btn-el-next').disabled = true
   $('btn-export').disabled = true
   $('el-chip-wrap').innerHTML = ''
-  $('el-testid-val').textContent = '—'
   hideUpgradeBanner()
   navPush('setup')
   populateDatalist('dl-url', 'url')
@@ -1496,7 +1657,7 @@ async function createTest() {
         showUpgradeBanner(eb.message || 'Free plan allows 1 active experiment. Upgrade for unlimited.')
         throw new Error(eb.message || 'Free plan limit reached')
       }
-      throw new Error('API ' + res.status)
+      throw new Error(apiErrorMessage(res.status, eb))
     }
     const data = await res.json()
     hideUpgradeBanner()
@@ -1504,7 +1665,6 @@ async function createTest() {
     state.snippetKey = data.snippet_key
     state.name = name; state.url = url
     saveInputHistory('url', url)
-    $('el-testid-val').textContent = data.id
     navPush('element')
     startElementPoll()
     openSite('element')
@@ -1538,18 +1698,7 @@ async function openSite(mode) {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url } }, '*')
   if (mode === 'goal') { $('m-waiting').style.display = 'flex'; startMetricPoll() }
 }
-function copyTestId() {
-  const id = state.testId
-  if (!id) return
-  const ta = document.createElement('textarea')
-  ta.value = id; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
-  document.body.appendChild(ta); ta.focus(); ta.select()
-  try { document.execCommand('copy') } catch (_) {}
-  document.body.removeChild(ta)
-  const row = $('el-testid-row'); if (!row) return
-  row.classList.add('copied')
-  setTimeout(() => row.classList.remove('copied'), 1600)
-}
+
 
 function makeElementLabel(selector, html) {
   const TAG_NAMES = { button:'Button', a:'Link', h1:'Heading', h2:'Heading', h3:'Heading', h4:'Heading', h5:'Heading', p:'Paragraph', input:'Input', img:'Image', div:'Section', span:'Text', nav:'Navigation', header:'Header', section:'Section', form:'Form', textarea:'Textarea', select:'Select', li:'List item' }
@@ -1597,7 +1746,6 @@ function startElementPoll() {
           state.selector      = t.selector
           state.originalHtml  = t.original_html || ''
           state.goalCandidates = t.goal_candidates || []
-          $('el-testid-val').textContent = state.testId || '—'
           renderElementChip(t.selector, state.originalHtml)
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
@@ -1797,14 +1945,60 @@ function stopMetricPoll() {
   if (mDotTimer) { clearInterval(mDotTimer); mDotTimer = null }
 }
 function goGenerate() {
-  if ($('m-generate').disabled) return
-  navPush('generate')
+  // Only called from restoreDraft when arriving at generate screen without html.
+  // In the new flow, we don't auto-generate — scope picker is shown instead.
+  $('gen-scope-area').style.display = 'block'
+  $('gen-result').style.display = 'none'
+  $('gen-ftr').style.display = 'none'
+}
+
+function getScope() { return scope || 'all' }
+
+const SCOPE_DESCRIPTIONS = {
+  all: 'Full visual redesign — layout, colors, and copy can all change.',
+  text: 'Only text content changes. Layout, colors, and structure stay exactly as they are.',
+  color: 'Only colors and backgrounds change. Text and structure stay exactly as they are.'
+}
+
+function setScope(val) {
+  scope = val
+  // Update scope buttons in the initial picker
+  var btns = document.querySelectorAll('#gen-scope-area .scope-btn')
+  btns.forEach(function(b) {
+    var on = b.getAttribute('data-scope') === val
+    b.classList.toggle('on', on)
+    b.setAttribute('aria-checked', on ? 'true' : 'false')
+  })
+  // Update scope buttons in the result area (regenerate row)
+  var resBtns = document.querySelectorAll('#gen-result .scope-btn')
+  resBtns.forEach(function(b) {
+    var on = b.getAttribute('data-scope') === val
+    b.classList.toggle('on', on)
+    b.setAttribute('aria-checked', on ? 'true' : 'false')
+  })
+  // Update description
+  var desc = document.getElementById('scope-desc')
+  if (desc) desc.textContent = SCOPE_DESCRIPTIONS[val] || ''
+}
+
+function startGeneration() {
   if (generating) return
-  if (generateDone) return
+  var scopeArea = $('gen-scope-area')
+  if (scopeArea) scopeArea.style.display = 'none'
   generate()
 }
 
-function getScope() { return 'all' }
+function goToGoal() {
+  enterMetric()
+}
+
+function startOver() {
+  $('gen-result').style.display = 'none'
+  $('gen-ftr').style.display = 'none'
+  $('btn-gen-retry').style.display = 'none'
+  var scopeArea = $('gen-scope-area')
+  if (scopeArea) scopeArea.style.display = 'block'
+}
 
 function buildPreviewDoc(html, bg, cssOverride) {
   const siteCss = cssOverride !== undefined ? cssOverride : state.siteCss
@@ -1833,7 +2027,7 @@ function renderVariantPreview() {
   el.style.background = bgColor
   el.innerHTML = html
     ? '<iframe srcdoc="' + escapeHtml(buildPreviewDoc(html, bg)) + '" style="width:100%;height:200px;border:none;color-scheme:' + (bg === 'dark' ? 'dark' : 'light') + '"></iframe>'
-    : '<div style="color:var(--figma-color-text-secondary);font-size:11px;padding:10px">No preview available.</div>'
+    : '<div style="color:var(--text-2);font-size:11px;padding:10px">No preview available.</div>'
 }
 function syncToggleBtns(el, val) {
   el.querySelectorAll('.toggle-btn').forEach(b => {
@@ -1894,7 +2088,7 @@ async function generate() {
         showUpgradeBanner(eb.message || 'Generation limit reached. Upgrade for unlimited AI generations.')
         throw new Error(eb.message || 'Generation limit reached')
       }
-      throw new Error('Generation failed (' + res.status + ')')
+      throw new Error(apiErrorMessage(res.status, eb))
     }
     const data = await res.json()
     state.html = data.html
@@ -1904,6 +2098,7 @@ async function generate() {
     $('gen-result').style.display = 'block'
     $('gen-ftr').style.display = 'block'
     $('btn-gen-retry').style.display = 'none'
+    setScope(scope)
     generateDone = true
   } catch (e) {
     generateFailed = true
@@ -1940,7 +2135,7 @@ async function refine() {
         showUpgradeBanner(eb.message || 'Generation limit reached.')
         throw new Error(eb.message || 'Generation limit reached')
       }
-      throw new Error('Refine failed (' + res.status + ')')
+      throw new Error(apiErrorMessage(res.status, eb))
     }
     const data = await res.json()
     state.html = data.html
@@ -1981,7 +2176,7 @@ function buildAiPrompt() {
   const testName = state.name || 'my test'
   const snippet = buildSnippetCode()
   return [
-    'Add the Variante A/B testing snippet below to ' + url + ' (test: "' + testName + '").',
+    'Add the variante A/B testing snippet below to ' + url + ' (test: "' + testName + '").',
     '',
     '## 1. Check if already installed',
     'Search the codebase for `id="__ab_hide"` or `ab.js`. If found, confirm the snippet is already present and skip the rest.',
@@ -2011,7 +2206,7 @@ function buildAiPrompt() {
     '',
     '## 6. Your response',
     'When the snippet is inserted, respond ONLY with this short confirmation — no analysis, no caveats:',
-    '"✅ Variante snippet added to ' + url + '. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard"',
+    '"✅ variante snippet added to ' + url + '. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard"',
   ].join('\n')
 }
 
@@ -2034,14 +2229,21 @@ function lockCopyBtn(btn) {
 function copySnippet(btn) { copyText(buildSnippetCode()); flashCopied('cp-snippet'); lockCopyBtn(btn) }
 function copyAiPrompt(btn) { copyText(buildAiPrompt()); flashCopied('cp-ai'); lockCopyBtn(btn) }
 
-function togglePause(id, currentStatus) {
+async function togglePause(id, currentStatus) {
   const next = currentStatus === 'paused' ? 'active' : 'paused'
-  afetch(API + '/api/tests/' + id, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: next })
-  })
-    .then(r => { if (!r.ok) throw new Error('API ' + r.status); showDashboard() })
-    .catch(e => err('dashboard', 'Error: ' + (e.message || e)))
+  try {
+    const r = await afetch(API + '/api/tests/' + id, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: next })
+    })
+    if (!r.ok) {
+      var eb = {}; try { eb = await r.json() } catch (_) {}
+      throw new Error(apiErrorMessage(r.status, eb))
+    }
+    showDashboard()
+  } catch (e) {
+    err('dashboard', e.message)
+  }
 }
 function showUndoToast(message, onUndo) {
   let t = $('toast')
@@ -2087,7 +2289,7 @@ async function commitPendingDelete() {
   hideToast()
   try {
     const res = await afetch(API + '/api/tests/' + id + '?confirm=true', { method: 'DELETE' })
-    if (!res.ok) throw new Error('API ' + res.status)
+    if (!res.ok) { var eb = {}; try { eb = await res.json() } catch (_) {} throw new Error(apiErrorMessage(res.status, eb)) }
     showDashboard()
   } catch (e) {
     if (card) { card.classList.remove('deleting'); card.removeAttribute('aria-hidden') }
@@ -2109,8 +2311,25 @@ window.onmessage = (event) => {
   if (msg.type === 'TOKEN') {
     tokenReceived = true
     API_TOKEN = msg.token || ''
-    if (API_TOKEN) { $('connect-token').value = API_TOKEN; showDashboard() }
-    else go('connect')
+    if (API_TOKEN) {
+      $('connect-token').value = API_TOKEN
+      // Wenn ein Draft existiert, versuche ihn wiederherzustellen
+      if (pendingDraft && pendingDraft.testId) {
+        restoreDraft(pendingDraft)
+      } else {
+        showDashboard()
+      }
+    } else go('connect')
+    return
+  }
+
+  if (msg.type === 'DRAFT_LOADED') {
+    pendingDraft = msg.draft
+    // Falls Token schon da ist, sofort restoren
+    if (tokenReceived && API_TOKEN && pendingDraft && pendingDraft.testId) {
+      restoreDraft(pendingDraft)
+      pendingDraft = null
+    }
     return
   }
 
@@ -2141,8 +2360,7 @@ window.onmessage = (event) => {
     $('l-design').style.display = 'none'
     const exportBtn = $('btn-export')
     if (exportBtn) exportBtn.disabled = false
-    enterMetric()
-    generate()
+    navPush('generate')
     return
   }
 

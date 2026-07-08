@@ -11,6 +11,11 @@
 if (!document.documentElement.hasAttribute('data-ab-picker-injected')) {
 document.documentElement.setAttribute('data-ab-picker-injected', '1')
 
+// Guard gegen ab.js Picker: Wenn der site-eigene Picker bereits aktiv ist
+// (ab.js erkennt ?ab_pick= selbst), nicht doppelt injected werden.
+if (window.__abPickerActive) { /* ab.js picker already running */ }
+else {
+
 ;(function () {
   const DEFAULT_API = 'https://www.getvariante.com'
 
@@ -319,5 +324,6 @@ document.documentElement.setAttribute('data-ab-picker-injected', '1')
     }
   })
 })()
+} // close window.__abPickerActive guard
 
 } // close double-injection guard
