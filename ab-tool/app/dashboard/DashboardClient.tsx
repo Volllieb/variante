@@ -150,9 +150,9 @@ export function DashboardClient({
         {/* ── Two-column layout: 30% / 70% ── */}
         <div className="flex gap-5">
           {/* ═══ LEFT COLUMN (30%) ═══ */}
-          <div className="w-[30%] shrink-0 space-y-4">
+          <div className="w-[30%] shrink-0">
             {/* Overview */}
-            <h2 className="mb-0 text-[13px] font-semibold text-[#ededed]">Overview</h2>
+            <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Overview</h2>
             <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
               <div>
                 <MetricRow icon={FlaskConical} label="Active Tests" value={isPro ? running.toString() : `${running} / 1`} />
@@ -168,7 +168,7 @@ export function DashboardClient({
             </div>
 
             {/* Health / Setup */}
-            <div className="flex items-center gap-2">
+            <div className="mb-3 mt-6 flex items-center gap-2">
               <h2 className="text-[13px] font-semibold text-[#ededed]">Health / Setup</h2>
               <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/25" />
             </div>
