@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 08.07.2026 — Sprint: Chrome-Extension durch Snippet-Picker ersetzt |
+| **Stand** | 08.07.2026 — Sprint: Figma-Plugin auf native Tokens umgestellt, Picker-Success-Overlay redesigned |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -86,12 +86,17 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 08.07.2026 | **Dashboard Overview-Redesign: 30/70-Layout, Metric-Cards, Pie-Chart-TestCards.** Overview-Seite komplett umgebaut: Zweispaltig (30% Metric-Cards / 70% Test-Grid). Linke Spalte: Overview-Card (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon+Name+Wert pro Zeile, getrennt durch subtile Linien) + Health/Setup-Card (Snippet/Plugin/Extension-Status, verlinkt auf `/dashboard/setup`). Rechte Spalte: Tests-Überschrift + Toolbar (Suchleiste, Sort-Icon, New-Test-Button) + TestCard-Grid (3 pro Zeile). Stats-Bar, CRO-Snapshot, Winner-Alert, Overview-Tabelle, HealthBanner entfernt. TestCard neu designt: Row 1 (Favicon, Name+URL, Significance-Pie-Chart mit Visitor-Count im Zentrum), Row 2 (Status-Dot, Dauer d/h/m/s, Variant-Leader A/B). Build grün, deployed. |
+| 07.07.2026 | **Chrome-Extension deprecated — Picker jetzt direkt im Snippet.** `content-picker.js` in `ab.js` integriert: Element-Picker läuft ohne Extension direkt auf der Kundenseite. `chrome-extension/` auf Read-only-Archiv gesetzt (DEPRECATED.md). `ab.js` von ~8 KB auf ~14 KB gewachsen. Build grün. |
+| 07.07.2026 | **Dogfooding: ab.js in layout.tsx integriert.** `ab.js`-Snippet lädt jetzt im Root-Layout der eigenen Landingpage (www.getvariante.com). Ermöglicht echte Dogfood-Tests auf der eigenen Site. |
 | 07.07.2026 | **Dashboard-Restrukturierung: Setup-Health-Check, Overview-Bereinigung.** `/dashboard/setup` als dedizierte Health-Check-Seite mit 3 expandable CheckCards (Snippet auto-check via `/api/snippet-check`, Plugin via `has_figma_plugin`-Flag, Extension always-ok). Snippet-Code, Plugin-Token, Extension-CTA komplett aus Overview entfernt. Overview zeigt nur kompakten HealthBanner (Link zu `/dashboard/setup`). EmptyState für 0-Test-Nutzer mit kontextuellem CTA. Sidebar: Setup-Link mit HeartPulse-Icon statt alter Anchor-Links. Build grün, deployed. |
 | 07.07.2026 | **Sprint 2: Test-Cards + Overview-Tabelle.** Shared `TestCard`-Komponente mit Favicon-Thumbnail, Test-Dauer („Running for 3d"), Signifikanz-Mini-Donut (24×24 SVG), Three-Dot-Menü (Pause/Resume/Delete). `OverviewTable` im Dashboard: kompakte Tabelle aller Tests mit Status, Visitors, Conversions, Signifikanz, Lift. `TestsClient` nutzt jetzt dieselbe Shared-Komponente. Code-Deduplizierung: ~120 Zeilen entfernt. Build grün, deployed. |
 | 07.07.2026 | **Sprint 1: Setup-Checkliste + Snippet-Check-API.** `POST /api/snippet-check` — server-seitiger Fetch (SSRF-geschützt, 5s Timeout) prüft ob `ab.js`/`__ab_hide` auf externer Site lebt. `SetupChecklist`-Komponente ersetzt Empty-State im Dashboard (0-Test-Nutzer): 3 anklickbare Steps (Snippet→Figma→Erster Test) mit visuellem Done-Tracking. Dashboard-Brainstorming abgeschlossen, Roadmap in Sprint-Reihenfolge priorisiert. Build grün, deployed. |
 | 07.07.2026 | **Docs-Seite erstellt.** `/docs` mit 8 Sektionen (Overview, How it works, Installation, Figma Plugin, Chrome Extension, Experiments, Pricing, FAQ). Footer-Link auf Landingpage, Sitemap-Eintrag, JSON-LD. SEO: canonical, OG, Twitter-Card. |
 | 07.07.2026 | **Supabase-Agent erstellt.** `@supabase` als 9. Custom Agent — DB, Auth, Migrationen (idempotent), RLS-Policies (Defense-in-Depth), RPCs, Query-Performance. Doku: 3-Client-Architektur, Auth-Flow, 13-Migrationen-Übersicht. |
 | 07.07.2026 | **Email-Templates designed.** 5 Supabase-Auth-Templates (Confirmation, Magic Link, Reset, Invite, Change) in `ab-tool/emails/`. Brand-konform: Monochrom, schwarzer Header + Panda-Logo als inline SVG, kein Gradient/Schatten, 480px Card-Layout. Anleitung in `emails/README.md`. Templates sind copy-paste-ready für Supabase Dashboard. |
+| 08.07.2026 | **Picker: Success-Overlay redesigned + Reselect-Button.** Nach erfolgreichem Element-Pick: kompaktes Overlay mit Element-Name, Reselect-Button statt nur Erfolgsmeldung. Bessere UX für Korrekturen ohne Page-Reload. |
+| 08.07.2026 | **Fix: onDelete-Handler auf /dashboard/tests nachgerüstet.** Delete-Button in TestCard auf der Tests-Seite war ohne Handler — jetzt mit Bestätigungsdialog und API-Call. |
 | 08.07.2026 | **Figma-Plugin: Draft-Persistenz + Token-Validierung + Health-Check-Fix.** `clientStorage` speichert Wizard-Draft (SAVE_DRAFT/CLEAR_DRAFT), `pendingDraft`-Puffer gegen Race-Conditions. `saveToken()` validiert via `/api/profile`-Preflight vor Navigation. Token-Regeneration setzt `has_figma_plugin: false` zurück. |
 | 08.07.2026 | **Figma-Plugin: Design auf Figma-Tokens umgestellt.** Alle `rgba(15,23,42,.XX)` Borders/Shadows/Backgrounds durch `var(--figma-color-*)` Tokens ersetzt. Neue Tokens: `--danger-border`, `--danger-hover`. Elevation-System bleibt als `--elev-*`. Netto −5 Zeilen CSS. |
 | 07.07.2026 | **P2-Fixes nach Architektur-Audit.** `lib/ssrf.ts` extrahiert — BLOCKED_HOSTS/BLOCKED_HOSTNAMES zentral, nicht mehr dupliziert. Tests aus Root-`__tests__/` nach `ab-tool/__tests__/` konsolidiert. `.env.example`: `RESEND_FROM` ergänzt. `api/token/route.ts` als Info-Endpoint angelegt. Build + 15 Tests grün. |
@@ -139,8 +144,9 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 ## §10 Roadmap & Nordstern
 
 ### Aktueller Stand
-- Chrome-Extension LIVE im CWS · Figma-Plugin-Review läuft (eingereicht 29.06.)
-- Dogfooding: variante testet eigene Landingpage
+- Chrome-Extension ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im `ab.js`-Snippet
+- Figma-Plugin-Review läuft (eingereicht 29.06.)
+- Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
 - **Auth-Guard:** Results nur für Besitzer sichtbar
 - **E2E:** ✅ M1 abgeschlossen — kompletter Loop auf Fremd-Site getestet
 - **Nächster Schritt:** M2 — Store-Freigaben + erste Design-Partner

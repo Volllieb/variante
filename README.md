@@ -2,7 +2,7 @@
 
 > **Kurzübersicht & Schnellstart.** Produktbeschreibung, Ordnerstruktur, Dev-Kommandos. Details in [`PROJEKT.md`](./PROJEKT.md).
 
-Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI generiert HTML → Snippet trackt Conversions. **Kein Dev nötig.**
+Designer pickt Element auf Live-Site (eingebauter Picker im Snippet) → beschreibt Variante B in Figma → KI generiert HTML → Snippet trackt Conversions. **Kein Dev nötig.**
 
 > **Ausführliche Projektdoku:** [`PROJEKT.md`](./PROJEKT.md) (DSO)  
 > **GTM-Strategie:** [`GOTOMARKET.md`](./GOTOMARKET.md)  
@@ -14,7 +14,7 @@ Designer wählt Element auf Live-Site → beschreibt Variante B in Figma → KI 
 |---|---|---|
 | `ab-tool/` | Aktive Next.js-App: API, Dashboard, Landing-Page | Vercel (`www.getvariante.com`) |
 | `figma-plugin/` | Figma-Plugin für Test-Erstellung | manuell laden |
-| `chrome-extension/` | Chrome-Extension für Element-/Goal-Picking | manuell laden |
+| `chrome-extension/` | ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im Snippet | Archiv |
 | `db/migrations/` | Supabase-SQL-Migrationen | SQL-Editor |
 
 > Kein separates `ab-spike`-Projekt mehr; die aktive Produkt-Implementierung lebt in `ab-tool/`.

@@ -1,6 +1,6 @@
 # E2E-Test-Checkliste — variante
 
-> Stand: 06.07.2026. Kompletten Loop testen: Landing → Account → Extension → Figma → Snippet → Traffic → Conversions → Billing → Winner.
+> Stand: 08.07.2026. Kompletten Loop testen: Landing → Account → Figma → Snippet (inkl. Picker) → Traffic → Conversions → Billing → Winner.
 >
 > **Vor dem Start:** Smoke-Tests unten ausführen.
 
@@ -48,15 +48,22 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 
 
-- [ ] **CWS-Install** — [Chrome Web Store](https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh) → "variante — A/B Test Element Picker" installieren
+---
 
-### URL-Hash-Modi
+## ⚠️ Chrome Extension — Deprecated (08.07.2026)
+
+> Der Element-Picker ist jetzt direkt im `ab.js`-Snippet integriert. Die folgenden Extension-Tests sind obsolet und nur als Archiv erhalten.
+
+- [ ] ~~**CWS-Install** — [Chrome Web Store](https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh) → "variante — A/B Test Element Picker" installieren~~
+
+### URL-Hash-Modi (jetzt im Snippet-Picker)
 - [ ] `#ab_pick=<testId>` — Startet Picker automatisch (kein Popup nötig)
 - [ ] `#ab_goal=<testId>` — Startet Goal-Modus, klickbares Element = Goal
 
-### Goal-Picker (via Popup)
+### Goal-Picker (jetzt im Snippet)
 - [ ] Goal-Modus aktivieren (Test-ID mit Goal-Flag) → Klick auf Button/Link → Goal gespeichert
 
+---
 
 ## Phase 9: Conversions
 

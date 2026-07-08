@@ -1,6 +1,6 @@
 # GOTOMARKET.md — variante
 
-Stand: 03.07.2026. Phase 0 abgeschlossen. Figma-Plugin eingereicht, Chrome-Extension LIVE im CWS. Dogfooding gestartet.
+Stand: 08.07.2026. Phase 0 abgeschlossen. Figma-Plugin eingereicht, Chrome-Extension deprecated (Picker jetzt direkt im Snippet). Dogfooding gestartet.
 
 ## Strategie in einem Satz
 **Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
@@ -25,18 +25,18 @@ Free-Tier trägt **„powered by variante"-Badge** auf der Kundenseite → deren
 | Signup + Login + Dashboard + Stripe scharf | ✅ |
 | Steuer-Setup geklärt (Kleinunternehmer, Stripe Tax) | ✅ |
 | Figma-Plugin gebaut + Community-Listing eingereicht | ✅ |
-| Chrome-Extension gebaut + CWS-Listing LIVE | ✅ |
+| Chrome-Extension gebaut + CWS-Listing LIVE | ✅ → ⚠️ **Deprecated (08.07.2026)** — Picker jetzt im Snippet |
 | Phase A+B+C implementiert (Quick Wins, UX, Gesamt-Übersicht) | ✅ |
 | Produktion auf `www.getvariante.com` deployed | ✅ |
-| E2E-Test auf echter Site | ⏳ **Nächster** |
-| Dogfooding: variante auf eigener Landing-Page | 🏗️ **In Arbeit** |
+| E2E-Test auf echter Site | ✅ M1 abgeschlossen |
+| Dogfooding: variante auf eigener Landing-Page | ✅ ab.js im Root-Layout |
 
 ### Phase 1 — Soft-Launch / Design-Partner (Cold-Start lösen)
 **Start: 29.06.2026 — Ziel: 1. August 2026**
 
-Engpass: Figma-Plugin-Review. Chrome-Extension ist live — aktive Schritte:
+Engpass: Figma-Plugin-Review. Element-Picker ist jetzt direkt im Snippet (keine Extension nötig) — aktive Schritte:
 
-- **Chrome-Extension ist live** — CWS-Listing approved. Figma-Plugin-Review noch offen.
+- **Chrome-Extension ist deprecated** — Picker-Funktionalität lebt jetzt im `ab.js`-Snippet. Figma-Plugin-Review noch offen.
 - **Die 2 bekannten Designer + 3–5 handverlesene kleine Agenturen** als Design-Partner gewinnen: kostenlos Pro gegen Feedback + Testimonial + Case-Study.
 - **Concierge-Onboarding**: du machst den ersten Test mit ihnen via einer schnellen Demo-Seite oder deren echter Site.
 - **Output:** 3–5 echte Installs, **1–2 Case-Studies mit Before/After-Lift-Zahlen** → Munition für Phase 2.
@@ -66,16 +66,16 @@ Erst wenn Figma-Plugin LIVE im Community Store ist:
 - Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
 - **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
 
-## Aktueller Status (03.07.2026)
+## Aktueller Status (08.07.2026)
 
 - ✅ **Produkt fertig**: Phase A+B+C auf `www.getvariante.com` deployed
-- ⏳ **E2E-Test**: Offen
+- ✅ **E2E-Test**: M1 abgeschlossen — kompletter Loop auf Fremd-Site getestet
 - ✅ **Figma-Plugin-Review**: Eingereicht
-- ✅ **Chrome-Extension**: LIVE im Chrome Web Store
-- 🏗️ **Dogfooding**: variante-Script in Layout eingebaut, Test muss noch in DB angelegt werden (007_dogfooding.sql)
+- ⚠️ **Chrome-Extension**: Deprecated — Picker jetzt direkt im Snippet
+- ✅ **Dogfooding**: ab.js im Root-Layout integriert, Badge sichtbar
 - ⏳ **Design-Partner**: 0 von 5 an Bord
 
-**Nächster Schritt:** Dogfooding-Test in Supabase anlegen, dann E2E.
+**Nächster Schritt:** Figma-Store-Freigabe abwarten, dann Design-Partner-Onboarding.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte) → Phase 1 ist der kritische Schritt; Figma-Community skaliert, braucht aber Review + Ranking-Zeit.
