@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 10.07.2026 — 🏗️ Domain-First Architecture: DomainGate, Account Domain-Management, Figma URL-Autofill |
+| **Stand** | 10.07.2026 — 🔐 Pro-Signup: Kauf-Intent (`?plan=pro`) leitet nach Auth direkt in Stripe-Checkout statt Dashboard |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -88,6 +88,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 10.07.2026 | **Pro-Signup → Direkt in Stripe-Checkout.** User die über "Pro"-Card (`?plan=pro`) signuppen, landen nicht mehr als Free-User im Dashboard, sondern werden direkt in den Stripe-Checkout geleitet. `/auth/callback` erkennt `plan=pro` und redirectet auf `/auth/checkout` (Interstitial-Page mit Spinner + automatischem POST auf `/api/billing/checkout`). `cancel_url` im Checkout von `/signup` auf `/dashboard` geändert (Account existiert schon). Alle 3 Auth-Flows (OAuth, Email-Link, Token-Hash) unterstützt. |
 | 10.07.2026 | **Domain-First Architecture.** User müssen eine verified Domain haben bevor Tests laufen. Neue `domains`-Tabelle mit Plan-Limit (Free/Pro: 1, Agency: unlimited). `DomainGate.tsx`: Post-Login-Gate mit URL-Eingabe + Snippet-Check + Auto-Verify. `POST /api/tests` validiert gegen verified domains. `POST /api/domains` enforced Plan-Limits. Account-Settings: Domain-Sektion (Anzeige, Re-Verify, Löschen, Hinzufügen). Dashboard: EmptyState zeigt Domain-Hinweis, Health-Card zeigt Website-Status. Figma-Plugin: `fetchVerifiedDomain()` nach Token-Load, `newTest()` füllt URL-Feld mit verified Domain vor. Migration 015: `count_verified_domains`/`count_domains` RPCs. |
 | 09.07.2026 | **First-Touch Source-Tracking.** Migration 014: `profiles.signup_source` + `signup_plan`. Auth-Callback parst `next`-Param und speichert source/plan per `ensureProfile()` first-touch (nur wenn row neu oder signup_source null). Deckt alle 3 Auth-Flows ab (OAuth, Email-Token, Token-Hash). |
 | 09.07.2026 | **Conversion-Testsuite + event/route.ts 404-Fix.** `conversion-goal-click.mjs` (11 Tests): 5 Unit (sendBeacon-Payload, sessionStorage-Dedup, Key-Isolation, Fetch-Fallback, Storage-Fehler-Grace), 4 Integration (400-Validierung), 2 CORS. Bugfix: `.single()`→`.maybeSingle()` + 404 statt 500 bei nicht-existenter snippet_key in `/api/event`. |
