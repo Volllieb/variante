@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
@@ -8,6 +8,35 @@ import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
 
 export default function UpdatePasswordPage() {
+  return (
+    <Suspense fallback={<UpdatePasswordFallback />}>
+      <UpdatePasswordForm />
+    </Suspense>
+  )
+}
+
+function UpdatePasswordFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg-0 antialiased">
+      <div className="relative z-10 w-full max-w-sm px-6">
+        <div className="mb-8 flex justify-center">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-xl font-semibold text-text transition-opacity hover:opacity-75"
+          >
+            <PandaLogo className="h-8 w-8 rounded-lg p-1" />
+            variante
+          </Link>
+        </div>
+        <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+          <p className="text-sm text-text-3">Checking your reset link…</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function UpdatePasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
