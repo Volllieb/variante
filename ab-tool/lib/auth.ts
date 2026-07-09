@@ -9,11 +9,35 @@ export type ApiUser = { userId: string; plan: string }
  * Deckt den Race-Condition-Fall ab, wo der Supabase-auth-Trigger
  * `handle_new_user` noch nicht gefeuert hat (z. B. OAuth-Signup).
  * Idempotent — `on conflict do nothing` auf user_id.
+ *
+ * Optional: `source`/`plan` für First-Touch-Attribution. Wird nur gesetzt,
+ * wenn der profile-row brandneu ist (Trigger war noch nicht da).
  */
-export async function ensureProfile(userId: string): Promise<void> {
+export async function ensureProfile(
+  userId: string,
+  opts?: { source?: string; plan?: string }
+): Promise<void> {
+  const row: Record<string, unknown> = { user_id: userId }
+  if (opts?.source) row.signup_source = opts.source
+  if (opts?.plan) row.signup_plan = opts.plan
+
+  // Upsert mit onConflict: wenn die Row schon existiert (Trigger war schneller),
+  // nur dann source/plan setzen wenn sie noch null sind (first-touch).
   await supabase
     .from('profiles')
-    .upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: true })
+    .upsert(row, { onConflict: 'user_id', ignoreDuplicates: true })
+
+  // Fallback: Row existierte schon, aber signup_source ist noch null → nachtragen
+  if (opts?.source || opts?.plan) {
+    const update: Record<string, string> = {}
+    if (opts?.source) update.signup_source = opts.source
+    if (opts?.plan) update.signup_plan = opts.plan
+    await supabase
+      .from('profiles')
+      .update(update)
+      .eq('user_id', userId)
+      .is('signup_source', null) // nur wenn noch nicht gesetzt
+  }
 }
 
 // Auth für API-Routen — akzeptiert zwei Wege:

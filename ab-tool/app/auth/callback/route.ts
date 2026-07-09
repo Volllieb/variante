@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
 
+/** Extrahiert source/plan aus dem next-Param (z.B. `/dashboard?source=figma-plugin&plan=pro`). */
+function parseAttribution(nextRaw: string | null): { source?: string; plan?: string } {
+  if (!nextRaw) return {}
+  try {
+    const qs = nextRaw.includes('?') ? nextRaw.split('?')[1] : ''
+    if (!qs) return {}
+    const p = new URLSearchParams(qs)
+    const source = p.get('source') || undefined
+    const plan = p.get('plan') || undefined
+    return { source, plan }
+  } catch {
+    return {}
+  }
+}
+
 /**
  * Supabase Auth Callback — verarbeitet sowohl OAuth (Google) als auch Email-Links.
  *
@@ -37,9 +52,9 @@ export async function GET(req: NextRequest) {
         new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
       )
     }
-    // Profile-Fallback: Bei OAuth-Signup kann der DB-Trigger rennen
-    if (data.user) await ensureProfile(data.user.id)
     const next = requestUrl.searchParams.get('next') || '/dashboard'
+    // First-touch attribution: source/plan aus next-Param extrahieren & speichern
+    if (data.user) await ensureProfile(data.user.id, parseAttribution(next))
     return NextResponse.redirect(new URL(next, req.url))
   }
 
@@ -54,8 +69,8 @@ export async function GET(req: NextRequest) {
         new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
       )
     }
-    if (data.user) await ensureProfile(data.user.id)
     const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
+    if (data.user) await ensureProfile(data.user.id, parseAttribution(next))
     return NextResponse.redirect(new URL(next, req.url))
   }
 
@@ -74,7 +89,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  if (data.user) await ensureProfile(data.user.id)
   const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
+  if (data.user) await ensureProfile(data.user.id, parseAttribution(next))
   return NextResponse.redirect(new URL(next, req.url))
 }

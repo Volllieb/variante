@@ -41,7 +41,7 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 ### Signup
 - [x] **Email-Signup** edge cases (09.07.2026 — 3 Bugs gefixt, siehe unten)
-- [x] **Source-Tracking** — `/signup?source=figma-plugin` → Source/Plan überleben jetzt Resend Confirmation, Google OAuth, Forgot-Password (09.07.2026)
+- [x] **Source-Tracking persistiert** — Migration 014: `profiles.signup_source` + `signup_plan`, Auth-Callback speichert first-touch (09.07.2026)
 - [ ] "Forgot password?" → Email eingeben → Reset-Link per Email
 - [ ] Reset-Link klicken → `/update-password` → Neues Passwort setzen → Redirect `/dashboard`
 - [x] **email===password-Check** asymmetrisch → jetzt `norm(email) === norm(password)` (09.07.2026)

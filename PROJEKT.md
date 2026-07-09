@@ -86,7 +86,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
-| 09.07.2026 | **Figma-Plugin: Scope-Picker vor Generation, neuer Wizard-Flow.** Scope-Auswahl (Everything/Text/Colors) jetzt Screen 4, vor der KI-Generation. Alte Reihenfolge Design→Goal→Generate ersetzt durch Design→Scope&Generate→Goal→Snippet. `setScope()`/`startGeneration()`/`goToGoal()`/`startOver()` neu. `getScope()` liest jetzt `scope`-Variable. `restoreDraft` + `newTest` aktualisiert. Keine API-Änderung nötig — Backend nutzt bereits `SCOPE_RULE`-Map. |
+| 09.07.2026 | **First-Touch Source-Tracking.** Migration 014: `profiles.signup_source` + `signup_plan`. Auth-Callback parst `next`-Param und speichert source/plan per `ensureProfile()` first-touch (nur wenn row neu oder signup_source null). Deckt alle 3 Auth-Flows ab (OAuth, Email-Token, Token-Hash). |
 | 09.07.2026 | **Conversion-Testsuite + event/route.ts 404-Fix.** `conversion-goal-click.mjs` (11 Tests): 5 Unit (sendBeacon-Payload, sessionStorage-Dedup, Key-Isolation, Fetch-Fallback, Storage-Fehler-Grace), 4 Integration (400-Validierung), 2 CORS. Bugfix: `.single()`→`.maybeSingle()` + 404 statt 500 bei nicht-existenter snippet_key in `/api/event`. |
 | 28.03. | **Onboarding entfernt** — /dashboard/setup (Health-Check) deckt Setup-Flow komplett ab, separates onboarding-Gate ist redundant. Signup/Login routen direkt auf /dashboard. |
 | 08.07.2026 | **🎉 Figma-Plugin LIVE im Community Store!** [Plugin #1653734891132085565](https://www.figma.com/community/plugin/1653734891132085565) freigegeben nach 9 Tagen Review. Der Burggraben steht. Erster Design-Partner angefragt. |
