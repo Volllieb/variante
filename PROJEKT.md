@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 08.07.2026 — 🎉 Figma-Plugin LIVE im Community Store, 1 Design-Partner angefragt |
+| **Stand** | 09.07.2026 — 🎉 Figma-Plugin LIVE, Conversion-Testsuite (11 Tests), event/route.ts 404-Fix |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -38,7 +38,7 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet
-└── __tests__/
+└── __tests__/          # conversion-goal-click.mjs, significance-auto.mjs, significance-check.mjs, helpers.mjs
 chrome-extension/       # ⚠️ Deprecated — MV3 Extension (Element-Picker jetzt im Snippet)
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
 db/migrations/          # Supabase SQL (001–013)
@@ -86,8 +86,8 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
-| 09.07.2026 | **Figma-Plugin: Scope-Picker vor Generation, neuer Wizard-Flow.** Scope-Auswahl (Everything/Text/Colors) jetzt Screen 4, vor der KI-Generation. Alte Reihenfolge Design→Goal→Generate ersetzt durch Design→Scope&Generate→Goal→Snippet. `setScope()`/`startGeneration()`/`goToGoal()`/`startOver()` neu. `getScope()` liest jetzt `scope`-Variable. `restoreDraft` + `newTest` aktualisiert. Keine API-Änderung nötig — Backend nutzt bereits `SCOPE_RULE`-Map.
-|---|---|
+| 09.07.2026 | **Figma-Plugin: Scope-Picker vor Generation, neuer Wizard-Flow.** Scope-Auswahl (Everything/Text/Colors) jetzt Screen 4, vor der KI-Generation. Alte Reihenfolge Design→Goal→Generate ersetzt durch Design→Scope&Generate→Goal→Snippet. `setScope()`/`startGeneration()`/`goToGoal()`/`startOver()` neu. `getScope()` liest jetzt `scope`-Variable. `restoreDraft` + `newTest` aktualisiert. Keine API-Änderung nötig — Backend nutzt bereits `SCOPE_RULE`-Map. |
+| 09.07.2026 | **Conversion-Testsuite + event/route.ts 404-Fix.** `conversion-goal-click.mjs` (11 Tests): 5 Unit (sendBeacon-Payload, sessionStorage-Dedup, Key-Isolation, Fetch-Fallback, Storage-Fehler-Grace), 4 Integration (400-Validierung), 2 CORS. Bugfix: `.single()`→`.maybeSingle()` + 404 statt 500 bei nicht-existenter snippet_key in `/api/event`. |
 | 28.03. | **Onboarding entfernt** — /dashboard/setup (Health-Check) deckt Setup-Flow komplett ab, separates onboarding-Gate ist redundant. Signup/Login routen direkt auf /dashboard. |
 | 08.07.2026 | **🎉 Figma-Plugin LIVE im Community Store!** [Plugin #1653734891132085565](https://www.figma.com/community/plugin/1653734891132085565) freigegeben nach 9 Tagen Review. Der Burggraben steht. Erster Design-Partner angefragt. |
 | 08.07.2026 | **Dashboard Overview-Redesign: 30/70-Layout, Metric-Cards, Pie-Chart-TestCards.** Overview-Seite komplett umgebaut: Zweispaltig (30% Metric-Cards / 70% Test-Grid). Linke Spalte: Overview-Card (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon+Name+Wert pro Zeile, getrennt durch subtile Linien) + Health/Setup-Card (Snippet/Plugin/Extension-Status, verlinkt auf `/dashboard/setup`). Rechte Spalte: Tests-Überschrift + Toolbar (Suchleiste, Sort-Icon, New-Test-Button) + TestCard-Grid (3 pro Zeile). Stats-Bar, CRO-Snapshot, Winner-Alert, Overview-Tabelle, HealthBanner entfernt. TestCard neu designt: Row 1 (Favicon, Name+URL, Significance-Pie-Chart mit Visitor-Count im Zentrum), Row 2 (Status-Dot, Dauer d/h/m/s, Variant-Leader A/B). Build grün, deployed. |

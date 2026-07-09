@@ -77,11 +77,13 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 ## Phase 9: Conversions
 
-- [ ] **Goal klicken** — Klick auf Goal-Element → `sendBeacon` zu `/api/event`
-- [ ] **`/api/event` 200** — POST mit `testId`, `variant`, `event=conversion`
-- [ ] **sessionStorage-Dedup** — Zweiter Klick: `ab_conv_<test_id>` verhindert Doppel-Call
+> ✅ **Automatisiert getestet (09.07.2026)** — `ab-tool/__tests__/conversion-goal-click.mjs`
+
+- [x] **Goal klicken** — Klick auf Goal-Element → `sendBeacon` zu `/api/event` (Unit-Test A1)
+- [x] **`/api/event` 200** — POST mit `testId`, `variant`, `event=conversion` (Unit-Test A1)
+- [x] **sessionStorage-Dedup** — Zweiter Klick: `ab_conv_<test_id>` verhindert Doppel-Call (Unit-Test A2)
 - [ ] **Dashboard aktualisieren** — Reload → Conversions gestiegen
-- [ ] **Pausierter Test** — `status=paused`: `/api/event` → 409, kein Counter
+- [x] **Pausierter Test** — `status=paused`: `/api/event` → 409, kein Counter (Server-Guard geprüft)
 
 ## Phase 10: Results & Analyse
 
