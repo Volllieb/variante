@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
@@ -9,6 +9,7 @@ import { Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
 
 export default function UpdatePasswordPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [err, setErr] = useState('')
@@ -44,7 +45,13 @@ export default function UpdatePasswordPage() {
       setErr(error.message)
       return
     }
-    router.push('/dashboard')
+    const source = searchParams.get('source')
+    const plan = searchParams.get('plan')
+    const qsParts: string[] = []
+    if (source) qsParts.push(`source=${encodeURIComponent(source)}`)
+    if (plan) qsParts.push(`plan=${encodeURIComponent(plan)}`)
+    const qs = qsParts.length > 0 ? '?' + qsParts.join('&') : ''
+    router.push('/dashboard' + qs)
     router.refresh()
   }
 

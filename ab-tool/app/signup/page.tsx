@@ -60,7 +60,7 @@ export default function SignupPage() {
     setInfo('')
     setAlreadyRegistered(false)
     setLoading(true)
-    if (norm(email) === password) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
+    if (norm(email) === norm(password)) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
       const nextPath = '/dashboard'
@@ -126,7 +126,7 @@ export default function SignupPage() {
         type: 'signup',
         email: norm(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qsR)}`,
         },
       })
       if (error) { setErr(error.message); setLoading(false); return }
@@ -148,11 +148,10 @@ export default function SignupPage() {
       if (source) qsPartsG.push(`source=${encodeURIComponent(source)}`)
       if (signupPlan) qsPartsG.push(`plan=${encodeURIComponent(signupPlan)}`)
       const qsG = qsPartsG.length > 0 ? '?' + qsPartsG.join('&') : ''
-      const nextPath = '/dashboard'
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qsG)}`,
         },
       })
       if (error) {

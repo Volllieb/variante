@@ -47,13 +47,17 @@ export async function POST(req: Request) {
 
   // Guard: Conversions auf pausierten ODER abgeschlossenen Tests nicht zählen.
   // (done kann über alte localStorage-Caches noch Klicks senden.)
-  const { data: testMeta } = await supabase
+  const { data: testMeta, error: metaError } = await supabase
     .from('tests')
     .select('status')
     .eq('snippet_key', testId)
-    .single()
+    .maybeSingle()
 
-  if (testMeta?.status === 'paused' || testMeta?.status === 'done') {
+  if (metaError || !testMeta) {
+    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
+  }
+
+  if (testMeta.status === 'paused' || testMeta.status === 'done') {
     return Response.json({ error: 'test is not active' }, { status: 409, headers: corsHeaders('POST, OPTIONS') })
   }
 

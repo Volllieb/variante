@@ -123,8 +123,12 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const supabase = getBrowserSupabase()
+      const qsPartsR: string[] = []
+      if (source) qsPartsR.push(`source=${encodeURIComponent(source)}`)
+      if (plan) qsPartsR.push(`plan=${encodeURIComponent(plan)}`)
+      const qsR = qsPartsR.length > 0 ? '?' + qsPartsR.join('&') : ''
       const { error } = await supabase.auth.resetPasswordForEmail(norm(email), {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/update-password')}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/update-password' + qsR)}`,
       })
       if (error) { setErr(error?.message || JSON.stringify(error)); setLoading(false); return }
       setLoading(false)
@@ -141,10 +145,14 @@ export default function LoginPage() {
     setGoogleLoading(true)
     try {
       const supabase = getBrowserSupabase()
+      const qsPartsG: string[] = []
+      if (source) qsPartsG.push(`source=${encodeURIComponent(source)}`)
+      if (plan) qsPartsG.push(`plan=${encodeURIComponent(plan)}`)
+      const qsG = qsPartsG.length > 0 ? '?' + qsPartsG.join('&') : ''
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qsG)}`,
         },
       })
       if (error) {

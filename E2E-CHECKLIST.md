@@ -40,10 +40,20 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 ## Phase 2: Auth
 
 ### Signup
-- [ ] **Email-Signup** edge cases
-- [ ] **Source-Tracking** — `/signup?source=figma-plugin` → Onboarding zeigt Figma-spezifische Nachricht
+- [x] **Email-Signup** edge cases (09.07.2026 — 3 Bugs gefixt, siehe unten)
+- [x] **Source-Tracking** — `/signup?source=figma-plugin` → Source/Plan überleben jetzt Resend Confirmation, Google OAuth, Forgot-Password (09.07.2026)
 - [ ] "Forgot password?" → Email eingeben → Reset-Link per Email
 - [ ] Reset-Link klicken → `/update-password` → Neues Passwort setzen → Redirect `/dashboard`
+- [x] **email===password-Check** asymmetrisch → jetzt `norm(email) === norm(password)` (09.07.2026)
+
+### Auth-Bugs gefixt (09.07.2026)
+| Bug | File | Fix |
+|---|---|---|
+| `source`/`plan` gingen bei Resend-Confirmation verloren | `signup/page.tsx` | `qsR` wird jetzt an `emailRedirectTo` gehängt |
+| `source`/`plan` gingen bei Google OAuth Signup/Login verloren | `signup/page.tsx`, `login/page.tsx` | `qsG` wird jetzt an `redirectTo` gehängt |
+| `source`/`plan` gingen beim Forgot-Password verloren | `login/page.tsx` | Source/Plan werden jetzt in `resetPasswordForEmail` redirectTo preserved |
+| `source`/`plan`-Forwarding nach Password-Reset | `update-password/page.tsx` | Liest `useSearchParams()` und forwarded source/plan zum Dashboard |
+| `email===password`-Check nur halb normalisiert | `signup/page.tsx` | `norm(email) === norm(password)` statt `norm(email) === password` |
 
 
 
