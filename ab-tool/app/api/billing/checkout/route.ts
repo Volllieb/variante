@@ -38,7 +38,7 @@ export async function POST() {
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${SITE_URL}/dashboard?upgraded=1`,
-    cancel_url: `${SITE_URL}/signup`,
+    cancel_url: `${SITE_URL}/dashboard`,
     client_reference_id: user.id,
   })
 

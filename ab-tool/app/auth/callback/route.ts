@@ -53,8 +53,12 @@ export async function GET(req: NextRequest) {
       )
     }
     const next = requestUrl.searchParams.get('next') || '/dashboard'
-    // First-touch attribution: source/plan aus next-Param extrahieren & speichern
-    if (data.user) await ensureProfile(data.user.id, parseAttribution(next))
+    const attribution = parseAttribution(next)
+    if (data.user) await ensureProfile(data.user.id, attribution)
+    // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
+    if (attribution.plan === 'pro') {
+      return NextResponse.redirect(new URL('/auth/checkout', req.url))
+    }
     return NextResponse.redirect(new URL(next, req.url))
   }
 
@@ -70,7 +74,11 @@ export async function GET(req: NextRequest) {
       )
     }
     const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
-    if (data.user) await ensureProfile(data.user.id, parseAttribution(next))
+    const attribution = parseAttribution(next)
+    if (data.user) await ensureProfile(data.user.id, attribution)
+    if (attribution.plan === 'pro') {
+      return NextResponse.redirect(new URL('/auth/checkout', req.url))
+    }
     return NextResponse.redirect(new URL(next, req.url))
   }
 
@@ -90,6 +98,10 @@ export async function GET(req: NextRequest) {
   }
 
   const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
-  if (data.user) await ensureProfile(data.user.id, parseAttribution(next))
+  const attribution = parseAttribution(next)
+  if (data.user) await ensureProfile(data.user.id, attribution)
+  if (attribution.plan === 'pro') {
+    return NextResponse.redirect(new URL('/auth/checkout', req.url))
+  }
   return NextResponse.redirect(new URL(next, req.url))
 }
