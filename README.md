@@ -12,7 +12,7 @@ Designer pickt Element auf Live-Site (eingebauter Picker im Snippet) → beschre
 
 | Ordner | Beschreibung | Deploy |
 |---|---|---|
-| `ab-tool/` | Aktive Next.js-App: API, Dashboard, Landing-Page | Vercel (`www.getvariante.com`) |
+| `ab-tool/` | Aktive Next.js-App: API, Dashboard, Landing-Page | Vercel (`www.getvariante.com`) — **nur aus `ab-tool/` deployen!** |
 | `figma-plugin/` | 🎉 Figma-Plugin für Test-Erstellung — [Community](https://www.figma.com/community/plugin/1653734891132085565) | Figma Store |
 | `chrome-extension/` | ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im Snippet | Archiv |
 | `db/migrations/` | Supabase-SQL-Migrationen | SQL-Editor |

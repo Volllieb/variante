@@ -23,6 +23,7 @@ import {
   HeartPulse,
   Puzzle,
   Code2,
+  Globe,
   Search,
   ArrowUpDown,
   Plus,
@@ -44,6 +45,8 @@ export function DashboardClient({
   apiToken,
   tests,
   hasFigmaPlugin,
+  hasVerifiedDomain,
+  primaryDomain,
   highlightNew,
   upgraded,
   openNewTest,
@@ -52,6 +55,8 @@ export function DashboardClient({
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
+  hasVerifiedDomain: boolean
+  primaryDomain: string | null
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
@@ -128,8 +133,6 @@ export function DashboardClient({
     })
     .filter((l): l is number => l !== null && isFinite(l))
   const avgUplift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
-
-  const hasSiteUrl = testList.some((t) => t.site_url)
 
   // Sorting + Filtering
   const sortedTests = useMemo(() => {
@@ -231,7 +234,12 @@ export function DashboardClient({
                 <MetricRow
                   icon={Code2}
                   label="Snippet"
-                  value={hasSiteUrl ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
+                  value={hasVerifiedDomain ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
+                />
+                <MetricRow
+                  icon={Globe}
+                  label="Website"
+                  value={primaryDomain ? <span className="text-[11px]">{primaryDomain}</span> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
                 />
                 <MetricRow
                   icon={Puzzle}
@@ -267,8 +275,10 @@ export function DashboardClient({
               </button>
               <FilterDropdown filter={filter} onChange={setFilter} />
               <button
-                onClick={() => setNewTestOpen(true)}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+                onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
+                disabled={!hasVerifiedDomain}
+                title={hasVerifiedDomain ? undefined : 'Add your website first'}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25"
               >
                 <Plus className="h-3.5 w-3.5" />
                 New test
@@ -288,7 +298,7 @@ export function DashboardClient({
 
             {/* Test grid or empty */}
             {testList.length === 0 ? (
-              <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} />
+              <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} />
             ) : filteredTests.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
                 <p className="text-[13px] font-medium text-[#ededed]/62">
@@ -339,7 +349,7 @@ function MetricRow({
   )
 }
 
-function EmptyState({ onNewTest, hasFigmaPlugin }: { onNewTest: () => void; hasFigmaPlugin: boolean }) {
+function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain }: { onNewTest: () => void; hasFigmaPlugin: boolean; hasVerifiedDomain: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
@@ -347,12 +357,23 @@ function EmptyState({ onNewTest, hasFigmaPlugin }: { onNewTest: () => void; hasF
       </div>
       <p className="mt-4 text-[14px] font-medium text-[#ededed]">No tests yet</p>
       <p className="mt-1.5 max-w-[340px] text-[12px] leading-relaxed text-[#ededed]/40">
-        {hasFigmaPlugin
-          ? 'Create your first variant in Figma and push it here.'
-          : 'Run the setup health check first — it walks you through snippet, plugin, and your first test.'}
+        {!hasVerifiedDomain
+          ? 'Add your website first — tests only run on verified domains.'
+          : hasFigmaPlugin
+            ? 'Create your first variant in Figma and push it here.'
+            : 'Run the setup health check first — it walks you through snippet, plugin, and your first test.'}
       </p>
       <div className="mt-5 flex items-center gap-3">
-        {!hasFigmaPlugin && (
+        {!hasVerifiedDomain && (
+          <Link
+            href="/dashboard/account"
+            className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+          >
+            <Globe className="h-3.5 w-3.5" />
+            Add website
+          </Link>
+        )}
+        {hasVerifiedDomain && !hasFigmaPlugin && (
           <Link
             href="/dashboard/setup"
             className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.18] px-3.5 py-2 text-[12px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]"
@@ -361,7 +382,7 @@ function EmptyState({ onNewTest, hasFigmaPlugin }: { onNewTest: () => void; hasF
             Run setup check
           </Link>
         )}
-        {hasFigmaPlugin && (
+        {hasVerifiedDomain && hasFigmaPlugin && (
           <button
             onClick={onNewTest}
             className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"

@@ -10,8 +10,8 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   const searchParams = await props.searchParams
 
-  // Parallel: Profile + Tests gleichzeitig starten (kein Waterfall)
-  const [profileRes, testsRes] = await Promise.all([
+  // Parallel: Profile + Tests + Domains gleichzeitig starten (kein Waterfall)
+  const [profileRes, testsRes, domainsRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('api_token, plan, onboarded, has_figma_plugin')
@@ -22,15 +22,23 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('domains')
+      .select('url, verified')
+      .eq('user_id', user.id)
+      .limit(5),
   ])
 
   const profile = profileRes.data
   const tests = testsRes.data
+  const domains = domainsRes.data ?? []
+  const hasVerifiedDomain = domains.some((d) => d.verified)
+  const primaryDomain = domains.find((d) => d.verified)?.url ?? domains[0]?.url ?? null
 
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} highlightNew={searchParams.new === '1'} upgraded={false} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} highlightNew={searchParams.new === '1'} upgraded={false} />
   }
 
   return (
@@ -39,6 +47,8 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       apiToken={profile.api_token ?? ''}
       tests={tests ?? []}
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
+      hasVerifiedDomain={hasVerifiedDomain}
+      primaryDomain={primaryDomain}
       highlightNew={searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}

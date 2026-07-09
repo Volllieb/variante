@@ -51,6 +51,8 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 |---|---|---|
 | ab-tool | `www.getvariante.com` | Manuell via `vercel deploy --prod` |
 
+**Vercel-Link:** Projekt via `vercel link` im `ab-tool/`-Verzeichnis auf `volllieb1-2106s-projects/ab-tool` gelinkt (`.vercel/` ist gitignored). **Deploy NUR aus `ab-tool/`**, nie vom Repo-Root — sonst legt Vercel ein falsches Projekt "variante" an. Jeder neue Dev muss einmalig `cd ab-tool && vercel link` ausführen.
+
 **Git:** `github.com/Volllieb/variante.git` (master) · **Auto-Push:** `post-commit`-Hook
 
 ## §5 Pricing

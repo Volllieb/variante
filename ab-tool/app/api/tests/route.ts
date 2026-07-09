@@ -74,6 +74,40 @@ export async function POST(req: Request) {
     }
   }
 
+  // Domain-Gate: site_url muss zu einer verified Domain des Users passen.
+  if (site_url) {
+    const { data: verifiedDomains } = await supabase
+      .from('domains')
+      .select('url')
+      .eq('user_id', user.userId)
+      .eq('verified', true)
+      .limit(10)
+
+    const verified = verifiedDomains ?? []
+    if (verified.length === 0) {
+      return Response.json(
+        { error: 'No verified website. Add your website in the dashboard first.' },
+        { status: 400, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
+
+    // Host aus site_url extrahieren und mit verified Domains vergleichen
+    let testHost = site_url.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
+    testHost = testHost.replace(/^www\./, '')
+
+    const matches = verified.some((d) => {
+      let domainHost = d.url.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '')
+      return testHost === domainHost
+    })
+
+    if (!matches) {
+      return Response.json(
+        { error: `site_url must match one of your verified websites. Got: ${testHost}` },
+        { status: 400, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
+  }
+
   const insert: Record<string, unknown> = {
     name,
     site_url,

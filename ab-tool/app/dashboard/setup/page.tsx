@@ -16,28 +16,29 @@ export default async function SetupPage() {
   const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  const [profileRes, testsRes] = await Promise.all([
+  const [profileRes, domainsRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('plan, api_token, has_figma_plugin, onboarded')
+      .select('plan, api_token, has_figma_plugin')
       .eq('user_id', user.id)
       .single(),
     supabase
-      .from('tests')
-      .select('site_url')
+      .from('domains')
+      .select('url, verified')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1),
+      .limit(5),
   ])
 
   const profile = profileRes.data
+  const domains = domainsRes.data ?? []
 
   if (!profile) {
     await ensureProfile(user.id)
     return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, siteUrl: null, testCount: 0 }} />
   }
 
-  const siteUrl = testsRes.data?.[0]?.site_url ?? null
+  const verifiedDomain = domains.find((d) => d.verified)?.url ?? null
+  const testCount = domains.filter((d) => d.verified).length // proxy: verified domains = einsatzbereit
 
   return (
     <SetupClient
@@ -45,8 +46,8 @@ export default async function SetupPage() {
         plan: profile.plan ?? 'free',
         apiToken: profile.api_token ?? '',
         hasFigmaPlugin: profile.has_figma_plugin ?? false,
-        siteUrl,
-        testCount: testsRes.data?.length ?? 0,
+        siteUrl: verifiedDomain,
+        testCount,
       }}
     />
   )

@@ -53,6 +53,22 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid domain' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  // Plan-Limit: Free/Pro max 1 Domain, Agency unlimited.
+  if (user.plan !== 'agency') {
+    const { data: existing } = await supabase
+      .from('domains')
+      .select('id')
+      .eq('user_id', user.userId)
+      .limit(2)
+
+    if ((existing ?? []).length >= 1) {
+      return Response.json(
+        { error: 'Free and Pro plans allow 1 website. Upgrade to Agency for multiple domains.' },
+        { status: 402, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
+  }
+
   const { data, error } = await supabase
     .from('domains')
     .insert({ user_id: user.userId, url: normalized })
