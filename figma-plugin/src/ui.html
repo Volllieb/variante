@@ -1177,7 +1177,7 @@ const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
   selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: '',
-  plan: 'free'
+  plan: 'free', verifiedDomain: ''
 }
 let activeTestCount = 0
 let generating = false
@@ -1455,6 +1455,17 @@ async function saveToken() {
   }
 }
 
+async function fetchVerifiedDomain() {
+  try {
+    const res = await afetch(API + '/api/domains')
+    if (!res.ok) return
+    const data = await res.json()
+    const domains = data.domains || []
+    const verified = domains.find(d => d.verified)
+    if (verified) state.verifiedDomain = verified.url
+  } catch (_) { /* silent — optional feature */ }
+}
+
 async function showDashboard() {
   if (pendingDelete) commitPendingDelete()
   clearDraft()
@@ -1627,7 +1638,7 @@ function newTest() {
   var sa = $('gen-scope-area'); if (sa) sa.style.display = 'block'
   var gr = $('gen-result'); if (gr) gr.style.display = 'none'
   var gf = $('gen-ftr'); if (gf) gf.style.display = 'none'
-  $('f-name').value = ''; $('f-url').value = ''
+  $('f-name').value = ''; $('f-url').value = state.verifiedDomain || ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'flex'; $('el-done').style.display = 'none'
   var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
@@ -2372,6 +2383,8 @@ window.onmessage = (event) => {
     API_TOKEN = msg.token || ''
     if (API_TOKEN) {
       $('connect-token').value = API_TOKEN
+      // Verified domain des Users laden (für URL-Vorausfüllung)
+      fetchVerifiedDomain()
       // Wenn ein Draft existiert, versuche ihn wiederherzustellen
       if (pendingDraft && pendingDraft.testId) {
         restoreDraft(pendingDraft)
