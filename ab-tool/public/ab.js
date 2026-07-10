@@ -408,6 +408,17 @@
     )
   }
 
+  // -- SVG-Sanitization: AI-generated SVGs often have huge pixel dimensions --
+  // -- and no viewBox → they blow up the page. Force responsive sizing.    --
+  function sanitizeSvgs(parent) {
+    var svgs = parent.querySelectorAll('svg')
+    for (var s = 0; s < svgs.length; s++) {
+      if (!svgs[s].hasAttribute('viewBox')) svgs[s].setAttribute('viewBox', '0 0 ' + (svgs[s].getAttribute('width') || 100) + ' ' + (svgs[s].getAttribute('height') || 100))
+      svgs[s].style.maxWidth = '100%'
+      svgs[s].style.height = 'auto'
+    }
+  }
+
   // --- Variante auf den DOM anwenden -----------------------------------------
   // Markiert die eingefügte B-Wurzel mit data-ab-el="<key>", damit Conversions
   // auch nach dem Element-Tausch zuverlässig zugeordnet werden können. Gibt true
@@ -419,6 +430,7 @@
     try {
       var tmp = document.createElement('div')
       tmp.innerHTML = html
+      sanitizeSvgs(tmp)
       var node = tmp.firstElementChild
       if (node) {
         if (key) node.setAttribute('data-ab-el', key)
@@ -426,6 +438,8 @@
         return true
       }
       el.outerHTML = html // Fallback: kein Einzel-Wurzelelement im Fragment
+      // ponytail: outerHTML-Pfad geht nicht durch tmp → SVGs im Elternbaum saniert
+      sanitizeSvgs(el.parentNode || el)
       return true
     } catch (_) {
       return false
