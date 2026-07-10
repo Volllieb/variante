@@ -55,6 +55,7 @@ const freeFeatures = [
   { label: '1 active experiment — test your first idea, free.' },
   { label: 'AI variant generation — pixel-perfect from Figma.' },
   { label: 'Live-page editing in Figma — pull your site, edit, A/B test instead of save.' },
+  { label: 'Test full sections — hero, pricing, CTAs. Not just single elements.' },
   { label: 'Conversion tracking — built-in, no extra setup.' },
   { label: '"Powered by Variante" badge — your visitors become your referrals.' },
 ]
