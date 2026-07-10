@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 10.07.2026 — 🔐 Pro-Signup: Kauf-Intent (`?plan=pro`) leitet nach Auth direkt in Stripe-Checkout statt Dashboard. 📊 Market-Research: `MARKET-RESEARCH.md` — First-User-Akquisition, Kanal-Strategie, ICP-Deep-Dive. |
+| **Stand** | 10.07.2026 — 🎯 Landingpage-Features erweitert: Figma Live-Page Editing, Dynamic Content (Traffic-Source), Price Testing als kommende Pro-Features gelistet. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -88,6 +88,7 @@ z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
 
 | Datum | Eintrag |
 |---|---|
+| 10.07.2026 | **Landingpage: 3 neue Features gelistet.** Free: „Live-page editing in Figma — pull your site, edit, A/B test instead of save". Pro: „Dynamic content — different pages for YouTube, Google & co. visitors" + „Price testing — experiment with pricing plans and price points". Signal an Early-Adopter: variante wird zur Personalisierungs-Plattform. Build grün. |
 | 10.07.2026 | **Market Research: Wie komme ich zu meinem ersten User?** `MARKET-RESEARCH.md` erstellt. Enthält: Markt-Landschaft (Oligopol mit toter Mitte, 0 echte Figma-Konkurrenten, AI-Builder-Explosion, Google-Optimize-Lücke), ICP-Deep-Dive (3 Persona-Cluster), Wettbewerber-Schwäche-Analyse, 6-Channel-Analyse mit CAC-Schätzung, 4-Wochen-Akquisitionsplan, Psychologie des ersten Users, Metriken, Risiken, Sofort-Maßnahmen. Kern-Erkenntnis: variante ist kategorieerschaffend, nicht kategorieeintretend. User #1 ist AI-Builder-Designer auf X.
 | 10.07.2026 | **Wasim-11-Punkte-Evaluation + X-Strategie.** variante gegen @WasimShips' "viral $10k MRR"-Framework evaluiert: 3/11 grün, 3/11 gelb, 5/11 rot. Kernproblem: Produkt vor Validierung gebaut, Features vor Gesprächen. X-Outreach-Strategie definiert: 14-Tage-Plan (Pain-First, kein Pitch), 5 Distribution-Channels priorisiert (X → Reddit → LinkedIn), Tampermonkey-Script `scripts/x-pain-finder.user.js` zum automatischen Highlighten von Pain-Posts. GOTOMARKET.md um Channels + X-Playbook ergänzt. |
 | 10.07.2026 | **Domain-First Architecture.** User müssen eine verified Domain haben bevor Tests laufen. Neue `domains`-Tabelle mit Plan-Limit (Free/Pro: 1, Agency: unlimited). `DomainGate.tsx`: Post-Login-Gate mit URL-Eingabe + Snippet-Check + Auto-Verify. `POST /api/tests` validiert gegen verified domains. `POST /api/domains` enforced Plan-Limits. Account-Settings: Domain-Sektion (Anzeige, Re-Verify, Löschen, Hinzufügen). Dashboard: EmptyState zeigt Domain-Hinweis, Health-Card zeigt Website-Status. Figma-Plugin: `fetchVerifiedDomain()` nach Token-Load, `newTest()` füllt URL-Feld mit verified Domain vor. Migration 015: `count_verified_domains`/`count_domains` RPCs. |

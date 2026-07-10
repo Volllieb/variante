@@ -54,6 +54,7 @@ const steps = [
 const freeFeatures = [
   { label: '1 active experiment — test your first idea, free.' },
   { label: 'AI variant generation — pixel-perfect from Figma.' },
+  { label: 'Live-page editing in Figma — pull your site, edit, A/B test instead of save.' },
   { label: 'Conversion tracking — built-in, no extra setup.' },
   { label: '"Powered by Variante" badge — your visitors become your referrals.' },
 ]
@@ -61,6 +62,8 @@ const freeFeatures = [
 const proFeatures = [
   { label: 'Unlimited experiments', pro: true },
   { label: 'AI variant generation', pro: false },
+  { label: 'Dynamic content — different pages for YouTube, Google & co. visitors', pro: true },
+  { label: 'Price testing — experiment with pricing plans and price points', pro: true },
   { label: 'Statistical significance — know when to stop testing', pro: true },
   { label: 'Auto-winner — best variant ships automatically', pro: true },
   { label: 'No branding on your site', pro: true },
