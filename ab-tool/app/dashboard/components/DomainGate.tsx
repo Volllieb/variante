@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Globe, Loader2, Check, X, ExternalLink, Copy, ArrowRight } from 'lucide-react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { Globe, Loader2, Check, X, Copy, ArrowRight } from 'lucide-react'
 
 const T = {
   ok: '#2fd76c',
@@ -16,7 +16,15 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
-type GateState = 'input' | 'saving' | 'checking' | 'not-found' | 'verified'
+type GateState = 'input' | 'saving' | 'checking' | 'not-found' | 'verified' | 'loading'
+
+type Domain = {
+  id: string
+  url: string
+  verified: boolean
+  verified_at: string | null
+  created_at: string
+}
 
 type Props = {
   plan: string
@@ -24,17 +32,93 @@ type Props = {
 
 export function DomainGate({ plan }: Props) {
   const [url, setUrl] = useState('')
-  const [state, setState] = useState<GateState>('input')
+  const [state, setState] = useState<GateState>('loading')
   const [error, setError] = useState('')
   const [checkedUrl, setCheckedUrl] = useState('')
   const [copied, setCopied] = useState(false)
   const [promptCopied, setPromptCopied] = useState(false)
+  const initDone = useRef(false)
 
   const isAgency = plan === 'agency'
 
   // ── URL normalisieren ──
   const normalize = (raw: string) =>
     raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+
+  // ── Snippet-Check + Verify für eine gegebene Domain-URL ──
+  const checkAndVerify = useCallback(async (domainUrl: string, domainId?: string) => {
+    setCheckedUrl(domainUrl)
+    setState('checking')
+
+    try {
+      const checkRes = await fetch('/api/snippet-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_url: domainUrl }),
+      })
+      const json = await checkRes.json()
+
+      if (json.detected) {
+        // Domain-ID ermitteln falls nicht übergeben
+        let id = domainId
+        if (!id) {
+          const domainsRes = await fetch('/api/domains')
+          const { domains } = await domainsRes.json()
+          const domain = (domains || []).find((d: Domain) => d.url === domainUrl)
+          id = domain?.id
+        }
+        if (id) {
+          await fetch('/api/domains/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domainId: id }),
+          })
+        }
+        setState('verified')
+      } else {
+        setState('not-found')
+      }
+    } catch {
+      setState('not-found')
+    }
+  }, [])
+
+  // ── Beim Mount: existierende Domains checken ──
+  useEffect(() => {
+    if (initDone.current) return
+    initDone.current = true
+
+    async function init() {
+      try {
+        const res = await fetch('/api/domains')
+        const { domains } = await res.json()
+        const existing: Domain[] = domains ?? []
+
+        if (existing.length === 0) {
+          // Keine Domain vorhanden → Eingabefeld zeigen
+          setState('input')
+          return
+        }
+
+        const verified = existing.find((d) => d.verified)
+        if (verified) {
+          // Bereits verified → direkt ins Dashboard
+          window.location.href = '/dashboard'
+          return
+        }
+
+        // Unverified Domain vorhanden → Pre-fill und direkt den Check starten
+        const first = existing[0]
+        setUrl(first.url)
+        await checkAndVerify(first.url, first.id)
+      } catch {
+        // Bei Netzwerkfehler: Eingabefeld zeigen
+        setState('input')
+      }
+    }
+
+    init()
+  }, [checkAndVerify])
 
   // ── Domain speichern + Snippet-Check ──
   const submit = useCallback(async () => {
@@ -76,36 +160,8 @@ export function DomainGate({ plan }: Props) {
     }
 
     // Step 2: Snippet-Check
-    setState('checking')
-    try {
-      const checkRes = await fetch('/api/snippet-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_url: normalized }),
-      })
-      const json = await checkRes.json()
-
-      if (json.detected) {
-        // Mark domain as verified
-        // Load the domain ID we just created/existing
-        const domainsRes = await fetch('/api/domains')
-        const { domains } = await domainsRes.json()
-        const domain = (domains || []).find((d: { url: string }) => d.url === normalized)
-        if (domain) {
-          await fetch('/api/domains/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ domainId: domain.id }),
-          })
-        }
-        setState('verified')
-      } else {
-        setState('not-found')
-      }
-    } catch {
-      setState('not-found')
-    }
-  }, [url])
+    await checkAndVerify(normalized)
+  }, [url, checkAndVerify])
 
   function retry() {
     setState('input')
@@ -157,6 +213,24 @@ export function DomainGate({ plan }: Props) {
       setPromptCopied(true)
       setTimeout(() => setPromptCopied(false), 2000)
     })
+  }
+
+  // ── Auto-Redirect nach Verifikation ──
+  useEffect(() => {
+    if (state !== 'verified') return
+    const t = setTimeout(() => {
+      window.location.href = '/dashboard'
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [state])
+
+  // ── Loading: Initialer Fetch der existierenden Domains ──
+  if (state === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black px-4">
+        <Loader2 className="h-6 w-6 animate-spin text-[#ededed]/40" />
+      </div>
+    )
   }
 
   return (
