@@ -14,6 +14,7 @@ const inter = Inter({
 })
 
 export const metadata = {
+  metadataBase: new URL('https://www.getvariante.com'),
   title: {
     default: 'A/B Testing for Designers — No Developer Needed | Variante',
     template: '%s | Variante',

@@ -33,6 +33,8 @@ Figma Community: 9 Plugins bei Suche „ab test". Kein einziges macht echte A/B-
 
 **Fazit:** Keiner macht das, was variante macht. Die Positionierung „A/B-Testing aus Figma" ist **kategorieerschaffend, nicht kategorieeintretend**. Vorteil: kein Kampf gegen etablierte Player. Nachteil: Kategorie muss erst erklärt werden.
 
+**Enge schlägt Breite.** Nicht "A/B-Testing für alle" — sondern: **„Figma-to-live-site A/B tests for landing pages."** Eine Nische gibt Glaubwürdigkeit, nicht weniger Reichweite. Designer, die Landingpages in Figma bauen und auf Custom-HTML/WordPress/Next.js deployen — das ist die Kernzielgruppe, bei der jeder Satz im Marketing sitzt. Alle anderen Nicht-Kunden stören nur das Signal.
+
 ### 1.3 AI-Builder-Explosion = unser Rückenwind
 
 | Tool | Launch | User (geschätzt) | A/B-Testing? |
@@ -120,6 +122,13 @@ Sept 2023 hat Google Optimize (kostenlos, GA-integriert) eingestellt. Millionen 
 | **Zielgruppe** | PMs, Marketer, Engineers | Designer |
 | **Distribution** | Cold Calls, Konferenzen, G2-Reviews | Figma Community (organische Discovery) |
 | **Badge** | Nein | Ja — viraler Loop, CAC ~0 |
+| **Guidance** | Keine — Tools sagen *wie*, nicht *was* | „What to test next"-Checkliste im Plugin (basierend auf Page-Goal: Signups vs Purchases) — opinionated Guidance für analytics-allergische Designer |
+
+### 3.3 Opinionated Guidance: Der Conversion-Hebel für Designer
+
+Designer öffnen keine Analytics-Dashboards. Sie wollen nicht „Daten interpretieren" — sie wollen gesagt bekommen: **„Teste das als nächstes."**
+
+Die „What to test next"-Checkliste im Plugin (basierend auf Page-Goal) ist kein Feature — sie ist der **kulturelle Translator** zwischen Designer-Denken („mach's schöner") und Conversion-Denken („mach's messbar besser"). Das konvertiert Zielgruppe, die nie ein Testing-Tool anfassen würde.
 
 ---
 
@@ -134,20 +143,26 @@ Sept 2023 hat Google Optimize (kostenlos, GA-integriert) eingestellt. Millionen 
 - Schnellster Feedback-Loop: Reply → DM → Call innerhalb 48h
 - Algorithmus belohnt konsistente Nischen-Antworten
 
-**Die Pain-Suchen (5 laufende, gespeicherte Queries):**
+**Strategie-Update (10.07.2026): Dual-Track.** Da variante ein live Produkt ist, nicht mehr in der Validierungsphase:
+- **Track A — Pain-Replies:** 5 gespeicherte Bookmark-Queries, 5 Replies/Tag, hilfreich antworten ohne Pitch. Baut Glaubwürdigkeit.
+- **Track B — Direkt-Angebote:** Eigene Threads mit Early-Access-Angebot („Built variante — A/B testing from Figma. Free Pro for early users."). Authentisch, kein Spam.
+- ⚠️ `scripts/x-pain-finder.user.js` funktioniert nicht mehr (X ändert DOM ständig) — ersetzt durch manuelle Bookmarks.
+
+**Die Pain-Suchen (5 Browser-Lesezeichen, 2×/Tag checken):**
 
 | # | Such-Query | Signal |
 |---|---|---|
 | 1 | `"how do you" test OR "ab test" design OR landing OR website` | Aktive Suche |
 | 2 | `(v0 OR bolt OR lovable OR replit) (test OR testing OR "no way" OR "can't")` | AI-Builder-Pain |
-| 3 | `"deploy and pray" OR "ship and pray" OR "shipped without"` | Erkannter Pain |
-| 4 | `"how to" (test OR "ab test") (figma OR "ai generated" OR "built with")` | Tool-Kombination |
-| 5 | `(wordpress OR shopify OR "custom html") (testing OR "ab test" OR optimize)` | Plattform-Pain |
+| 3 | `"deploy and pray" OR "ship and pray" OR "shipped without testing"` | Erkannter Pain |
+| 4 | `figma to live OR figma to production OR "design to code" testing` | Figma→Live-Gap |
+| 5 | `"which converts better" OR "which version" OR "A or B" design` | Entscheidungsnot |
 
-**14-Tage-X-Strategie (existiert bereits, ausbauen):**
-- Tag 1–5: 5 Replies/Tag, kein Produkt erwähnen. Nur hilfreiche Fragen stellen.
-- Tag 6–10: 2–3 eigene Threads (Pain-Story: „Ich hab 3 AI-Sites gebaut, keine getestet"), weiter antworten.
-- Tag 11–14: Erste Brücke: „Ich hab dafür tatsächlich was gebaut", DM an 10 Pain-Poster.
+**X-Strategie (vereinfacht, kein 14-Tage-Plan mehr nötig):**
+- Täglich: 5 Bookmarks checken, 5 hilfreiche Replies (Track A)
+- 2–3×/Woche: Eigener Thread mit Early-Access-Angebot (Track B)
+- Bei Engagement: DM mit konkretem Angebot („Willst du's gratis testen?")
+- Ziel: 3–5 Gespräche/Woche, 1–2 davon zu Design-Partnern konvertieren
 
 ### 4.2 Figma Community — der passive Motor (CAC: ~0)
 
@@ -216,17 +231,26 @@ Sept 2023 hat Google Optimize (kostenlos, GA-integriert) eingestellt. Millionen 
 - X-Pain-Finder-Script aktiv
 - Noch keine Case-Study, noch kein Social Proof
 
-### 5.2 Week 1 (ab jetzt): Outbound-Motion starten
+### 5.2 Week 1 (ab jetzt): Outbound-Motion starten — Dual-Track: Loom-DMs + Replies
+
+**Track A — Kalte Loom-DMs (höchste Conversion, macht den Unterschied):**
+- Täglich 3–5 kalte DMs auf X an AI-Builder-Designer (v0/Bolt/Lovable-Nutzer, die kürzlich eine Landingpage gepostet haben)
+- Jede DM: 30-Sekunden-Loom, der IHRE echte Site zeigt + exakt 1 Element, das wir testen würden
+- Kein generisches Template — jede DM ist individuell auf deren Site bezogen
+- Angebot: „Ich setz den ersten Test gratis für dich auf. 5 Minuten, du kriegst die Daten."
+- Ziel: 10–20 DMs → 2–3 Antworten → 1–2 Design-Partner
+
+**Track B — Pain-Replies (baut Glaubwürdigkeit, langfristig):**
 
 | Tag | Aktion | Kanal | Ziel |
 |---|---|---|---|
 | **Mo** | 5 Pain-Suchen auf X checken, 5 Replies schreiben | X | Erste Präsenz |
-| **Di** | 5 Replies + 1 Follow-up-DM an jemanden mit starkem Pain | X → DM | Erstes Gespräch |
+| **Di** | 5 Replies + 3 kalte Loom-DMs an AI-Builder-Designer | X → DM | Erstes Gespräch |
 | **Mi** | r/web_design + r/WordPress: 3 hilfreiche Kommentare | Reddit | Karma aufbauen |
-| **Do** | Figma-Plugin-Beschreibung optimieren (Keywords) | Figma | SEO für Discovery |
+| **Do** | Figma-Plugin-Beschreibung optimieren (Keywords) + 3 Loom-DMs | Figma + X | SEO + Outbound |
 | **Fr** | X: Erster eigener Thread (Pain-Story) + 5 Replies | X | Reichweite |
-| **Sa** | Reddit: 3 Kommentare | Reddit | Konsistenz |
-| **So** | Recap: Welche Replies hatten Engagement? Welche DMs geöffnet? | — | Lernen |
+| **Sa** | Reddit: 3 Kommentare + 3 Loom-DMs | Reddit + X | Konsistenz |
+| **So** | Recap: Welche DMs geöffnet? Welche Replies hatten Engagement? | — | Lernen |
 
 ### 5.3 Week 2: Erste Gespräche führen
 
@@ -347,14 +371,16 @@ Der Moment, in dem aus einem Interessenten ein Nutzer wird:
 3. **5 Pain-Suchen auf X speichern** (10 Min): Queries aus §4.1 als Lesezeichen
 4. **Reddit-Account prüfen** (2 Min): Karma >100? Sonst werden Kommentare automatisch gelöscht
 5. **LinkedIn-Profil aktualisieren** (5 Min): Founder-Titel + Link zu getvariante.com
+6. **Loom vorbereiten** (10 Min): Loom-App installieren, 30-Sekunden-Template testen — du wirst es oft brauchen. Ziel: In <60 Sekunden eine fremde Site öffnen, 1 konkretes Test-Element zeigen, und das Video mit offer versenden können.
 
 ### 9.2 Diese Woche noch
 
-6. **Erste 10 X-Replies schreiben** (täglich 2, kein Pitch)
-7. **2 Pain-Interviews per DM anfragen** („Ich recherchiere zum Thema X, 15 min?")
-8. **r/web_design beitreten & 5 Kommentare** (kein Link)
-9. **Demo-GIF für Figma-Plugin aufnehmen** (Screen Studio oder Loom)
-10. **Blog-Post-Idee skizzieren** (Google Optimize-Alternative, SEO-Targeting)
+7. **Erste 10 kalte Loom-DMs versenden** (täglich 2–3, individuell auf deren Site)
+8. **Erste 10 X-Replies schreiben** (täglich 2, kein Pitch)
+9. **2 Pain-Interviews per DM anfragen** („Ich recherchiere zum Thema X, 15 min?")
+10. **r/web_design beitreten & 5 Kommentare** (kein Link)
+11. **Demo-GIF für Figma-Plugin aufnehmen** (Screen Studio oder Loom)
+12. **Blog-Post-Idee skizzieren** (Google Optimize-Alternative, SEO-Targeting)
 
 ---
 
@@ -380,4 +406,4 @@ Der Moment, in dem aus einem Interessenten ein Nutzer wird:
 
 ---
 
-> **Nächster Schritt:** §9.1 Quick-Wins heute umsetzen. Dann §5.2 Week-1-Plan starten. PROJEKT.md §8 fortschreiben.
+> **Nächster Schritt:** §9.1 Quick-Wins heute umsetzen. Dann kalte Loom-DMs starten (10–20 targeted, nicht 100 generische). §5.2 Week-1-Plan parallel fahren. PROJEKT.md §8 fortschreiben.

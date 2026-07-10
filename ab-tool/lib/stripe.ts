@@ -4,4 +4,4 @@ import Stripe from 'stripe'
 const key = process.env.STRIPE_SECRET_KEY
 export const stripe = key ? new Stripe(key) : null
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://getvariante.com'
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.getvariante.com'
