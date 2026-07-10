@@ -72,7 +72,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className="min-h-screen bg-bg-0 text-white/80 antialiased">
+      <body className="min-h-screen bg-bg-0 text-white/80 antialiased" suppressHydrationWarning>
         {children}
         {/* Plain script tags — zero client JS (React wrappers force hydration of the entire tree).
             Vercel scripts use History API for SPA navigation detection, no React needed. */}

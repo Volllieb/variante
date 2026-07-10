@@ -73,6 +73,7 @@ startBtn.addEventListener('click', async () => {
     })
 
     const resp = await chrome.tabs.sendMessage(tab.id, { type: 'START_PICKER', testId, mode: 'element' })
+    if (chrome.runtime.lastError) { /* content script nicht bereit — harmlos */ }
     if (resp && resp.ok) window.close()
     else showInputErr('Picker did not start.')
   } catch (e) {

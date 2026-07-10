@@ -53,8 +53,9 @@ function parseAbParams(url) {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg, sender) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'CLOSE_TAB' && sender.tab && sender.tab.id) {
     chrome.tabs.remove(sender.tab.id).catch(() => {}) // ponytail: last tab in window, closing impossible
+    sendResponse() // MV3: explizit quittieren, sonst lastError
   }
 })
