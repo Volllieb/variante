@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
+import { revalidatePath } from 'next/cache'
 
 export async function OPTIONS() {
   return preflight('GET, PATCH, DELETE, OPTIONS')
@@ -91,6 +92,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   }
 
+  revalidatePath('/dashboard')
   return Response.json({ ok: true }, { headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
 }
 
@@ -133,5 +135,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })
   }
 
+  revalidatePath('/dashboard')
   return Response.json({ ok: true }, { headers: corsHeaders('DELETE, OPTIONS') })
 }

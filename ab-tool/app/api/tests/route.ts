@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
+import { revalidatePath } from 'next/cache'
 
 export async function OPTIONS() {
   return preflight('GET, POST, OPTIONS')
@@ -145,6 +146,7 @@ export async function POST(req: Request) {
     .eq('user_id', user.userId)
     .eq('has_figma_plugin', false)
 
+  revalidatePath('/dashboard')
   return Response.json(
     { id: data.id, snippet_key: data.snippet_key },
     { headers: corsHeaders('POST, OPTIONS') }

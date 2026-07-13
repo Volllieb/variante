@@ -3,6 +3,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
+import { revalidatePath } from 'next/cache'
 
 export async function OPTIONS() {
   return preflight('GET, POST, DELETE, OPTIONS')
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  revalidatePath('/dashboard')
   return Response.json(data, { status: 201, headers: corsHeaders('POST, OPTIONS') })
 }
 
@@ -107,5 +109,6 @@ export async function DELETE(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })
   }
 
+  revalidatePath('/dashboard')
   return Response.json({ ok: true }, { headers: corsHeaders('DELETE, OPTIONS') })
 }

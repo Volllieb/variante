@@ -1,7 +1,7 @@
 import { getSessionUser } from '@/lib/supabaseServer'
+import { supabase } from '@/lib/supabase'
 import { ensureProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { getCachedProfile, getCachedTests, getCachedDomains } from '@/lib/cachedQueries'
 import { DashboardClient } from './DashboardClient'
 
 export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
@@ -10,15 +10,30 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   const searchParams = await props.searchParams
 
-  // Parallel cached queries (30s TTL, per-user cache keys)
-  const [profile, tests, domains] = await Promise.all([
-    getCachedProfile(user.id),
-    getCachedTests(user.id),
-    getCachedDomains(user.id),
+  // Parallel: Profile + Tests + Domains gleichzeitig starten (kein Waterfall)
+  const [profileRes, testsRes, domainsRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('api_token, plan, has_figma_plugin')
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('tests')
+      .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('domains')
+      .select('url, verified')
+      .eq('user_id', user.id)
+      .limit(5),
   ])
 
-  const hasVerifiedDomain = domains?.some((d) => d.verified) ?? false
-  const primaryDomain = domains?.find((d) => d.verified)?.url ?? domains?.[0]?.url ?? null
+  const profile = profileRes.data
+  const tests = testsRes.data
+  const domains = domainsRes.data ?? []
+  const hasVerifiedDomain = domains.some((d) => d.verified)
+  const primaryDomain = domains.find((d) => d.verified)?.url ?? domains[0]?.url ?? null
 
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
