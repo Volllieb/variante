@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTestList } from '@/lib/useTestList'
 import { NewTestFlow } from '../NewTestFlow'
-import { TestCard } from '../components/TestCard'
+import { TestCard, type TestRow } from '../components/TestCard'
 import {
   FilterDropdown,
 } from '../components/FilterDropdown'
