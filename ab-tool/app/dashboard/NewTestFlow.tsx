@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { useTestsInsert } from '@/lib/useRealtime'
 import { FlaskConical, Loader2, Check, Copy, Puzzle, Code, X } from 'lucide-react'
 
 /* ── Token palette ── */
@@ -14,13 +16,12 @@ type FlowState = 'idle' | 'awaiting_figma' | 'test_received' | 'timeout' | 'erro
 
 type NewTestFlowProps = {
   apiToken: string
-  currentTestCount: number
   hasFigmaPlugin: boolean
   isAtFreeLimit: boolean
   onClose: () => void
 }
 
-export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFreeLimit, onClose }: NewTestFlowProps) {
+export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }: NewTestFlowProps) {
   const router = useRouter()
   const [state, setState] = useState<FlowState>(
     isAtFreeLimit ? 'plan_limit' : hasFigmaPlugin ? 'awaiting_figma' : 'idle'
@@ -29,13 +30,20 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFr
   const [elapsed, setElapsed] = useState(0)
   const [copied, setCopied] = useState(false)
   const [testName, setTestName] = useState('')
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const mountedRef = useRef(true)
   const TIMEOUT_S = 120
 
   useEffect(() => {
     mountedRef.current = true
     return () => { mountedRef.current = false }
+  }, [])
+
+  // User-ID für Realtime-Filter
+  useEffect(() => {
+    getBrowserSupabase().auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id)
+    })
   }, [])
 
   // Timer
@@ -45,36 +53,23 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFr
     return () => clearInterval(t)
   }, [state])
 
-  // Poll for new test
-  const poll = useCallback(async () => {
-    try {
-      const res = await fetch('/api/tests')
-      if (!res.ok) return
-      const data = await res.json()
-      if (!mountedRef.current) return
-      // Detect plan limit mid-poll (e.g. second test attempt via Figma)
-      if (data.plan === 'free' && Array.isArray(data.tests) && data.tests.filter((t: any) => t.status !== 'done').length >= 1) {
-        setState('plan_limit')
-        return
-      }
-      const list = data.tests ?? data
-      if (Array.isArray(list) && list.length > currentTestCount) {
-        setState('test_received')
-        setTestName(list[list.length - 1]?.name ?? 'New test')
-      }
-    } catch { /* ignore network errors during polling */ }
-  }, [currentTestCount])
+  // Realtime: neuer Test via Figma-Plugin → sofort reagieren
+  useTestsInsert(userId, (name) => {
+    if (!mountedRef.current) return
+    if (state === 'awaiting_figma') {
+      setState('test_received')
+      setTestName(name)
+    }
+  })
 
+  // Timeout nach 120s
   useEffect(() => {
     if (state !== 'awaiting_figma') return
-    // Poll every 3 seconds
-    pollRef.current = setInterval(poll, 3000)
-    // Timeout after 120s
     const timeout = setTimeout(() => {
       if (mountedRef.current && state === 'awaiting_figma') setState('timeout')
     }, TIMEOUT_S * 1000)
-    return () => { clearInterval(pollRef.current!); clearTimeout(timeout) }
-  }, [state, poll])
+    return () => clearTimeout(timeout)
+  }, [state])
 
   function copyToken() {
     navigator.clipboard.writeText(apiToken).then(() => {
@@ -127,6 +122,17 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFr
                 </p>
               </div>
             </div>
+
+            {/* Playground hint */}
+            <a
+              href="/playground"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-[8px] border border-violet-500/20 bg-violet-500/[0.06] px-3 py-2.5 text-[11px] text-violet-200/70 transition-colors hover:border-violet-500/30 hover:bg-violet-500/[0.10]"
+            >
+              <span className="text-sm">🏖️</span>
+              <span>New here? <span className="font-semibold text-violet-200">Try the demo first</span> — see the full workflow in 2 minutes, no setup.</span>
+            </a>
 
             {/* Step-by-step */}
             <ol className="space-y-2.5">
@@ -193,6 +199,14 @@ export function NewTestFlow({ apiToken, currentTestCount, hasFigmaPlugin, isAtFr
                 <span>·</span>
                 <span>{timeStr} elapsed</span>
               </div>
+              <a
+                href="/playground"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-violet-200/50 underline transition-colors hover:text-violet-200/80"
+              >
+                🏖️ See how results work while you wait →
+              </a>
             </div>
 
             <div className="flex items-start gap-2.5 rounded-[6px] px-3 py-2.5" style={{ background: '#111111' }}>

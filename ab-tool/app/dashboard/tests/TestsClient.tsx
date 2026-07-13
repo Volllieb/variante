@@ -89,7 +89,6 @@ export function TestsClient({
       {newTestOpen && (
         <NewTestFlow
           apiToken={apiToken}
-          currentTestCount={testList.length}
           hasFigmaPlugin={hasFigmaPlugin}
           isAtFreeLimit={isAtFreeLimit}
           onClose={() => setNewTestOpen(false)}

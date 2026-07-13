@@ -305,7 +305,6 @@ export function DashboardClient({
             {newTestOpen && (
               <NewTestFlow
                 apiToken={apiToken}
-                currentTestCount={testList.length}
                 hasFigmaPlugin={hasFigmaPlugin}
                 isAtFreeLimit={!isPro && testList.filter(t => t.status !== 'done').length >= 1}
                 onClose={() => setNewTestOpen(false)}
@@ -409,6 +408,14 @@ function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain }: { onNewTes
           </button>
         )}
       </div>
+      <a
+        href="/playground"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-violet-200/40 underline transition-colors hover:text-violet-200/70"
+      >
+        🏖️ Not sure yet? See the full workflow in the Playground →
+      </a>
     </div>
   )
 }

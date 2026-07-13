@@ -2,8 +2,9 @@
 
 import { ExperimentData } from '@/lib/getExperimentStats'
 import { VariantPreview } from '@/app/components/VariantPreview'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTestUpdate } from '@/lib/useRealtime'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -74,6 +75,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [showRawData, setShowRawData] = useState(false)
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
@@ -131,11 +133,23 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     setRefreshing(false)
   }
 
+  // Realtime: DB-Update → refreshen mit 2s Debounce (ersetzt setInterval-Polling)
+  const refreshDebounced = useCallback(() => {
+    if (refreshTimer.current) return
+    refreshTimer.current = setTimeout(() => {
+      refreshTimer.current = null
+      refresh()
+    }, 2000)
+  }, [])
+
+  useTestUpdate(experimentId, refreshDebounced)
+
+  // Cleanup debounce timer
   useEffect(() => {
-    const interval = data.pro ? 10000 : 30000
-    const iv = setInterval(refresh, interval)
-    return () => clearInterval(iv)
-  }, [experimentId, data.pro])
+    return () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current)
+    }
+  }, [])
 
   const { name, status, significance, winner, variants, pro, created_at } = data
   const [a, b] = variants
