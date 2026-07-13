@@ -18,6 +18,8 @@ export async function POST(req: Request) {
     site_css?: string
     framework?: string
     goal_candidates?: { selector: string; text: string }[]
+    reorder_selector?: string
+    reorder_html?: string
   }
   try {
     body = await req.json()
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  const { testId, selector, original_html, site_css, framework, goal_candidates } = body
+  const { testId, selector, original_html, site_css, framework, goal_candidates, reorder_selector } = body
 
   if (!testId || !selector) {
     return Response.json(
@@ -36,7 +38,14 @@ export async function POST(req: Request) {
 
   const { data: updated, error } = await supabase
     .from('tests')
-    .update({ selector, original_html, site_css, framework, ...(goal_candidates !== undefined ? { goal_candidates } : {}) })
+    .update({
+      selector,
+      original_html,
+      site_css,
+      framework,
+      ...(goal_candidates !== undefined ? { goal_candidates } : {}),
+      ...(reorder_selector !== undefined ? { reorder_selector } : {}),
+    })
     .eq('id', testId)
     .eq('user_id', user.userId)
     .select('id')

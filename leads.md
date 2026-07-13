@@ -11,7 +11,7 @@
 | Crade AI | $6.000 | ? | ? | 🔍 Recherche |
 | ResearchPal | $5.690 | ? | ? | 🔍 Recherche |
 | SearchSpot AI | $5.500 | ? | ? | 🔍 Recherche |
-| PostFox | $2.000 | [postfox.app](https://postfox.app) | Ro · [@stargap_one](https://twitter.com/stargap_one) · support@postfox.app · [@postfox_app](https://x.com/postfox_app) | ✅ Recherchiert |
+| PostFox | $2.000 | [postfox.app](https://postfox.app) | Ro · support@postfox.app · ⚠️ X-Kanäle alle tot ([@stargap_one](https://twitter.com/stargap_one) 4 posts/1 follower, [@postfox_app](https://x.com/postfox_app) 2 posts/0 follower, @roe_vox 404) | ✅ Recherchiert |
 | BookingPilot | $4.900 | ? | ? | 🔍 Recherche |
 
 ## ✅ Gute Fits
@@ -141,13 +141,16 @@ Worth a shot?
 | **Produkt** | AI Marketing Autopilot — generiert & published Social Content automatisch (Text, Image+Text, Video Scripts) |
 | **Pricing** | Free (2 gens/day) · €18/Monat Pro (15 gens/day, 10 projects) |
 | **MRR** | $2.000 |
-| **Founder** | **Ro** (IH: ro_vox) |
-| **X (personal)** | [@stargap_one](https://twitter.com/stargap_one) |
-| **X (product)** | [@postfox_app](https://x.com/postfox_app) |
-| **Email** | support@postfox.app |
-| **Nutzer** | 10.000+ Active Users · 1M+ Posts Generated · 50+ Countries |
+| **Founder** | **Ro** (IH: ro_vox) — "Solo founder behind NowAgo, crafting small-batch apps" |
+| **X (personal)** | ⚠️ `@stargap_one` 4 posts/1 follower, `@roe_vox` 404 — beide tot |
+| **X (product)** | ⚠️ `@postfox_app` 2 posts/0 follower — tot |
+| **Email** | **support@postfox.app** (einziger funktionierender Kanal) |
+| **Nutzer** | ✅ 10.000+ Active Users · 1M+ Posts Generated · 50+ Countries (verifiziert via postfox.app/about) |
 | **Channels** | Telegram, WordPress, Discord, Mastodon, Webhooks |
 | **iOS App** | Ja |
+
+### Ro's Setup — das wahre Bild
+Ro ist das Gegenteil von Matt Bauer: kein Build-in-Public, kein Social-Media-Auftritt, IH-Profil listet AlcoList ($100/Monat) statt PostFox. Alle drei X-Accounts sind tot oder nicht existent. **Einziger Kontaktweg: Email an support@postfox.app.** Das macht den Outreach schwieriger, aber nicht unmöglich — die 10K User sind real, das Produkt ist live, und die LP hat echte Conversion-Lücken.
 
 ### LP-Analyse (postfox.app)
 - **Hero:** "Your Content on Autopilot" — stark, benefit-driven
@@ -155,26 +158,13 @@ Worth a shot?
 - **Trust-Elemente:** "Free plan · No credit card required", "Cancel anytime · Free trial included", "10,000+ Active Users"
 - **Social Proof:** Keine echten Testimonials — nur Usage-Stats. Das ist eine klare Lücke.
 - **Preis-Darstellung:** €18/Monat als "Most popular" hervorgehoben
-- **Schwächen der LP:** Null Testimonials/Case-Studies. Kein Founder-Story-Element auf der LP. Pricing-Page separat (Reibung). "Who Is It For"-Sektion zu früh (lenkt ab vom CTA).
+- **Schwächen der LP:** Null Testimonials/Case-Studies. Kein Founder-Story-Element. Pricing separate Page (Reibung). "Who Is It For" zu früh. Usage-Stats im Footer begraben statt prominent.
 
 ### Pitch-Winkel
-Ro baut ein Marketing-Automation-Tool — er WEISS dass Conversion zählt. Aber seine eigene LP hat keine Social-Proof-Elemente. Perfekter Ansatzpunkt.
+PostFox ist ein Marketing-Automation-Tool — Ro weiß, dass Conversion zählt. Aber seine LP hat NULL Social Proof außer nackten Zahlen. Das ist die perfekte Einstiegs-Testidee.
 
-- **Test 1:** "Start for Free" vs "Get Started Free" — CTA-Text
-- **Test 2:** Social Proof oberhalb Pricing (Usage-Stats aktuell im Footer begraben)
+- **Test 1:** "10,000+ Active Users" + "1M+ Posts" als Hero-Badge → misst Signup-Uplift durch Social Proof
+- **Test 2:** "Start for Free" vs "Get Started Free" — CTA-Text
 
-### DM-Ansatz
-X-DM an @stargap_one oder @postfox_app. Oder Email an support@postfox.app wenn X nicht aktiv genug ist. Ro hat nur 1 Post auf IH — scheint weniger "build in public" zu sein als Matt.
-
-```
-Hey Ro — quick one. I checked out postfox.app through
-my A/B testing tool for landing pages.
-
-Solid product, but your LP has zero testimonials even with
-10K+ users. That's leaving conversions on the table.
-
-30 sec Loom attached. I'd set up your first experiment
-free — takes 5 minutes. No dev needed.
-
-Interested?
-```
+### Outreach-Ansatz
+**Nur Email** an support@postfox.app. Kein X-DM möglich. Betreff muss Aufhänger + "free test idea" kombinieren. Kürzer als Matt-Mail, da weniger persönlicher Bezug möglich ist.

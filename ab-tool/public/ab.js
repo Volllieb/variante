@@ -223,40 +223,107 @@
       // --- Picker starten -------------------------------------------------
       function boot() {
         if (!document.body) { setTimeout(boot, 50); return }
-        showBanner(cfg.mode === 'goal' ? 'Click goal element (ESC cancels).' : 'Click element (ESC cancels).')
 
-        var lastEl = null, HL = '2px solid #2563eb'
+        var bannerText = cfg.mode === 'goal' ? 'Click goal element (ESC cancels).' :
+                        cfg.mode === 'reorder' ? 'Pick first element to swap (ESC cancels).' :
+                        'Click element (ESC cancels).'
+        showBanner(bannerText)
+
+        var lastEl = null, HL = '2px solid #2563eb', HL2 = '2px solid #f59e0b'
+        var reorderEl1 = null, reorderSel1 = null // gespeichert bis zweiter Klick
+
         function onOver(e) { if (lastEl) lastEl.style.outline = ''; lastEl = e.target; lastEl.style.outline = HL }
         function onOut(e) { if (e.target && e.target.style) e.target.style.outline = '' }
+
+        function doCaptureRequest(el, sel, extraBody) {
+          var headers = { 'Content-Type': 'application/json' }
+          if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
+
+          if (cfg.mode === 'goal') {
+            var goalBody = JSON.stringify({ goal: sel })
+            return fetch(cfg.apiBase + '/api/tests/' + cfg.testId, { method: 'PATCH', headers: headers, body: goalBody })
+          }
+          var body = JSON.stringify(Object.assign({
+            testId: cfg.testId,
+            selector: sel,
+            original_html: el.outerHTML,
+            site_css: collectCss(el),
+            framework: detectFramework(),
+            goal_candidates: collectGoalCandidates(el),
+          }, extraBody || {}))
+          return fetch(cfg.apiBase + '/api/capture', { method: 'POST', headers: headers, body: body })
+        }
 
         function onClick(e) {
           e.preventDefault(); e.stopPropagation()
           var el = e.target, sel = cssSelector(el)
-          cleanup(); hideBanner()
 
-          var headers = { 'Content-Type': 'application/json' }
-          if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
+          // --- Reorder-Modus: erster Klick → Element A speichern, auf B warten
+          if (cfg.mode === 'reorder') {
+            if (!reorderEl1) {
+              // Erster Klick: Element A markieren
+              reorderEl1 = el; reorderSel1 = sel
+              if (lastEl) { lastEl.style.outline = ''; lastEl = null }
+              reorderEl1.style.outline = '2px solid #f59e0b'
+              hideBanner()
+              var b = document.createElement('div')
+              b.id = '__ab_banner'
+              b.innerHTML = '<span style="color:#f59e0b">\u2713</span> First element captured. <span style="opacity:.7">Now click the element to swap with</span> <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;opacity:.7" id="__ab_banner_cancel">\u2716</span>'
+              b.style.cssText = 'position:fixed;z-index:2147483647;top:0;left:0;right:0;padding:12px 40px;font:700 14px -apple-system,Segoe UI,sans-serif;color:#ededed;text-align:center;background:#0a0a0a;border-bottom:1px solid rgba(245,158,11,.3);box-shadow:0 4px 24px rgba(0,0,0,.6);letter-spacing:.3px;user-select:none'
+              document.body.appendChild(b)
+              __banner = b
+              document.getElementById('__ab_banner_cancel').onclick = function (ev) {
+                ev.stopPropagation()
+                if (reorderEl1) reorderEl1.style.outline = ''
+                reorderEl1 = null; reorderSel1 = null
+                window.__abRekindlePicker()
+              }
+              return
+            }
+            // Zweiter Klick: beide Elemente senden
+            cleanup()
+            hideBanner()
+            if (reorderEl1) reorderEl1.style.outline = ''
+            var s1 = reorderSel1
+            var el1Html = reorderEl1.outerHTML, el1Css = collectCss(reorderEl1)
+            var e1 = reorderEl1
+            reorderEl1 = null; reorderSel1 = null
 
-          var url, body
-          if (cfg.mode === 'goal') {
-            url = cfg.apiBase + '/api/tests/' + cfg.testId
-            body = JSON.stringify({ goal: sel })
-          } else {
-            url = cfg.apiBase + '/api/capture'
-            body = JSON.stringify({ testId: cfg.testId, selector: sel, original_html: el.outerHTML, site_css: collectCss(el), framework: detectFramework(), goal_candidates: collectGoalCandidates(el) })
-          }
-          fetch(url, { method: cfg.mode === 'goal' ? 'PATCH' : 'POST', headers: headers, body: body })
-            .then(function (r) {
-              if (r.ok) showOverlay(cfg.mode === 'goal' ? 'Goal saved' : 'Element captured', sel, false)
-              else showOverlay('Save failed (' + r.status + ')', '', true)
+            var headers = { 'Content-Type': 'application/json' }
+            if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
+            var body = JSON.stringify({
+              testId: cfg.testId,
+              selector: s1,
+              original_html: el1Html,
+              site_css: el1Css,
+              framework: detectFramework(),
+              goal_candidates: collectGoalCandidates(e1),
+              reorder_selector: sel,
+              reorder_html: el.outerHTML,
             })
-            .catch(function () { showOverlay('Network error while saving.', '', true) })
+            fetch(cfg.apiBase + '/api/capture', { method: 'POST', headers: headers, body: body })
+              .then(function (r) {
+                if (r.ok) showOverlay('Swap elements captured', s1 + ' \u2194 ' + sel, false)
+                else showOverlay('Save failed (' + r.status + ')', '', true)
+              })
+              .catch(function () { showOverlay('Network error while saving.', '', true) })
+            return
+          }
+
+          // --- Normaler / Goal Modus ---------------------------------------
+          cleanup(); hideBanner()
+          doCaptureRequest(el, sel).then(function (r) {
+            if (r.ok) showOverlay(cfg.mode === 'goal' ? 'Goal saved' : 'Element captured', sel, false)
+            else showOverlay('Save failed (' + r.status + ')', '', true)
+          }).catch(function () { showOverlay('Network error while saving.', '', true) })
         }
 
         function onKey(e) { if (e.key === 'Escape') { cleanup(); hideBanner() } }
 
         function cleanup() {
           if (lastEl) lastEl.style.outline = ''
+          if (reorderEl1) reorderEl1.style.outline = ''
+          reorderEl1 = null; reorderSel1 = null
           document.removeEventListener('mouseover', onOver, true)
           document.removeEventListener('mouseout', onOut, true)
           document.removeEventListener('click', onClick, true)
@@ -267,12 +334,15 @@
 
         // Reselect: overlay calls this to re-activate the picker
         window.__abRekindlePicker = function () {
+          reorderEl1 = null; reorderSel1 = null
           document.addEventListener('mouseover', onOver, true)
           document.addEventListener('mouseout', onOut, true)
           document.addEventListener('click', onClick, true)
           document.addEventListener('keydown', onKey, true)
           window.__abPickerActive = true
-          showBanner(cfg.mode === 'goal' ? 'Click goal element (ESC cancels).' : 'Click element (ESC cancels).')
+          showBanner(cfg.mode === 'goal' ? 'Click goal element (ESC cancels).' :
+                     cfg.mode === 'reorder' ? 'Pick first element to swap (ESC cancels).' :
+                     'Click element (ESC cancels).')
         }
 
         document.addEventListener('mouseover', onOver, true)

@@ -74,6 +74,17 @@ const SYSTEM_PROMPT =
   '(4) Keine Annahmen – wenn das Figma-JSON eine Eigenschaft nicht explizit angibt, ' +
   'orientiere dich am Original-HTML und Site-CSS.'
 
+// System-Prompt für Reorder-Tests: erzeugt reines CSS, kein HTML.
+const REORDER_SYSTEM_PROMPT =
+  'Du bist ein CSS-Spezialist für Layout-A/B-Tests. ' +
+  'Deine Aufgabe: zwei HTML-Elemente visuell tauschen — NUR mit CSS. ' +
+  'WICHTIG: Du darfst NUR CSS ausgeben. Kein HTML, keine Erklärungen. ' +
+  'Verwende flexbox order, flex-direction (row-reverse, column-reverse) oder CSS Grid order. ' +
+  'Alle Selektoren MÜSSEN mit der DOM-Struktur der Seite funktionieren — du bekommst ' +
+  'die exakten CSS-Selektoren beider Elemente. ' +
+  'Setze KEINE Annahmen über Eltern-Container voraus — verwende nur die Selektoren, die du bekommst. ' +
+  'Füge kurze CSS-Kommentare hinzu, die erklären, was getauscht wird.'
+
 // Framework-Hinweise: jedes Framework bekommt spezifische Regeln, damit der Output
 // im Ziel-Kontext funktioniert. Custom = kein Extra-Hinweis.
 const FRAMEWORK_HINTS: Record<string, string> = {
@@ -150,6 +161,10 @@ function cssFilterRelevant(html: string | null, css: string | null): string {
 const DELIM_START = '<<<VARIANT_HTML>>>'
 const DELIM_END = '<</VARIANT_HTML>>>'
 
+// CSS-Delimiter für Reorder-Mode: reines CSS ohne HTML-Wrapper.
+const CSS_DELIM_START = '<<<VARIANT_CSS>>>'
+const CSS_DELIM_END = '<</VARIANT_CSS>>>'
+
 function parseStructuredOutput(text: string): string {
   let html = text.trim()
   // Primär: Delimiter-Extraktion
@@ -162,6 +177,21 @@ function parseStructuredOutput(text: string): string {
   const fence = html.match(/^```(?:html)?\s*([\s\S]*?)\s*```$/i)
   if (fence) return fence[1].trim()
   return html
+}
+
+function parseCssOutput(text: string): string {
+  let css = text.trim()
+  const start = css.indexOf(CSS_DELIM_START)
+  const end = css.indexOf(CSS_DELIM_END)
+  if (start !== -1 && end !== -1 && end > start) {
+    return css.slice(start + CSS_DELIM_START.length, end).trim()
+  }
+  // Fallback: CSS-Code-Fences
+  const fence = css.match(/^```(?:css)?\s*([\s\S]*?)\s*```$/i)
+  if (fence) return fence[1].trim()
+  // Fallback: kein Delimiter, kein Fence → nimm alles als CSS falls es CSS-Syntax hat
+  if (/[{]/.test(css) && /}/.test(css)) return css
+  return ''
 }
 
 // Minimales Beispiel (Few-Shot): zeigt dem Modell die erwartete Abbildung von
@@ -302,6 +332,47 @@ function buildRefinePrompt(previousHtml: string, feedback: string, scope: string
   ].join('\n')
 }
 
+// Reorder-Prompt: erzeugt CSS, das zwei Elemente visuell tauscht.
+// Kein Figma-JSON nötig — der Tausch ist ein rein strukturelles CSS-Problem.
+// Die beiden Selektoren + HTML-Kontext reichen für den Prompt.
+function buildReorderPrompt(
+  selectorA: string,
+  selectorB: string,
+  siteCss: string | null,
+  userInstructions: string
+): string {
+  const filteredCss = siteCss || '(kein Site-CSS vorhanden)'
+  return [
+    'Du erstellst CSS-Regeln für einen visuellen Element-Tausch in einem A/B-Test.',
+    '',
+    'Zwei Elemente sollen ihre Position im Layout tauschen — NUR mit CSS, KEINE DOM-Manipulation.',
+    '',
+    `Element A (Selektor): ${selectorA}`,
+    `Element B (Selektor): ${selectorB}`,
+    '',
+    'Anleitung:',
+    '- Beide Elemente sind Geschwister im selben Eltern-Container (flex/grid/normal flow).',
+    '- Verwende flexbox `order` (wenn Eltern flex/grid) oder `flex-direction: row-reverse/column-reverse`.',
+    '- Falls der Eltern-Container kein flex/grid ist, setze `display: flex` darauf (mit existierenden Layout-Werten aus dem Site-CSS).',
+    '- Stelle sicher, dass die Selektoren exakt matchen — verwende die oben genannten Selektoren 1:1.',
+    '- Keine Magic Numbers — orientiere dich an den Werten aus dem Site-CSS.',
+    '',
+    'Site-CSS (gefiltert, als Referenz für existierende Layout-Werte):',
+    filteredCss,
+    '',
+    userInstructions ? `Nutzer-Vorgabe: ${userInstructions}` : '',
+    '',
+    'REGELN:',
+    '- Gib NUR CSS aus. Kein HTML, keine Erklärungen, kein Markdown.',
+    '- Jeder Selektor, den du verwendest, MUSS im Site-CSS oder in den genannten Selektoren vorkommen.',
+    '- Keine globalen Selektoren wie `*` oder `body`.',
+    '- Füge kurze CSS-Kommentare (`/* */`) hinzu, die erklären, was getauscht wird.',
+    '',
+    `WICHTIG - Output-Format: Deine Antwort muss mit ${CSS_DELIM_START} beginnen und mit ${CSS_DELIM_END} enden.`,
+    `Dazwischen steht NUR das CSS. Kein Text vor ${CSS_DELIM_START} oder nach ${CSS_DELIM_END}.`,
+  ].join('\n')
+}
+
 export async function POST(req: Request) {
   let body: {
     testId?: string
@@ -310,6 +381,8 @@ export async function POST(req: Request) {
     previousHtml?: string
     scope?: string
     userInstructions?: string
+    mode?: string
+    selector_b?: string
   }
   try {
     body = await req.json()
@@ -320,6 +393,7 @@ export async function POST(req: Request) {
   const { testId, frameContent, feedback, previousHtml } = body
   const scope = body.scope === 'text' || body.scope === 'color' ? body.scope : 'all'
   const userInstructions = body.userInstructions || ''
+  const mode = body.mode === 'reorder' || body.mode === 'both' ? body.mode : 'content'
   if (!testId) {
     return Response.json({ error: 'testId required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
@@ -327,9 +401,10 @@ export async function POST(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('POST, OPTIONS')
 
+  const selectColumns = 'original_html, site_css, framework, selector, reorder_selector'
   const { data: test, error: fetchErr } = await supabase
     .from('tests')
-    .select('original_html, site_css, framework')
+    .select(selectColumns)
     .eq('id', testId)
     .eq('user_id', user.userId)
     .single()
@@ -340,18 +415,21 @@ export async function POST(req: Request) {
 
   // DSGVO: PII-Scan vor OpenAI-Sendung. original_html kann personenbezogene
   // Daten enthalten (E-Mails, Telefonnummern im gepickten DOM-Element).
-  const pii = scanPII(test.original_html)
-  if (pii) {
-    const fields = PII_PATTERNS.filter(p => pii[p.key]?.length).map(p => p.label)
-    console.warn('[generate] PII detected in original_html, blocking OpenAI send:', fields)
-    return Response.json(
-      {
-        error: 'PII detected in element content',
-        message: `The selected element contains personal data (${fields.join(', ')}). Remove it from your page and try again.`,
-        piiFields: fields,
-      },
-      { status: 422, headers: corsHeaders('POST, OPTIONS') }
-    )
+  // Reorder-Mode überspringt den Scan, weil kein original_html ans Modell geht.
+  if (mode !== 'reorder') {
+    const pii = scanPII(test.original_html)
+    if (pii) {
+      const fields = PII_PATTERNS.filter(p => pii[p.key]?.length).map(p => p.label)
+      console.warn('[generate] PII detected in original_html, blocking OpenAI send:', fields)
+      return Response.json(
+        {
+          error: 'PII detected in element content',
+          message: `The selected element contains personal data (${fields.join(', ')}). Remove it from your page and try again.`,
+          piiFields: fields,
+        },
+        { status: 422, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
   }
 
   // Usage-Limit: atomarer Check via RPC (Reset + Limit + Increment in einer Transaktion).
@@ -373,22 +451,45 @@ export async function POST(req: Request) {
   }
 
   // Mit Feedback + vorigem Output → Verfeinerung, sonst Erstgenerierung.
-  const isRefinement = !!(feedback && previousHtml)
-  const prompt =
-    isRefinement
+  // Reorder-Mode hat eigenen Prompt-Pfad.
+  const isRefinement = !!(feedback && previousHtml) && mode !== 'reorder'
+  let prompt: string
+  let systemPrompt: string
+  let temperature: number
+  let variantHtml = ''
+  let variantCss = ''
+
+  if (mode === 'reorder') {
+    // Reorder-Modus: generiere CSS, kein HTML.
+    const reorderSelector = test.reorder_selector || body.selector_b || null
+    if (!reorderSelector) {
+      return Response.json(
+        { error: 'selector_b or reorder_selector required for reorder mode' },
+        { status: 400, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
+    systemPrompt = REORDER_SYSTEM_PROMPT
+    prompt = buildReorderPrompt(
+      test.selector || body.selector_b || '',
+      reorderSelector,
+      test.site_css,
+      userInstructions
+    )
+    temperature = 0.2 // deterministisch — CSS muss exakt sein
+  } else {
+    // Content-Modus: bestehender HTML-Flow
+    systemPrompt = SYSTEM_PROMPT
+    prompt = isRefinement
       ? buildRefinePrompt(previousHtml, feedback, scope, userInstructions)
       : FEW_SHOT_PROMPT + '\n\n' + buildPrompt(test.original_html, test.site_css, test.framework, frameContent, scope, userInstructions)
+    temperature = scope === 'text' ? 0.6 : 0.3
+  }
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     return Response.json({ error: 'OPENAI_API_KEY missing' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  // Dynamische Temperatur: Text braucht etwas Kreativität für natürliche
-  // Variationen, Layout/Farbe braucht deterministische Treue.
-  const temperature = scope === 'text' ? 0.6 : 0.3
-
-  let variantHtml: string
   let warnings: string[] = []
   try {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -397,7 +498,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: MODEL,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt },
         ],
         temperature,
@@ -406,12 +507,17 @@ export async function POST(req: Request) {
     })
     if (!res.ok) throw new Error(`openai ${res.status}`)
     const json = await res.json()
-    variantHtml = parseStructuredOutput(json.choices?.[0]?.message?.content ?? '')
+    const raw = json.choices?.[0]?.message?.content ?? ''
 
-    // Output validieren – Warnungen loggen, aber nur bei Totalausfall abbrechen.
-    const check = validateOutput(variantHtml)
-    warnings = check.warnings
-    if (!variantHtml) throw new Error('empty response after stripFences')
+    if (mode === 'reorder') {
+      variantCss = parseCssOutput(raw)
+      if (!variantCss) throw new Error('empty CSS response')
+    } else {
+      variantHtml = parseStructuredOutput(raw)
+      if (!variantHtml) throw new Error('empty response after stripFences')
+      const check = validateOutput(variantHtml)
+      warnings = check.warnings
+    }
   } catch (e) {
     safeError('generate', e)
     return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
@@ -421,9 +527,16 @@ export async function POST(req: Request) {
     console.warn('[generate] validation warnings:', warnings)
   }
 
+  const updatePayload: Record<string, string | null> = {}
+  if (mode === 'reorder') {
+    updatePayload.variant_b_css = variantCss
+  } else {
+    updatePayload.variant_b_html = variantHtml
+  }
+
   const { error: updateErr } = await supabase
     .from('tests')
-    .update({ variant_b_html: variantHtml })
+    .update(updatePayload)
     .eq('id', testId)
     .eq('user_id', user.userId)
 
@@ -435,8 +548,14 @@ export async function POST(req: Request) {
   // Cost-Tracking wurde bereits beim Check inkrementiert (atomar, s.o.).
   // ponytail: kein zweiter RPC-Call nötig — increment_gen_cost macht beides in einem.
 
-  const response: Record<string, unknown> = { html: variantHtml, siteCss: test.site_css || null }
-  if (warnings.length) response.warnings = warnings
-  response.filtered_css = isRefinement ? undefined : true // Signal ans Preview: CSS wurde gefiltert
+  const response: Record<string, unknown> = {}
+  if (mode === 'reorder') {
+    response.css = variantCss
+  } else {
+    response.html = variantHtml
+    response.siteCss = test.site_css || null
+    if (warnings.length) response.warnings = warnings
+    response.filtered_css = isRefinement ? undefined : true
+  }
   return Response.json(response, { headers: corsHeaders('POST, OPTIONS') })
 }

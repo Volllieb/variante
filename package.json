@@ -2,9 +2,12 @@
   "name": "variante",
   "private": true,
   "scripts": {
-    "dev:tool":     "cd ab-tool && npm run dev",
-    "build:tool":   "cd ab-tool && npm run build",
+    "dev:tool": "cd ab-tool && npm run dev",
+    "build:tool": "cd ab-tool && npm run build",
     "build:plugin": "cd figma-plugin && npm run build",
-    "build:all":    "npm run build:tool && npm run build:plugin"
+    "build:all": "npm run build:tool && npm run build:plugin"
+  },
+  "dependencies": {
+    "resend": "^6.17.2"
   }
 }
