@@ -1,8 +1,11 @@
 # E2E-Test-Checkliste — variante
 
-> Stand: 08.07.2026. Kompletten Loop testen: Landing → Account → Figma → Snippet (inkl. Picker) → Traffic → Conversions → Billing → Winner.
+> Stand: 13.07.2026. Kompletten Loop testen: Landing → Account → Figma → Snippet (inkl. Picker) → Traffic → Conversions → Billing → Winner.
 >
-> **Vor dem Start:** Smoke-Tests unten ausführen.
+> **Vor dem Start:** `npm run test:smoke` (Playwright) oder Smoke-Tests unten manuell.
+>
+> **Automatisierte E2E-Tests:** `ab-tool/__tests__/e2e/` (Playwright) + `ab-tool/__tests__/` (Node).
+> CI: `.github/workflows/e2e.yml` läuft bei Push/PR auf `main`.
 
 ---
 

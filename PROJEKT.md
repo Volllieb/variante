@@ -38,9 +38,11 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet (inkl. eingebautem Element-Picker)
-├── __tests__/          # E2E/Integration: conversion-goal-click, significance
+├── __tests__/          # E2E: Playwright (smoke, auth, dashboard, conversion) + Node (significance, conversion-goal-click)
+├── playwright.config.ts
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
 db/migrations/          # Supabase SQL (001–017)
+.github/workflows/      # CI: e2e.yml (Playwright bei Push/PR auf main)
 docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Future-Features
 ```
 

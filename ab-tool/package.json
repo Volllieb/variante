@@ -7,7 +7,16 @@
     "build": "next build",
     "vercel-build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test --project=chromium",
+    "test:smoke": "playwright test --project=chromium --grep \"@smoke\"",
+    "test:auth": "playwright test --project=chromium --grep \"@auth\"",
+    "test:dashboard": "playwright test --project=chromium --grep \"@dashboard\"",
+    "test:conversion": "playwright test --project=chromium --grep \"@conversion\"",
+    "test:ci": "playwright test --project=chromium-ci",
+    "test:ci:smoke": "playwright test --project=chromium-ci --grep \"@smoke\"",
+    "test:node": "node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

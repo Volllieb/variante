@@ -655,53 +655,36 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 <body>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCREEN –1 · Connect / Welcome
+     SCREEN –1 · Connect / Token Wall
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-connect" class="screen active">
-  <div class="hdr" id="connect-hdr" style="display:none">
-    <button class="back-btn" onclick="showWelcomeMode()" aria-label="Back">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6"/>
-      </svg>
-    </button>
-  </div>
   <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:20px 16px 16px">
     <div class="welcome-shell">
       <div class="welcome-hero">
         <div class="welcome-logo">variante</div>
-        <div class="welcome-sub">Pick, design, ship — no developer.</div>
+        <div class="welcome-sub">Connect your account to continue.</div>
       </div>
 
-      <div class="welcome-steps">
-        <div class="welcome-step">
-          <div class="welcome-step-num">1</div>
-          <div class="welcome-step-text">Pick any element on your live site.</div>
-        </div>
-        <div class="welcome-step">
-          <div class="welcome-step-num">2</div>
-          <div class="welcome-step-text">Design a Variant B in Figma using AI.</div>
-        </div>
-        <div class="welcome-step">
-          <div class="welcome-step-num">3</div>
-          <div class="welcome-step-text">Ship it and watch the uplift without touching your codebase.</div>
-        </div>
-      </div>
-
-      <div id="c-welcome" class="welcome-actions">
-        <button class="btn btn-primary" onclick="createAccount()">Sign up free →</button>
-        <button class="btn btn-secondary" onclick="showTokenMode()">I have an account</button>
-      </div>
-
-      <div id="c-token" style="display:none">
-        <div style="font-size:var(--fs-lg);font-weight:var(--fw-semibold);margin-bottom:4px">Connect your account</div>
-        <div class="hint">Paste the API token from your dashboard.</div>
+      <div id="c-token">
         <label class="lbl" for="connect-token">API Token</label>
         <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveToken()"/>
         <datalist id="dl-token"></datalist>
-        <div style="margin-top:10px">
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-secondary btn-sm" onclick="openDashboardForToken()" style="flex:1">Get from Dashboard</button>
+          <button class="btn btn-secondary btn-sm" onclick="openLoginForToken()" style="flex:1">Login to get token</button>
+        </div>
+        <div style="margin-top:8px">
           <button class="btn btn-primary" onclick="saveToken()">Connect →</button>
         </div>
         <div class="err" id="e-connect" role="alert" style="margin-top:8px"></div>
+        <div style="text-align:center;margin-top:14px">
+          <button class="btn btn-ghost" onclick="createAccount()" style="font-size:var(--fs-sm)">No account? Sign up free →</button>
+        </div>
+        <div style="text-align:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <button class="btn btn-ghost" onclick="openPlayground()" style="font-size:var(--fs-xs);color:var(--text-2)">
+            🏖️ Not sure yet? Try the demo first →
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -849,7 +832,20 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-element" role="alert" style="margin-top:8px"></div>
   </div>
   <div class="ftr">
-    <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
+    <div id="normal-el-footer">
+      <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
+      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="startSwapMode()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+        Swap two elements instead
+      </button>
+    </div>
+    <div id="swap-footer" style="display:none;flex-direction:column;gap:var(--sp-2)">
+      <button id="btn-el-swap-next" class="btn btn-primary" onclick="goToSwapDesign()">Continue →</button>
+      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectElement()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Start over
+      </button>
+    </div>
   </div>
 </div>
 
@@ -872,25 +868,71 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <!-- Prominent instruction -->
-    <div class="hint-strong" style="margin-bottom:16px">Click any layer in Figma that represents Variant B — a single button, heading, or section.</div>
+    <!-- Normal-Mode: Figma redesign für Content-Tests -->
+    <div id="design-normal">
+      <div class="hint-strong" style="margin-bottom:16px">Click any layer in Figma that represents Variant B — a single button, heading, or section.</div>
 
-    <!-- Waiting -->
-    <div id="d-waiting">
-      <div class="loading-row" role="status" aria-live="polite">
-        <div class="spinner" aria-hidden="true"></div>
-        <span id="d-info">Click a layer in Figma to select it…</span>
+      <div id="d-waiting">
+        <div class="loading-row" role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <span id="d-info">Click a layer in Figma to select it…</span>
+        </div>
+      </div>
+
+      <div id="d-done" style="display:none">
+        <span class="lbl">Layer selected</span>
+        <div class="card"><div class="card-val" id="sel-info"></div></div>
+        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectDesign()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+          Reselect
+        </button>
       </div>
     </div>
 
-    <!-- Selected -->
-    <div id="d-done" style="display:none">
-      <span class="lbl">Layer selected</span>
-      <div class="card"><div class="card-val" id="sel-info"></div></div>
-      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectDesign()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-        Reselect
-      </button>
+    <!-- Swap-Mode: Figma redesign optional -->
+    <div id="design-swap" style="display:none">
+      <div class="notice notice-pro" style="margin-bottom:16px">
+        <div class="notice-head">
+          <span class="notice-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+          </span>
+          <div>
+            <div class="notice-title">Swap test — CSS only</div>
+            <div class="notice-body">Your two elements will be swapped using CSS (flexbox order). No DOM changes needed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint-strong" style="margin-bottom:12px">Optionally redesign the elements in Figma first</div>
+      <p style="font-size:var(--fs-sm);color:var(--text-2);margin-bottom:16px">
+        Skip Figma to generate a pure CSS swap. Or design the swapped layout in Figma first for more control.
+      </p>
+
+      <div class="card" style="margin-bottom:12px">
+        <span class="lbl">Swap</span>
+        <div class="card-val" id="swap-summary"></div>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="skipToGenerateSwap()">
+          Skip Figma → Generate CSS
+        </button>
+        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="requestSelection()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Redesign in Figma
+        </button>
+      </div>
+
+      <div id="d-waiting-swap" style="display:none;margin-top:16px">
+        <div class="loading-row" role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <span>Waiting for Figma selection…</span>
+        </div>
+      </div>
+      <div id="d-done-swap" style="display:none;margin-top:12px">
+        <span class="lbl">Layer selected</span>
+        <div class="card"><div class="card-val" id="sel-info-swap"></div></div>
+      </div>
     </div>
 
     <div class="loading-row" id="l-design" role="status" style="display:none;margin-top:10px">
@@ -901,6 +943,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   </div>
   <div class="ftr">
     <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Scope →</button>
+    <div id="swap-ftr" style="display:none;flex-direction:column;gap:8px">
+      <button id="btn-swap-generate" class="btn btn-primary" onclick="exportSwapSelection()" disabled>Generate CSS Swap →</button>
+    </div>
   </div>
 </div>
 
@@ -923,66 +968,90 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <!-- Scope picker — what the AI should change -->
-    <div id="gen-scope-area">
-      <span class="lbl">What should the AI change?</span>
-      <div class="scope-options" role="radiogroup" aria-label="Generation scope">
-        <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
-        <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
-        <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
-      </div>
-      <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
+    <!-- Normal-Mode: HTML-Generierung mit Scope + Preview -->
+    <div id="gen-normal">
+      <div id="gen-scope-area">
+        <span class="lbl">What should the AI change?</span>
+        <div class="scope-options" role="radiogroup" aria-label="Generation scope">
+          <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
+          <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
+          <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
+        </div>
+        <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
 
-      <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+        <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+      </div>
+
+      <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
+        <div class="spinner" aria-hidden="true"></div>
+        <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
+      </div>
+
+      <div id="gen-result" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="lbl" style="margin-bottom:0">Preview</span>
+          <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
+            <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
+            <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
+          </div>
+          <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
+            <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            </button>
+            <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
+        <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+
+        <details class="code-drawer">
+          <summary>Show generated HTML</summary>
+          <pre id="gen-html"></pre>
+        </details>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span style="font-size:var(--fs-sm);color:var(--text-2);flex-shrink:0">Scope:</span>
+          <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
+          <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
+          <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+        </div>
+
+        <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          Refine with AI
+        </button>
+        <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+      </div>
     </div>
 
-    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
-      <div class="spinner" aria-hidden="true"></div>
-      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
-    </div>
-
-    <div id="gen-result" style="display:none">
-      <!-- Toggle switches: A/B and Light/Dark -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <span class="lbl" style="margin-bottom:0">Preview</span>
-        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
-          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
-          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
-        </div>
-        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
-          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          </button>
-          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
-      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
-
-      <!-- Generated HTML drawer — directly under preview -->
-      <details class="code-drawer">
-        <summary>Show generated HTML</summary>
-        <pre id="gen-html"></pre>
-      </details>
-
-      <div class="divider"></div>
-
-      <!-- Change scope & regenerate -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-        <span style="font-size:var(--fs-sm);color:var(--text-2);flex-shrink:0">Scope:</span>
-        <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
-        <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
-        <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+    <!-- Swap-Mode: CSS-Generierung mit Code-Preview -->
+    <div id="gen-swap" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <span class="lbl">Swapping</span>
+        <div class="card-val" id="gen-swap-summary"></div>
       </div>
 
-      <!-- Refine: opens overlay -->
-      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-        Refine with AI
-      </button>
-      <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+      <button class="btn btn-primary" id="gen-swap-start-btn" onclick="startSwapGeneration()" style="width:100%">Generate CSS Swap →</button>
+
+      <div class="loading-row loading-center" id="l-generate-swap" role="status" aria-live="polite" style="display:none">
+        <div class="spinner" aria-hidden="true"></div>
+        <span>AI generating CSS swap… (up to 30s)</span>
+      </div>
+
+      <div id="gen-swap-result" style="display:none">
+        <span class="lbl">Generated CSS</span>
+        <pre id="gen-swap-css" style="background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r);padding:12px;font:11px 'SF Mono','Fira Code',monospace;color:var(--text);max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:8px"></pre>
+
+        <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          Refine with AI
+        </button>
+        <button class="btn btn-ghost" onclick="startOver()" style="width:100%">Start over</button>
+      </div>
     </div>
 
     <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
@@ -1127,6 +1196,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <div id="snip-health-warn" style="display:none;color:var(--pro)">
         <strong style="font-weight:var(--fw-semibold)">⚠ Snippet not detected</strong>
         <div style="color:var(--text-2);margin-top:2px">Could not find ab.js on <span id="snip-health-url-warn">your site</span>. Install it below.</div>
+        <div style="margin-top:6px">
+          <a href="#" onclick="event.preventDefault();parent.postMessage({pluginMessage:{type:'OPEN_URL',url:'https://www.getvariante.com/playground?source=figma-plugin-snippet'}},'*')" style="color:var(--primary);font-size:var(--fs-xs);font-weight:var(--fw-med);text-decoration:underline">
+            🏖️ While you wait — see how results look in the Playground →
+          </a>
+        </div>
       </div>
       <div id="snip-health-err" style="display:none;color:var(--err)">
         <strong style="font-weight:var(--fw-semibold)">✗ Check failed</strong>
@@ -1134,7 +1208,10 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </div>
       <div id="snip-health-chk" style="display:flex;align-items:center;gap:6px;color:var(--text-3)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"/></svg>
-        Checking snippet…
+        <span>Checking snippet…</span>
+        <a href="#" onclick="event.preventDefault();parent.postMessage({pluginMessage:{type:'OPEN_URL',url:'https://www.getvariante.com/playground?source=figma-plugin-snippet'}},'*')" style="margin-left:8px;color:var(--primary);font-size:var(--fs-xs);font-weight:var(--fw-med);text-decoration:underline;white-space:nowrap">
+          🏖️ Preview results →
+        </a>
       </div>
     </div>
 
@@ -1177,7 +1254,8 @@ const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
   selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: '',
-  plan: 'free'
+  plan: 'free', verifiedDomain: '',
+  swapMode: false, reorderSelector: '',
 }
 let activeTestCount = 0
 let generating = false
@@ -1309,21 +1387,14 @@ function goUpgrade() {
 function createAccount() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
 }
-function showTokenMode() {
-  $('c-welcome').style.display = 'none'
-  $('c-token').style.display = 'block'
-  $('connect-hdr').style.display = 'flex'
-  populateDatalist('dl-token', 'token')
-  ;(function retry(n) {
-    var f = $('connect-token')
-    if (f && document.activeElement !== f) { f.focus(); if (document.activeElement !== f && n < 10) setTimeout(retry, 100, n + 1) }
-  })(0)
+function openDashboardForToken() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?source=figma-plugin#api-token' } }, '*')
 }
-function showWelcomeMode() {
-  if (API_TOKEN) { showDashboard(); return }
-  $('c-token').style.display = 'none'
-  $('c-welcome').style.display = 'block'
-  $('connect-hdr').style.display = 'none'
+function openLoginForToken() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/login?source=figma-plugin' } }, '*')
+}
+function openPlayground() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/playground?source=figma-plugin' } }, '*')
 }
 
 // Stellt einen gespeicherten Wizard-Draft wieder her.
@@ -1434,7 +1505,7 @@ async function restoreDraft(draft) {
     showDashboard()
   }
 }
-function goToTokenMode() { showTokenMode(); go('connect') }
+function goToTokenMode() { go('connect'); populateDatalist('dl-token', 'token'); if (API_TOKEN) $('connect-token').value = API_TOKEN }
 async function saveToken() {
   const v = ($('connect-token').value || '').trim()
   if (!v) { err('connect', 'Please paste your token.'); return }
@@ -1453,6 +1524,17 @@ async function saveToken() {
     if (btn) { btn.textContent = 'Connect →'; btn.disabled = false }
     err('connect', e.message || 'Invalid token')
   }
+}
+
+async function fetchVerifiedDomain() {
+  try {
+    const res = await afetch(API + '/api/domains')
+    if (!res.ok) return
+    const data = await res.json()
+    const domains = data.domains || []
+    const verified = domains.find(d => d.verified)
+    if (verified) state.verifiedDomain = verified.url
+  } catch (_) { /* silent — optional feature */ }
 }
 
 async function showDashboard() {
@@ -1627,7 +1709,7 @@ function newTest() {
   var sa = $('gen-scope-area'); if (sa) sa.style.display = 'block'
   var gr = $('gen-result'); if (gr) gr.style.display = 'none'
   var gf = $('gen-ftr'); if (gf) gf.style.display = 'none'
-  $('f-name').value = ''; $('f-url').value = ''
+  $('f-name').value = ''; $('f-url').value = state.verifiedDomain || ''
   clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
   $('el-waiting').style.display = 'flex'; $('el-done').style.display = 'none'
   var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
@@ -1696,8 +1778,10 @@ function siteTriggerUrl(mode) {
   const base = /^https?:\/\//i.test(state.url) ? state.url : 'https://' + state.url
   const param = mode === 'goal' ? 'ab_goal' : 'ab_pick'
   const sep = base.indexOf('?') > -1 ? '&' : '?'
-  return base + sep + param + '=' + encodeURIComponent(state.testId) +
+  let url = base + sep + param + '=' + encodeURIComponent(state.testId) +
     '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
+  if (mode === 'reorder') url += '&ab_reorder=1'
+  return url
 }
 async function openSite(mode) {
   const url = siteTriggerUrl(mode || 'element')
@@ -1761,11 +1845,12 @@ function startElementPoll() {
           state.selector      = t.selector
           state.originalHtml  = t.original_html || ''
           state.goalCandidates = t.goal_candidates || []
-          renderElementChip(t.selector, state.originalHtml)
+          state.reorderSelector = t.reorder_selector || ''
+          renderElementChips()
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
           var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = 'none'
-          $('btn-el-next').disabled = false
+          updateElementNextButton()
           stopElementPoll()
         }
       }
@@ -1773,6 +1858,32 @@ function startElementPoll() {
   }
   poll()
   elTimer = setInterval(poll, 5000)
+}
+
+function renderElementChips() {
+  var html = chipHtml(state.selector, state.originalHtml)
+  if (state.swapMode && state.reorderSelector) {
+    html += '<div style="display:flex;align-items:center;gap:6px;margin:8px 0;font-size:var(--fs-xs);color:var(--text-3)">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>' +
+      'swap with</div>' +
+    chipHtml(state.reorderSelector, '')
+  }
+  $('el-chip-wrap').innerHTML = html
+}
+
+function updateElementNextButton() {
+  if (state.swapMode) {
+    $('btn-el-next').disabled = !(state.selector && state.reorderSelector)
+    // Swap: hide normal continue, show swap continue
+    var swapFooter = $('swap-footer')
+    var normalFooter = $('normal-el-footer')
+    if (swapFooter) swapFooter.style.display = state.reorderSelector ? '' : 'none'
+    if (normalFooter) normalFooter.style.display = 'none'
+  } else {
+    $('btn-el-next').disabled = !state.selector
+    var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+    var nf = $('normal-el-footer'); if (nf) nf.style.display = ''
+  }
 }
 function stopElementPoll() {
   if (elTimer) { clearInterval(elTimer); elTimer = null }
@@ -1786,14 +1897,48 @@ async function reselectElement() {
   try {
     await afetch(API + '/api/tests/' + state.testId, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ selector: null })
+      body: JSON.stringify({ selector: null, reorder_selector: null })
     })
   } catch (_) {}
   state.selector = ''
+  state.reorderSelector = ''
+  state.swapMode = false
+  // Reset footer visibility
+  var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+  var nf = $('normal-el-footer'); if (nf) nf.style.display = ''
   openSite('element')
   startElementPoll()
 }
+
+function startSwapMode() {
+  state.swapMode = true
+  // Nach dem ersten Element in den Swap-Modus wechseln
+  // → Browser öffnen mit reorder-Modus, der zwei Klicks erwartet
+  $('el-waiting').style.display = 'flex'
+  $('el-done').style.display = 'none'
+  $('el-chip-wrap').innerHTML = ''
+  var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
+  $('btn-el-next').disabled = true
+  var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+  var nf = $('normal-el-footer'); if (nf) nf.style.display = 'none'
+  openSite('reorder')
+  startElementPoll()
+}
 function goToDesign() { navPush('design'); requestSelection() }
+
+// Swap-Modus: optional Figma redesign — überspringen oder designen
+function goToSwapDesign() {
+  // Upgrade-Check für Swap (Pro-Feature)
+  if (state.plan === 'free') {
+    showUpgradeBanner('Swap tests require a Pro plan.')
+    return
+  }
+  // Design-Screen im Swap-Modus: zeigt "Skip → Generate CSS" Option
+  navPush('design')
+  $('design-normal').style.display = 'none'
+  $('design-swap').style.display = 'block'
+  requestSelection()
+}
 
 function requestSelection() {
   parent.postMessage({ pluginMessage: { type: 'GET_SELECTION' } }, '*')
@@ -1808,6 +1953,36 @@ function reselectDesign() {
   $('d-done').style.display = 'none'
   $('d-waiting').style.display = 'block'
   $('btn-export').disabled = true
+}
+
+// Swap: Figma überspringen → direkt zum Generate-Screen für CSS
+function skipToGenerateSwap() {
+  // Fill swap summary
+  $('swap-summary').textContent = state.selector + ' ↔ ' + state.reorderSelector
+  state.frameContent = null // kein Figma-Design
+  navPush('generate')
+  $('gen-normal').style.display = 'none'
+  $('gen-swap').style.display = 'block'
+  // Pre-fill swap summary in generate screen
+  var s = $('gen-swap-summary')
+  if (s) s.textContent = state.selector + ' ↔ ' + state.reorderSelector
+}
+
+// Swap: Figma-Export durchführen, dann zum Generate-Screen
+async function exportSwapSelection() {
+  var btn = $('btn-swap-generate')
+  if (btn) btn.disabled = true
+  $('l-design').style.display = 'flex'
+  parent.postMessage({ pluginMessage: { type: 'EXPORT_SELECTION' } }, '*')
+  // Nach dem Export (onmessage) wird goToGenerateSwap() aufgerufen
+}
+
+function goToGenerateSwap() {
+  navPush('generate')
+  $('gen-normal').style.display = 'none'
+  $('gen-swap').style.display = 'block'
+  var s = $('gen-swap-summary')
+  if (s) s.textContent = state.selector + ' ↔ ' + state.reorderSelector
 }
 
 function isClickable(html) {
@@ -2127,6 +2302,60 @@ async function generate() {
   }
 }
 
+// Swap-Mode: CSS-Generierung (kein HTML-Preview)
+function startSwapGeneration() {
+  if (generating) return
+  generateSwap()
+}
+
+async function generateSwap() {
+  if (generating) return
+  generating = true
+  generateDone = false
+  generateFailed = false
+  $('gen-swap-result').style.display = 'none'
+  $('l-generate-swap').style.display = 'flex'
+  var startBtn = $('gen-swap-start-btn'); if (startBtn) startBtn.style.display = 'none'
+  hideUpgradeBanner()
+  try {
+    var body = {
+      testId: state.testId,
+      mode: 'reorder',
+      frameContent: state.frameContent || null,
+      scope: 'all',
+      selector_b: state.reorderSelector,
+    }
+    var res = await afetch(API + '/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    if (!res.ok) {
+      var eb = {}; try { eb = await res.json() } catch (_) {}
+      if (eb.upgrade) {
+        showUpgradeBanner(eb.message || 'Generation limit reached.')
+        throw new Error(eb.message || 'Generation limit reached')
+      }
+      throw new Error(apiErrorMessage(res.status, eb))
+    }
+    var data = await res.json()
+    state.html = data.css || '' // Store CSS in state.html for consistency
+    $('gen-swap-css').textContent = state.html
+    $('gen-swap-result').style.display = 'block'
+    $('gen-ftr').style.display = 'block'
+    $('btn-gen-retry').style.display = 'none'
+    generateDone = true
+  } catch (e) {
+    generateFailed = true
+    err('generate', e.message)
+    $('btn-gen-retry').style.display = 'block'
+    if (state.html) { $('gen-swap-result').style.display = 'block'; $('gen-ftr').style.display = 'block' }
+  } finally {
+    $('l-generate-swap').style.display = 'none'
+    generating = false
+  }
+}
+
 async function refine() {
   if (generating) return
   generating = true
@@ -2372,6 +2601,8 @@ window.onmessage = (event) => {
     API_TOKEN = msg.token || ''
     if (API_TOKEN) {
       $('connect-token').value = API_TOKEN
+      // Verified domain des Users laden (für URL-Vorausfüllung)
+      fetchVerifiedDomain()
       // Wenn ein Draft existiert, versuche ihn wiederherzustellen
       if (pendingDraft && pendingDraft.testId) {
         restoreDraft(pendingDraft)
@@ -2395,20 +2626,32 @@ window.onmessage = (event) => {
   if (msg.type === 'SELECTION') {
     const s = msg.selection || { count: 0 }
     const valid = s.count === 1 && s.exportable
-    const exportBtn = $('btn-export')
-    if (valid) {
-      $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
-      $('d-waiting').style.display = 'none'
-      $('d-done').style.display = 'block'
-      if (exportBtn) exportBtn.disabled = false
+    const swapActive = $('design-swap') && $('design-swap').style.display !== 'none'
+
+    if (swapActive) {
+      // Swap-Mode: Figma-Design optional
+      if (valid) {
+        $('sel-info-swap').textContent = s.name + '  ·  ' + s.nodeType
+        $('d-waiting-swap').style.display = 'none'
+        $('d-done-swap').style.display = 'block'
+        var btnSwap = $('btn-swap-generate'); if (btnSwap) btnSwap.disabled = false
+      }
     } else {
-      let hint = ''
-      if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
-      else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
-      $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
-      $('d-waiting').style.display = 'block'
-      $('d-done').style.display = 'none'
-      if (exportBtn) exportBtn.disabled = true
+      const exportBtn = $('btn-export')
+      if (valid) {
+        $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
+        $('d-waiting').style.display = 'none'
+        $('d-done').style.display = 'block'
+        if (exportBtn) exportBtn.disabled = false
+      } else {
+        let hint = ''
+        if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
+        else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
+        $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
+        $('d-waiting').style.display = 'block'
+        $('d-done').style.display = 'none'
+        if (exportBtn) exportBtn.disabled = true
+      }
     }
     return
   }
@@ -2417,9 +2660,14 @@ window.onmessage = (event) => {
     state.screenshot  = msg.base64
     state.frameContent = msg.content || null
     $('l-design').style.display = 'none'
-    const exportBtn = $('btn-export')
-    if (exportBtn) exportBtn.disabled = false
-    navPush('generate')
+    const swapActive = $('design-swap') && $('design-swap').style.display !== 'none'
+    if (swapActive) {
+      goToGenerateSwap()
+    } else {
+      const exportBtn = $('btn-export')
+      if (exportBtn) exportBtn.disabled = false
+      navPush('generate')
+    }
     return
   }
 
