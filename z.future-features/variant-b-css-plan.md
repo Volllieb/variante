@@ -1,6 +1,8 @@
 # `variant_b_css` — Layout & Position Testing
 
 > Zweite Varianten-Achse: CSS-Injection statt DOM-Tausch. Für Reorder, Visibility, Spacing, Color — alles was kein neues HTML braucht.
+>
+> **Status: ✅ Implementiert** (2026-07-13) — DB-Migration, Backend, ab.js, Picker, Generate-Endpoint, Figma Plugin.
 
 ---
 
