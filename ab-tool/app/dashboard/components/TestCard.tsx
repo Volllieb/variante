@@ -89,10 +89,12 @@ export function TestCard({
   t,
   highlight,
   onDelete,
+  from,
 }: {
   t: TestRow
   highlight?: boolean
   onDelete?: (id: string) => void
+  from?: string
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -168,7 +170,7 @@ export function TestCard({
 
   return (
     <Link
-      href={`/dashboard/results/${t.id}`}
+      href={`/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
       className="group/card relative block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >

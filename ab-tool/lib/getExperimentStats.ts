@@ -71,7 +71,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     site_url: test.site_url,
     status,
     created_at: test.created_at,
-    significance: pro ? test.significance ?? 0 : 0,
+    significance: test.significance ?? 0,
     winner,
     minVisitors,
     minUplift,

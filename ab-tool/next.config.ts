@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
       },
       // Public Assets (ab.js, icon.svg): 1h Stale + Revalidate
       {
-        source: '/:file(ab.js|icon.svg|chrome-extension.zip)',
+        source: '/:file(ab.js|icon.svg)',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' },
         ],

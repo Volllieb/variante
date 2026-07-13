@@ -24,8 +24,7 @@
 | Datenbank + Auth | Supabase (Postgres + JWT) |
 | Billing | Stripe (Checkout, Portal, Webhooks) |
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
-| Snippet | `ab.js` (Vanilla JS, ~8 KB, kein Build-Step, eingebauter Element-Picker) |
-| Chrome-Extension | ⚠️ **Deprecated (08.07.2026)** — Picker jetzt direkt im Snippet |
+| Snippet | `ab.js` (Vanilla JS, ~14 KB, kein Build-Step, eingebauter Element-Picker) |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) · [Community](https://www.figma.com/community/plugin/1653734891132085565) |
 | **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
 
@@ -37,9 +36,7 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/dashboard/ tests/ login/ signup/ results/ imprint/ privacy/ docs/
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
-├── public/ab.js        # Snippet
-└── __tests__/          # conversion-goal-click.mjs, significance-auto.mjs, significance-check.mjs, helpers.mjs
-chrome-extension/       # ⚠️ Deprecated — MV3 Extension (Element-Picker jetzt im Snippet)
+├── public/ab.js        # Snippet (inkl. eingebautem Element-Picker)
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
 db/migrations/          # Supabase SQL (001–013)
 z.future-features/      # ⚠️ Anfassen verboten — Post-Launch
@@ -156,7 +153,7 @@ leads.md                # Outreach: qualifizierte Leads + Kontaktstatus
 
 ### Aktueller Stand
 - 🎉 **Figma-Plugin LIVE** — [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
-- Chrome-Extension ⚠️ Deprecated (08.07.2026) — Picker jetzt direkt im `ab.js`-Snippet
+- Built-in-Picker: Element-Picker direkt im `ab.js`-Snippet (Extension gelöscht 13.07.2026)
 - **Design-Partner:** 1 von 5 angefragt
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
 - **E2E:** ✅ M1 abgeschlossen

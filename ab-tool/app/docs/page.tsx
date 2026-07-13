@@ -55,9 +55,9 @@ const sections = [
           Works with any framework: Next.js, WordPress, Shopify, plain HTML.
         </li>
         <li>
-          <strong className="font-semibold text-white">Pick an element.</strong> Use the Chrome
-          Extension to select any component on your live site. The picker captures HTML, CSS, and
-          framework context automatically.
+          <strong className="font-semibold text-white">Pick an element.</strong> Use the built-in
+          picker to select any component on your live site. It captures HTML, CSS, and
+          framework context automatically — no extension needed.
         </li>
         <li>
           <strong className="font-semibold text-white">Redesign in Figma.</strong> Select your

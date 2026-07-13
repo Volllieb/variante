@@ -3,9 +3,6 @@ node_modules/
 .vercel/
 ab-tool/.next/
 *.tsbuildinfo
-ab-tool/public/chrome-extension.zip
-chrome-extension/variante-chrome-extension.zip
-chrome-extension/cws-assets/
 
 __pycache__/
 

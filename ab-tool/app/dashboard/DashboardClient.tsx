@@ -29,6 +29,7 @@ import {
   RefreshCw,
   Plus,
   ArrowRight,
+  Lightbulb,
 } from 'lucide-react'
 
 /* ── Token palette (brandguidelines.md §2) ── */
@@ -233,9 +234,42 @@ export function DashboardClient({
               </div>
             )}
 
+            {/* What to test next — concrete suggestions */}
+            <div className="mb-3 mt-6">
+              <div className="mb-3 flex items-center gap-2">
+                <Lightbulb className="h-3.5 w-3.5 text-[#f5a623]" />
+                <h2 className="text-[13px] font-semibold text-[#ededed]">What to test next</h2>
+              </div>
+              <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 space-y-2.5">
+                {[
+                  { a: 'Sign Up', b: 'Try for Free', why: 'Action verbs often convert better than nouns' },
+                  { a: 'Buy Now', b: 'Get Started', why: 'Low-commitment phrasing reduces friction' },
+                  { a: 'Learn More', b: 'See How It Works', why: 'Specific beats vague — shows what happens next' },
+                  { a: 'Current headline', b: 'A benefit-first headline', why: 'Headlines are the highest-impact element on any page' },
+                ].map((tip) => (
+                  <div key={tip.a} className="flex items-start gap-2 rounded-[6px] border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] leading-relaxed text-[#ededed]/70">
+                        Test <span className="font-medium text-[#ededed]/90">"{tip.a}"</span> vs{' '}
+                        <span className="font-medium text-[#f5a623]">"{tip.b}"</span>
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-[#ededed]/30">{tip.why}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Setup — compact 3-step checklist */}
             <div className="mb-3 mt-6 flex items-center gap-2">
               <h2 className="text-[13px] font-semibold text-[#ededed]">Setup</h2>
+              <span
+                className="inline-block h-2 w-2 shrink-0 rounded-full"
+                style={{
+                  background: hasVerifiedDomain && hasFigmaPlugin ? T.ok : hasVerifiedDomain || hasFigmaPlugin ? T.pro : T.err,
+                }}
+                title={hasVerifiedDomain && hasFigmaPlugin ? 'All set' : hasVerifiedDomain || hasFigmaPlugin ? 'Partially set up' : 'Setup needed'}
+              />
               <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/25" />
             </div>
             <Link
@@ -327,7 +361,7 @@ export function DashboardClient({
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredTests.map((t, i) => (
-                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} />
+                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" />
                 ))}
               </div>
             )}

@@ -168,7 +168,7 @@ export function TestsClient({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredTests.map((t) => (
-            <TestCard key={t.id} t={t} onDelete={handleDeleteTest} />
+            <TestCard key={t.id} t={t} onDelete={handleDeleteTest} from="tests" />
           ))}
         </div>
       )}

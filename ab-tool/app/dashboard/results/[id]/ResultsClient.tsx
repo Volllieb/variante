@@ -3,7 +3,7 @@
 import { ExperimentData } from '@/lib/getExperimentStats'
 import { VariantPreview } from '@/app/components/VariantPreview'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -26,6 +26,17 @@ const T = {
   ok: '#2fd76c',
   pro: '#f5a623',
   err: '#f5455c',
+}
+
+function formatCreatedAt(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  const h = Math.floor(diff / 3600000)
+  const d = Math.floor(diff / 86400000)
+  if (d > 0) return `${d}d ago`
+  if (h > 0) return `${h}h ago`
+  if (m > 0) return `${m}m ago`
+  return 'just now'
 }
 
 type DailyRow = {
@@ -64,6 +75,9 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [showRawData, setShowRawData] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from')
+  const backHref = from === 'tests' ? '/dashboard/tests' : '/dashboard'
 
   useEffect(() => {
     if (deleteError) {
@@ -97,11 +111,8 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     try {
       const res = await fetch(`/api/tests/${experimentId}?confirm=true`, { method: 'DELETE' })
       if (res.ok) {
-        router.push('/dashboard')
+        router.push(backHref)
         router.refresh()
-      } else {
-        const err = await res.json()
-        setDeleteError(err.error || 'Failed to delete test')
       }
     } finally {
       setDeleting(false)
@@ -123,7 +134,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     return () => clearInterval(iv)
   }, [experimentId, data.pro])
 
-  const { name, status, significance, winner, variants, pro } = data
+  const { name, status, significance, winner, variants, pro, created_at } = data
   const [a, b] = variants
   const totalVisitors = a.views + b.views
   const done = status === 'done' || !!winner
@@ -192,15 +203,20 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard"
+            href={backHref}
             className="flex items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-xs text-[#ededed]/40 transition-colors duration-200 hover:border-white/[0.18] hover:text-[#ededed]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Dashboard
+            {from === 'tests' ? 'Tests' : 'Dashboard'}
           </Link>
-          <h1 className="text-[15px] font-semibold text-[#ededed]">
-            {name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-[15px] font-semibold text-[#ededed]">
+              {name}
+            </h1>
+            <span className="text-[11px] text-[#ededed]/30">
+              Created {formatCreatedAt(created_at)}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className={`rounded-[6px] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
@@ -392,68 +408,62 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           </div>
         ) : null}
 
-        {/* Significance donut (Pro only) */}
-        {pro ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Significance
-              </span>
-            </div>
-            <div className="flex items-center justify-center">
-              <div className="relative h-[120px] w-[120px]">
-                <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                  <circle
-                    cx="18" cy="18" r="14"
-                    fill="none"
-                    stroke="#111111"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    cx="18" cy="18" r="14"
-                    fill="none"
-                    stroke={significance >= 0.95 ? T.ok : significance >= 0.7 ? T.pro : 'rgba(255,255,255,0.2)'}
-                    strokeWidth="3"
-                    strokeDasharray={`${significance * 87.96} 87.96`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-2xl font-bold ${significance >= 0.95 ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
-                    {Math.round(significance * 100)}%
-                  </span>
-                  <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/30">Confidence</span>
-                </div>
-              </div>
-            </div>
-            <p className="mt-3 text-center text-[12px] text-[#ededed]/40">
-              {significance >= 0.95
-                ? 'Statistical significance reached — result is reliable.'
-                : significance >= 0.7
-                ? 'Approaching significance — more data needed.'
-                : 'Not enough data for a reliable conclusion yet.'}
-            </p>
+        {/* Significance donut */}
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+              Significance
+            </span>
           </div>
-        ) : (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lock className="h-3.5 w-3.5 text-[#ededed]/40" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                  Significance &amp; auto-winner
+          <div className={`flex items-center justify-center${!pro ? ' relative' : ''}`}>
+            <div className="relative h-[120px] w-[120px]">
+              <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                <circle
+                  cx="18" cy="18" r="14"
+                  fill="none"
+                  stroke="#111111"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="18" cy="18" r="14"
+                  fill="none"
+                  stroke={significance >= 0.95 ? T.ok : significance >= 0.7 ? T.pro : 'rgba(255,255,255,0.2)'}
+                  strokeWidth="3"
+                  strokeDasharray={`${significance * 87.96} 87.96`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`text-2xl font-bold ${significance >= 0.95 ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
+                  {Math.round(significance * 100)}%
                 </span>
+                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/30">Confidence</span>
               </div>
-              <button
-                onClick={upgrade}
-                disabled={busy}
-                className="cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
-              >
-                {busy ? '…' : 'Upgrade'}
-              </button>
             </div>
+            {/* Free tier: semi-transparent overlay */}
+            {!pro && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[10px] bg-black/60 backdrop-blur-[1px]">
+                <Lock className="h-4 w-4 text-[#ededed]/50" />
+                <p className="mt-1.5 text-[11px] font-medium text-[#ededed]/50">Pro feature</p>
+                <button
+                  onClick={upgrade}
+                  disabled={busy}
+                  className="mt-2 cursor-pointer rounded-[6px] bg-white px-3 py-1 text-[11px] font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+                >
+                  {busy ? '…' : 'Upgrade to Pro'}
+                </button>
+              </div>
+            )}
           </div>
-        )}
+          <p className="mt-3 text-center text-[12px] text-[#ededed]/40">
+            {significance >= 0.95
+              ? 'Statistical significance reached — result is reliable.'
+              : significance >= 0.7
+              ? 'Approaching significance — more data needed.'
+              : 'Not enough data for a reliable conclusion yet.'}
+          </p>
+        </div>
 
         {/* A/B Stats cards */}
         <div className="grid grid-cols-2 gap-4">

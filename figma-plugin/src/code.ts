@@ -14,7 +14,7 @@ figma.clientStorage.getAsync('ab_draft').then((draft) => {
 })
 
 // Zusammenfassung der aktuellen Leinwand-Auswahl für die UI.
-// Variante B wird per Klick in Figma gewählt (analog zur Browser Extension),
+// Variante B wird per Klick in Figma gewählt (analog zum Element-Picker im Snippet),
 // damit auch Unter-Elemente wie ein einzelner Button exportiert werden können.
 function selectionSummary() {
   const sel = figma.currentPage.selection
@@ -186,7 +186,7 @@ figma.ui.onmessage = async (msg) => {
 
     case 'OPEN_URL': {
       // Öffnet die Ziel-Seite im Standard-Browser (mit #ab_pick=<testId>),
-      // damit die Chrome-Extension den Picker direkt aktiviert.
+      // damit der Built-in-Picker im Snippet direkt aktiviert wird.
       if (msg.url) {
         try {
           figma.openExternal(msg.url)

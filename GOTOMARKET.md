@@ -99,7 +99,6 @@ Browser-Lesezeichen anlegen, 2×/Tag öffnen, durchscrollen:
 | Signup + Login + Dashboard + Stripe scharf | ✅ |
 | Steuer-Setup geklärt (Kleinunternehmer, Stripe Tax) | ✅ |
 | Figma-Plugin gebaut + Community-Listing eingereicht | ✅ → 🎉 **LIVE (08.07.2026)** — [Plugin #1653734891132085565](https://www.figma.com/community/plugin/1653734891132085565) |
-| Chrome-Extension gebaut + CWS-Listing LIVE | ✅ → ⚠️ **Deprecated (08.07.2026)** — Picker jetzt im Snippet |
 | Phase A+B+C implementiert (Quick Wins, UX, Gesamt-Übersicht) | ✅ |
 | Produktion auf `www.getvariante.com` deployed | ✅ |
 | E2E-Test auf echter Site | ✅ M1 abgeschlossen |
@@ -107,7 +106,7 @@ Browser-Lesezeichen anlegen, 2×/Tag öffnen, durchscrollen:
 
 ### ✅ Phase 1 — Soft-Launch / Design-Partner (abgeschlossen 08.07.2026)
 
-- **Chrome-Extension deprecated** — Picker jetzt direkt im `ab.js`-Snippet.
+- **Picker direkt im `ab.js`-Snippet integriert** — kein separates Tool nötig.
 - **Figma-Plugin freigegeben** — 9 Tage Review, jetzt LIVE.
 - **1 Design-Partner angefragt** — Concierge-Onboarding startet.
 
@@ -144,7 +143,7 @@ Figma-Plugin ist LIVE — jetzt Reichweite maximieren:
 - ✅ **Produkt fertig**: Phase A+B+C auf `www.getvariante.com` deployed
 - ✅ **E2E-Test**: M1 abgeschlossen — kompletter Loop auf Fremd-Site getestet
 - 🎉 **Figma-Plugin**: LIVE im [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
-- ⚠️ **Chrome-Extension**: Deprecated — Picker jetzt direkt im Snippet
+- ✅ **Built-in-Picker**: Element-Picker direkt im `ab.js`-Snippet integriert
 - ✅ **Dogfooding**: ab.js im Root-Layout integriert, Badge sichtbar
 - 🏗️ **Design-Partner**: 1 von 5 angefragt
 - ⚠️ **X-Pain-Finder-Script**: Defekt (X-DOM-Änderungen) — ersetzt durch 5 manuelle Bookmark-Queries

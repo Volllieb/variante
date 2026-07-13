@@ -103,7 +103,7 @@ Praktisches Beispiel: Variante B zeigt höhere Preise aber weniger Käufe → CV
 
 | Ansatz | Beschreibung | Aufwand |
 |---|---|---|
-| **Chrome Extension als Brücke** | Extension liest Token aus Dashboard (cookie/storage) und injected ihn ins Figma-Plugin via `postMessage` oder gemeinsamen `storage.local`-Key | Mittel (~3h) |
+| **Built-in Picker als Brücke** | Snippet-Picker liest Token aus Dashboard (cookie/storage) und injected ihn ins Figma-Plugin via `postMessage` oder gemeinsamen `storage.local`-Key | Mittel (~3h) |
 | **Magic-Link / Callback** | Figma-Plugin öffnet Browser-Tab mit Token in URL-Hash → Plugin liest via Extension oder `window.location` | Gering (~1h), aber fragile |
 | **OAuth / PKCE-Flow** | Figma-Plugin macht echten OAuth-Login — Token kommt direkt vom Server, nie durch User-Hände | Hoch (~8h), aber sauberste Lösung |
 | **QR-Code** | Dashboard zeigt QR-Code → Plugin scannt via Figma-Camera-API | Mittel, aber Figma-API-Limits unklar |
@@ -251,11 +251,11 @@ A/B-Testing hat heute drei Probleme: (1) Man muss wissen was man testen will, (2
 
 Variante bietet heute nur **Element-Tests**: Designer wählt ein ganzes DOM-Element, KI generiert alternatives HTML/CSS, `ab.js` tauscht das Element komplett aus. Das ist der USP („in Figma designen → live testen"). Aber nicht jeder Test braucht ein Redesign. Manchmal reicht ein anderer Text.
 
-Die Unterscheidung ist fundamental — beide nutzen dieselbe Chrome Extension zur Selektion, unterscheiden sich aber darin, *was* variiert wird und *wie* die Variante entsteht.
+Die Unterscheidung ist fundamental — beide nutzen denselben Built-in-Picker zur Selektion, unterscheiden sich aber darin, *was* variiert wird und *wie* die Variante entsteht.
 
 ### Option A: Text/Copy-Test
 
-Extension selektiert einen Text-Knoten → Variante ist ein anderer Text-String → `ab.js` tauscht nur `innerText`/`textContent`.
+Built-in-Picker selektiert einen Text-Knoten → Variante ist ein anderer Text-String → `ab.js` tauscht nur `innerText`/`textContent`.
 
 | Pro | Contra |
 |---|---|
@@ -268,7 +268,7 @@ Extension selektiert einen Text-Knoten → Variante ist ein anderer Text-String 
 
 ### Option B: Element-Test (Status Quo)
 
-Extension selektiert ganzes DOM-Element → erfasst `outerHTML` + CSS + Framework → Variante ist komplett neues HTML/CSS → `ab.js` ersetzt das gesamte Element.
+Built-in-Picker selektiert ganzes DOM-Element → erfasst `outerHTML` + CSS + Framework → Variante ist komplett neues HTML/CSS → `ab.js` ersetzt das gesamte Element.
 
 | Pro | Contra |
 |---|---|
@@ -283,7 +283,7 @@ Extension selektiert ganzes DOM-Element → erfasst `outerHTML` + CSS + Framewor
 ```
                     Text-Test              Element-Test
 ─────────────────────────────────────────────────────────
-Selektion           Extension (Text-Node)  Extension (DOM-Node)  ✅ beide gleich
+Selektion           Built-in-Picker (Text-Node)  Built-in-Picker (DOM-Node)  ✅ beide gleich
 Input-Quelle        Figma + manuell        Figma (primär)
 KI-Generierung      String → String        Design-Tokens → HTML/CSS
 ab.js Komplexität   ~10 Zeilen             ~50+ Zeilen

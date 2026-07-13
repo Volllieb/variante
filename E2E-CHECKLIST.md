@@ -60,9 +60,11 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 ---
 
-## ⚠️ Chrome Extension — Deprecated (08.07.2026)
+## ⚠️ Chrome Extension — Gelöscht (13.07.2026)
 
-> Der Element-Picker ist jetzt direkt im `ab.js`-Snippet integriert. Die folgenden Extension-Tests sind obsolet und nur als Archiv erhalten.
+> Der Element-Picker ist direkt im `ab.js`-Snippet integriert. Die Extension wurde komplett entfernt.
+
+## Veraltete Extension-Tests (Archiv)
 
 - [ ] ~~**CWS-Install** — [Chrome Web Store](https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh) → "variante — A/B Test Element Picker" installieren~~
 

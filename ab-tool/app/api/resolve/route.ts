@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('tests')
-    .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html, user_id')
+    .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html, variant_b_css, user_id')
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
     .limit(200) // ponytail: vernünftiges Limit statt ALLER non-paused Tests
@@ -89,6 +89,7 @@ export async function GET(req: Request) {
     traffic_split: t.traffic_split,
     // Security: XSS-Sanitization vor Auslieferung an ab.js
     variant_b_html: sanitizeHtml(t.variant_b_html),
+    variant_b_css: t.variant_b_css || null,
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
     // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
     // Extrahiert aus site_url, damit der Client filtern kann, ohne

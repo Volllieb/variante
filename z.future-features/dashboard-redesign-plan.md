@@ -8,7 +8,7 @@
 ```
 ┌──────────────────────────────────────────────────┐
 │                 ONBOARDING (/onboarding)          │
-│  Setup-Tools: Chrome Extension + Figma Plugin    │
+│  Setup-Tools: Built-in Picker + Figma Plugin     │
 │  Einmalig. Danach nie wieder.                    │
 ├──────────────────────────────────────────────────┤
 │                 DASHBOARD (/dashboard)            │

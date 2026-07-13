@@ -419,6 +419,23 @@
     }
   }
 
+  // -- CSS-Injection: Layout/Reorder-Tests ohne DOM-Mutation.            --
+  // -- Kein replaceWith, kein Hydration-Kollateralschaden. Funktioniert  --
+  // -- unabhängig vom Element — injected <style> in <head>.              --
+  var injectedStyles = {} // key → style-element, für SPA-Cleanup
+  function applyCss(key, css) {
+    if (!css) return
+    // Remove previous style for this key (SPA re-navigation)
+    if (injectedStyles[key]) {
+      try { injectedStyles[key].remove() } catch (_) {}
+    }
+    var style = document.createElement('style')
+    style.setAttribute('data-ab-css', key)
+    style.textContent = css
+    document.head.appendChild(style)
+    injectedStyles[key] = style
+  }
+
   // --- Variante auf den DOM anwenden -----------------------------------------
   // Markiert die eingefügte B-Wurzel mit data-ab-el="<key>", damit Conversions
   // auch nach dem Element-Tausch zuverlässig zugeordnet werden können. Gibt true

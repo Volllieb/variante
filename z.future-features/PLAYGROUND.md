@@ -98,11 +98,11 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 | Voraussetzung | Warum | Im Playground |
 |---|---|---|
 | **Figma Plugin** (kostenlos) | Läuft in Figmas Sidebar, steuert den Wizard | Wird simuliert (360×560-Box) |
-| **Variante Browser Extension** (Chrome, kostenlos) | Klickt Elemente auf deiner Live-Site an — das Plugin selbst kann nicht auf Browser-Tabs zugreifen | Übersprungen (Element ist vorausgewählt) |
+| **Variante Built-in Picker** (im Snippet) | Klickt Elemente auf deiner Live-Site an — das Plugin selbst kann nicht auf Browser-Tabs zugreifen | Übersprungen (Element ist vorausgewählt) |
 | **Variante Account** (Free) | Speichert deine Tests, tracked Conversions | Übersprungen (kein Login nötig) |
 | **Site-CSS für Variant-A-Vorschau** | Das vollständige Site-CSS (inkl. `:root`-Variablen) wird von der Extension erfasst, ist aber **erst nach der KI-Generierung** im Plugin verfügbar. Auf Screen 2 (Pick Element) erscheint Variant A nur als Text-Chip („BUTTON „Get Started""), nicht als gerenderte Vorschau. | Übersprungen (Element ist vorausgewählt, Vorschau nicht nötig) |
 
-> **Ohne Extension kein Element-Picking.** Das Figma-Plugin läuft in Figmas Sandbox — es kann deine Browser-Tabs nicht sehen. Die Extension ist die Brücke: einmal installiert, funktioniert sie mit jedem Plugin-Update weiter.
+> **Ohne Snippet kein Element-Picking.** Das Figma-Plugin läuft in Figmas Sandbox — es kann deine Browser-Tabs nicht sehen. Der Built-in-Picker im Snippet ist die Brücke.
 >
 > **Variant-A-Vorschau erst nach Generation.** Das `siteCss` wird vom Server erst in der `/api/generate`-Response mitgeliefert. Vorher (Screen 2) sieht der Nutzer nur einen Text-Chip mit Element-Typ und Label — kein gerendertes HTML mit Original-CSS. Das ist eine bekannte UX-Lücke: Der Nutzer kann erst nach der KI-Generierung visuell prüfen, ob das richtige Element gepickt wurde.
 
@@ -168,7 +168,7 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 >
 > We've prepared a demo website and a pre-selected element so you can walk through the full workflow without installing anything.
 >
-> **Voraussetzung im echten Workflow:** Du brauchst die kostenlose [Variante Browser Extension](https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh) (Chrome), um Elemente auf deiner Live-Site anzuklicken. Im Playground überspringen wir das.
+> **Voraussetzung im echten Workflow:** Du brauchst das `ab.js`-Snippet auf deiner Site — der Built-in-Picker läuft direkt im Browser und erfasst Elemente per Klick. Im Playground überspringen wir das.
 >
 > In the real plugin, you'd connect your account here. For this demo, just click **„Try the demo"**.
 
@@ -184,14 +184,12 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
 │                                  │
 │  ┌──────────────────────────────┐│
-│  │  ┌─┐ Browser Extension       ││
+│  │  ┌─┐ Built-in Picker         ││
 │  │  └─┘                        ││
-│  │  ⚠️ Required before you     ││
-│  │  can pick elements.         ││
-│  │  The element picker runs in  ││
-│  │  your browser. Install once. ││
+│  │  ℹ️ Runs directly in your   ││
+│  │  browser via the snippet.   ││
+│  │  No separate install needed. ││
 │  │  ┌──────────────────────────┐││
-│  │  │  ↓ Download Extension    │││
 │  │  │  (skipped in demo)       │││
 │  │  └──────────────────────────┘││
 │  └──────────────────────────────┘│
@@ -217,11 +215,11 @@ Der Playground überspringt diese Schritte — aber für den echten Einsatz brau
 
 > ### 🎯 Pick what to test
 >
-> **So läuft's im echten Workflow:** Du öffnest deine Website und nutzt die **kostenlose Variante Browser Extension** für Chrome. Ein Klick auf ein beliebiges Element — Button, Headline, Hero-Section — und die Extension erfasst HTML, CSS und Seitenkontext automatisch.
+> **So läuft's im echten Workflow:** Du öffnest deine Website und der Built-in-Picker (Teil des `ab.js`-Snippets) läuft direkt in deinem Browser. Ein Klick auf ein beliebiges Element — Button, Headline, Hero-Section — und der Picker erfasst HTML, CSS und Seitenkontext automatisch.
 >
-> **Ohne Extension kein Picking.** Das Plugin selbst läuft in Figmas Sandbox und kann nicht auf deine Browser-Tabs zugreifen. Die Extension ist die Brücke. Einmal installiert, funktioniert sie mit jedem Plugin-Update weiter.
+> **Ohne Snippet kein Picking.** Das Plugin selbst läuft in Figmas Sandbox und kann nicht auf deine Browser-Tabs zugreifen. Der Built-in-Picker im Snippet ist die Brücke.
 >
-> **In dieser Demo** haben wir einen „Get Started"-Button auf `getvariante.com` vorausgewählt. Keine Extension nötig.
+> **In dieser Demo** haben wir einen „Get Started"-Button auf `getvariante.com` vorausgewählt. Kein Snippet nötig.
 >
 > **Im echten Plugin** erscheint Variant A an dieser Stelle nur als Text-Chip — nicht als gerenderte Vorschau mit Site-CSS. Das CSS der Originalseite wird erst mit der `/api/generate`-Response ans Plugin geliefert (Screen 5). Die visuelle Variant-A-Vorschau gibt's also erst nach der KI-Generierung.
 >
@@ -714,7 +712,7 @@ demo, just click "Try the demo".
 🎯 Pick what to test
 
 In the real plugin, you open your website and use the Variante
-browser extension to click on any element — a button, a headline,
+built-in picker to click on any element — a button, a headline,
 a hero section. It captures the HTML, CSS, and page context automatically.
 
 In this demo, we've pre-selected a "Get Started" button on

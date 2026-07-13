@@ -1,5 +1,5 @@
 // Zentrale CORS-Header für alle API-Routen.
-// ab.js, Browser Extension und Figma Plugin rufen die Routen cross-origin auf.
+// ab.js und Figma Plugin rufen die Routen cross-origin auf.
 //
 // CORS-Design:
 // - Access-Control-Allow-Origin: * ist bewusst permissiv, weil ab.js auf
