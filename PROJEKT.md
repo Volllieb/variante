@@ -39,8 +39,8 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── public/ab.js        # Snippet (inkl. eingebautem Element-Picker)
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
 db/migrations/          # Supabase SQL (001–013)
-docs/future-features/      # ⚠️ Anfassen verboten — Post-Launch
-docs/leads.md                # Outreach: qualifizierte Leads + Kontaktstatus
+docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Future-Features
+scripts/                # X-Pain-Finder-Bookmarks (x-pain-finder.user.js)
 ```
 
 ## §4 Deployment

@@ -1,6 +1,7 @@
 # AGENTS.md — Arbeitsanweisungen variante
 
 Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` — dort fortschreiben, nicht hier.
+Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features).
 
 **Agent-Definitionen:** `.github/agents/*.agent.md` (ponytail, redesign, supabase, stripe, deployment-expert, performance-optimizer, ai-architect, seo, wrapup).
 
