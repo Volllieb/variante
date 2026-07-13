@@ -1,6 +1,6 @@
 # Self-Improving Site Engine — Feature Design
 
-> Stand: 10.07.2026. Konzept-Phase. Baut auf der „What to test next"-Checkliste in GOTOMARKET.md auf.
+> Stand: 10.07.2026. Konzept-Phase. Baut auf der „What to test next"-Checkliste in docs/GOTOMARKET.md auf.
 > **Kernidee:** variante analysiert deine Site und sagt dir, was du als nächstes bauen/testen sollst. Nach jedem abgeschlossenen Test lernt das System dazu — die Site verbessert sich selbst.
 
 ---

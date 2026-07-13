@@ -32,7 +32,7 @@ import {
   Lightbulb,
 } from 'lucide-react'
 
-/* ── Token palette (brandguidelines.md §2) ── */
+/* ── Token palette (docs/brandguidelines.md §2) ── */
 const T = {
   bg1: '#0a0a0a',
   bg2: '#111111',

@@ -145,7 +145,7 @@ Figma-Plugin ist LIVE — jetzt Reichweite maximieren:
 - 🎉 **Figma-Plugin**: LIVE im [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
 - ✅ **Built-in-Picker**: Element-Picker direkt im `ab.js`-Snippet integriert
 - ✅ **Dogfooding**: ab.js im Root-Layout integriert, Badge sichtbar
-- ✅ **Leads recherchiert**: 2 High-Potential (IbexAI $3-6K MRR, PostFox $2K MRR), 15 weitere in Pipeline, dokumentiert in `leads.md`
+- ✅ **Leads recherchiert**: 2 High-Potential (IbexAI $3-6K MRR, PostFox $2K MRR), 15 weitere in Pipeline, dokumentiert in `docs/leads.md`
 - 🔥 **Outreach läuft**: Cold-DM-Phase gestartet — IbexAI (Matt Bauer, @Matt___Bauer) heute per X-DM, PostFox morgen, dann Batch 3–5
 - 🏗️ **Design-Partner**: 1 von 5 angefragt, Concierge-Onboarding steht bereit
 - ⚠️ **X-Pain-Finder-Script**: Defekt (X-DOM-Änderungen) — ersetzt durch 5 manuelle Bookmark-Queries

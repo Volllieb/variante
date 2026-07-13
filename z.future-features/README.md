@@ -167,7 +167,7 @@ Figma-Login als dritter Auth-Weg neben Email/Passwort und Google OAuth. Designer
 | 🟡 **SEO-Programm** | Landingpage-Audit + 4 Fixes live (06.07.): `robots.ts`, `sitemap.ts`, JSON-LD Organization, Meta-Tags. Offen: echtes OG-Image, Content-Programm. |
 | ⬜ **Framework-spezifische Guides** | WordPress, Shopify, Next.js — je ein Blogpost + Video |
 | ⬜ **Case-Study-Template** | Struktur für Before/After-Lift-Stories (aus Phase 1 Design-Partnern) |
-| ⬜ **Product Hunt Launch** | Vorbereitet in GOTOMARKET.md Phase 2 |
+| ⬜ **Product Hunt Launch** | Vorbereitet in docs/GOTOMARKET.md Phase 2 |
 
 ---
 
