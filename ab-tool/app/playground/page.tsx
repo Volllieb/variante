@@ -130,130 +130,126 @@ export default function PlaygroundPage() {
 
   const explanations: Record<Step, { title: string; body: React.ReactNode }> = {
     welcome: {
-      title: '👋 Welcome to Variante',
+      title: '👋 Build your first A/B test — in 2 minutes',
       body: (
         <>
           <p className="mb-3">
-            This is a <strong>sandboxed demo</strong> of the Variante Figma plugin — pixel-identical to
-            what you&apos;d see in Figma&apos;s sidebar.
+            You&apos;re about to see the <strong>entire Variante workflow</strong> end-to-end: pick an element, AI
+            builds Variant B, ship a snippet, watch conversions climb.
           </p>
           <p className="mb-3">
-            We&apos;ve prepared a demo website and a pre-selected element so you can walk through the full
-            workflow without installing anything.
+            This is a sandboxed demo with a pre-loaded test site. No Figma needed. The real thing? Same flow —
+            but with <strong>your</strong> site and <strong>your</strong> Figma designs.
           </p>
           <p>
-            In the real plugin, you&apos;d connect your account here. For this demo, just click <strong>&ldquo;Try the demo&rdquo;</strong>.
+            Click <strong>&ldquo;Try the demo&rdquo;</strong> and we&apos;ll walk you through it.
           </p>
         </>
       ),
     },
     element: {
-      title: '🎯 Pick what to test',
+      title: '🎯 Step 1: Pick any element on your site',
       body: (
         <>
           <p className="mb-3">
-            <strong>So läuft&apos;s im echten Workflow:</strong> You open your website and the built-in picker
-            (part of the <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">ab.js</code> snippet) runs
-            directly in your browser. One click on any element — button, headline, hero section — captures HTML,
-            CSS, and page context automatically.
+            <strong>One click.</strong> The built-in picker captures HTML, CSS, and page context — button,
+            headline, hero section. Whatever you want to test.
           </p>
           <p className="mb-3">
-            <strong>Without the snippet, no picking.</strong> The plugin runs in Figma&apos;s sandbox and
-            can&apos;t access your browser tabs. The built-in picker in the snippet is the bridge.
+            No selector hunting. No dev tools. Just click the thing you want to improve.
           </p>
           <p>
-            In this demo, we&apos;ve pre-selected a &ldquo;Get Started&rdquo; button. Click <strong>Continue</strong> to
-            see the Variant B you&apos;d select in Figma.
+            In this demo, we&apos;ve pre-picked a &ldquo;Get Started&rdquo; button. Click{' '}
+            <strong>Continue</strong> to see the Variant B you&apos;d design in Figma.
           </p>
         </>
       ),
     },
     variant: {
-      title: '🖼️ Select Variant B',
+      title: '🖼️ Step 2: Design Variant B in Figma',
       body: (
         <>
           <p className="mb-3">
-            This is where the Figma integration shines: you <strong>click any layer in your Figma file</strong> that
-            represents the new version — a redesigned button, a new headline, a different hero image.
+            Click any layer in your Figma file — a redesigned button, a bolder headline, a different CTA.
+            Variante reads colors, typography, spacing, and effects directly.
           </p>
           <p className="mb-3">
-            Variante reads colors, typography, spacing, and effects directly from your Figma layer. The AI uses
-            this as the design reference for Variant B.
-          </p>
-          <p className="mb-3">
-            <strong>Wrong layer?</strong> No problem — in the real plugin, just click &ldquo;Reselect&rdquo; and pick
-            another. You can reselect as many times as you want before generating.
+            <strong>This is the magic:</strong> your Figma designs ship to production without a single line
+            of code. The AI uses your layer as the blueprint for Variant B.
           </p>
           <p>
-            In this demo, the layer is pre-selected and locked. Click <strong>Continue</strong> to set the conversion goal.
+            In this demo, the layer is pre-selected. Click <strong>Continue</strong> to set the conversion goal.
           </p>
         </>
       ),
     },
     goal: {
-      title: '🎯 Define the goal',
+      title: '🎯 Step 3: Define what success looks like',
       body: (
         <>
           <p className="mb-3">
-            What counts as a &ldquo;conversion&rdquo;? The default is <strong>a click on the element you&apos;re
-            testing</strong> — simple and usually what you want.
+            Usually it&apos;s a <strong>click on the element you&apos;re testing</strong> — simple and
+            usually what you want.
           </p>
           <p className="mb-3">
-            In the real plugin, you can also pick a different element on the page, use a CSS selector, or track page views.
+            But you can track anything: page views, form submissions, custom events. Whatever moves the needle
+            for your business.
           </p>
           <p>
-            In this demo, the goal is pre-set to &ldquo;click on the Get Started button&rdquo;. We skip the AI generation step
-            and go straight to shipping. Click <strong>Generate HTML</strong> to continue.
+            In this demo, the goal is pre-set. Click <strong>Generate HTML</strong> — we&apos;re about to ship.
           </p>
         </>
       ),
     },
     snippet: {
-      title: '🚀 One snippet, done',
+      title: '🚀 Step 4: One script tag. That&apos;s the whole integration.',
       body: (
         <>
           <p className="mb-3">
-            Add <strong>one <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;script&gt;</code> tag</strong> to
-            your site&apos;s <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;head&gt;</code> — that&apos;s
-            the entire integration. No deploy pipeline, no dev.
+            Paste <strong>one <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;script&gt;</code> tag</strong> into
+            your site&apos;s <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;head&gt;</code> — done.
+            No deploy pipeline. No npm install. No DNS changes.
           </p>
           <p className="mb-3">
-            The snippet splits traffic 50/50, serves the right variant, and tracks conversions. Everything else is
-            configured server-side.
+            The snippet handles <strong>everything</strong>: traffic splitting, variant serving, conversion
+            tracking. All configured server-side.
           </p>
           <p>
-            In this demo, the snippet is a placeholder. In the real plugin, you&apos;d get your actual test token.
-            Click <strong>View Results</strong> — this is where it gets fun. 👇
+            This is where most A/B tools bury you in config. We ship. Click{' '}
+            <strong>View Results</strong> — here comes the good part. 👇
           </p>
         </>
       ),
     },
     dashboard: {
-      title: dashboardPhase === 'done' ? '🎉 That\'s the full workflow!' : '📊 Live Results — watch the numbers',
+      title: dashboardPhase === 'done'
+        ? `🎉 Variant B wins. +${d.lift.toFixed(0)}% more conversions.`
+        : '📊 Watch the numbers climb — seconds, not days',
       body: dashboardPhase === 'done' ? (
         <>
           <p className="mb-3">
-            <strong>Connect → Pick → Variant B → Goal → Snippet → Measure.</strong>
+            You just ran an <strong>entire A/B test</strong> — from Figma design to statistical significance at
+            95% confidence — in under a minute.
           </p>
-          <p className="mb-3">All from Figma. No dev required.</p>
-          <p className="font-semibold">Ready to try it on your own site?</p>
+          <p className="mb-3">
+            On your own site, the setup is <strong>exactly the same</strong>: 2 minutes to install the snippet.
+            Then design variants in Figma whenever you want to test something. No dev. No deploy. No waiting
+            for engineering.
+          </p>
+          <p className="font-semibold">That&apos;s the product. Ready to try it on your own site?</p>
         </>
       ) : (
         <>
           <p className="mb-3">
-            This is what you&apos;d see in the real plugin dashboard, <strong>sped up ~1000×</strong>.
+            Visitors flow in. Conversions accumulate. Statistical significance builds — all in seconds instead
+            of days. <strong>Sped up ~1000×</strong> for the demo.
           </p>
           <p className="mb-3">
-            Watch as visitors flow in, conversions accumulate, and statistical significance builds — all in seconds
-            instead of days.
+            Watch the numbers on the left. In a moment, Variante will declare a winner at 95% confidence —
+            the same threshold scientists use.
           </p>
-          <ul className="mb-3 space-y-1 text-sm list-disc pl-4">
-            <li>Visitors are split evenly (50/50) between A and B</li>
-            <li>Conversions accumulate faster on B — the new design converts better</li>
-            <li>After enough data, Variante declares <strong>Variant B the winner</strong> at 95% confidence</li>
-          </ul>
           <p>
-            In reality, this would take hours or days depending on your traffic. The dashboard refreshes every 30
+            In reality, this takes hours or days depending on your traffic. The dashboard refreshes every 30
             seconds in Free, every 10 seconds in Pro.
           </p>
         </>
@@ -284,16 +280,10 @@ export default function PlaygroundPage() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <a
-              href="/login"
-              className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
-            >
-              Log in
-            </a>
-            <a
               href="/signup"
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
-              Sign up — free
+              Sign up free
             </a>
           </div>
         </nav>
@@ -367,20 +357,23 @@ export default function PlaygroundPage() {
 
             {/* CTA section */}
             <div className="mt-6 rounded-[10px] border border-border bg-bg-1 p-6 text-center">
+              <p className="mb-4 text-sm font-semibold text-text">
+                Ready to do this on your own site?
+              </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <a
+                  href="/signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-[6px] bg-white px-6 py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85"
+                >
+                  ✨ Create free account →
+                </a>
                 <a
                   href="https://www.figma.com/community/plugin/1653734891132085565"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-[6px] bg-white px-6 py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85"
-                >
-                  🎨 Install Figma Plugin →
-                </a>
-                <a
-                  href="/signup"
                   className="inline-flex items-center justify-center gap-2 rounded-[6px] border border-border px-6 py-2.5 text-[13px] font-medium text-text transition-colors hover:border-border-strong hover:bg-bg-2"
                 >
-                  ✨ Create free account →
+                  🎨 Install Figma Plugin →
                 </a>
               </div>
               <p className="mt-3 text-xs text-text-3">
@@ -439,29 +432,19 @@ function PluginBox({
             </div>
             <div className="text-xl font-semibold tracking-tight text-gray-900">variante</div>
             <p className="mt-3 text-[13px] text-gray-500 leading-relaxed">
-              A/B testing from Figma —<br />no dev needed.
+              Design a variant in Figma.<br />Ship it. Watch conversions climb.
             </p>
             <p className="mt-1 text-[12px] text-gray-400">
-              Pick an element, AI generates Variant B.
+              No dev. No deploy. Just results.
             </p>
           </div>
           <div className="mt-8 space-y-3">
             <button className={boxBtnPrimary} onClick={() => onGo('element')}>
               🚀 Try the demo →
             </button>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-[11px] text-gray-300">or</span>
-              <div className="flex-1 h-px bg-gray-100" />
-            </div>
-            <button className={boxBtnSecondary} disabled>
-              I have an account — connect
-            </button>
-            <div className="text-center">
-              <button className={boxBtnGhost} disabled>
-                No account? Sign up free →
-              </button>
-            </div>
+            <p className="text-[11px] text-gray-300 text-center">
+              In the real plugin, you&apos;d connect your account here.
+            </p>
           </div>
         </div>
       )}
