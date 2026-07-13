@@ -90,9 +90,9 @@ export default function HomePage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <a
               href="/playground"
-              className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
+              className="hidden rounded-full border border-violet-500/25 bg-violet-500/8 px-3.5 py-1.5 text-sm font-medium text-violet-200/80 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/15 hover:text-violet-100 sm:mr-4 sm:block"
             >
-              Playground
+              🏖️ Playground
             </a>
             <a
               href="/login"

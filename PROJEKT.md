@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 13.07.2026 — 🎯 Outreach: 44 IH-Produkte gescreent, 17 qualified leads in `docs/leads.md`. Nächster Schritt: Website-URLs + Kontaktdaten recherchieren, dann kalte Loom-DMs. Enge Nische: „Figma-to-live-site A/B tests for landing pages". 🧠 **Neues Feature-Design: Self-Improving Site Engine** — variante scanned die Site, schlägt Top-3-Tests vor, lernt nach jedem Test dazu. Checkliste ist v0, Engine ist v1–v3 (→ `docs/future-features/self-improving-site-engine.md`). |
+| **Stand** | 13.07.2026 — 🎯 Outreach: 44 IH-Produkte gescreent, 17 qualified leads in `docs/leads.md`. Nächster Schritt: Website-URLs + Kontaktdaten recherchieren, dann kalte Loom-DMs. Enge Nische: „Figma-to-live-site A/B tests for landing pages". 🧠 **Neues Feature-Design: Self-Improving Site Engine** — variante scanned die Site, schlägt Top-3-Tests vor, lernt nach jedem Test dazu. Checkliste ist v0, Engine ist v1–v3 (→ `docs/future-features/self-improving-site-engine.md`). 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs (smoke, auth, dashboard, conversion) + CI via `.github/workflows/e2e.yml`. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
