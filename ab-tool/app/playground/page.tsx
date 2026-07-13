@@ -326,7 +326,6 @@ export default function PlaygroundPage() {
                 copiedSnippet={copiedSnippet}
                 showSnippet={showSnippet}
                 onGo={goTo}
-                onStartAnimation={startAnimation}
                 onCopyPrompt={copyPrompt}
                 onCopySnippet={copySnippet}
                 onToggleSnippet={() => setShowSnippet(!showSnippet)}
@@ -408,7 +407,6 @@ type PluginBoxProps = {
   status: string
   copiedPrompt: boolean; copiedSnippet: boolean; showSnippet: boolean
   onGo: (s: Step) => void
-  onStartAnimation: () => void
   onCopyPrompt: () => void
   onCopySnippet: () => void
   onToggleSnippet: () => void
@@ -660,17 +658,22 @@ function PluginBox({
 
             {/* Copy snippet manually */}
             <div className="mt-2">
-              <button
-                className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2.5 transition-colors hover:bg-gray-50 cursor-pointer"
-                onClick={onCopySnippet}
-              >
-                <span className="text-[12px] font-medium text-gray-700">
+              <div className="flex rounded-lg border border-gray-200 bg-gray-50/50 overflow-hidden">
+                <button
+                  className="flex-1 flex items-center px-3 py-2.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer"
+                  onClick={onCopySnippet}
+                >
                   {copiedSnippet ? '✓ Copied!' : 'Copy snippet manually'}
-                </span>
-                <span className="text-[11px] text-gray-400">
-                  {showSnippet ? '▲' : '▶'} Show snippet code
-                </span>
-              </button>
+                </button>
+                <button
+                  className="flex items-center gap-1 px-3 py-2.5 text-[11px] text-gray-400 transition-colors hover:bg-gray-100 cursor-pointer border-l border-gray-200"
+                  onClick={onToggleSnippet}
+                  aria-expanded={showSnippet}
+                  aria-label={showSnippet ? 'Hide snippet code' : 'Show snippet code'}
+                >
+                  {showSnippet ? '▲' : '▶'} Show
+                </button>
+              </div>
             </div>
 
             {showSnippet && (

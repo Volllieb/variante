@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, MousePointer2, Sparkles, Rocket, Zap } from '@/components/LandingIcons'
 
@@ -80,32 +81,32 @@ export default function HomePage() {
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3">
-          <a
+          <Link
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
             <PandaLogo className="h-7 w-7 rounded-lg p-1" />
             variante
-          </a>
+          </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <a
+            <Link
               href="/playground"
               className="hidden rounded-full border border-border bg-bg-2 px-3.5 py-1.5 text-sm font-medium text-text-2 transition-all duration-200 hover:border-border-strong hover:bg-bg-1 hover:text-text sm:mr-4 sm:block"
             >
               🏖️ Playground
-            </a>
-            <a
+            </Link>
+            <Link
               href="/login"
               className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
             >
               Log in
-            </a>
-            <a
+            </Link>
+            <Link
               href="/signup"
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
               Sign up — free
-            </a>
+            </Link>
           </div>
         </nav>
       </header>
@@ -123,12 +124,12 @@ export default function HomePage() {
             One snippet. No developer. No deploy pipeline.
           </p>
           <div className="mt-8 sm:mt-9">
-            <a
+            <Link
               href="/signup"
               className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
             >
               Start free — no developer needed
-            </a>
+            </Link>
           </div>
           <p className="mt-4 text-xs text-text-3">
             No credit card · 1 free experiment
@@ -187,12 +188,12 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <a
+              <Link
                 href="/signup"
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
                 Start free
-              </a>
+              </Link>
             </div>
 
             {/* Pro */}
@@ -222,12 +223,12 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <a
+              <Link
                 href="/signup?plan=pro"
                 className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
               >
                 Get started
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -274,13 +275,13 @@ export default function HomePage() {
       </section>
 
       {/* ── Badge Demo ── */}
-      <a
+      <Link
         href="/signup"
         className="fixed bottom-3 right-3 z-50 rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
         A/B by Variante
-      </a>
+      </Link>
 
       {/* ── Footer ── */}
       <footer className="border-t border-border px-4 py-5 sm:px-6 sm:py-6">
@@ -289,24 +290,24 @@ export default function HomePage() {
             © 2026 Variante · Made in Bavaria
           </p>
           <div className="flex items-center gap-4">
-            <a
+            <Link
               href="/docs"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
               Docs
-            </a>
-            <a
+            </Link>
+            <Link
               href="/privacy"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
               Privacy
-            </a>
-            <a
+            </Link>
+            <Link
               href="/imprint"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
               Imprint
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
