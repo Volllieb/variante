@@ -7,6 +7,7 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { useTestList } from '@/lib/useTestList'
 import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
@@ -165,6 +166,7 @@ export function DashboardClient({
         {/* ── Two-column layout: 30% / 70% ── */}
         <div className="flex gap-5">
           {/* ═══ LEFT COLUMN (30%) ═══ */}
+          <ErrorBoundary label="Overview">
           <div className="w-[30%] shrink-0">
             {/* Overview */}
             <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Overview</h2>
@@ -254,8 +256,10 @@ export function DashboardClient({
               </div>
             </Link>
           </div>
+          </ErrorBoundary>
 
           {/* ═══ RIGHT COLUMN (70%) ═══ */}
+          <ErrorBoundary label="Tests">
           <div className="w-[70%] shrink-0 min-w-0">
             {/* Tests heading */}
             <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Tests</h2>
@@ -325,6 +329,7 @@ export function DashboardClient({
               </div>
             )}
           </div>
+          </ErrorBoundary>
         </div>
       </main>
     </>
