@@ -300,8 +300,8 @@ export default function PlaygroundPage() {
       </header>
 
       {/* ── Sandbox Banner ── */}
-      <div className="border-b-2 border-amber-200/30 bg-amber-950/40">
-        <div className="mx-auto max-w-6xl px-4 py-2.5 text-center text-sm font-medium text-amber-200/90 sm:px-6">
+      <div className="border-b border-pro/20 bg-pro-bg">
+        <div className="mx-auto max-w-6xl px-4 py-2.5 text-center text-sm font-medium text-pro/90 sm:px-6">
           🏖️ You&apos;re in the sandbox — this is a demo, not a real test.
         </div>
       </div>
@@ -311,7 +311,7 @@ export default function PlaygroundPage() {
         <div className="flex flex-col items-start gap-8 lg:flex-row lg:gap-12">
           {/* ── Plugin Box ── */}
           <div className="mx-auto w-full max-w-[360px] shrink-0 lg:mx-0">
-            <div className="overflow-hidden rounded-xl border-2 border-gray-300 shadow-xl" style={{ background: '#ffffff' }}>
+            <div className="overflow-hidden rounded-[10px] border border-gray-300" style={{ background: '#ffffff' }}>
               <PluginBox
                 step={step}
                 dashboardPhase={dashboardPhase}
@@ -335,7 +335,7 @@ export default function PlaygroundPage() {
             {/* Reset button */}
             <button
               onClick={reset}
-              className="mt-3 w-full rounded-lg border border-white/10 py-2 text-sm text-white/40 transition-colors hover:border-white/20 hover:text-white/60"
+              className="mt-3 w-full rounded-[6px] border border-border py-2 text-[13px] font-medium text-text-3 transition-colors hover:border-border-strong hover:text-text"
             >
               ↺ Start over
             </button>
@@ -343,11 +343,11 @@ export default function PlaygroundPage() {
 
           {/* ── Explanation Panel ── */}
           <div className="flex-1 min-w-0">
-            <div className="rounded-2xl border-2 border-violet-500/20 bg-violet-950/20 p-5 sm:p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-violet-200">
+            <div className="rounded-[10px] border border-border bg-bg-1 p-6">
+              <h2 className="text-[15px] font-semibold text-text">
                 {explanations[step].title}
               </h2>
-              <div className="mt-3 text-sm text-violet-200/60 leading-relaxed">
+              <div className="mt-3 text-sm text-text-2 leading-relaxed">
                 {explanations[step].body}
               </div>
               {/* Step indicator */}
@@ -356,35 +356,35 @@ export default function PlaygroundPage() {
                   <div
                     key={n}
                     className={`h-2 w-2 rounded-full transition-colors ${
-                      n <= currentStepIndex ? 'bg-violet-400' : 'bg-violet-400/20'
+                      n <= currentStepIndex ? 'bg-white' : 'bg-white/15'
                     }`}
                   />
                 ))}
-                <span className="ml-2 text-xs text-violet-400/60">
+                <span className="ml-2 text-xs text-text-3">
                   Step {currentStepIndex} of 6
                 </span>
               </div>
             </div>
 
             {/* CTA section */}
-            <div className="mt-6 rounded-2xl border-2 border-violet-500/15 bg-violet-950/15 p-5 text-center sm:p-6">
+            <div className="mt-6 rounded-[10px] border border-border bg-bg-1 p-6 text-center">
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <a
                   href="https://www.figma.com/community/plugin/1653734891132085565"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-violet-500"
+                  className="inline-flex items-center justify-center gap-2 rounded-[6px] bg-white px-6 py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85"
                 >
                   🎨 Install Figma Plugin →
                 </a>
                 <a
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/30 px-6 py-2.5 text-sm font-semibold text-violet-200 transition-all hover:border-violet-400/60 hover:bg-violet-400/10"
+                  className="inline-flex items-center justify-center gap-2 rounded-[6px] border border-border px-6 py-2.5 text-[13px] font-medium text-text transition-colors hover:border-border-strong hover:bg-bg-2"
                 >
                   ✨ Create free account →
                 </a>
               </div>
-              <p className="mt-3 text-xs text-violet-200/40">
+              <p className="mt-3 text-xs text-text-3">
                 Free tier: 1 experiment · No credit card · 2 min setup
               </p>
             </div>
@@ -439,7 +439,7 @@ function PluginBox({
                 <rect x="14" y="4" width="8" height="16" rx="1.5" />
               </svg>
             </div>
-            <div className="text-xl font-bold tracking-tight text-gray-900">variante</div>
+            <div className="text-xl font-semibold tracking-tight text-gray-900">variante</div>
             <p className="mt-3 text-[13px] text-gray-500 leading-relaxed">
               A/B testing from Figma —<br />no dev needed.
             </p>
@@ -735,15 +735,15 @@ function PluginBox({
                 <div className="mt-2 space-y-1.5">
                   <div>
                     <p className="text-[10px] text-gray-400">Visitors</p>
-                    <p className="text-[18px] font-bold text-gray-800 tabular-nums">{visitorsA.toLocaleString()}</p>
+                    <p className="text-[18px] font-semibold text-gray-800 tabular-nums">{visitorsA.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400">Conversions</p>
-                    <p className="text-[15px] font-semibold text-gray-700 tabular-nums">{convA.toLocaleString()}</p>
+                    <p className="text-[15px] font-medium text-gray-700 tabular-nums">{convA.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400">CR</p>
-                    <p className="text-[15px] font-semibold text-gray-700 tabular-nums">{d.cra.toFixed(1)}%</p>
+                    <p className="text-[15px] font-medium text-gray-700 tabular-nums">{d.cra.toFixed(1)}%</p>
                   </div>
                 </div>
               </div>
@@ -753,11 +753,11 @@ function PluginBox({
                 <div className="mt-2 space-y-1.5">
                   <div>
                     <p className="text-[10px] text-gray-400">Visitors</p>
-                    <p className="text-[18px] font-bold text-gray-800 tabular-nums">{visitorsB.toLocaleString()}</p>
+                    <p className="text-[18px] font-semibold text-gray-800 tabular-nums">{visitorsB.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400">Conversions</p>
-                    <p className="text-[15px] font-semibold text-gray-700 tabular-nums">{convB.toLocaleString()}</p>
+                    <p className="text-[15px] font-medium text-gray-700 tabular-nums">{convB.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400">CR</p>

@@ -149,6 +149,8 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 ## Phase 14: Privacy & DSGVO
 
+> 🤖 **Teilautomatisiert via Playwright** — `npm run test:smoke`
 
-- [ ] **Imprint** — `/imprint` lädt, Impressum-Daten korrekt
-- [ ] **Kein CDN/Drittanbieter** — Network-Tab auf Landing Page: Nur `getvariante.com` + `supabase.co` + `openai.com` (bei Gen)
+- [x] **Imprint** — `/imprint` lädt (Page-Test) (automatisiert)
+- [x] **Privacy** — `/privacy` lädt (Page-Test) (automatisiert)
+- [ ] **Kein CDN/Drittanbieter** — Network-Tab auf Landing Page: Nur `getvariante.com` + `supabase.co` + `openai.com` (bei Gen) (manuell)

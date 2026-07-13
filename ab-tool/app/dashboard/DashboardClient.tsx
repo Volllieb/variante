@@ -8,6 +8,7 @@ import { useTestList } from '@/lib/useTestList'
 import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { WhatToTestNext } from './components/WhatToTestNext'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
@@ -27,7 +28,6 @@ import {
   RefreshCw,
   Plus,
   ArrowRight,
-  Lightbulb,
 } from 'lucide-react'
 
 /* ── Token palette (docs/brandguidelines.md §2) ── */
@@ -66,6 +66,13 @@ export function DashboardClient({
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [billingError, setBillingError] = useState<string | null>(null)
   const isPro = plan === 'pro' || plan === 'agency'
+  const setupComplete = hasVerifiedDomain && hasFigmaPlugin
+
+  // siteUrl fuer WhatToTestNext: erster aktiver Test > erster Test > primaryDomain
+  const siteUrl =
+    tests.find(t => t.status === 'active')?.site_url ??
+    tests[0]?.site_url ??
+    primaryDomain
 
   const {
     testList,
@@ -195,31 +202,12 @@ export function DashboardClient({
               </div>
             )}
 
-            {/* What to test next — concrete suggestions */}
-            <div className="mb-3 mt-6">
-              <div className="mb-3 flex items-center gap-2">
-                <Lightbulb className="h-3.5 w-3.5 text-[#f5a623]" />
-                <h2 className="text-[13px] font-semibold text-[#ededed]">What to test next</h2>
-              </div>
-              <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 space-y-2.5">
-                {[
-                  { a: 'Sign Up', b: 'Try for Free', why: 'Action verbs often convert better than nouns' },
-                  { a: 'Buy Now', b: 'Get Started', why: 'Low-commitment phrasing reduces friction' },
-                  { a: 'Learn More', b: 'See How It Works', why: 'Specific beats vague — shows what happens next' },
-                  { a: 'Current headline', b: 'A benefit-first headline', why: 'Headlines are the highest-impact element on any page' },
-                ].map((tip) => (
-                  <div key={tip.a} className="flex items-start gap-2 rounded-[6px] border border-white/[0.06] bg-white/[0.02] px-3 py-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] leading-relaxed text-[#ededed]/70">
-                        Test <span className="font-medium text-[#ededed]/90">"{tip.a}"</span> vs{' '}
-                        <span className="font-medium text-[#f5a623]">"{tip.b}"</span>
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-[#ededed]/30">{tip.why}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* What to test next — AI-powered, page-specific (Pro Feature) */}
+            <WhatToTestNext
+              siteUrl={siteUrl}
+              plan={plan}
+              setupComplete={setupComplete}
+            />
 
             {/* Setup — compact 3-step checklist */}
             <div className="mb-3 mt-6 flex items-center gap-2">
@@ -412,7 +400,7 @@ function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain }: { onNewTes
         href="/playground"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-violet-200/40 underline transition-colors hover:text-violet-200/70"
+        className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-text-3 underline transition-colors hover:text-text-2"
       >
         🏖️ Not sure yet? See the full workflow in the Playground →
       </a>

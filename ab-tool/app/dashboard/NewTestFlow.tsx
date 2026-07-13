@@ -128,10 +128,10 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
               href="/playground"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-[8px] border border-violet-500/20 bg-violet-500/[0.06] px-3 py-2.5 text-[11px] text-violet-200/70 transition-colors hover:border-violet-500/30 hover:bg-violet-500/[0.10]"
+              className="flex items-center gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <span className="text-sm">🏖️</span>
-              <span>New here? <span className="font-semibold text-violet-200">Try the demo first</span> — see the full workflow in 2 minutes, no setup.</span>
+              <span>New here? <span className="font-medium text-text">Try the demo first</span> — see the full workflow in 2 minutes, no setup.</span>
             </a>
 
             {/* Step-by-step */}
@@ -203,7 +203,7 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
                 href="/playground"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-violet-200/50 underline transition-colors hover:text-violet-200/80"
+                className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-text-3 underline transition-colors hover:text-text-2"
               >
                 🏖️ See how results work while you wait →
               </a>
