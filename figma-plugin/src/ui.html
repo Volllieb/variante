@@ -748,19 +748,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     </div>
     <div class="field-err" id="name-err" role="alert"></div>
 
-    <label class="lbl" for="f-url" style="margin-top:12px">Site URL</label>
-    <div class="input-wrap has-prefix">
-      <div class="input-icon-left">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
-        </svg>
-      </div>
-      <input id="f-url" placeholder="https://your-site.com/pricing" oninput="onUrlInput()" list="dl-url" onkeydown="if(event.key==='Enter')createTest()"/>
-      <datalist id="dl-url"></datalist>
-    </div>
-    <div id="url-hint" style="font-size:var(--fs-xs);color:var(--text-2);margin:4px 0 0">The exact page this test will run on.</div>
-    <div class="field-err" id="url-err" role="alert"></div>
-
     <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:6px">
       <div class="spinner" aria-hidden="true"></div>
       Creating test…
@@ -1423,7 +1410,6 @@ async function restoreDraft(draft) {
 
     // UI zurücksetzen
     $('f-name').value = state.name
-    $('f-url').value = state.url
     hideUpgradeBanner()
 
     // Je nach gespeichertem Screen den richtigen Zustand herstellen
@@ -1680,18 +1666,13 @@ function clearFieldError(inputId, errId) {
   $(inputId).classList.remove('err')
   $(errId).textContent = ''
   $(errId).classList.remove('vis')
-  const hint = $(inputId === 'f-url' ? 'url-hint' : '')
-  if (hint) hint.style.display = ''
 }
 function setFieldError(inputId, errId, msg) {
   $(inputId).classList.add('err')
   $(errId).textContent = msg
   $(errId).classList.add('vis')
-  const hint = $(inputId === 'f-url' ? 'url-hint' : '')
-  if (hint) hint.style.display = 'none'
 }
 function onNameInput() { clearFieldError('f-name', 'name-err') }
-function onUrlInput() { clearFieldError('f-url', 'url-err') }
 
 function newTest() {
   if (state.plan === 'free' && activeTestCount >= 1) {
@@ -1709,8 +1690,8 @@ function newTest() {
   var sa = $('gen-scope-area'); if (sa) sa.style.display = 'block'
   var gr = $('gen-result'); if (gr) gr.style.display = 'none'
   var gf = $('gen-ftr'); if (gf) gf.style.display = 'none'
-  $('f-name').value = ''; $('f-url').value = state.verifiedDomain || ''
-  clearFieldError('f-name', 'name-err'); clearFieldError('f-url', 'url-err')
+  $('f-name').value = ''
+  clearFieldError('f-name', 'name-err')
   $('el-waiting').style.display = 'flex'; $('el-done').style.display = 'none'
   var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
   $('d-waiting').style.display = 'block'; $('d-done').style.display = 'none'
@@ -1719,7 +1700,6 @@ function newTest() {
   $('el-chip-wrap').innerHTML = ''
   hideUpgradeBanner()
   navPush('setup')
-  populateDatalist('dl-url', 'url')
   ;(function retry(n) {
     var f = $('f-name')
     if (f && document.activeElement !== f) { f.focus(); if (document.activeElement !== f && n < 10) setTimeout(retry, 100, n + 1) }
@@ -1727,17 +1707,19 @@ function newTest() {
 }
 
 async function createTest() {
-  const nameEl = $('f-name'), urlEl = $('f-url')
+  const nameEl = $('f-name')
   const name = (nameEl.value || '').trim()
-  const rawUrl = (urlEl.value || '').trim()
-  const url = normalizeUrl(rawUrl)
 
   clearFieldError('f-name', 'name-err')
-  clearFieldError('f-url', 'url-err')
 
   if (!name) { setFieldError('f-name', 'name-err', 'Give your test a name.'); nameEl.focus(); return }
-  if (!rawUrl) { setFieldError('f-url', 'url-err', 'Enter the page URL you want to test.'); urlEl.focus(); return }
-  if (!url) { setFieldError('f-url', 'url-err', 'Enter a valid URL with a domain (e.g. yoursite.com)'); urlEl.focus(); return }
+
+  // URL kommt immer von der verified domain — wird im Setup-Bereich gesetzt.
+  const url = state.verifiedDomain
+  if (!url) {
+    setFieldError('f-name', 'name-err', 'No website connected. Add your site in the dashboard first.')
+    return
+  }
 
   const btn = $('btn-create')
   btn.disabled = true
@@ -1761,7 +1743,6 @@ async function createTest() {
     state.testId = data.id
     state.snippetKey = data.snippet_key
     state.name = name; state.url = url
-    saveInputHistory('url', url)
     navPush('element')
     startElementPoll()
     openSite('element')

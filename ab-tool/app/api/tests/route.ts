@@ -76,42 +76,51 @@ export async function POST(req: Request) {
   }
 
   // Domain-Gate: site_url muss zu einer verified Domain des Users passen.
-  if (site_url) {
-    const { data: verifiedDomains } = await supabase
-      .from('domains')
-      .select('url')
-      .eq('user_id', user.userId)
-      .eq('verified', true)
-      .limit(10)
+  // Wenn keine site_url mitgegeben: auto-fill von verified domain.
+  const { data: verifiedDomains } = await supabase
+    .from('domains')
+    .select('url')
+    .eq('user_id', user.userId)
+    .eq('verified', true)
+    .limit(1) // jeder User hat max 1 verified domain
 
-    const verified = verifiedDomains ?? []
-    if (verified.length === 0) {
+  const primaryDomain = verifiedDomains?.[0]?.url
+
+  if (!site_url) {
+    if (!primaryDomain) {
+      return Response.json(
+        { error: 'No verified website. Add your website in the dashboard first.' },
+        { status: 400, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
+    // Auto-fill — kein client-seitiger Input nötig.
+  } else {
+    // Client hat eine URL mitgeschickt — validieren.
+    if (!primaryDomain) {
       return Response.json(
         { error: 'No verified website. Add your website in the dashboard first.' },
         { status: 400, headers: corsHeaders('POST, OPTIONS') }
       )
     }
 
-    // Host aus site_url extrahieren und mit verified Domains vergleichen
     let testHost = site_url.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
     testHost = testHost.replace(/^www\./, '')
 
-    const matches = verified.some((d) => {
-      let domainHost = d.url.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '')
-      return testHost === domainHost
-    })
+    let domainHost = primaryDomain.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '')
 
-    if (!matches) {
+    if (testHost !== domainHost) {
       return Response.json(
-        { error: `site_url must match one of your verified websites. Got: ${testHost}` },
+        { error: `site_url must match your verified website (${domainHost}). Got: ${testHost}` },
         { status: 400, headers: corsHeaders('POST, OPTIONS') }
       )
     }
   }
 
+  const effectiveUrl = site_url || primaryDomain!
+
   const insert: Record<string, unknown> = {
     name,
-    site_url,
+    site_url: effectiveUrl,
     selector,
     goal,
     traffic_split,

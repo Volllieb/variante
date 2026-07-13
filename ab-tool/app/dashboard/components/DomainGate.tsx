@@ -21,11 +21,7 @@ type Domain = {
   created_at: string
 }
 
-type Props = {
-  plan: string
-}
-
-export function DomainGate({ plan }: Props) {
+export function DomainGate() {
   const [url, setUrl] = useState('')
   const [state, setState] = useState<GateState>('loading')
   const [error, setError] = useState('')
@@ -33,8 +29,6 @@ export function DomainGate({ plan }: Props) {
   const [copied, setCopied] = useState(false)
   const [promptCopied, setPromptCopied] = useState(false)
   const initDone = useRef(false)
-
-  const isAgency = plan === 'agency'
 
   // ── URL normalisieren ──
   const normalize = (raw: string) =>
@@ -141,9 +135,9 @@ export function DomainGate({ plan }: Props) {
       })
 
       // 409 = domain already exists (ok, proceed to check)
-      // 402 = plan limit (agency needed for multiple domains)
+      // 402 = already have a domain
       if (saveRes.status === 402) {
-        setError('Multiple websites require the Agency plan. Upgrade to add more domains.')
+        setError('Each account can only connect one website.')
         setState('input')
         return
       }
@@ -243,9 +237,7 @@ export function DomainGate({ plan }: Props) {
           <p className="mt-1 text-[13px] text-[#ededed]/40">
             {state === 'verified'
               ? 'Your snippet is installed and verified.'
-              : isAgency
-                ? 'Enter any of your client websites to get started.'
-                : 'Enter your website — tests run only on verified domains.'}
+              : 'Enter your website — tests run only on verified domains.'}
           </p>
         </div>
 

@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 13.07.2026 — 🎯 Outreach: 44 IH-Produkte gescreent, 17 qualified leads in `docs/leads.md`. 🤖 **"What to test next" AI-Suggestions** — KI analysiert die Live-Seite nach 7 CRO-Kriterien und schlägt 4 page-spezifische A/B-Tests vor (Pro-Feature, ~$0.005/Call). Free-User sehen geblurrten Teaser mit Paywall. Erscheint erst nach Setup-Abschluss (verified domain + Figma plugin). 🧠 **Self-Improving Site Engine** designed (→ `docs/future-features/`). 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs. |
+| **Stand** | 13.07.2026 — 🔒 **1-Domain-Limit** für alle Pläne (vorher Agency-exklusiv). Figma-Plugin nutzt nur noch verified Domain — kein manueller URL-Input mehr. `POST /api/tests` auto-füllt `site_url` von verified domain. 🤖 **"What to test next" AI-Suggestions** — KI analysiert die Live-Seite nach 7 CRO-Kriterien und schlägt 4 page-spezifische A/B-Tests vor (Pro-Feature, ~$0.005/Call). Free-User sehen geblurrten Teaser mit Paywall. Erscheint erst nach Setup-Abschluss (verified domain + Figma plugin). 🧠 **Self-Improving Site Engine** designed (→ `docs/future-features/`). 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
