@@ -79,12 +79,12 @@ Praktisches Beispiel: Variante B zeigt höhere Preise aber weniger Käufe → CV
 
 ---
 
-## 📧 E-Mail-Benachrichtigungen
+## 📧 E-Mail-Benachrichtigungen (#17)
 
-**Status:** Teilweise live (Winner-Mails), Rest zurückgestellt.
+**Status:** Teilweise live (Winner-Mails), Weekly Digest als nächstes geplant. Rest zurückgestellt.
 
 - ✅ „Dein Test hat einen signifikanten Winner" — Resend API + Cron-Job (`/api/cron/check-winners`) live seit 03.07.
-- ⬜ Weekly Digest: „Deine Tests diese Woche"
+- 🟡 **Weekly Digest** (#17, ~4h) — Jeden Montag: „Deine Tests diese Woche" mit aktiven Tests, Visitors, Conversions, Signifikanz-Status. Neuer Cron-Job `check-digest` (läuft montags 9:00 UTC), eigene Resend-Template `weekly-digest.html`. User kann in `/dashboard/account` opt-in/out (`profiles.notify_digest`). Free + Pro.
 - ⬜ „Dein Test hat 100/500/1000 Visitors erreicht"
 
 **Technik:** Resend (`RESEND_API_KEY` Env-Var). Winner-Mail wird bei Signifikanz-Erkennung im Cron-Job versendet.

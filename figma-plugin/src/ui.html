@@ -680,6 +680,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
         <div style="text-align:center;margin-top:14px">
           <button class="btn btn-ghost" onclick="createAccount()" style="font-size:var(--fs-sm)">No account? Sign up free →</button>
         </div>
+        <div style="text-align:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <button class="btn btn-ghost" onclick="openPlayground()" style="font-size:var(--fs-xs);color:var(--text-2)">
+            🏖️ Not sure yet? Try the demo first →
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1191,6 +1196,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <div id="snip-health-warn" style="display:none;color:var(--pro)">
         <strong style="font-weight:var(--fw-semibold)">⚠ Snippet not detected</strong>
         <div style="color:var(--text-2);margin-top:2px">Could not find ab.js on <span id="snip-health-url-warn">your site</span>. Install it below.</div>
+        <div style="margin-top:6px">
+          <a href="#" onclick="event.preventDefault();parent.postMessage({pluginMessage:{type:'OPEN_URL',url:'https://www.getvariante.com/playground?source=figma-plugin-snippet'}},'*')" style="color:var(--primary);font-size:var(--fs-xs);font-weight:var(--fw-med);text-decoration:underline">
+            🏖️ While you wait — see how results look in the Playground →
+          </a>
+        </div>
       </div>
       <div id="snip-health-err" style="display:none;color:var(--err)">
         <strong style="font-weight:var(--fw-semibold)">✗ Check failed</strong>
@@ -1198,7 +1208,10 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </div>
       <div id="snip-health-chk" style="display:flex;align-items:center;gap:6px;color:var(--text-3)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"/></svg>
-        Checking snippet…
+        <span>Checking snippet…</span>
+        <a href="#" onclick="event.preventDefault();parent.postMessage({pluginMessage:{type:'OPEN_URL',url:'https://www.getvariante.com/playground?source=figma-plugin-snippet'}},'*')" style="margin-left:8px;color:var(--primary);font-size:var(--fs-xs);font-weight:var(--fw-med);text-decoration:underline;white-space:nowrap">
+          🏖️ Preview results →
+        </a>
       </div>
     </div>
 
@@ -1379,6 +1392,9 @@ function openDashboardForToken() {
 }
 function openLoginForToken() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/login?source=figma-plugin' } }, '*')
+}
+function openPlayground() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/playground?source=figma-plugin' } }, '*')
 }
 
 // Stellt einen gespeicherten Wizard-Draft wieder her.

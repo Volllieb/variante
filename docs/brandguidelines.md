@@ -20,7 +20,7 @@
 | **Design-Prinzip** | Technisch, übersichtlich, strukturiert — man sieht immer sofort, wo man ist und was man tun kann |
 | **Free/Pro-Prinzip** | Eingeschränkte Bereiche bleiben **sichtbar**, nie versteckt — Upsell durch Sichtbarkeit + klare Kennzeichnung |
 | **Tonalität** | Direkt, dev-frei, ermächtigend, „volle Kontrolle" |
-| **Architektur-Prinzip** | Onboarding = einmaliges Setup, Dashboard = täglicher Arbeitsplatz — kein Setup-Cruft im Daily-Driver |
+
 
 **Abgelöst:** Das bisherige Dark-Aurora/Glassmorphism-System der Landingpage/des Dashboards
 (Violet/Fuchsia-Gradients, Blur-Blobs, `bg-white/[0.03]`-Glass-Cards) sowie der Figma-Blue

@@ -1,4 +1,4 @@
--- 014_source_tracking.sql
+-- 017_source_tracking.sql
 -- First-touch attribution: Woher kam der User?
 -- `signup_source` = figma-plugin | chrome-extension | organic | null
 -- `signup_plan`  = der Plan-Parameter aus der Signup-URL (free | pro)

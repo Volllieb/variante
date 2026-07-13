@@ -89,6 +89,12 @@ export default function HomePage() {
           </a>
           <div className="flex items-center gap-2 sm:gap-3">
             <a
+              href="/playground"
+              className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
+            >
+              Playground
+            </a>
+            <a
               href="/login"
               className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
             >
