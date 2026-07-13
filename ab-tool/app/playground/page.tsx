@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { PandaLogo } from '@/components/PandaLogo'
+import { Play, MousePointer2, Image, Target, Code2, BarChart3, Trophy, FlaskConical } from 'lucide-react'
 
 /* ── Types ── */
 
@@ -128,129 +129,117 @@ export default function PlaygroundPage() {
 
   /* ── Explanation content per step ── */
 
-  const explanations: Record<Step, { title: string; body: React.ReactNode }> = {
+  const explanations: Record<Step, { icon: React.ReactNode; title: string; body: React.ReactNode }> = {
     welcome: {
-      title: '👋 Build your first A/B test — in 2 minutes',
+      icon: <Play className="h-4 w-4 text-text-2 shrink-0" />,
+      title: 'Your first A/B test — in 2 minutes',
       body: (
         <>
           <p className="mb-3">
-            You&apos;re about to see the <strong>entire Variante workflow</strong> end-to-end: pick an element, AI
-            builds Variant B, ship a snippet, watch conversions climb.
+            Full workflow, end-to-end: <strong>pick → design → ship → measure.</strong>
           </p>
           <p className="mb-3">
-            This is a sandboxed demo with a pre-loaded test site. No Figma needed. The real thing? Same flow —
-            but with <strong>your</strong> site and <strong>your</strong> Figma designs.
+            Sandbox demo. Pre-loaded test site, no Figma needed. Same flow on your site —
+            just with your designs and your data.
           </p>
           <p>
-            Click <strong>&ldquo;Try the demo&rdquo;</strong> and we&apos;ll walk you through it.
+            Click <strong>Try the demo</strong> to walk through it.
           </p>
         </>
       ),
     },
     element: {
-      title: '🎯 Step 1: Pick any element on your site',
+      icon: <MousePointer2 className="h-4 w-4 text-text-2 shrink-0" />,
+      title: 'Step 1: Pick an element',
       body: (
         <>
           <p className="mb-3">
-            <strong>One click.</strong> The built-in picker captures HTML, CSS, and page context — button,
-            headline, hero section. Whatever you want to test.
-          </p>
-          <p className="mb-3">
-            No selector hunting. No dev tools. Just click the thing you want to improve.
+            <strong>One click.</strong> The picker captures HTML, CSS, and context —
+            button, headline, hero section. No selector hunting.
           </p>
           <p>
-            In this demo, we&apos;ve pre-picked a &ldquo;Get Started&rdquo; button. Click{' '}
-            <strong>Continue</strong> to see the Variant B you&apos;d design in Figma.
+            We&apos;ve pre-picked a &ldquo;Get Started&rdquo; button. Click{' '}
+            <strong>Continue</strong> to see Variant B.
           </p>
         </>
       ),
     },
     variant: {
-      title: '🖼️ Step 2: Design Variant B in Figma',
+      icon: <Image className="h-4 w-4 text-text-2 shrink-0" />,
+      title: 'Step 2: Design Variant B in Figma',
       body: (
         <>
           <p className="mb-3">
-            Click any layer in your Figma file — a redesigned button, a bolder headline, a different CTA.
-            Variante reads colors, typography, spacing, and effects directly.
-          </p>
-          <p className="mb-3">
-            <strong>This is the magic:</strong> your Figma designs ship to production without a single line
-            of code. The AI uses your layer as the blueprint for Variant B.
+            Click any Figma layer as Variant B. Colors, fonts, spacing read directly.
+            The AI uses your layer as the blueprint — <strong>no code required.</strong>
           </p>
           <p>
-            In this demo, the layer is pre-selected. Click <strong>Continue</strong> to set the conversion goal.
+            Layer is pre-selected here. Click <strong>Continue</strong> to set the goal.
           </p>
         </>
       ),
     },
     goal: {
-      title: '🎯 Step 3: Define what success looks like',
+      icon: <Target className="h-4 w-4 text-text-2 shrink-0" />,
+      title: 'Step 3: Define success',
       body: (
         <>
           <p className="mb-3">
-            Usually it&apos;s a <strong>click on the element you&apos;re testing</strong> — simple and
-            usually what you want.
-          </p>
-          <p className="mb-3">
-            But you can track anything: page views, form submissions, custom events. Whatever moves the needle
-            for your business.
+            Default: a <strong>click on the tested element</strong>. Simple and usually
+            what you want.
           </p>
           <p>
-            In this demo, the goal is pre-set. Click <strong>Generate HTML</strong> — we&apos;re about to ship.
+            Also works with page views, form submits, or custom events.
+            Goal is pre-set. Click <strong>Generate HTML</strong>.
           </p>
         </>
       ),
     },
     snippet: {
-      title: '🚀 Step 4: One script tag. That&apos;s the whole integration.',
+      icon: <Code2 className="h-4 w-4 text-text-2 shrink-0" />,
+      title: 'Step 4: One script tag. Done.',
       body: (
         <>
           <p className="mb-3">
             Paste <strong>one <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;script&gt;</code> tag</strong> into
-            your site&apos;s <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;head&gt;</code> — done.
-            No deploy pipeline. No npm install. No DNS changes.
-          </p>
-          <p className="mb-3">
-            The snippet handles <strong>everything</strong>: traffic splitting, variant serving, conversion
-            tracking. All configured server-side.
+            your <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;head&gt;</code>.
+            No deploy. No npm. No DNS.
           </p>
           <p>
-            This is where most A/B tools bury you in config. We ship. Click{' '}
-            <strong>View Results</strong> — here comes the good part. 👇
+            The snippet handles traffic split, variant serving, and conversion tracking.
+            Click <strong>View Results</strong> — here comes the payoff.
           </p>
         </>
       ),
     },
     dashboard: {
+      icon: dashboardPhase === 'done'
+        ? <Trophy className="h-4 w-4 text-text-2 shrink-0" />
+        : <BarChart3 className="h-4 w-4 text-text-2 shrink-0" />,
       title: dashboardPhase === 'done'
-        ? `🎉 Variant B wins. +${d.lift.toFixed(0)}% more conversions.`
-        : '📊 Watch the numbers climb — seconds, not days',
+        ? `Variant B wins — +${d.lift.toFixed(0)}% more conversions`
+        : 'Watch the numbers climb',
       body: dashboardPhase === 'done' ? (
         <>
           <p className="mb-3">
-            You just ran an <strong>entire A/B test</strong> — from Figma design to statistical significance at
-            95% confidence — in under a minute.
+            You just ran an <strong>entire A/B test</strong> — Figma to 95% significance —
+            in under a minute.
           </p>
           <p className="mb-3">
-            On your own site, the setup is <strong>exactly the same</strong>: 2 minutes to install the snippet.
-            Then design variants in Figma whenever you want to test something. No dev. No deploy. No waiting
-            for engineering.
+            On your site, same setup: 2 minutes for the snippet. Then design variants in Figma
+            whenever. No dev. No deploy.
           </p>
-          <p className="font-semibold">That&apos;s the product. Ready to try it on your own site?</p>
+          <p className="font-semibold">That&apos;s the product. Ready for your own site?</p>
         </>
       ) : (
         <>
           <p className="mb-3">
-            Visitors flow in. Conversions accumulate. Statistical significance builds — all in seconds instead
-            of days. <strong>Sped up ~1000×</strong> for the demo.
-          </p>
-          <p className="mb-3">
-            Watch the numbers on the left. In a moment, Variante will declare a winner at 95% confidence —
-            the same threshold scientists use.
+            Visitors flow. Conversions climb. Significance builds — seconds, not days.
+            <strong> Sped up ~1000×</strong> for the demo.
           </p>
           <p>
-            In reality, this takes hours or days depending on your traffic. The dashboard refreshes every 30
-            seconds in Free, every 10 seconds in Pro.
+            Watch the left panel. Variante declares a winner at 95% confidence.
+            Real traffic takes hours or days — dashboard refreshes every 30s (Free) or 10s (Pro).
           </p>
         </>
       ),
@@ -292,7 +281,8 @@ export default function PlaygroundPage() {
       {/* ── Sandbox Banner ── */}
       <div className="border-b border-pro/20 bg-pro-bg">
         <div className="mx-auto max-w-6xl px-4 py-2.5 text-center text-sm font-medium text-pro/90 sm:px-6">
-          🏖️ You&apos;re in the sandbox — this is a demo, not a real test.
+          <FlaskConical className="inline h-3.5 w-3.5 -mt-0.5 mr-1.5" />
+          Sandbox — demo only. Not a real test.
         </div>
       </div>
 
@@ -333,7 +323,8 @@ export default function PlaygroundPage() {
           {/* ── Explanation Panel ── */}
           <div className="flex-1 min-w-0">
             <div className="rounded-[10px] border border-border bg-bg-1 p-6">
-              <h2 className="text-[15px] font-semibold text-text">
+              <h2 className="text-[15px] font-semibold text-text flex items-center gap-2">
+                {explanations[step].icon}
                 {explanations[step].title}
               </h2>
               <div className="mt-3 text-sm text-text-2 leading-relaxed">
@@ -365,7 +356,7 @@ export default function PlaygroundPage() {
                   href="/signup"
                   className="inline-flex items-center justify-center gap-2 rounded-[6px] bg-white px-6 py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85"
                 >
-                  ✨ Create free account →
+                  Create free account →
                 </a>
                 <a
                   href="https://www.figma.com/community/plugin/1653734891132085565"
@@ -373,7 +364,7 @@ export default function PlaygroundPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 rounded-[6px] border border-border px-6 py-2.5 text-[13px] font-medium text-text transition-colors hover:border-border-strong hover:bg-bg-2"
                 >
-                  🎨 Install Figma Plugin →
+                  Figma Plugin →
                 </a>
               </div>
               <p className="mt-3 text-xs text-text-3">
@@ -440,10 +431,10 @@ function PluginBox({
           </div>
           <div className="mt-8 space-y-3">
             <button className={boxBtnPrimary} onClick={() => onGo('element')}>
-              🚀 Try the demo →
+              Try the demo →
             </button>
             <p className="text-[11px] text-gray-300 text-center">
-              In the real plugin, you&apos;d connect your account here.
+              In the real plugin, connect your account here.
             </p>
           </div>
         </div>
@@ -631,7 +622,7 @@ function PluginBox({
                 onClick={onCopyPrompt}
               >
                 <span className="text-[12px] font-medium text-gray-700">
-                  {copiedPrompt ? '✓ Copied!' : '✨ Copy prompt'}
+                  {copiedPrompt ? '✓ Copied' : 'Copy prompt'}
                 </span>
                 <span className="text-[11px] text-gray-400">
                   For Cursor, Copilot, ChatGPT
@@ -708,7 +699,10 @@ function PluginBox({
             {/* Winner banner */}
             {dashboardPhase === 'done' && (
               <div className="mt-3 animate-[fadeIn_0.4s_ease-out] rounded-lg border border-green-200 bg-green-50 p-3 text-center">
-                <p className="text-[12px] font-semibold text-green-800">🎉 Variant B is winning!</p>
+                <p className="text-[12px] font-semibold text-green-800 flex items-center justify-center gap-1.5">
+                  <Trophy className="h-3.5 w-3.5" />
+                  Variant B is winning
+                </p>
                 <p className="text-[11px] text-green-600">Significant at 95%</p>
               </div>
             )}
@@ -748,9 +742,7 @@ function PluginBox({
                   <div>
                     <p className="text-[10px] text-gray-400">CR</p>
                     <p className="text-[15px] font-semibold text-[#0D99FF] tabular-nums">{d.crb.toFixed(1)}%</p>
-                    {dashboardPhase === 'done' && (
-                      <span className="ml-1 text-[11px]">✨</span>
-                    )}
+
                   </div>
                 </div>
               </div>
@@ -782,7 +774,7 @@ function PluginBox({
                   : 'bg-gray-100 text-gray-300 cursor-default pointer-events-none'
               }`}
             >
-              🎨 Try it yourself →
+              Try it yourself →
             </a>
           </div>
         </>
