@@ -985,66 +985,90 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <!-- Scope picker — what the AI should change -->
-    <div id="gen-scope-area">
-      <span class="lbl">What should the AI change?</span>
-      <div class="scope-options" role="radiogroup" aria-label="Generation scope">
-        <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
-        <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
-        <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
-      </div>
-      <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
+    <!-- Normal-Mode: HTML-Generierung mit Scope + Preview -->
+    <div id="gen-normal">
+      <div id="gen-scope-area">
+        <span class="lbl">What should the AI change?</span>
+        <div class="scope-options" role="radiogroup" aria-label="Generation scope">
+          <button class="scope-btn on" data-scope="all" onclick="setScope('all')" aria-pressed="true" role="radio" aria-checked="true">Everything</button>
+          <button class="scope-btn" data-scope="text" onclick="setScope('text')" aria-pressed="false" role="radio" aria-checked="false">Text only</button>
+          <button class="scope-btn" data-scope="color" onclick="setScope('color')" aria-pressed="false" role="radio" aria-checked="false">Colors only</button>
+        </div>
+        <div class="scope-desc" id="scope-desc">Full visual redesign — layout, colors, and copy can all change.</div>
 
-      <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+        <button class="btn btn-primary" id="gen-start-btn" onclick="startGeneration()" style="margin-top:16px;width:100%">Generate Variant B →</button>
+      </div>
+
+      <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
+        <div class="spinner" aria-hidden="true"></div>
+        <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
+      </div>
+
+      <div id="gen-result" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="lbl" style="margin-bottom:0">Preview</span>
+          <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
+            <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
+            <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
+          </div>
+          <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
+            <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            </button>
+            <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
+        <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
+
+        <details class="code-drawer">
+          <summary>Show generated HTML</summary>
+          <pre id="gen-html"></pre>
+        </details>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span style="font-size:var(--fs-sm);color:var(--text-2);flex-shrink:0">Scope:</span>
+          <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
+          <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
+          <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+        </div>
+
+        <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          Refine with AI
+        </button>
+        <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+      </div>
     </div>
 
-    <div class="loading-row loading-center" id="l-generate" role="status" aria-live="polite" style="display:none">
-      <div class="spinner" aria-hidden="true"></div>
-      <span id="l-generate-text">AI generating Variant B… (up to 30s)</span>
-    </div>
-
-    <div id="gen-result" style="display:none">
-      <!-- Toggle switches: A/B and Light/Dark -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <span class="lbl" style="margin-bottom:0">Preview</span>
-        <div class="toggle-row toggle-icon" id="gen-variant-toggle" data-variant="b">
-          <button type="button" class="toggle-btn" data-val="a" onclick="setPreviewVariant('a')" aria-label="Show original (A)" aria-pressed="false" title="Original (A)">A</button>
-          <button type="button" class="toggle-btn on" data-val="b" onclick="setPreviewVariant('b')" aria-label="Show variant (B)" aria-pressed="true" title="Variant (B)">B</button>
-        </div>
-        <div class="toggle-row toggle-icon" id="gen-bg-toggle" data-bg="light" style="margin-left:auto">
-          <button type="button" class="toggle-btn on" data-val="light" onclick="setBg('light')" aria-label="Light background" aria-pressed="true" title="Light background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          </button>
-          <button type="button" class="toggle-btn" data-val="dark" onclick="setBg('dark')" aria-label="Dark background" aria-pressed="false" title="Dark background">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="frame" id="gen-variant-preview" style="background:#fff;transition:background var(--dur-med);overflow:hidden;max-height:200px"></div>
-      <div class="preview-note">Rendered with your site's CSS — close approximation, not pixel-perfect.</div>
-
-      <!-- Generated HTML drawer — directly under preview -->
-      <details class="code-drawer">
-        <summary>Show generated HTML</summary>
-        <pre id="gen-html"></pre>
-      </details>
-
-      <div class="divider"></div>
-
-      <!-- Change scope & regenerate -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-        <span style="font-size:var(--fs-sm);color:var(--text-2);flex-shrink:0">Scope:</span>
-        <button class="scope-btn" data-scope="all" onclick="setScope('all');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Everything</button>
-        <button class="scope-btn" data-scope="text" onclick="setScope('text');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Text</button>
-        <button class="scope-btn" data-scope="color" onclick="setScope('color');generate()" role="radio" aria-checked="false" style="font-size:var(--fs-xs);padding:5px 4px">Colors</button>
+    <!-- Swap-Mode: CSS-Generierung mit Code-Preview -->
+    <div id="gen-swap" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <span class="lbl">Swapping</span>
+        <div class="card-val" id="gen-swap-summary"></div>
       </div>
 
-      <!-- Refine: opens overlay -->
-      <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-        Refine with AI
-      </button>
-      <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
+      <button class="btn btn-primary" id="gen-swap-start-btn" onclick="startSwapGeneration()" style="width:100%">Generate CSS Swap →</button>
+
+      <div class="loading-row loading-center" id="l-generate-swap" role="status" aria-live="polite" style="display:none">
+        <div class="spinner" aria-hidden="true"></div>
+        <span>AI generating CSS swap… (up to 30s)</span>
+      </div>
+
+      <div id="gen-swap-result" style="display:none">
+        <span class="lbl">Generated CSS</span>
+        <pre id="gen-swap-css" style="background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r);padding:12px;font:11px 'SF Mono','Fira Code',monospace;color:var(--text);max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:8px"></pre>
+
+        <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          Refine with AI
+        </button>
+        <button class="btn btn-ghost" onclick="startOver()" style="width:100%">Start over</button>
+      </div>
     </div>
 
     <div class="err" id="e-generate" role="alert" style="margin-top:6px"></div>
@@ -2294,6 +2318,60 @@ async function generate() {
   }
 }
 
+// Swap-Mode: CSS-Generierung (kein HTML-Preview)
+function startSwapGeneration() {
+  if (generating) return
+  generateSwap()
+}
+
+async function generateSwap() {
+  if (generating) return
+  generating = true
+  generateDone = false
+  generateFailed = false
+  $('gen-swap-result').style.display = 'none'
+  $('l-generate-swap').style.display = 'flex'
+  var startBtn = $('gen-swap-start-btn'); if (startBtn) startBtn.style.display = 'none'
+  hideUpgradeBanner()
+  try {
+    var body = {
+      testId: state.testId,
+      mode: 'reorder',
+      frameContent: state.frameContent || null,
+      scope: 'all',
+      selector_b: state.reorderSelector,
+    }
+    var res = await afetch(API + '/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    if (!res.ok) {
+      var eb = {}; try { eb = await res.json() } catch (_) {}
+      if (eb.upgrade) {
+        showUpgradeBanner(eb.message || 'Generation limit reached.')
+        throw new Error(eb.message || 'Generation limit reached')
+      }
+      throw new Error(apiErrorMessage(res.status, eb))
+    }
+    var data = await res.json()
+    state.html = data.css || '' // Store CSS in state.html for consistency
+    $('gen-swap-css').textContent = state.html
+    $('gen-swap-result').style.display = 'block'
+    $('gen-ftr').style.display = 'block'
+    $('btn-gen-retry').style.display = 'none'
+    generateDone = true
+  } catch (e) {
+    generateFailed = true
+    err('generate', e.message)
+    $('btn-gen-retry').style.display = 'block'
+    if (state.html) { $('gen-swap-result').style.display = 'block'; $('gen-ftr').style.display = 'block' }
+  } finally {
+    $('l-generate-swap').style.display = 'none'
+    generating = false
+  }
+}
+
 async function refine() {
   if (generating) return
   generating = true
@@ -2564,20 +2642,32 @@ window.onmessage = (event) => {
   if (msg.type === 'SELECTION') {
     const s = msg.selection || { count: 0 }
     const valid = s.count === 1 && s.exportable
-    const exportBtn = $('btn-export')
-    if (valid) {
-      $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
-      $('d-waiting').style.display = 'none'
-      $('d-done').style.display = 'block'
-      if (exportBtn) exportBtn.disabled = false
+    const swapActive = $('design-swap') && $('design-swap').style.display !== 'none'
+
+    if (swapActive) {
+      // Swap-Mode: Figma-Design optional
+      if (valid) {
+        $('sel-info-swap').textContent = s.name + '  ·  ' + s.nodeType
+        $('d-waiting-swap').style.display = 'none'
+        $('d-done-swap').style.display = 'block'
+        var btnSwap = $('btn-swap-generate'); if (btnSwap) btnSwap.disabled = false
+      }
     } else {
-      let hint = ''
-      if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
-      else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
-      $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
-      $('d-waiting').style.display = 'block'
-      $('d-done').style.display = 'none'
-      if (exportBtn) exportBtn.disabled = true
+      const exportBtn = $('btn-export')
+      if (valid) {
+        $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
+        $('d-waiting').style.display = 'none'
+        $('d-done').style.display = 'block'
+        if (exportBtn) exportBtn.disabled = false
+      } else {
+        let hint = ''
+        if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
+        else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
+        $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
+        $('d-waiting').style.display = 'block'
+        $('d-done').style.display = 'none'
+        if (exportBtn) exportBtn.disabled = true
+      }
     }
     return
   }
@@ -2586,9 +2676,14 @@ window.onmessage = (event) => {
     state.screenshot  = msg.base64
     state.frameContent = msg.content || null
     $('l-design').style.display = 'none'
-    const exportBtn = $('btn-export')
-    if (exportBtn) exportBtn.disabled = false
-    navPush('generate')
+    const swapActive = $('design-swap') && $('design-swap').style.display !== 'none'
+    if (swapActive) {
+      goToGenerateSwap()
+    } else {
+      const exportBtn = $('btn-export')
+      if (exportBtn) exportBtn.disabled = false
+      navPush('generate')
+    }
     return
   }
 
