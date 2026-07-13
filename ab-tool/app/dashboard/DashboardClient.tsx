@@ -20,9 +20,10 @@ import {
   Users,
   TrendingUp,
   Percent,
+  LogIn,
   HeartPulse,
   Puzzle,
-  Code2,
+  Check,
   Globe,
   Search,
   ArrowUpDown,
@@ -221,9 +222,9 @@ export function DashboardClient({
               </div>
             </div>
 
-            {/* Health / Setup */}
+            {/* Setup — compact 3-step checklist */}
             <div className="mb-3 mt-6 flex items-center gap-2">
-              <h2 className="text-[13px] font-semibold text-[#ededed]">Health / Setup</h2>
+              <h2 className="text-[13px] font-semibold text-[#ededed]">Setup</h2>
               <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/25" />
             </div>
             <Link
@@ -232,14 +233,14 @@ export function DashboardClient({
             >
               <div>
                 <MetricRow
-                  icon={Code2}
-                  label="Snippet"
-                  value={hasVerifiedDomain ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
+                  icon={LogIn}
+                  label="Login"
+                  value={<Check className="h-3.5 w-3.5 text-[#2fd76c]" />}
                 />
                 <MetricRow
                   icon={Globe}
-                  label="Website"
-                  value={primaryDomain ? <span className="text-[11px]">{primaryDomain}</span> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
+                  label="Connect Website"
+                  value={hasVerifiedDomain && primaryDomain ? <span className="text-[11px]">{primaryDomain}</span> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
                 />
                 <MetricRow
                   icon={Puzzle}

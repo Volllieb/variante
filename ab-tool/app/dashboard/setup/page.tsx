@@ -8,7 +8,9 @@ export type SetupData = {
   plan: string
   apiToken: string
   hasFigmaPlugin: boolean
-  siteUrl: string | null
+  siteUrl: string | null        // verified domain URL
+  domainId: string | null       // for verify call
+  hasAnyDomain: boolean         // whether user has saved a domain at all
   testCount: number
 }
 
@@ -24,7 +26,7 @@ export default async function SetupPage() {
       .single(),
     supabase
       .from('domains')
-      .select('url, verified')
+      .select('id, url, verified')
       .eq('user_id', user.id)
       .limit(5),
   ])
@@ -34,10 +36,12 @@ export default async function SetupPage() {
 
   if (!profile) {
     await ensureProfile(user.id)
-    return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, siteUrl: null, testCount: 0 }} />
+    return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, siteUrl: null, domainId: null, hasAnyDomain: false, testCount: 0 }} />
   }
 
   const verifiedDomain = domains.find((d) => d.verified)?.url ?? null
+  const verifiedDomainId = domains.find((d) => d.verified)?.id ?? null
+  const hasAnyDomain = domains.length > 0
   const testCount = domains.filter((d) => d.verified).length // proxy: verified domains = einsatzbereit
 
   return (
@@ -47,6 +51,8 @@ export default async function SetupPage() {
         apiToken: profile.api_token ?? '',
         hasFigmaPlugin: profile.has_figma_plugin ?? false,
         siteUrl: verifiedDomain,
+        domainId: verifiedDomainId,
+        hasAnyDomain,
         testCount,
       }}
     />

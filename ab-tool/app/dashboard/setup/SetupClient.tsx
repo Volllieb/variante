@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   HeartPulse,
-  Code2,
+  LogIn,
+  Globe,
   Puzzle,
   Check,
   AlertTriangle,
@@ -11,7 +12,6 @@ import {
   Loader2,
   Copy,
   ChevronDown,
-  Shield,
 } from 'lucide-react'
 import type { SetupData } from './page'
 
@@ -28,104 +28,139 @@ const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
-type CheckId = 'snippet' | 'plugin'
+type StepId = 'login' | 'website' | 'plugin'
 
-type CheckResult = {
-  status: 'pending' | 'loading' | 'ok' | 'warn' | 'err'
+type StepState = {
+  status: 'ok' | 'loading' | 'err' | 'pending'
   label: string
   summary: string
-  detail?: string
 }
 
+type WebsiteState =
+  | { phase: 'input'; error?: string }
+  | { phase: 'saving' }
+  | { phase: 'checking'; url: string }
+  | { phase: 'not-found'; url: string }
+  | { phase: 'verified'; url: string }
+
 export function SetupClient({ data }: { data: SetupData }) {
-  const [expanded, setExpanded] = useState<CheckId | null>(null)
+  const [expanded, setExpanded] = useState<StepId | null>(null)
+
+  // ── Website state ──
+  const [urlInput, setUrlInput] = useState('')
+  const [website, setWebsite] = useState<WebsiteState>(() => {
+    if (data.siteUrl) return { phase: 'verified', url: data.siteUrl }
+    if (data.hasAnyDomain) return { phase: 'input' } // has domain but not verified — let them re-enter
+    return { phase: 'input' }
+  })
   const [snippetCopied, setSnippetCopied] = useState(false)
   const [promptCopied, setPromptCopied] = useState(false)
   const [tokenCopied, setTokenCopied] = useState(false)
 
-  const [checks, setChecks] = useState<Record<CheckId, CheckResult>>({
-    snippet: { status: 'pending', label: 'Snippet installed', summary: 'Checking if ab.js is on your site…' },
-    plugin: { status: 'pending', label: 'Figma plugin connected', summary: 'Checking plugin status…' },
-  })
+  // ── Derived step states ──
+  const steps: Record<StepId, StepState> = {
+    login: { status: 'ok', label: 'Login', summary: 'You\'re signed in.' },
+    website: website.phase === 'verified'
+      ? { status: 'ok', label: 'Connect Website', summary: `Snippet active on ${website.url}` }
+      : website.phase === 'checking'
+        ? { status: 'loading', label: 'Connect Website', summary: `Checking ${website.url}…` }
+        : website.phase === 'saving'
+          ? { status: 'loading', label: 'Connect Website', summary: 'Saving domain…' }
+          : website.phase === 'not-found'
+            ? { status: 'err', label: 'Connect Website', summary: `Snippet not found on ${website.url}` }
+            : { status: 'pending', label: 'Connect Website', summary: 'Add your website to run tests.' },
+    plugin: data.hasFigmaPlugin
+      ? { status: 'ok', label: 'Figma Plugin Connect', summary: 'Plugin is linked to your account.' }
+      : { status: 'pending', label: 'Figma Plugin Connect', summary: 'Install the Figma plugin and link it.' },
+  }
 
-  // ── Snippet auto-check ──
-  const checkSnippet = useCallback(async (url: string) => {
-    setChecks((prev) => ({ ...prev, snippet: { ...prev.snippet, status: 'loading' } }))
+  const allOk = Object.values(steps).every((s) => s.status === 'ok')
+  const issues = Object.values(steps).filter((s) => s.status === 'err' || s.status === 'pending').length
+
+  // ── Normalize URL ──
+  const normalize = (raw: string) =>
+    raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+
+  // ── Submit domain → save → snippet check ──
+  const submitDomain = useCallback(async () => {
+    const normalized = normalize(urlInput)
+    if (!normalized || !normalized.includes('.')) {
+      setWebsite({ phase: 'input', error: 'Please enter a valid domain (e.g. yoursite.com)' })
+      return
+    }
+
+    setWebsite({ phase: 'saving' })
+
     try {
-      const res = await fetch('/api/snippet-check', {
+      const saveRes = await fetch('/api/domains', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: normalized }),
+      })
+      if (saveRes.status === 402) {
+        setWebsite({ phase: 'input', error: 'Multiple websites require the Agency plan.' })
+        return
+      }
+      if (!saveRes.ok && saveRes.status !== 409) {
+        const d = await saveRes.json().catch(() => ({}))
+        setWebsite({ phase: 'input', error: d.error || 'Failed to save domain.' })
+        return
+      }
+    } catch {
+      setWebsite({ phase: 'input', error: 'Connection failed. Check your internet.' })
+      return
+    }
+
+    // Step 2: snippet check
+    setWebsite({ phase: 'checking', url: normalized })
+    try {
+      const checkRes = await fetch('/api/snippet-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_url: normalized }),
+      })
+      const json = await checkRes.json()
+
+      if (json.detected) {
+        // Verify the domain
+        const domainsRes = await fetch('/api/domains')
+        const { domains } = await domainsRes.json()
+        const domain = (domains || []).find((d: { url: string; id: string }) => d.url === normalized)
+        if (domain?.id) {
+          await fetch('/api/domains/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domainId: domain.id }),
+          })
+        }
+        setWebsite({ phase: 'verified', url: normalized })
+      } else {
+        setWebsite({ phase: 'not-found', url: normalized })
+      }
+    } catch {
+      setWebsite({ phase: 'not-found', url: normalized })
+    }
+  }, [urlInput, normalize])
+
+  // ── Re-check existing verified domain ──
+  const recheckDomain = useCallback(async (url: string) => {
+    setWebsite({ phase: 'checking', url })
+    try {
+      const checkRes = await fetch('/api/snippet-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ site_url: url }),
       })
-      const json = await res.json()
+      const json = await checkRes.json()
       if (json.detected) {
-        setChecks((prev) => ({
-          ...prev,
-          snippet: { status: 'ok', label: 'Snippet installed', summary: 'ab.js detected on your site.' },
-        }))
-      } else if (json.reason) {
-        setChecks((prev) => ({
-          ...prev,
-          snippet: {
-            status: 'warn',
-            label: 'Snippet not reachable',
-            summary: json.reason,
-            detail: url,
-          },
-        }))
+        setWebsite({ phase: 'verified', url })
       } else {
-        setChecks((prev) => ({
-          ...prev,
-          snippet: {
-            status: 'err',
-            label: 'Snippet not found',
-            summary: 'No ab.js or __ab_hide found on the page.',
-            detail: url,
-          },
-        }))
+        setWebsite({ phase: 'not-found', url })
       }
     } catch {
-      setChecks((prev) => ({
-        ...prev,
-        snippet: {
-          status: 'warn',
-          label: 'Check failed',
-          summary: 'Could not verify snippet. Your site may be behind a firewall.',
-        },
-      }))
+      setWebsite({ phase: 'not-found', url })
     }
   }, [])
-
-  // ── Plugin check (server-provided flag) ──
-  useEffect(() => {
-    setChecks((prev) => ({
-      ...prev,
-      plugin: data.hasFigmaPlugin
-        ? { status: 'ok', label: 'Figma plugin connected', summary: 'Plugin is linked to your account.' }
-        : { status: 'err', label: 'Figma plugin not connected', summary: 'Install the plugin and paste your token to link it.' },
-    }))
-  }, [data.hasFigmaPlugin])
-
-  // ── Run snippet check on mount if we have a URL ──
-  useEffect(() => {
-    if (data.siteUrl) {
-      checkSnippet(data.siteUrl)
-    } else {
-      setChecks((prev) => ({
-        ...prev,
-        snippet: {
-          status: 'warn',
-          label: 'No site to check',
-          summary: 'Create a test first — the health check needs a site URL to verify the snippet.',
-        },
-      }))
-    }
-  }, [data.siteUrl, checkSnippet])
-
-  // ── Derived health ──
-  const issues = Object.values(checks).filter((c) => c.status === 'err' || c.status === 'warn').length
-  const allOk = Object.values(checks).every((c) => c.status === 'ok')
-  const hasResults = Object.values(checks).every((c) => c.status !== 'pending' && c.status !== 'loading')
 
   function copySnippet() {
     navigator.clipboard.writeText(SNIPPET_CODE).then(() => {
@@ -135,9 +170,9 @@ export function SetupClient({ data }: { data: SetupData }) {
   }
 
   function copyPrompt() {
-    const url = data.siteUrl || '(your site URL)'
+    const url = website.phase === 'not-found' || website.phase === 'checking' ? website.url : urlInput || '(your site URL)'
     const prompt = [
-      `Add the variante A/B testing snippet below to ${url}.`,
+      `Add the variante A/B testing snippet below to https://${url}.`,
       '',
       '## 1. Check if already installed',
       'Search the codebase for `id="__ab_hide"` or `ab.js`. If found, confirm the snippet is already present and skip the rest.',
@@ -167,7 +202,7 @@ export function SetupClient({ data }: { data: SetupData }) {
       '',
       '## 6. Your response',
       'When the snippet is inserted, respond ONLY with this short confirmation — no analysis, no caveats:',
-      `✅ variante snippet added to ${url}. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard`,
+      `✅ variante snippet added to https://${url}. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard`,
     ].join('\n')
     navigator.clipboard.writeText(prompt).then(() => {
       setPromptCopied(true)
@@ -182,29 +217,31 @@ export function SetupClient({ data }: { data: SetupData }) {
     })
   }
 
-  function retrySnippet() {
-    if (data.siteUrl) checkSnippet(data.siteUrl)
-  }
-
-  const statusIcon = (status: CheckResult['status']) => {
-    if (status === 'loading' || status === 'pending') return <Loader2 className="h-4 w-4 animate-spin text-[#ededed]/30" />
+  const statusIcon = (status: StepState['status']) => {
+    if (status === 'loading') return <Loader2 className="h-4 w-4 animate-spin text-[#ededed]/30" />
     if (status === 'ok') return <Check className="h-4 w-4" style={{ color: T.ok }} />
-    if (status === 'warn') return <AlertTriangle className="h-4 w-4" style={{ color: T.pro }} />
-    return <X className="h-4 w-4" style={{ color: T.err }} />
+    if (status === 'err') return <X className="h-4 w-4" style={{ color: T.err }} />
+    return <div className="h-4 w-4 rounded-full border-2 border-[#ededed]/12" />
   }
 
-  const statusBg = (status: CheckResult['status']) => {
+  const statusBg = (status: StepState['status']) => {
     if (status === 'ok') return `${T.ok}1f`
-    if (status === 'warn') return `${T.pro}1f`
     if (status === 'err') return `${T.err}1f`
+    if (status === 'loading') return `${T.text}08`
     return 'transparent'
   }
 
-  const statusBorder = (status: CheckResult['status']) => {
+  const statusBorder = (status: StepState['status']) => {
     if (status === 'ok') return `${T.ok}33`
-    if (status === 'warn') return `${T.pro}33`
     if (status === 'err') return `${T.err}33`
+    if (status === 'loading') return 'rgba(255,255,255,.08)'
     return 'rgba(255,255,255,.08)'
+  }
+
+  const stepIcons: Record<StepId, React.ComponentType<{ className?: string }>> = {
+    login: LogIn,
+    website: Globe,
+    plugin: Puzzle,
   }
 
   return (
@@ -216,48 +253,80 @@ export function SetupClient({ data }: { data: SetupData }) {
             <HeartPulse className="h-4 w-4 text-[#ededed]/50" />
             <h1 className="text-[18px] font-semibold text-[#ededed]">Setup health check</h1>
           </div>
-          {hasResults && (
-            <p className="mt-1.5 text-[12px] text-[#ededed]/40">
-              {allOk
-                ? 'All systems go — your setup is healthy.'
-                : `${issues} issue${issues !== 1 ? 's' : ''} found. Click each item for details and fixes.`}
-            </p>
-          )}
+          <p className="mt-1.5 text-[12px] text-[#ededed]/40">
+            {allOk
+              ? 'All systems go — your setup is healthy.'
+              : `${issues} step${issues !== 1 ? 's' : ''} remaining. Complete each one in order.`}
+          </p>
         </div>
 
         {/* Overall status pill */}
-        {hasResults && (
-          <div
-            className="flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 text-[12px] font-medium"
-            style={{
-              background: allOk ? `${T.ok}0f` : issues > 0 ? `${T.pro}0f` : `${T.text}08`,
-              border: `1px solid ${allOk ? `${T.ok}33` : issues > 0 ? `${T.pro}33` : 'rgba(255,255,255,.10)'}`,
-              color: allOk ? T.ok : issues > 0 ? T.pro : `${T.text}62`,
-            }}
-          >
-            {allOk ? <Check className="h-3.5 w-3.5" /> : issues > 0 ? <AlertTriangle className="h-3.5 w-3.5" /> : null}
-            {allOk ? 'Healthy — no issues detected' : `${issues} check${issues !== 1 ? 's' : ''} need${issues === 1 ? 's' : ''} attention`}
-          </div>
-        )}
+        <div
+          className="flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 text-[12px] font-medium"
+          style={{
+            background: allOk ? `${T.ok}0f` : `${T.pro}0f`,
+            border: `1px solid ${allOk ? `${T.ok}33` : `${T.pro}33`}`,
+            color: allOk ? T.ok : T.pro,
+          }}
+        >
+          {allOk ? <Check className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+          {allOk ? 'Healthy — no issues detected' : `${issues} step${issues !== 1 ? 's' : ''} need${issues === 1 ? 's' : ''} attention`}
+        </div>
 
-        {/* Check cards */}
+        {/* Step cards */}
         <div className="space-y-3">
-          {/* Snippet check */}
-          <CheckCard
-            check={checks.snippet}
-            expanded={expanded === 'snippet'}
-            onToggle={() => setExpanded(expanded === 'snippet' ? null : 'snippet')}
-            icon={Code2}
-            statusIcon={statusIcon(checks.snippet.status)}
-            statusBg={statusBg(checks.snippet.status)}
-            statusBorder={statusBorder(checks.snippet.status)}
+          {/* Step 1: Login */}
+          <StepCard
+            step={steps.login}
+            icon={LogIn}
+            expanded={expanded === 'login'}
+            onToggle={() => setExpanded(expanded === 'login' ? null : 'login')}
+            statusIcon={statusIcon(steps.login.status)}
+            statusBg={statusBg(steps.login.status)}
+            statusBorder={statusBorder(steps.login.status)}
+            stepNumber={1}
+          >
+            <p className="text-[12px] leading-relaxed text-[#ededed]/62">
+              You&apos;re signed in and authenticated. Your account is ready — no additional login steps needed.
+            </p>
+          </StepCard>
+
+          {/* Step 2: Connect Website */}
+          <StepCard
+            step={steps.website}
+            icon={Globe}
+            expanded={expanded === 'website'}
+            onToggle={() => setExpanded(expanded === 'website' ? null : 'website')}
+            statusIcon={statusIcon(steps.website.status)}
+            statusBg={statusBg(steps.website.status)}
+            statusBorder={statusBorder(steps.website.status)}
+            stepNumber={2}
           >
             <div className="space-y-4">
-              {checks.snippet.status === 'err' || checks.snippet.status === 'warn' ? (
+              {website.phase === 'verified' ? (
                 <>
                   <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                    Paste this snippet into the <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;head&gt;</code> of every page you want to test. It&apos;s framework-agnostic — no build step, no npm.
+                    The snippet is live on <strong className="text-[#ededed]/80">https://{website.url}</strong>. Data is flowing — visitors and conversions are being tracked.
                   </p>
+                  <button
+                    onClick={() => recheckDomain(website.url)}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/[0.12] px-3 py-1.5 text-[11px] font-medium text-[#ededed]/62 transition-colors hover:border-white/[0.20] hover:text-[#ededed]"
+                  >
+                    Re-check snippet
+                  </button>
+                </>
+              ) : website.phase === 'not-found' ? (
+                <>
+                  <div
+                    className="flex items-start gap-3 rounded-[8px] px-3 py-2.5"
+                    style={{ background: `${T.pro}0f`, border: `1px solid ${T.pro}33` }}
+                  >
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: T.pro }} />
+                    <p className="text-[12px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
+                      Snippet not detected on <strong className="text-[#ededed]/62">https://{website.url}</strong>.
+                      Add it to your site&apos;s <code className="rounded-[4px] bg-white/[0.06] px-1 text-[11px]">&lt;head&gt;</code>, then retry.
+                    </p>
+                  </div>
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
@@ -286,39 +355,87 @@ export function SetupClient({ data }: { data: SetupData }) {
 
                   <FrameworkExamples />
 
-                  <button
-                    onClick={retrySnippet}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/[0.12] px-3 py-1.5 text-[11px] font-medium text-[#ededed]/62 transition-colors hover:border-white/[0.20] hover:text-[#ededed]"
-                  >
-                    Re-check snippet
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => recheckDomain(website.url)}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/[0.12] px-3 py-1.5 text-[11px] font-medium text-[#ededed]/62 transition-colors hover:border-white/[0.20] hover:text-[#ededed]"
+                    >
+                      Re-check snippet
+                    </button>
+                    <button
+                      onClick={() => setWebsite({ phase: 'input' })}
+                      className="cursor-pointer text-[11px] text-[#ededed]/25 transition-colors hover:text-[#ededed]/40"
+                    >
+                      Change URL
+                    </button>
+                  </div>
                 </>
-              ) : checks.snippet.status === 'ok' ? (
-                <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                  The snippet is live on your site. Data is flowing — visitors and conversions are being tracked.
-                </p>
               ) : (
-                <p className="text-[12px] leading-relaxed text-[#ededed]/40">
-                  {!data.siteUrl
-                    ? 'Create a test with a site URL first, then come back here to verify snippet installation.'
-                    : 'Waiting for site URL to run the snippet check…'}
-                </p>
+                <>
+                  <p className="text-[12px] leading-relaxed text-[#ededed]/62">
+                    Paste this snippet into the <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;head&gt;</code> of every page you want to test. It&apos;s framework-agnostic — no build step, no npm.
+                  </p>
+
+                  <div className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-[#0a0a0a] px-4 py-3">
+                    <Globe className="h-4 w-4 shrink-0 text-[#ededed]/40" />
+                    <input
+                      type="text"
+                      value={urlInput}
+                      onChange={(e) => {
+                        setUrlInput(e.target.value)
+                        if (website.phase === 'input' && 'error' in website) setWebsite({ phase: 'input' })
+                      }}
+                      onKeyDown={(e) => e.key === 'Enter' && submitDomain()}
+                      placeholder="yoursite.com"
+                      disabled={website.phase === 'saving' || website.phase === 'checking'}
+                      autoFocus
+                      className="flex-1 bg-transparent text-[15px] text-[#ededed] placeholder:text-[#ededed]/25 outline-none"
+                    />
+                  </div>
+
+                  {website.phase === 'input' && 'error' in website && website.error && (
+                    <p className="text-[12px] text-[#f5455c]">{website.error}</p>
+                  )}
+
+                  <button
+                    onClick={submitDomain}
+                    disabled={website.phase !== 'input' || !urlInput.trim()}
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-white py-2.5 text-[14px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-30"
+                  >
+                    {website.phase === 'saving' ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                    ) : website.phase === 'checking' ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Checking snippet…</>
+                    ) : (
+                      'Continue'
+                    )}
+                  </button>
+
+                  <p className="text-center text-[11px] text-[#ededed]/30">
+                    We check if the snippet is installed on your site. You can skip and add it later.
+                  </p>
+                </>
               )}
             </div>
-          </CheckCard>
+          </StepCard>
 
-          {/* Plugin check */}
-          <CheckCard
-            check={checks.plugin}
+          {/* Step 3: Figma Plugin Connect */}
+          <StepCard
+            step={steps.plugin}
+            icon={Puzzle}
             expanded={expanded === 'plugin'}
             onToggle={() => setExpanded(expanded === 'plugin' ? null : 'plugin')}
-            icon={Puzzle}
-            statusIcon={statusIcon(checks.plugin.status)}
-            statusBg={statusBg(checks.plugin.status)}
-            statusBorder={statusBorder(checks.plugin.status)}
+            statusIcon={statusIcon(steps.plugin.status)}
+            statusBg={statusBg(steps.plugin.status)}
+            statusBorder={statusBorder(steps.plugin.status)}
+            stepNumber={3}
           >
             <div className="space-y-4">
-              {checks.plugin.status === 'err' ? (
+              {data.hasFigmaPlugin ? (
+                <p className="text-[12px] leading-relaxed text-[#ededed]/62">
+                  Plugin is linked. Variants created in Figma will appear in your dashboard automatically.
+                </p>
+              ) : (
                 <>
                   <p className="text-[12px] leading-relaxed text-[#ededed]/62">
                     The Figma plugin lets you create A/B variants directly from your designs.{' '}
@@ -352,34 +469,18 @@ export function SetupClient({ data }: { data: SetupData }) {
                     </p>
                   </div>
                 </>
-              ) : (
-                <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                  Plugin is linked. Variants created in Figma will appear in your dashboard automatically.
-                </p>
               )}
             </div>
-          </CheckCard>
+          </StepCard>
         </div>
-
-        {/* Privacy note */}
-        <div
-          className="flex items-start gap-3 rounded-[8px] px-4 py-3.5"
-          style={{ background: `${T.pro}08`, border: `1px solid ${T.pro}22` }}
-        >
-          <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: T.pro }} />
-          <p className="text-[11px] leading-relaxed" style={{ color: `${T.pro}99` }}>
-            <strong className="font-semibold">Privacy:</strong> ab.js uses localStorage (no cookies), no personal data is collected or transmitted.
-          </p>
-        </div>
-
       </div>
     </main>
   )
 }
 
-/* ── CheckCard ── */
-function CheckCard({
-  check,
+/* ── StepCard ── */
+function StepCard({
+  step,
   expanded,
   onToggle,
   icon: Icon,
@@ -387,8 +488,9 @@ function CheckCard({
   statusBg,
   statusBorder,
   children,
+  stepNumber,
 }: {
-  check: CheckResult
+  step: StepState
   expanded: boolean
   onToggle: () => void
   icon: React.ComponentType<{ className?: string }>
@@ -396,6 +498,7 @@ function CheckCard({
   statusBg: string
   statusBorder: string
   children: React.ReactNode
+  stepNumber?: number
 }) {
   return (
     <div
@@ -413,15 +516,20 @@ function CheckCard({
           {statusIcon}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-medium text-[#ededed]">{check.label}</p>
+          <div className="flex items-center gap-2">
+            {stepNumber && (
+              <span className="text-[10px] font-semibold text-[#ededed]/20">{stepNumber}</span>
+            )}
+            <p className="truncate text-[13px] font-medium text-[#ededed]">{step.label}</p>
+          </div>
           <p
             className="mt-0.5 truncate text-[11px]"
             style={{
               color:
-                check.status === 'ok' ? `${T.text}40` : check.status === 'warn' ? T.pro : check.status === 'err' ? T.err : `${T.text}30`,
+                step.status === 'ok' ? `${T.text}40` : step.status === 'err' ? T.err : `${T.text}30`,
             }}
           >
-            {check.summary}
+            {step.summary}
           </p>
         </div>
         <ChevronDown
