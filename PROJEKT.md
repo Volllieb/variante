@@ -34,13 +34,14 @@
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, cron, domains, event, events, generate, profile, resolve, results, snippet-check, stripe, tests, token
 ├── app/dashboard/ tests/ login/ signup/ results/ imprint/ privacy/ docs/
+├── components/         # LandingIcons, PandaLogo
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # auth, cors, getExperimentStats, rateLimit, safeLog, sanitize, significance, ssrf, stripe, supabase, supabaseBrowser, supabaseServer
 ├── public/ab.js        # Snippet (inkl. eingebautem Element-Picker)
+├── __tests__/          # E2E/Integration: conversion-goal-click, significance
 figma-plugin/           # code.ts + ui.html (6 Screens, Creation only)
-db/migrations/          # Supabase SQL (001–013)
+db/migrations/          # Supabase SQL (001–017)
 docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Future-Features
-scripts/                # X-Pain-Finder-Bookmarks (x-pain-finder.user.js)
 ```
 
 ## §4 Deployment
@@ -116,7 +117,7 @@ scripts/                # X-Pain-Finder-Bookmarks (x-pain-finder.user.js)
 | 06.07.2026 | **Email-Agent rückgängig.** Cold-Outreach Reverse-Funnel komplett entfernt (Auto-Reply, OpenAI-Klassifikation, Resend Inbound). Migration 014, `emailAgent.ts`, `/api/email/inbound` gelöscht. Bleibt manuell. |
 | 06.07.2026 | **CI-Workflow gelöscht.** `.github/workflows/deploy.yml` entfernt. Deploy wieder manuell via `vercel deploy --prod`. |
 | 06.07.2026 | **Round-2 Cleanup.** Build-Fix: `force-static` + `cacheComponents` inkompatibel → entfernt. Dead Code: `/api/variant` (32 Zeilen, ersetzt durch `/api/resolve`), `proxy.ts` (55 Zeilen, kein middleware.ts). AGENTS.md: Agent-Liste vervollständigt. PROJEKT.md §3: API-Listing + Migration-Nummern korrigiert. |
-| 06.07.2026 | **Root-Cleanup.** `dashboard-source.html` (HTML-Dump), `test.md` (Duplikat von `docs/E2E-CHECKLIST.md`) gelöscht. `dashboard-redesign-plan.md` → `docs/future-features/` (abgeschlossenes Redesign, dient als Doku). |
+| 06.07.2026 | **Root-Cleanup.** `dashboard-source.html` (HTML-Dump), `test.md` (Duplikat von `docs/E2E-CHECKLIST.md`) gelöscht. `dashboard-redesign-plan.md` → `docs/future-features/` (abgeschlossenes Redesign). Später (13.07.2026): Insights in `docs/brandguidelines.md` überführt, Plan gelöscht. |
 | 06.07.2026 | **Dashboard: Tab-System entfernt, Overview/Tests als separate Seiten.** Sidebar: Tests-Link → `/dashboard/tests`, Billing+Account nach unten gruppiert, Setup-Tools in eigener Sektion. `TestsClient.tsx` extrahiert. Build grün, deployed. |
 | 06.07.2026 | **Dashboard-Redesign umgesetzt.** Tab-System (Overview/Tests), Stats-Bar (Active/Visitors/Conversions/Plan), Winner-Alert, Sidebar mit Account-Link, NewTestFlow mit Polling+Zustandsmaschine (idle→awaiting_figma→test_received/timeout/error), Test-Card Highlight-Animation. `PATCH /api/profile` akzeptiert jetzt `onboarded`. `POST /api/tests` setzt `has_figma_plugin`. Migration 013 für `has_figma_plugin`-Flag. Build grün, deployed. |
 | 06.07.2026 | **E2E auf Fremd-Site durchgeführt.** Snippet → Traffic → Conversions → Winner kompletter Loop getestet. **OpenAI Usage-Limit:** `OPENAI_MAX_MONTHLY_COST` Env-Var + `profiles.monthly_gen_cost` + Check in /api/generate (Migration 012). |
@@ -203,13 +204,13 @@ scripts/                # X-Pain-Finder-Bookmarks (x-pain-finder.user.js)
 ## §12 Dashboard-Architektur
 
 > Erkenntnisse aus der Brainstorming-Session vom 06.07.2026.
-> Vollständiger Plan: `docs/future-features/dashboard-redesign-plan.md`
+> Design-Patterns (Stats-Bar, Winner-Alert, Empty State, Anchor-Navigation) sind in `docs/brandguidelines.md` §5.8–5.10 dokumentiert.
 
 ### 12.1 Produkt-Ebenen
 
 | Ebene | Ort | Zweck |
 |---|---|---|
-| **Setup** | `/dashboard/setup` | Health-Check: Snippet, Figma Plugin, Extension-Status — permanenter Check, kein One-Time-Gate. |
+| **Setup** | `/dashboard/setup` | Health-Check: Snippet, Figma Plugin — permanenter Check, kein One-Time-Gate. |
 | **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. Kein Setup-Cruft. |
 | **Creation** | Figma Plugin | Wizard zum Erstellen von Varianten. Browser wartet per Polling auf neue Tests. |
 

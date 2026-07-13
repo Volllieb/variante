@@ -2,7 +2,7 @@
 
 > Texte zum Einfügen in den Figma-„Publish"-Dialog.
 > Icon + Cover-Art werden **im Publish-Dialog hochgeladen**, nicht im manifest.
-> Brand-Farbe: `#0D99FF`. Privacy: https://www.getvariante.com/privacy
+> Brand-Farbe: Monochrom (Schwarz/Weiß/Grau), Figma-native Tokens. Privacy: https://www.getvariante.com/privacy
 > Kategorie im Publish-Dialog: **Design tools**
 > Support-Kontakt (Publish-Pflichtfeld): `hello@getvariante.com` — steht auch in der Privacy Policy §7
 
@@ -86,6 +86,6 @@ The plugin extracts only the user-selected Figma element (layer type, name, text
 | **Manage updates** | I'm a solo developer. I manage and update my plugin myself. |
 
 ## Assets-Checklist (im Publish-Dialog hochladen)
-- [ ] **Plugin-Icon** (128×128 PNG, quadratisch) — Brand-Mark auf `#0D99FF`
+- [ ] **Plugin-Icon** (128×128 PNG, quadratisch) — Brand-Mark auf Schwarz (#111)
 - [ ] **Cover-Art** (1920×960 PNG) — Plugin-UI + Tagline
 - [ ] **3–5 Screenshots** der Plugin-Screens (Onboarding, Variant-Editor, Dashboard/Results)

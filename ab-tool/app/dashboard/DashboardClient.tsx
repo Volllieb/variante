@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { useTestList } from '@/lib/useTestList'
 import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import {
@@ -11,7 +12,6 @@ import {
   type FilterState,
   DEFAULT_FILTER,
   getDateCutoff,
-  hasActiveFilters,
 } from './components/FilterDropdown'
 import {
   Check,
@@ -66,12 +66,21 @@ export function DashboardClient({
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
-  const [testList, setTestList] = useState(tests)
-  const [query, setQuery] = useState('')
-  const [sortAsc, setSortAsc] = useState(false)
-  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
   const [billingError, setBillingError] = useState<string | null>(null)
   const isPro = plan === 'pro' || plan === 'agency'
+
+  const {
+    testList,
+    setTestList,
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    sortAsc,
+    setSortAsc,
+    filteredTests,
+    handleDeleteTest,
+  } = useTestList({ initial: tests, sort: true })
 
   useEffect(() => {
     if (billingError) {
@@ -85,10 +94,6 @@ export function DashboardClient({
   }, [openNewTest])
 
   useEffect(() => { setTestList(tests) }, [tests])
-
-  function handleDeleteTest(id: string) {
-    setTestList((prev) => prev.filter((t) => t.id !== id))
-  }
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
@@ -135,49 +140,6 @@ export function DashboardClient({
     })
     .filter((l): l is number => l !== null && isFinite(l))
   const avgUplift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
-
-  // Sorting + Filtering
-  const sortedTests = useMemo(() => {
-    const sorted = [...testList].sort((a, b) => {
-      const va = (a.visitors_a ?? 0) + (a.visitors_b ?? 0)
-      const vb = (b.visitors_a ?? 0) + (b.visitors_b ?? 0)
-      return sortAsc ? va - vb : vb - va
-    })
-    return sorted
-  }, [testList, sortAsc])
-
-  const filteredTests = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    const dateCutoff = getDateCutoff(filter.date)
-
-    let result = sortedTests
-
-    // Text search
-    if (q) {
-      result = result.filter((t) =>
-        t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-      )
-    }
-
-    // Status filter
-    if (filter.status !== 'all') {
-      result = result.filter((t) => t.status === filter.status)
-    }
-
-    // Date filter
-    if (dateCutoff !== null) {
-      result = result.filter((t) => new Date(t.created_at).getTime() >= dateCutoff)
-    }
-
-    // Winner filter
-    if (filter.winner === 'yes') {
-      result = result.filter((t) => t.winner !== null)
-    } else if (filter.winner === 'inprogress') {
-      result = result.filter((t) => t.winner === null)
-    }
-
-    return result
-  }, [sortedTests, query, filter])
 
   return (
     <>

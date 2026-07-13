@@ -20,6 +20,7 @@
 | **Design-Prinzip** | Technisch, übersichtlich, strukturiert — man sieht immer sofort, wo man ist und was man tun kann |
 | **Free/Pro-Prinzip** | Eingeschränkte Bereiche bleiben **sichtbar**, nie versteckt — Upsell durch Sichtbarkeit + klare Kennzeichnung |
 | **Tonalität** | Direkt, dev-frei, ermächtigend, „volle Kontrolle" |
+| **Architektur-Prinzip** | Onboarding = einmaliges Setup, Dashboard = täglicher Arbeitsplatz — kein Setup-Cruft im Daily-Driver |
 
 **Abgelöst:** Das bisherige Dark-Aurora/Glassmorphism-System der Landingpage/des Dashboards
 (Violet/Fuchsia-Gradients, Blur-Blobs, `bg-white/[0.03]`-Glass-Cards) sowie der Figma-Blue
@@ -172,6 +173,9 @@ mit mehr Zeilenhöhe (`line-height: 1.5–1.6` statt 1.3–1.4 im Dashboard).
   Icon-Buttons, danach der Primär-CTA. Siehe 5.2.
 - **Content:** zwei Spalten mit `gap: 20px` — linke Spalte (Usage/Alerts/Activity) schmaler & gestapelt,
   rechte Spalte (Tests-Grid) breiter, `grid-template-columns: 1fr 1fr` für Karten
+- **Navigation:** Single-Page mit Anker-Sektionen. Overview (Stats-Bar + Test-Liste) immer oberhalb
+  der Scroll-Fold sichtbar. Sidebar-Links scrollen per `href="#..."` zu Plugin, Snippet, Billing,
+  Account. Kein client-seitiges Routing für Sections — alles eine Seite, Sidebar als Sprungnavigation.
 
 ### 4.2 Landingpage-Shell ("gleiches System, mehr Luft")
 
@@ -286,6 +290,51 @@ Dieselbe Ikonografie in: Test-Karten (oben rechts), Activity-Feed, künftig auch
 - Label links (Icon + `--text-2`), Wert rechts in **Monospace**, `--text-2`
 - Bei Erreichen des Limits: Wert-Farbe wechselt auf `--pro` (nicht `--err` — Limit ist ein
   Upgrade-Anlass, kein Fehler)
+- Free-Plan-Limits (z. B. „1 / 1"-Tests) erhalten einen Fortschrittsbalken:
+  `background: var(--bg-2); height: 4px; border-radius: 2px` mit `--text`-Füllung —
+  signalisiert Auslastung auf einen Blick, ohne zusätzliches Label
+
+### 5.8 Stats-Bar (Dashboard Overview)
+
+Vier Cards in einer Zeile direkt unter der Toolbar, oberhalb der Test-Liste:
+
+| Card | Inhalt |
+|---|---|
+| Active tests | Zahl + Free: `1 / 1` mit Fortschrittsbalken (siehe 5.7) |
+| Total visitors | Zahl, Monospace |
+| Conversions | Zahl, Monospace |
+| Plan | Free: „Upgrade →"-Button (invertiert) / Pro: „Pro" mit grünem Dot (`--ok`) |
+
+Cards nutzen exakt denselben Card-Style wie 5.3, `display: flex; flex-direction: column; gap: 4px`.
+Label in `--text-3` (11px, weight 500), Wert in `--text` (15–16px, weight 500, Monospace für Zahlen).
+
+### 5.9 Winner-Alert
+
+Prominente Zeile zwischen Stats-Bar und Test-Liste, nur wenn ein Test einen signifikanten Winner
+hat UND Nutzer Pro-Plan hat:
+
+```
+⚡ Hero Button Test: B leads by +28% — View →
+```
+
+- Icon + Testname + Variant-Info + Uplift + Link
+- `background: var(--bg-1); border: 1px solid var(--border); border-left: 3px solid var(--ok)`
+- Farbe des linken Balkens: `--ok`-Grün — Winner ist Erfolg, kein Alarm
+
+### 5.10 Empty State / Figma-Prompt
+
+Wenn keine Tests existieren, erscheint statt der leeren Test-Liste ein Figma-Prompt mit
+Schritt-für-Schritt-Anleitung. Die weiteren Zustände (Awaiting Figma, Test Received, Timeout)
+sind temporäre UI-Zustände derselben Komponente und folgen denselben Token-Regeln.
+
+**Visuelles Pattern (IDLE):**
+- Zentrierte Card (`--bg-1`, `--r-card`, Hairline-Border) innerhalb des Content-Bereichs
+- Icon (🎨) + Headline (`font-weight: 500`) + nummerierte Schrittliste in `--text-2`
+- Ein invertierter Primär-Button („Open Figma Plugin") + sekundärer Cancel-Link in `--text-3`
+- Setup-Guide-Link in `--text-3` unterhalb der Buttons
+
+**Regel:** Der Prompt nutzt exakt dieselben Card-, Button- und Typografie-Tokens wie der Rest
+des Dashboards — keine Sonderbehandlung, kein separates „Onboarding-Theme".
 
 ---
 
