@@ -102,76 +102,121 @@ Rückgabe-Objekt ergänzt um `variant_b_css`.
 
 ## 4. Figma Plugin — Wizard-Integration
 
-### 4.1 Heutiger Flow (Content-Test)
+### 4.1 Designprinzipien
 
-```
-Test Details (1/6) → Pick Element (2/6) → Variant B in Figma (3/6) → Generate (4/6) → Goal (5/6) → Review (6/6)
-```
+- **Kein Modus-Dialog.** Der Designer wählt nicht vorab "Content oder Layout" — das ist Sache der Maschine.
+- **90%-Case unverändert.** Wer einen normalen Content-Test macht, merkt nichts von der neuen Fähigkeit.
+- **Entdeckung passiert natürlich.** "+ Add element" ist ein kleiner Secondary-Button, den man entweder sofort versteht oder ignoriert.
+- **Figma bleibt, wird aber optional.** Der Designer *kann* immer noch in Figma arbeiten — auch beim Reorder. Oder nicht.
+- **AI schlägt vor, Designer bestätigt.** Konkrete Vorschläge statt abstrakter Modi.
 
-### 4.2 Erweiterter Flow für Layout-Tests
+### 4.2 Flow als Zustandsmaschine
 
-Die Erkennung passiert in **Step 2 (Pick Element)** automatisch:
+```mermaid
+stateDiagram-v2
+    [*] --> Step1_Setup
+    Step1_Setup --> Step2_Pick
 
-**Neuer Button auf dem "Element captured"-Screen:**
+    Step2_Pick --> Step2_OneElement : Pick first
+    Step2_Pick --> Step2_TwoElements : "+ Add element"
+    Step2_TwoElements --> Step2_TwoElements : Pick second
 
-```
-┌─────────────────────────────────┐
-│ ✓ Element captured              │
-│ ┌─────────────────────────────┐ │
-│ │ DIV  .hero-section          │ │
-│ └─────────────────────────────┘ │
-│ [Reselect]                      │
-│                                 │
-│ + Pick second element (reorder) │  ← NEU
-│                                 │
-│ [Continue to Variant B →]       │
-└─────────────────────────────────┘
-```
+    Step2_OneElement --> Step3_Figma : Continue
+    Step2_TwoElements --> Step3_FigmaOrSkip : Continue
 
-Der "+ Pick second element" Button öffnet den Picker erneut — aber diesmal im **Reorder-Modus**: Der Picker erkennt, dass ein zweites Element gepickt werden soll und markiert das erste visuell als "Element A".
+    Step3_Figma --> Step4_Generate : Export
+    Step3_FigmaOrSkip --> Step4_Generate : Skip (CSS only)
+    Step3_FigmaOrSkip --> Step4_Generate : Export (combined)
 
-### 4.3 Step 3 (Variant B in Figma) — adaptiv
-
-**Wenn nur ein Element gepickt (Content-Test):** Unverändert. Designer redesigned in Figma.
-
-**Wenn zwei Elemente gepickt (Layout-Test):**
-
-```
-┌─────────────────────────────────┐
-│ Layout Test: Element Order      │
-│                                 │
-│ Element A: .hero-section        │
-│ Element B: .calculator-section  │
-│                                 │
-│ Current order: A → B            │
-│ New order:     B → A  ← AI      │
-│                                 │
-│ (Optional) Redesign elements    │
-│ in Figma for combined test      │
-│                                 │
-│ [Skip to Generate →]            │
-│ [Design in Figma →]             │
-└─────────────────────────────────┘
+    Step4_Generate --> Step5_Goal
+    Step5_Goal --> Step6_Review
+    Step6_Review --> [*]
 ```
 
-Die AI erkennt aus beiden Element-Positionen die Parent-Beziehung und schlägt `order`/`flex-direction`-CSS vor. Der Designer kann das sofort akzeptieren ("Skip to Generate") oder Elemente zusätzlich in Figma redesignen ("Design in Figma").
+### 4.3 Step 2/6 — Pick Element (erweitert)
 
-**Entscheidend:** Der Figma-Design-Step wird *optional*, nicht *entfernt*. Der Designer kann:
-1. Nur die Reihenfolge ändern (reiner CSS-Test)
-2. Zusätzlich Elemente in Figma redesignen (kombinierter Test → HTML + CSS)
+Der heutige Screen bleibt bis auf einen Punkt unverändert: Nach erfolgreichem Element-Pick erscheint ein kleiner Secondary-Button.
 
-### 4.4 Step 4 (Generate) — adaptiver Prompt
+**Nach erstem Pick:**
 
-Der Generate-Endpoint bekommt ein neues Feld `mode`:
-- `"content"` (default) → wie heute, generiert `variant_b_html`
-- `"reorder"` → generiert `variant_b_css` mit `order`/`flex-direction`/`grid-row`-CSS
-- `"both"` → generiert beides
+```
+┌─────────────────────────────────────┐
+│ ✓ Element captured                  │
+│ ┌─────────────────────────────────┐ │
+│ │ BUTTON  #hero-cta               │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ [Reselect]     [+ Add element]      │  ← NEU: unaufdringlich
+│                                     │
+│            [Continue →]             │
+└─────────────────────────────────────┘
+```
 
-Die AI sieht beide Elemente + deren Figma-Redesign (falls vorhanden) und entscheidet eigenständig welche Felder befüllt werden.
+"+ Add element" öffnet den Picker erneut mit `?ab_pick=<testId>&ab_reorder=1`. Der Picker zeigt Banner "Pick element to swap with (ESC cancels)" und markiert das erste Element visuell.
 
-### 4.5 Preview für CSS-Tests
+**Nach zweitem Pick — AI-Vorschlag inline:**
 
-Der Preview-Renderer im Generate-Screen kann kein CSS previewen (dafür bräuchte es den echten DOM). Stattdessen:
+```
+┌─────────────────────────────────────┐
+│ ✓ 2 elements selected               │
+│ ┌─────────────────────────────────┐ │
+│ │ BUTTON  #hero-cta               │ │
+│ │ DIV     .calculator-section     │ │
+│ └─────────────────────────────────┘ │
+│ Swap order: Hero CTA ↔ Calculator   │  ← AI-Vorschlag, inline
+│                                     │
+│ [Reselect]     [Remove element]     │
+│                                     │
+│            [Continue →]             │
+└─────────────────────────────────────┘
+```
+
+Der "Swap order"-Vorschlag kommt von einem leichten `/api/suggest-reorder` Call, der nur die Parent-Beziehung prüft und einen menschenlesbaren Vorschlag zurückgibt. Keine schwere AI, kein Latenzproblem. Designer klickt "Continue" → akzeptiert.
+
+### 4.4 Step 3/6 — Variant B in Figma (adaptiv)
+
+**Ohne zweites Element (heute):** Unverändert. "Click any layer in Figma that represents Variant B." Exportiert als PNG, `extractNode()` läuft.
+
+**Mit zweitem Element (neu):**
+
+```
+┌─────────────────────────────────────┐
+│ Layout swap: Hero ↔ Calculator      │
+│                                     │
+│ The AI will swap their order.       │
+│ No Figma redesign needed.           │
+│                                     │
+│ [Skip — generate CSS only]  ←───────│  Hauptpfad für Reorder
+│                                     │
+│ ── or ──                            │
+│                                     │
+│ Also redesign elements in Figma:    │
+│ "Click a layer in Figma…"           │  Gleicher Flow wie heute,
+│ [Selected: Button v2]               │  aber optional
+│                                     │
+│ [Generate combined variant →]       │
+└─────────────────────────────────────┘
+```
+
+Zwei klare Optionen, kein entweder-oder-Zwang:
+- **Schnellpfad:** "Skip" → direkt CSS, kein Figma nötig. Der Wizard springt zu Step 4 mit `mode: "reorder"`.
+- **Kombipfad:** Zusätzlich in Figma redesignen. Der gewohnte `EXPORT_SELECTION`-Flow läuft wie heute. Step 4 bekommt `mode: "both"`.
+
+### 4.5 Step 4/6 — Generate (adaptiver Prompt)
+
+Ein Screen, ein Endpoint, adaptiver Prompt:
+
+| Input | Prompt-Schwerpunkt | Output-Felder |
+|---|---|---|
+| 1 Element + Figma-PNG + `extractNode()` | "Generate HTML matching the Figma redesign" | `variant_b_html` |
+| 2 Elemente, kein Figma | "Generate CSS to swap these two sibling elements" | `variant_b_css` |
+| 2 Elemente + Figma-PNG + `extractNode()` | "Generate HTML for redesigned elements AND CSS for new order" | `variant_b_html` + `variant_b_css` |
+
+Der Generate-Endpoint bekommt ein Feld `mode` (`"content"` | `"reorder"` | `"both"`) und einen optionalen `selector_b` für das zweite Element.
+
+**Preview für reine CSS-Tests:**
+
+Der Preview-Renderer kann CSS nicht visuell darstellen (bräuchte den echten DOM). Stattdessen:
 
 ```
 ┌─────────────────────────────────┐
@@ -193,6 +238,8 @@ Der Preview-Renderer im Generate-Screen kann kein CSS previewen (dafür bräucht
 │ [Continue to Goal →]            │
 └─────────────────────────────────┘
 ```
+
+Bei kombinierten Tests (HTML + CSS): HTML-Vorschau wie heute, CSS als zusätzlicher Code-Drawer darunter.
 
 ---
 
@@ -219,22 +266,37 @@ Der Generate-Endpoint (`/api/generate` oder vergleichbar) erkennt automatisch:
 
 ## 7. Implementierungs-Reihenfolge
 
-| # | Schritt | Aufwand |
-|---|---|---|
-| 1 | DB-Migration `variant_b_css TEXT` | 5 min |
-| 2 | `resolve` & `PATCH` Endpoints erweitern | 10 min |
-| 3 | `ab.js`: `applyCss()`, Cache, `applyTest()` | 15 min |
-| 4 | Figma Plugin: "+ Pick second element" Button | 20 min |
-| 5 | Figma Plugin: "Reorder" Step 3 (optional Figma) | 15 min |
-| 6 | Figma Plugin: CSS-Preview in Step 4 | 15 min |
-| 7 | Generate-Endpoint: `mode`-Parameter + Prompt | 20 min |
+| # | Schritt | Aufwand | Details |
+|---|---|---|---|
+| 1 | DB-Migration `variant_b_css TEXT` | 5 min | `ALTER TABLE tests ADD COLUMN` |
+| 2 | Neues Feld `reorder_selector` in `tests` | 5 min | Zweiter CSS-Selektor für Swap-Partner |
+| 3 | `resolve`-Endpoint: `variant_b_css` + `reorder_selector` | 10 min | Query erweitern, Rückgabe erweitern |
+| 4 | `PATCH /api/tests/[id]`: beide Felder erlauben | 5 min | `typeof`-Checks analog `variant_b_html` |
+| 5 | `ab.js`: `applyCss()`, Cache, `applyTest()` | 15 min | `<style>`-Injection + localStorage-Erweiterung |
+| 6 | `ab.js` Picker: `ab_reorder=1` Modus | 10 min | Zweites Banner, visuelle Markierung Element A |
+| 7 | `/api/suggest-reorder` Endpoint | 15 min | Prüft Parent-Beziehung, liefert menschenlesbaren Vorschlag |
+| 8 | Figma Plugin: "+ Add element" Button (Step 2) | 15 min | HTML + JS für zweiten Picker-Call |
+| 9 | Figma Plugin: "Swap order"-Vorschlag inline (Step 2) | 10 min | Fetch `suggest-reorder`, anzeigen |
+| 10 | Figma Plugin: Skip/Design-Entscheidung (Step 3) | 15 min | Konditionaler Screen mit zwei Pfaden |
+| 11 | Figma Plugin: CSS-Preview + HTML/CSS-Drawer (Step 4) | 15 min | Adaptiver Preview je nach `mode` |
+| 12 | Generate-Endpoint: `mode` + `selector_b` + adaptiver Prompt | 20 min | Prompt-Builder je nach Input-Kombination |
 
-**Total: ~100 min (2h)**
+**Total: ~140 min (2.5h)**
 
 ---
 
-## 8. Offene Fragen
+## 8. Entscheidungen & offene Fragen
 
-- **Picker-Modus "reorder":** Der Picker (`ab.js` picker mode) muss wissen dass er ein *zweites* Element pickt. Einfachster Weg: `?ab_pick=<testId>&ab_reorder=1` im URL-Parameter. Der Picker zeigt dann "Pick second element (ESC cancels)" als Banner und sendet beide Selektoren.
-- **Element B als `selector_2` oder `reorder_target`?** Wahrscheinlich eigenes Feld `reorder_selector` in der Tests-Tabelle, damit der originale `selector` für A unverändert bleibt.
-- **Was passiert wenn nur `variant_b_css` existiert, kein `variant_b_html`?** `applyDom()` wird nicht aufgerufen, `applyCss()` läuft alleine. Kein DOM-Touch, nur CSS. Perfekt.
+### Geklärt
+
+- **`reorder_selector` als eigenes Feld:** Ja, separates Feld in `tests`. Der originale `selector` bleibt für A unverändert, `reorder_selector` ist der Swap-Partner.
+- **Picker-Modus `ab_reorder=1`:** URL-Parameter im zweiten Picker-Call. Der Picker zeigt dann "Pick element to swap with" und sendet den zweiten Selektor als `selector_b` an den Server.
+- **Kein Modus-Dialog am Anfang:** Der Designer wird nicht gefragt "Content oder Layout?". Die Fähigkeit entfaltet sich über den "+ Add element" Button.
+- **Nur-`variant_b_css` ohne `variant_b_html`:** `applyCss()` läuft alleine, `applyDom()` wird nicht aufgerufen. Kein DOM-Touch, nur `<style>`-Injection.
+- **Winner-Modus (force=B):** CSS wird auch im Winner-Modus ausgeliefert — `applyCss()` immer, `applyDom()` nur wenn HTML existiert.
+
+### Offen
+
+- **Mehr als zwei Elemente?** Theoretisch denkbar (z.B. 3 Cards reshufflen), aber YAGNI. Die 95% sind zwei Siblings. Bei Bedarf in Phase 2.
+- **`variant_b_css` sanitizen?** CSS-Injection ist mächtig — theoretisch könnte ein `url()` externen Content laden. Praktisch: die AI generiert das CSS, kein User-Input. `sanitizeHtml()` auf CSS anwenden wäre overkill. Bei Bedarf `style-src` CSP erwägen.
+- **`suggest-reorder` Caching?** Der Endpoint macht nur einen einfachen DOM-Struktur-Check — keine schwere AI, kein Caching nötig.
