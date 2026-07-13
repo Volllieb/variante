@@ -113,6 +113,9 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
       if (res.ok) {
         router.push(backHref)
         router.refresh()
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Failed to delete test' }))
+        setDeleteError(err.error || 'Failed to delete test')
       }
     } finally {
       setDeleting(false)

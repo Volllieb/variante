@@ -42,7 +42,7 @@
         testId: tid,
         token: p.get('ab_token') || '',
         apiBase: (p.get('ab_api') || origin || 'https://www.getvariante.com').replace(/\/+$/, ''),
-        mode: p.get('ab_goal') ? 'goal' : 'element',
+        mode: p.get('ab_goal') ? 'goal' : (p.get('ab_reorder') === '1' ? 'reorder' : 'element'),
       }
     } catch (_) { return null }
   })()
@@ -496,6 +496,7 @@
     // Abgeschlossener Test mit Gewinner B: ALLE Besucher bekommen B ausgeliefert,
     // ohne Assign-Counter und ohne Conversion-Tracking. HTML kommt aus resolve.
     if (t.force === 'B') {
+      applyCss(key, t.variant_b_css)
       if (t.variant_b_html) applyDom(selector, 'B', t.variant_b_html, key)
       return Promise.resolve()
     }
@@ -506,6 +507,7 @@
       try {
         var d = JSON.parse(cached)
         if (d && (d.variant === 'A' || d.variant === 'B')) {
+          if (d.variant === 'B') applyCss(key, d.css)
           finish(d.variant, d.html)
           return Promise.resolve()
         }
@@ -527,11 +529,13 @@
           return
         }
         var html = t.variant_b_html
-        if (html) {
-          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html }))
+        var css = t.variant_b_css
+        if (html || css) {
+          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html || null, css: css || null }))
+          applyCss(key, css)
           finish('B', html)
         } else {
-          // Noch kein generiertes HTML → assign wurde trotzdem aufgerufen,
+          // Noch kein generiertes HTML/CSS → assign wurde trotzdem aufgerufen,
           // Besucher ist gezählt. A anzeigen, aber nicht cachen (damit beim
           // nächsten Page-View erneut assign aufgerufen wird und ggf. B-HTML
           // inzwischen existiert).
@@ -546,6 +550,11 @@
   // gerenderten DOM) und führt run() erneut aus.
   function reobserve() {
     active = []
+    // Clean up injected CSS styles from previous render cycle
+    for (var k in injectedStyles) {
+      try { injectedStyles[k].remove() } catch (_) {}
+    }
+    injectedStyles = {}
     run()
   }
 
