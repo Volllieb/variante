@@ -55,7 +55,7 @@ Free-Tier trägt **„powered by variante"-Badge** auf der Kundenseite → deren
 
 Diese Checkliste ist **kein Feature**, sondern **Positionierung**: variante ist das Tool, das dir sagt was du testen sollst — nicht nur wie. Das konvertiert Designer, die nie ein Analytics-Tool öffnen würden.
 
-> **Evolution:** Die Checkliste ist v0. Die Vollversion ist die **Self-Improving Site Engine** (→ `z.future-features/self-improving-site-engine.md`): variante scanned die echte Site, analysiert DOM + Copy per KI, schlägt die Top-3-Tests vor, und lernt nach jedem abgeschlossenen Test dazu. Der geschlossene Loop: Scan → Test → Winner → nächster Scan (mit Kontext). Das ist der Burggraben, den kein anderes A/B-Tool hat.
+> **Evolution:** Die Checkliste ist v0. Die Vollversion ist die **Self-Improving Site Engine** (→ `docs/future-features/self-improving-site-engine.md`): variante scanned die echte Site, analysiert DOM + Copy per KI, schlägt die Top-3-Tests vor, und lernt nach jedem abgeschlossenen Test dazu. Der geschlossene Loop: Scan → Test → Winner → nächster Scan (mit Kontext). Das ist der Burggraben, den kein anderes A/B-Tool hat.
 
 ## Distribution-Channels (6 Orte, Dual-Track)
 

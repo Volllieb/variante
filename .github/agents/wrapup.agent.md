@@ -48,7 +48,7 @@ Suche nach Dateien, die von nirgendwo importiert oder referenziert werden:
 
 Tote Files entweder:
 - Löschen (wenn klar ungenutzt)
-- In `z.future-features/` verschieben (wenn für später gedacht)
+- In `docs/future-features/` verschieben (wenn für später gedacht)
 - In PROJEKT.md §10 als "Offen: X prüfen" notieren (wenn unsicher)
 
 ### 4. TODO/FIXME/HACK-Scan
