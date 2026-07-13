@@ -23,10 +23,10 @@ import {
   LogIn,
   HeartPulse,
   Puzzle,
-  Check,
   Globe,
   Search,
   ArrowUpDown,
+  RefreshCw,
   Plus,
   ArrowRight,
 } from 'lucide-react'
@@ -222,6 +222,17 @@ export function DashboardClient({
               </div>
             </div>
 
+            {/* 0-conversions guidance */}
+            {totalConversions === 0 && running > 0 && (
+              <div className="mt-3 rounded-[8px] border border-[#f5a623]/20 bg-[#f5a623]/5 px-3 py-2.5">
+                <p className="text-[11px] leading-relaxed text-[#f5a623]/80">
+                  No conversions yet. Make sure your{' '}
+                  <a href="/docs#goals" target="_blank" className="underline hover:opacity-80">conversion goal</a>{' '}
+                  is set up — without it, variante can&apos;t track results.
+                </p>
+              </div>
+            )}
+
             {/* Setup — compact 3-step checklist */}
             <div className="mb-3 mt-6 flex items-center gap-2">
               <h2 className="text-[13px] font-semibold text-[#ededed]">Setup</h2>
@@ -275,6 +286,13 @@ export function DashboardClient({
                 <ArrowUpDown className="h-3.5 w-3.5" />
               </button>
               <FilterDropdown filter={filter} onChange={setFilter} />
+              <button
+                onClick={() => router.refresh()}
+                title="Refresh test list"
+                className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+              </button>
               <button
                 onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
                 disabled={!hasVerifiedDomain}

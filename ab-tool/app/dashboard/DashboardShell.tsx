@@ -50,9 +50,11 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
             <PandaLogo className="h-6 w-6 rounded-[6px]" />
             <span className="text-[13px] font-medium text-[#ededed]">variante</span>
           </Link>
-          <span className="mb-3 ml-[9px] self-start rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/40">
-            {plan}
-          </span>
+          {plan !== 'free' && (
+            <span className="mb-3 ml-[9px] self-start rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/40">
+              {plan}
+            </span>
+          )}
 
           {/* Nav — main pages */}
           <nav className="flex flex-col gap-0.5">

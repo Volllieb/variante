@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Globe, Loader2, Check, X, Copy, ArrowRight } from 'lucide-react'
+import { SNIPPET_CODE } from '@/lib/snippetCode'
 
 const T = {
   ok: '#2fd76c',
@@ -9,12 +10,6 @@ const T = {
   err: '#f5455c',
   text: '#ededed',
 }
-
-const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
-<link rel="preconnect" href="https://www.getvariante.com">
-<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
-<script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`
 
 type GateState = 'input' | 'saving' | 'checking' | 'not-found' | 'verified' | 'loading'
 

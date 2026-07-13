@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { NewTestFlow } from '../NewTestFlow'
 import { TestCard, type TestRow } from '../components/TestCard'
 import {
@@ -11,8 +12,11 @@ import {
 } from '../components/FilterDropdown'
 import {
   Search,
+  RefreshCw,
   Plus,
   FlaskConical,
+  HeartPulse,
+  Puzzle,
 } from 'lucide-react'
 
 /* ── Token palette ── */
@@ -36,6 +40,7 @@ export function TestsClient({
   hasFigmaPlugin: boolean
   isAtFreeLimit: boolean
 }) {
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
   const [newTestOpen, setNewTestOpen] = useState(false)
@@ -96,6 +101,13 @@ export function TestsClient({
         </div>
         <FilterDropdown filter={filter} onChange={setFilter} />
         <button
+          onClick={() => router.refresh()}
+          title="Refresh test list"
+          className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+        </button>
+        <button
           onClick={() => setNewTestOpen(true)}
           className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
         >
@@ -121,10 +133,31 @@ export function TestsClient({
           <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
             <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
           </div>
-          <p className="mt-4 text-[13px] font-medium text-[#ededed]/62">No experiments yet</p>
-          <p className="mt-1.5 max-w-xs text-[11px] text-[#ededed]/40">
-            Create your first test in the Figma plugin — paste your plugin token below to get started.
+          <p className="mt-4 text-[14px] font-medium text-[#ededed]">No experiments yet</p>
+          <p className="mt-1.5 max-w-xs text-[12px] leading-relaxed text-[#ededed]/40">
+            {hasFigmaPlugin
+              ? 'Create your first variant in Figma and push it here — it appears automatically.'
+              : 'Install the Figma plugin first, then create variants directly from your designs.'}
           </p>
+          <div className="mt-5 flex items-center gap-3">
+            {hasFigmaPlugin ? (
+              <button
+                onClick={() => setNewTestOpen(true)}
+                className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New test
+              </button>
+            ) : (
+              <a
+                href="/dashboard/setup"
+                className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.18] px-3.5 py-2 text-[12px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]"
+              >
+                <HeartPulse className="h-3.5 w-3.5" />
+                Run setup check
+              </a>
+            )}
+          </div>
         </div>
       ) : filteredTests.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
