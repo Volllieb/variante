@@ -1,6 +1,6 @@
 # GOTOMARKET.md — variante
 
-Stand: 10.07.2026. 🎉 Figma-Plugin LIVE im Community Store. Phase 0+1 abgeschlossen, Phase 2 (Public Launch) läuft. 1 Design-Partner angefragt. Outreach-Strategie aktualisiert: Dual-Track (Pain-Replies + Direkt-Angebote).
+Stand: 13.07.2026. 🔥 Phase 2 läuft — Outreach aktiv. 2 High-Potential-Leads recherchiert (IbexAI, PostFox), erste Cold-DMs gehen heute raus. Figma-Plugin LIVE.
 
 ## Strategie in einem Satz
 **Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
@@ -145,11 +145,13 @@ Figma-Plugin ist LIVE — jetzt Reichweite maximieren:
 - 🎉 **Figma-Plugin**: LIVE im [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
 - ✅ **Built-in-Picker**: Element-Picker direkt im `ab.js`-Snippet integriert
 - ✅ **Dogfooding**: ab.js im Root-Layout integriert, Badge sichtbar
-- 🏗️ **Design-Partner**: 1 von 5 angefragt
+- ✅ **Leads recherchiert**: 2 High-Potential (IbexAI $3-6K MRR, PostFox $2K MRR), 15 weitere in Pipeline, dokumentiert in `leads.md`
+- 🔥 **Outreach läuft**: Cold-DM-Phase gestartet — IbexAI (Matt Bauer, @Matt___Bauer) heute per X-DM, PostFox morgen, dann Batch 3–5
+- 🏗️ **Design-Partner**: 1 von 5 angefragt, Concierge-Onboarding steht bereit
 - ⚠️ **X-Pain-Finder-Script**: Defekt (X-DOM-Änderungen) — ersetzt durch 5 manuelle Bookmark-Queries
-- 📋 **Outreach-Strategie**: Dual-Track (Pain-Replies + Direkt-Angebote in Communities)
+- 📋 **Outreach-Strategie**: Dual-Track (Pain-Replies + Direkt-Angebote in Communities) + kalte Loom-DMs an IH-Leads
 
-**Nächster Schritt:** 10–20 kalte Loom-DMs an AI-Builder-Designer auf X (zeigt ihre Site + was wir testen würden). Design-Partner-Onboarding mit gratis erstem Test. Reddit-Posts (r/web_design + r/SaaS) parallel. Case-Studies aus ersten 2–3 Live-Tests sammeln → Product-Hunt-Material.
+**Nächster Schritt:** Cold-DMs an IH-Leads (IbexAI heute, PostFox morgen). Parallel: Design-Partner-Onboarding mit gratis erstem Test. Reddit-Posts (r/web_design + r/SaaS) nach ersten Replies. Case-Studies aus ersten 2–3 Live-Tests sammeln → Product-Hunt-Material.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte, 1 angefragt) → Design-Partner-Onboarding ist jetzt der kritische Pfad. Ohne Case-Studies kein Product-Hunt-Material.

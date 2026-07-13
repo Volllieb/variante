@@ -849,7 +849,20 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-element" role="alert" style="margin-top:8px"></div>
   </div>
   <div class="ftr">
-    <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
+    <div id="normal-el-footer">
+      <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
+      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="startSwapMode()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+        Swap two elements instead
+      </button>
+    </div>
+    <div id="swap-footer" style="display:none;flex-direction:column;gap:var(--sp-2)">
+      <button id="btn-el-swap-next" class="btn btn-primary" onclick="goToSwapDesign()">Continue →</button>
+      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectElement()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Start over
+      </button>
+    </div>
   </div>
 </div>
 
@@ -872,25 +885,71 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
-    <!-- Prominent instruction -->
-    <div class="hint-strong" style="margin-bottom:16px">Click any layer in Figma that represents Variant B — a single button, heading, or section.</div>
+    <!-- Normal-Mode: Figma redesign für Content-Tests -->
+    <div id="design-normal">
+      <div class="hint-strong" style="margin-bottom:16px">Click any layer in Figma that represents Variant B — a single button, heading, or section.</div>
 
-    <!-- Waiting -->
-    <div id="d-waiting">
-      <div class="loading-row" role="status" aria-live="polite">
-        <div class="spinner" aria-hidden="true"></div>
-        <span id="d-info">Click a layer in Figma to select it…</span>
+      <div id="d-waiting">
+        <div class="loading-row" role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <span id="d-info">Click a layer in Figma to select it…</span>
+        </div>
+      </div>
+
+      <div id="d-done" style="display:none">
+        <span class="lbl">Layer selected</span>
+        <div class="card"><div class="card-val" id="sel-info"></div></div>
+        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectDesign()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+          Reselect
+        </button>
       </div>
     </div>
 
-    <!-- Selected -->
-    <div id="d-done" style="display:none">
-      <span class="lbl">Layer selected</span>
-      <div class="card"><div class="card-val" id="sel-info"></div></div>
-      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectDesign()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-        Reselect
-      </button>
+    <!-- Swap-Mode: Figma redesign optional -->
+    <div id="design-swap" style="display:none">
+      <div class="notice notice-pro" style="margin-bottom:16px">
+        <div class="notice-head">
+          <span class="notice-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+          </span>
+          <div>
+            <div class="notice-title">Swap test — CSS only</div>
+            <div class="notice-body">Your two elements will be swapped using CSS (flexbox order). No DOM changes needed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint-strong" style="margin-bottom:12px">Optionally redesign the elements in Figma first</div>
+      <p style="font-size:var(--fs-sm);color:var(--text-2);margin-bottom:16px">
+        Skip Figma to generate a pure CSS swap. Or design the swapped layout in Figma first for more control.
+      </p>
+
+      <div class="card" style="margin-bottom:12px">
+        <span class="lbl">Swap</span>
+        <div class="card-val" id="swap-summary"></div>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="skipToGenerateSwap()">
+          Skip Figma → Generate CSS
+        </button>
+        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="requestSelection()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Redesign in Figma
+        </button>
+      </div>
+
+      <div id="d-waiting-swap" style="display:none;margin-top:16px">
+        <div class="loading-row" role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <span>Waiting for Figma selection…</span>
+        </div>
+      </div>
+      <div id="d-done-swap" style="display:none;margin-top:12px">
+        <span class="lbl">Layer selected</span>
+        <div class="card"><div class="card-val" id="sel-info-swap"></div></div>
+      </div>
     </div>
 
     <div class="loading-row" id="l-design" role="status" style="display:none;margin-top:10px">
@@ -901,6 +960,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   </div>
   <div class="ftr">
     <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Scope →</button>
+    <div id="swap-ftr" style="display:none;flex-direction:column;gap:8px">
+      <button id="btn-swap-generate" class="btn btn-primary" onclick="exportSwapSelection()" disabled>Generate CSS Swap →</button>
+    </div>
   </div>
 </div>
 
@@ -1177,7 +1239,8 @@ const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
   selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: '',
-  plan: 'free', verifiedDomain: ''
+  plan: 'free', verifiedDomain: '',
+  swapMode: false, reorderSelector: '',
 }
 let activeTestCount = 0
 let generating = false
@@ -1707,8 +1770,10 @@ function siteTriggerUrl(mode) {
   const base = /^https?:\/\//i.test(state.url) ? state.url : 'https://' + state.url
   const param = mode === 'goal' ? 'ab_goal' : 'ab_pick'
   const sep = base.indexOf('?') > -1 ? '&' : '?'
-  return base + sep + param + '=' + encodeURIComponent(state.testId) +
+  let url = base + sep + param + '=' + encodeURIComponent(state.testId) +
     '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
+  if (mode === 'reorder') url += '&ab_reorder=1'
+  return url
 }
 async function openSite(mode) {
   const url = siteTriggerUrl(mode || 'element')
@@ -1772,11 +1837,12 @@ function startElementPoll() {
           state.selector      = t.selector
           state.originalHtml  = t.original_html || ''
           state.goalCandidates = t.goal_candidates || []
-          renderElementChip(t.selector, state.originalHtml)
+          state.reorderSelector = t.reorder_selector || ''
+          renderElementChips()
           $('el-waiting').style.display = 'none'
           $('el-done').style.display = 'block'
           var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = 'none'
-          $('btn-el-next').disabled = false
+          updateElementNextButton()
           stopElementPoll()
         }
       }
@@ -1784,6 +1850,32 @@ function startElementPoll() {
   }
   poll()
   elTimer = setInterval(poll, 5000)
+}
+
+function renderElementChips() {
+  var html = chipHtml(state.selector, state.originalHtml)
+  if (state.swapMode && state.reorderSelector) {
+    html += '<div style="display:flex;align-items:center;gap:6px;margin:8px 0;font-size:var(--fs-xs);color:var(--text-3)">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>' +
+      'swap with</div>' +
+    chipHtml(state.reorderSelector, '')
+  }
+  $('el-chip-wrap').innerHTML = html
+}
+
+function updateElementNextButton() {
+  if (state.swapMode) {
+    $('btn-el-next').disabled = !(state.selector && state.reorderSelector)
+    // Swap: hide normal continue, show swap continue
+    var swapFooter = $('swap-footer')
+    var normalFooter = $('normal-el-footer')
+    if (swapFooter) swapFooter.style.display = state.reorderSelector ? '' : 'none'
+    if (normalFooter) normalFooter.style.display = 'none'
+  } else {
+    $('btn-el-next').disabled = !state.selector
+    var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+    var nf = $('normal-el-footer'); if (nf) nf.style.display = ''
+  }
 }
 function stopElementPoll() {
   if (elTimer) { clearInterval(elTimer); elTimer = null }
@@ -1797,14 +1889,48 @@ async function reselectElement() {
   try {
     await afetch(API + '/api/tests/' + state.testId, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ selector: null })
+      body: JSON.stringify({ selector: null, reorder_selector: null })
     })
   } catch (_) {}
   state.selector = ''
+  state.reorderSelector = ''
+  state.swapMode = false
+  // Reset footer visibility
+  var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+  var nf = $('normal-el-footer'); if (nf) nf.style.display = ''
   openSite('element')
   startElementPoll()
 }
+
+function startSwapMode() {
+  state.swapMode = true
+  // Nach dem ersten Element in den Swap-Modus wechseln
+  // → Browser öffnen mit reorder-Modus, der zwei Klicks erwartet
+  $('el-waiting').style.display = 'flex'
+  $('el-done').style.display = 'none'
+  $('el-chip-wrap').innerHTML = ''
+  var extNotice = $('el-ext-notice'); if (extNotice) extNotice.style.display = ''
+  $('btn-el-next').disabled = true
+  var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+  var nf = $('normal-el-footer'); if (nf) nf.style.display = 'none'
+  openSite('reorder')
+  startElementPoll()
+}
 function goToDesign() { navPush('design'); requestSelection() }
+
+// Swap-Modus: optional Figma redesign — überspringen oder designen
+function goToSwapDesign() {
+  // Upgrade-Check für Swap (Pro-Feature)
+  if (state.plan === 'free') {
+    showUpgradeBanner('Swap tests require a Pro plan.')
+    return
+  }
+  // Design-Screen im Swap-Modus: zeigt "Skip → Generate CSS" Option
+  navPush('design')
+  $('design-normal').style.display = 'none'
+  $('design-swap').style.display = 'block'
+  requestSelection()
+}
 
 function requestSelection() {
   parent.postMessage({ pluginMessage: { type: 'GET_SELECTION' } }, '*')
@@ -1819,6 +1945,36 @@ function reselectDesign() {
   $('d-done').style.display = 'none'
   $('d-waiting').style.display = 'block'
   $('btn-export').disabled = true
+}
+
+// Swap: Figma überspringen → direkt zum Generate-Screen für CSS
+function skipToGenerateSwap() {
+  // Fill swap summary
+  $('swap-summary').textContent = state.selector + ' ↔ ' + state.reorderSelector
+  state.frameContent = null // kein Figma-Design
+  navPush('generate')
+  $('gen-normal').style.display = 'none'
+  $('gen-swap').style.display = 'block'
+  // Pre-fill swap summary in generate screen
+  var s = $('gen-swap-summary')
+  if (s) s.textContent = state.selector + ' ↔ ' + state.reorderSelector
+}
+
+// Swap: Figma-Export durchführen, dann zum Generate-Screen
+async function exportSwapSelection() {
+  var btn = $('btn-swap-generate')
+  if (btn) btn.disabled = true
+  $('l-design').style.display = 'flex'
+  parent.postMessage({ pluginMessage: { type: 'EXPORT_SELECTION' } }, '*')
+  // Nach dem Export (onmessage) wird goToGenerateSwap() aufgerufen
+}
+
+function goToGenerateSwap() {
+  navPush('generate')
+  $('gen-normal').style.display = 'none'
+  $('gen-swap').style.display = 'block'
+  var s = $('gen-swap-summary')
+  if (s) s.textContent = state.selector + ' ↔ ' + state.reorderSelector
 }
 
 function isClickable(html) {
