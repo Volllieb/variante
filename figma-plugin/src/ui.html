@@ -698,7 +698,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
         <label class="lbl" for="connect-token">API Token</label>
         <input id="connect-token" placeholder="Paste token from dashboard" list="dl-token" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveToken()"/>
         <datalist id="dl-token"></datalist>
-        <div style="margin-top:10px">
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-secondary btn-sm" onclick="openDashboardForToken()" style="flex:1">Get from Dashboard</button>
+          <button class="btn btn-secondary btn-sm" onclick="openLoginForToken()" style="flex:1">Login to get token</button>
+        </div>
+        <div style="margin-top:8px">
           <button class="btn btn-primary" onclick="saveToken()">Connect →</button>
         </div>
         <div class="err" id="e-connect" role="alert" style="margin-top:8px"></div>
@@ -1395,6 +1399,12 @@ function goUpgrade() {
 
 function createAccount() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
+}
+function openDashboardForToken() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?source=figma-plugin#api-token' } }, '*')
+}
+function openLoginForToken() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/login?source=figma-plugin' } }, '*')
 }
 function showTokenMode() {
   $('c-welcome').style.display = 'none'
