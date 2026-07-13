@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ArrowLeft, ExternalLink, X, Plus } from 'lucide-react'
+import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, X, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 const T = {
@@ -179,15 +179,6 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
   return (
     <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
-        {/* Back link */}
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-[11px] text-[#ededed]/40 transition-colors hover:text-[#ededed]"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          Back to Dashboard
-        </Link>
-
         <h1 className="text-[18px] font-semibold text-[#ededed]">Account</h1>
 
         {/* Current email */}

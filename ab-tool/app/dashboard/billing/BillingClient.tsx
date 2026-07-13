@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-  ArrowLeft,
   CreditCard,
   FlaskConical,
   Users,
@@ -42,14 +41,6 @@ export function BillingClient({ data }: { data: BillingData }) {
   return (
     <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-[11px] text-[#ededed]/40 transition-colors hover:text-[#ededed]"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          Back to Dashboard
-        </Link>
-
         <h1 className="text-[18px] font-semibold text-[#ededed]">Billing</h1>
 
         {/* Plan */}
