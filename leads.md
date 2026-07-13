@@ -1,17 +1,17 @@
 # Leads — variante
 
-> IndieHackers Products DB, 13.07.2026. Nächster Schritt: Website-URLs + Kontaktdaten recherchieren.
+> IndieHackers Products DB, 13.07.2026. 2/17 recherchiert. Nächste Schritte: IbexAI/PostFox pitchen, dann nächste 5 recherchieren.
 
 ## 🔥 Top-Fit
 
 | Produkt | MRR | Website | Kontakt | Status |
 |---|---|---|---|---|
-| IbexAI | #1 voted | ? | ? | 🔍 Recherche |
+| IbexAI | $3K–$6K | [getibex.com](https://www.getibex.com) | Matt Bauer · [@Matt___Bauer](https://x.com/Matt___Bauer) · hello@getibex.com · [Cal.com](https://cal.com/ibex-jtkueo/quick-founder-chat) | ✅ Recherchiert |
 | Exeechain | $6.000 | ? | ? | 🔍 Recherche |
 | Crade AI | $6.000 | ? | ? | 🔍 Recherche |
 | ResearchPal | $5.690 | ? | ? | 🔍 Recherche |
 | SearchSpot AI | $5.500 | ? | ? | 🔍 Recherche |
-| PostFox | $2.000 | ? | ? | 🔍 Recherche |
+| PostFox | $2.000 | [postfox.app](https://postfox.app) | Ro · [@stargap_one](https://twitter.com/stargap_one) · support@postfox.app · [@postfox_app](https://x.com/postfox_app) | ✅ Recherchiert |
 | BookingPilot | $4.900 | ? | ? | 🔍 Recherche |
 
 ## ✅ Gute Fits
@@ -79,6 +79,102 @@ Worth a shot?
 
 ### Batch-Ansatz
 
-- **Heute:** Top-7 recherchieren (Website + Kontakt)
-- **Diese Woche:** 3 Loom-DMs/Tag → 15/Woche
+- **Erledigt:** IbexAI + PostFox recherchiert ✅
+- **Heute:** IbexAI per X-DM pitchen (höchste Prio — #1 voted + aktiv auf X)
+- **Morgen:** PostFox pitchen
+- **Diese Woche:** nächste 5 recherchieren
 - **Priorität:** IbexAI (voted #1) + PostFox (Marketing-SaaS = verstehen A/B sofort)
+
+---
+
+## 🎯 Dossier: IbexAI
+
+| Feld | Wert |
+|---|---|
+| **Website** | [getibex.com](https://www.getibex.com) |
+| **Produkt** | AI Agent für high-intent LinkedIn Leads. Monitored LinkedIn-Signale (Competitors, Influencers, Keywords) → täglicher Lead-Stream |
+| **Pricing** | $59/Monat Standard · $299+/Monat Custom Workflows |
+| **MRR** | $3K (IH) / $6K (self-reported) |
+| **Founder** | **Matt Bauer** (CEO, ex-McKinsey) — solo gestartet, jetzt 6-Personen-Team |
+| **X** | [@Matt___Bauer](https://x.com/Matt___Bauer) — aktiv, posted daily, baut in public |
+| **Email** | hello@getibex.com |
+| **Cal.com** | [Quick Founder Chat](https://cal.com/ibex-jtkueo/quick-founder-chat) |
+| **Harvard** | Harvard Innovation Lab Incubator |
+| **Team** | Fabian (CTO), Sarah (Growth), Shweta (Data), Stephanie (Marketing), Felix (Dog) |
+
+### LP-Analyse (getibex.com)
+- **Hero:** "Get High-Intent LinkedIn Leads" — klar, benefit-driven
+- **CTA:** "Activate IbexAI" → "Get Started" (Hero) / "Activate IbexAI" (Secondary)
+- **Trust-Elemente:** Harvard-Logo, "Backed by YC/TwentyTwo/Olive VCs" (deren Kunden), Trustpilot 5★, 30-day money-back
+- **Social Proof:** 6 Testimonials mit LinkedIn-Profil-Links, 3–5× Verbesserung, 35–75% Acceptance-Rate
+- **Preis-Darstellung:** $59/Monat prominent, $299+ Custom daneben, "Cancel anytime"
+- **Schwächen der LP:** Hero-CTA wechselt zwischen "Get Started" und "Activate IbexAI" — inkonsistent. Keine Conversion-Metrik oberhalb des Folds. Testimonials erst sehr weit unten.
+
+### Pitch-Winkel
+Matt schreibt SELBST über A/B-Testing (siehe sein "iterating offers" Post) und ICP-Experimente. Er versteht den Wert sofort. Konkreter LP-Test-Vorschlag:
+- **Test 1:** Hero-CTA: "Activate IbexAI" vs "Get Started" → Misst Conversion-Rate
+- **Test 2:** Testimonials weiter oben (nach Pricing) → Social Proof früher
+
+### DM-Ansatz
+X-DM an @Matt___Bauer. Er ist super aktiv, antwortet auf Comments, baut in public. Kein kalter Email — X ist sein Heimatkanal.
+
+```
+Hey Matt — 30 sec Loom attached. I ran getibex.com through
+my A/B tool (designers test straight from Figma, no dev).
+
+Your CTA switches between "Activate IbexAI" and "Get Started"
+across the page. Worth testing which one converts better.
+
+Happy to set up your first experiment free. 5 minutes,
+you own the data. 
+
+Worth a shot?
+```
+
+---
+
+## 🎯 Dossier: PostFox
+
+| Feld | Wert |
+|---|---|
+| **Website** | [postfox.app](https://postfox.app) |
+| **Produkt** | AI Marketing Autopilot — generiert & published Social Content automatisch (Text, Image+Text, Video Scripts) |
+| **Pricing** | Free (2 gens/day) · €18/Monat Pro (15 gens/day, 10 projects) |
+| **MRR** | $2.000 |
+| **Founder** | **Ro** (IH: ro_vox) |
+| **X (personal)** | [@stargap_one](https://twitter.com/stargap_one) |
+| **X (product)** | [@postfox_app](https://x.com/postfox_app) |
+| **Email** | support@postfox.app |
+| **Nutzer** | 10.000+ Active Users · 1M+ Posts Generated · 50+ Countries |
+| **Channels** | Telegram, WordPress, Discord, Mastodon, Webhooks |
+| **iOS App** | Ja |
+
+### LP-Analyse (postfox.app)
+- **Hero:** "Your Content on Autopilot" — stark, benefit-driven
+- **CTA:** "Start for Free" → "Register Now" — konsistent
+- **Trust-Elemente:** "Free plan · No credit card required", "Cancel anytime · Free trial included", "10,000+ Active Users"
+- **Social Proof:** Keine echten Testimonials — nur Usage-Stats. Das ist eine klare Lücke.
+- **Preis-Darstellung:** €18/Monat als "Most popular" hervorgehoben
+- **Schwächen der LP:** Null Testimonials/Case-Studies. Kein Founder-Story-Element auf der LP. Pricing-Page separat (Reibung). "Who Is It For"-Sektion zu früh (lenkt ab vom CTA).
+
+### Pitch-Winkel
+Ro baut ein Marketing-Automation-Tool — er WEISS dass Conversion zählt. Aber seine eigene LP hat keine Social-Proof-Elemente. Perfekter Ansatzpunkt.
+
+- **Test 1:** "Start for Free" vs "Get Started Free" — CTA-Text
+- **Test 2:** Social Proof oberhalb Pricing (Usage-Stats aktuell im Footer begraben)
+
+### DM-Ansatz
+X-DM an @stargap_one oder @postfox_app. Oder Email an support@postfox.app wenn X nicht aktiv genug ist. Ro hat nur 1 Post auf IH — scheint weniger "build in public" zu sein als Matt.
+
+```
+Hey Ro — quick one. I checked out postfox.app through
+my A/B testing tool for landing pages.
+
+Solid product, but your LP has zero testimonials even with
+10K+ users. That's leaving conversions on the table.
+
+30 sec Loom attached. I'd set up your first experiment
+free — takes 5 minutes. No dev needed.
+
+Interested?
+```
