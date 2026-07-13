@@ -9,9 +9,6 @@ import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import {
   FilterDropdown,
-  type FilterState,
-  DEFAULT_FILTER,
-  getDateCutoff,
 } from './components/FilterDropdown'
 import {
   Check,

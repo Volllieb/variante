@@ -1,14 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTestList } from '@/lib/useTestList'
 import { NewTestFlow } from '../NewTestFlow'
-import { TestCard, type TestRow } from '../components/TestCard'
+import { TestCard } from '../components/TestCard'
 import {
   FilterDropdown,
-  type FilterState,
-  DEFAULT_FILTER,
-  getDateCutoff,
 } from '../components/FilterDropdown'
 import {
   Search,
@@ -41,50 +39,21 @@ export function TestsClient({
   isAtFreeLimit: boolean
 }) {
   const router = useRouter()
-  const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
   const [newTestOpen, setNewTestOpen] = useState(false)
-  const [testList, setTestList] = useState(tests)
+
+  const {
+    testList,
+    setTestList,
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    filteredTests,
+    handleDeleteTest,
+  } = useTestList({ initial: tests })
 
   // Sync when server re-renders with fresh data
   useEffect(() => { setTestList(tests) }, [tests])
-
-  function handleDeleteTest(id: string) {
-    setTestList((prev) => prev.filter((t) => t.id !== id))
-  }
-
-  const filteredTests = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    const dateCutoff = getDateCutoff(filter.date)
-
-    let result = testList
-
-    // Text search
-    if (q) {
-      result = result.filter((t) =>
-        t.name.toLowerCase().includes(q) || (t.site_url ?? '').toLowerCase().includes(q)
-      )
-    }
-
-    // Status filter
-    if (filter.status !== 'all') {
-      result = result.filter((t) => t.status === filter.status)
-    }
-
-    // Date filter
-    if (dateCutoff !== null) {
-      result = result.filter((t) => new Date(t.created_at).getTime() >= dateCutoff)
-    }
-
-    // Winner filter
-    if (filter.winner === 'yes') {
-      result = result.filter((t) => t.winner !== null)
-    } else if (filter.winner === 'inprogress') {
-      result = result.filter((t) => t.winner === null)
-    }
-
-    return result
-  }, [testList, query, filter])
 
   return (
     <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
