@@ -106,7 +106,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
         body: JSON.stringify({ url }),
       })
       const data = await res.json()
-      if (data.found) {
+      if (data.detected) {
         const vRes = await fetch('/api/domains/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

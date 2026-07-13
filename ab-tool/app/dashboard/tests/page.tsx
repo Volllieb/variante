@@ -12,7 +12,7 @@ export default async function TestsPage() {
   const [profileRes, testsRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('plan, onboarded, has_figma_plugin, api_token')
+      .select('plan, has_figma_plugin, api_token')
       .eq('user_id', user.id)
       .single(),
     supabase

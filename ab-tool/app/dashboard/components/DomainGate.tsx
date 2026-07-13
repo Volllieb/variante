@@ -68,13 +68,18 @@ export function DomainGate({ plan }: Props) {
           id = domain?.id
         }
         if (id) {
-          await fetch('/api/domains/verify', {
+          const verifyRes = await fetch('/api/domains/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ domainId: id }),
           })
+          if (verifyRes.ok) {
+            setState('verified')
+            return
+          }
         }
-        setState('verified')
+        // Verify fehlgeschlagen → not-found
+        setState('not-found')
       } else {
         setState('not-found')
       }
@@ -215,14 +220,10 @@ export function DomainGate({ plan }: Props) {
     })
   }
 
-  // ── Auto-Redirect nach Verifikation ──
-  useEffect(() => {
-    if (state !== 'verified') return
-    const t = setTimeout(() => {
-      window.location.href = '/dashboard'
-    }, 1500)
-    return () => clearTimeout(t)
-  }, [state])
+  // ── Skip: direkt ins Dashboard ohne verifizierte Domain ──
+  function skip() {
+    window.location.href = '/dashboard'
+  }
 
   // ── Loading: Initialer Fetch der existierenden Domains ──
   if (state === 'loading') {
@@ -246,7 +247,7 @@ export function DomainGate({ plan }: Props) {
           </h1>
           <p className="mt-1 text-[13px] text-[#ededed]/40">
             {state === 'verified'
-              ? 'Your snippet is installed and verified. Redirecting…'
+              ? 'Your snippet is installed and verified.'
               : isAgency
                 ? 'Enter any of your client websites to get started.'
                 : 'Enter your website — tests run only on verified domains.'}
@@ -290,6 +291,14 @@ export function DomainGate({ plan }: Props) {
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
+            </button>
+
+            {/* Skip */}
+            <button
+              onClick={skip}
+              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/20 transition-colors hover:text-[#ededed]/35"
+            >
+              Skip for now — I&apos;ll add the snippet later
             </button>
           </div>
         )}
@@ -364,6 +373,14 @@ export function DomainGate({ plan }: Props) {
               className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/25 transition-colors hover:text-[#ededed]/40"
             >
               Change URL
+            </button>
+
+            {/* Skip */}
+            <button
+              onClick={skip}
+              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/20 transition-colors hover:text-[#ededed]/35"
+            >
+              Skip for now — I&apos;ll add the snippet later
             </button>
           </div>
         )}

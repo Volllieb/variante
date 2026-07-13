@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   if (!user) return unauthorized('GET, OPTIONS')
 
   const [profileRes, testsRes, eventsRes, domainsRes] = await Promise.all([
-    supabase.from('profiles').select('plan, plan_status, onboarded, notify_on_winner, created_at').eq('user_id', user.userId).single(),
+    supabase.from('profiles').select('plan, plan_status, notify_on_winner, created_at').eq('user_id', user.userId).single(),
     supabase.from('tests').select('id, name, site_url, selector, goal, status, traffic_split, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, created_at').eq('user_id', user.userId).order('created_at', { ascending: false }),
     supabase.from('events').select('test_id, type, message, created_at').eq('user_id', user.userId).order('created_at', { ascending: false }).limit(500),
     supabase.from('domains').select('url, verified, created_at').eq('user_id', user.userId).order('created_at', { ascending: false }),

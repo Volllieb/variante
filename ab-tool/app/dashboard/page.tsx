@@ -14,7 +14,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const [profileRes, testsRes, domainsRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('api_token, plan, onboarded, has_figma_plugin')
+      .select('api_token, plan, has_figma_plugin')
       .eq('user_id', user.id)
       .single(),
     supabase
