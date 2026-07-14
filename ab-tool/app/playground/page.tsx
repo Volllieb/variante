@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { PandaLogo } from '@/components/PandaLogo'
+import { SNIPPET_CODE } from '@/lib/snippetCode'
 import { Play, MousePointer2, Image, Sparkles, Target, Code2, BarChart3, Trophy, FlaskConical } from 'lucide-react'
 
 /* ── Types ── */
@@ -125,7 +126,7 @@ export default function PlaygroundPage() {
 
   // ── Copy handlers ──
   const copyPrompt = () => {
-    const prompt = `Add this script to the <head> of every page on my site:\n\n<script src="https://cdn.getvariante.com/ab.js" data-test="demo-abc123"></script>\n\nIt enables A/B testing with Variante.`
+    const prompt = `Add this to the <head> of every page on my site:\n\n${SNIPPET_CODE}\n\nIt enables A/B testing with Variante.`
     navigator.clipboard.writeText(prompt).then(() => {
       setCopiedPrompt(true)
       setTimeout(() => setCopiedPrompt(false), 2000)
@@ -133,9 +134,7 @@ export default function PlaygroundPage() {
   }
 
   const copySnippet = () => {
-    navigator.clipboard.writeText(
-      '<script src="https://cdn.getvariante.com/ab.js" data-test="demo-abc123"></script>'
-    ).then(() => {
+    navigator.clipboard.writeText(SNIPPET_CODE).then(() => {
       setCopiedSnippet(true)
       setTimeout(() => setCopiedSnippet(false), 2000)
     })
@@ -225,12 +224,12 @@ export default function PlaygroundPage() {
     },
     snippet: {
       icon: <Code2 className="h-4 w-4 text-text-2 shrink-0" />,
-      title: 'One script tag. Done.',
+      title: 'One snippet. Done.',
       body: (
         <>
           <p className="mb-3">
-            Paste <strong>one <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;script&gt;</code> tag</strong> into
-            your <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;head&gt;</code>.
+            Paste this snippet into your{' '}
+            <code className="text-xs bg-[#111] px-1.5 py-0.5 rounded">&lt;head&gt;</code>.
             No deploy. No npm. No DNS.
           </p>
           <p>
@@ -809,7 +808,7 @@ function PluginBox({
             {showSnippet && (
               <div className="mt-2 rounded-lg border border-gray-200 bg-gray-100 p-3">
                 <code className="text-[11px] text-gray-600 break-all leading-relaxed">
-                  {'<script src="https://cdn.getvariante.com/ab.js" data-test="demo-abc123"></script>'}
+                  {SNIPPET_CODE}
                 </code>
               </div>
             )}
