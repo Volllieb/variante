@@ -16,7 +16,9 @@
     "test:ci": "playwright test --project=chromium-ci",
     "test:ci:smoke": "playwright test --project=chromium-ci --grep \"@smoke\"",
     "test:node": "node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "bot": "node scripts/ab-bot.mjs",
+    "bot:prod": "node scripts/ab-bot.mjs --prod"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.13",

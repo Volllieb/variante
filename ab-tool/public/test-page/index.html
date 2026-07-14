@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" class="__ab_pending">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudSync — Smart File Sync for Teams | Test Page</title>
+  <meta name="description" content="CloudSync keeps your team's files in sync across all devices. Real-time collaboration, version history, end-to-end encryption.">
+
+  <!-- Anti-flicker snippet -->
+  <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
+  <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)</script>
+
+  <!-- A/B Testing snippet — replace src for local dev -->
+  <!-- Local:  http://localhost:3000/ab.js -->
+  <!-- Prod:   https://www.getvariante.com/ab.js -->
+  <script>
+    (function() {
+      var env = new URLSearchParams(window.location.search).get('ab_env') || 'local';
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = env === 'prod'
+        ? 'https://www.getvariante.com/ab.js'
+        : 'http://localhost:3000/ab.js';
+      document.head.appendChild(script);
+    })();
+  </script>
+
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: #1a1a2e;
+      background: #f8f9fc;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Variant Debug Panel ── */
+    #__ab_debug {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 99999;
+      background: #1a1a2e;
+      color: #a0f0a0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+      display: none;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+    #__ab_debug.visible { display: block; }
+    #__ab_debug strong { color: #fff; display: block; margin-bottom: 4px; }
+    #__ab_debug .dim { color: #888; }
+    #__ab_debug .tag {
+      display: inline-block;
+      background: #7c3aed;
+      color: #fff;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 4px;
+      margin-top: 4px;
+    }
+    #__ab_debug .tag.b { background: #059669; }
+    #__ab_debug .tag.conv { background: #dc2626; }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #7c3aed;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a {
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .nav-links a:hover { color: #1a1a2e; }
+    .nav-cta {
+      background: #7c3aed;
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .nav-cta:hover { background: #6d28d9 !important; color: #fff !important; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 80px 32px 64px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: #7c3aed; }
+    .hero p {
+      font-size: 18px;
+      color: #6b7280;
+      margin-bottom: 32px;
+      max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: #7c3aed;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,58,237,0.3); }
+    .btn-secondary {
+      background: #fff;
+      color: #1a1a2e;
+      border: 1px solid #d1d5db;
+    }
+    .btn-secondary:hover { border-color: #9ca3af; background: #f9fafb; }
+    .btn-large { padding: 18px 36px; font-size: 18px; }
+
+    /* ── Social Proof ── */
+    .social-proof {
+      display: flex;
+      gap: 48px;
+      justify-content: center;
+      padding: 0 32px 48px;
+      flex-wrap: wrap;
+    }
+    .social-proof > div { text-align: center; }
+    .social-proof .num { font-size: 28px; font-weight: 800; color: #1a1a2e; }
+    .social-proof .label { font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ── Features ── */
+    .features {
+      padding: 64px 32px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .features h2 {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 48px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+    }
+    .feature-card {
+      background: #fff;
+      padding: 32px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      transition: box-shadow 0.2s;
+    }
+    .feature-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+    .feature-card .icon {
+      width: 44px;
+      height: 44px;
+      background: #ede9fe;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: #6b7280; }
+
+    /* ── Pricing ── */
+    .pricing {
+      padding: 64px 32px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .pricing h2 {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 48px;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      background: #fff;
+      padding: 32px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+    }
+    .pricing-card.featured {
+      border-color: #7c3aed;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.1);
+      position: relative;
+    }
+    .pricing-card.featured::before {
+      content: 'Most Popular';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #7c3aed;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .pricing-card .plan { font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .pricing-card .price { font-size: 40px; font-weight: 800; margin-bottom: 4px; }
+    .pricing-card .price small { font-size: 16px; font-weight: 400; color: #9ca3af; }
+    .pricing-card .period { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+    .pricing-card ul { list-style: none; text-align: left; margin-bottom: 24px; }
+    .pricing-card li { font-size: 14px; padding: 6px 0; color: #4b5563; }
+    .pricing-card li::before { content: '✓ '; color: #059669; font-weight: 700; }
+    .pricing-card .btn { width: 100%; justify-content: center; }
+
+    /* ── CTA Section ── */
+    .cta-section {
+      text-align: center;
+      padding: 80px 32px;
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      color: #fff;
+    }
+    .cta-section h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+    .cta-section p { font-size: 18px; opacity: 0.9; margin-bottom: 32px; }
+    .cta-section .btn-primary { background: #fff; color: #7c3aed; }
+    .cta-section .btn-primary:hover { background: #f3f4f6; box-shadow: 0 4px 16px rgba(255,255,255,0.25); }
+    .cta-section .btn-secondary {
+      background: transparent;
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+    }
+    .cta-section .btn-secondary:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+
+    /* ── Signup Form ── */
+    .signup {
+      padding: 64px 32px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .signup h2 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 32px; }
+    .signup form { display: flex; flex-direction: column; gap: 16px; }
+    .signup input {
+      padding: 14px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+    }
+    .signup input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+    .signup .btn { width: 100%; justify-content: center; }
+    .signup .disclaimer { font-size: 12px; color: #9ca3af; text-align: center; }
+
+    /* ── Testimonial ── */
+    .testimonial {
+      padding: 64px 32px;
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .testimonial blockquote {
+      font-size: 20px;
+      font-style: italic;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+    .testimonial cite { font-size: 14px; color: #9ca3af; font-style: normal; }
+
+    /* ── Footer ── */
+    footer {
+      padding: 32px;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    footer a { color: #6b7280; text-decoration: none; margin: 0 8px; }
+    footer a:hover { color: #1a1a2e; }
+
+    /* ── Conversion Indicator (shows on click) ── */
+    .__ab_conv_flash {
+      animation: __abFlash 0.6s ease-out;
+    }
+    @keyframes __abFlash {
+      0% { outline: 3px solid #059669; outline-offset: 2px; }
+      100% { outline: 3px solid transparent; outline-offset: 8px; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .social-proof { gap: 24px; }
+      .nav-links { gap: 12px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ Navigation ═══ -->
+  <nav>
+    <a href="/test-page/" class="nav-logo">☁️ CloudSync</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#signup" class="nav-cta" data-ab-goal="nav_signup">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- ═══ Hero — A/B-testable headline & CTA ═══ -->
+  <section class="hero">
+    <h1 id="hero-headline">
+      Sync your team's files<br><span>without the chaos</span>
+    </h1>
+    <p id="hero-subtext">
+      CloudSync keeps everyone on the same page. Real-time sync, version history,
+      and end-to-end encryption — so your files stay safe and up to date.
+    </p>
+    <div class="hero-buttons">
+      <a href="#signup" class="btn btn-primary btn-large" data-ab-goal="hero_cta_primary">
+        Start free trial →
+      </a>
+      <a href="#features" class="btn btn-secondary btn-large" data-ab-goal="hero_cta_secondary">
+        See how it works
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ Social Proof ═══ -->
+  <div class="social-proof">
+    <div><div class="num">10,000+</div><div class="label">Teams</div></div>
+    <div><div class="num">99.9%</div><div class="label">Uptime</div></div>
+    <div><div class="num">4.9/5</div><div class="label">Rating</div></div>
+    <div><div class="num">150M+</div><div class="label">Files Synced</div></div>
+  </div>
+
+  <!-- ═══ Features — A/B-testable cards ═══ -->
+  <section class="features" id="features">
+    <h2 id="features-headline">Everything you need to keep files in sync</h2>
+    <div class="feature-grid">
+      <div class="feature-card" data-ab-goal="feature_click">
+        <div class="icon">⚡</div>
+        <h3>Real-time Sync</h3>
+        <p>Changes appear instantly across all devices. No refresh, no waiting, no conflicts.</p>
+      </div>
+      <div class="feature-card" data-ab-goal="feature_click">
+        <div class="icon">🔐</div>
+        <h3>End-to-End Encryption</h3>
+        <p>Your files are encrypted before they leave your device. Only you hold the keys.</p>
+      </div>
+      <div class="feature-card" data-ab-goal="feature_click">
+        <div class="icon">🕐</div>
+        <h3>Version History</h3>
+        <p>Roll back any file to a previous version. 30 days of history on every plan.</p>
+      </div>
+      <div class="feature-card" data-ab-goal="feature_click">
+        <div class="icon">👥</div>
+        <h3>Team Folders</h3>
+        <p>Shared folders with granular permissions. Know who changed what, when.</p>
+      </div>
+      <div class="feature-card" data-ab-goal="feature_click">
+        <div class="icon">🔗</div>
+        <h3>Smart Links</h3>
+        <p>Share files with anyone via link. Set passwords, expiry dates, and download limits.</p>
+      </div>
+      <div class="feature-card" data-ab-goal="feature_click">
+        <div class="icon">📱</div>
+        <h3>All Platforms</h3>
+        <p>macOS, Windows, Linux, iOS, Android. One seamless experience everywhere.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Testimonial ═══ -->
+  <section class="testimonial">
+    <blockquote id="testimonial-text">
+      "CloudSync replaced three different tools we were using. Our team finally
+      stopped asking 'which version is the right one?'"
+    </blockquote>
+    <cite>— Sarah M., Engineering Lead at TechCorp</cite>
+  </section>
+
+  <!-- ═══ Pricing — A/B-testable cards ═══ -->
+  <section class="pricing" id="pricing">
+    <h2 id="pricing-headline">Simple, transparent pricing</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan">Starter</div>
+        <div class="price">$0<small>/mo</small></div>
+        <div class="period">Up to 5 users</div>
+        <ul>
+          <li>10 GB storage</li>
+          <li>Real-time sync</li>
+          <li>7 day version history</li>
+          <li>Basic support</li>
+        </ul>
+        <a href="#signup" class="btn btn-secondary" data-ab-goal="pricing_starter">Get Started</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="plan">Pro</div>
+        <div class="price">$12<small>/user/mo</small></div>
+        <div class="period">Unlimited users</div>
+        <ul>
+          <li>1 TB storage</li>
+          <li>Real-time sync</li>
+          <li>30 day version history</li>
+          <li>Priority support</li>
+          <li>Team folders & permissions</li>
+          <li>Smart Links</li>
+        </ul>
+        <a href="#signup" class="btn btn-primary" data-ab-goal="pricing_pro">Start Free Trial</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA Section ═══ -->
+  <section class="cta-section">
+    <h2 id="cta-headline">Ready to stop fighting over file versions?</h2>
+    <p>Join 10,000+ teams that trust CloudSync with their files.</p>
+    <div class="hero-buttons">
+      <a href="#signup" class="btn btn-primary btn-large" data-ab-goal="bottom_cta_primary">
+        Start free trial →
+      </a>
+      <a href="#features" class="btn btn-secondary btn-large" data-ab-goal="bottom_cta_secondary">
+        Talk to sales
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ Signup Form — A/B-testable ═══ -->
+  <section class="signup" id="signup">
+    <h2 id="signup-headline">Create your free account</h2>
+    <form id="signup-form" data-ab-goal="signup_submit">
+      <input type="text" id="signup-name" placeholder="Full name" required>
+      <input type="email" id="signup-email" placeholder="Work email" required>
+      <input type="password" id="signup-password" placeholder="Password (8+ characters)" minlength="8" required>
+      <button type="submit" class="btn btn-primary btn-large" data-ab-goal="signup_submit_btn">
+        Create account →
+      </button>
+      <p class="disclaimer">No credit card required. 14-day free trial of Pro.</p>
+    </form>
+  </section>
+
+  <!-- ═══ Footer ═══ -->
+  <footer>
+    <a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Contact</a>
+    <br><br>
+    © 2026 CloudSync Test Page — for A/B testing with <a href="https://getvariante.com">variante</a>
+  </footer>
+
+  <!-- ═══ Variant Debug Panel ═══ -->
+  <div id="__ab_debug">
+    <strong>🔬 A/B Test Active</strong>
+    <div id="__ab_debug_tests"></div>
+  </div>
+
+  <!-- ═══ Debug & Conversion Script ═══ -->
+  <script>
+    // ── Debug panel: show variant assignments ──
+    (function() {
+      var debug = document.getElementById('__ab_debug');
+      var debugTests = document.getElementById('__ab_debug_tests');
+
+      // Poll for __ab_tests (set by ab.js after resolve)
+      var attempts = 0;
+      var poll = setInterval(function() {
+        attempts++;
+        var tests = window.__ab_tests;
+        if (tests && Object.keys(tests).length > 0) {
+          clearInterval(poll);
+          debug.classList.add('visible');
+          var html = '';
+          Object.entries(tests).forEach(function(entry) {
+            var testId = entry[0];
+            var data = entry[1];
+            var variant = data.variant || '?';
+            html += '<span class="tag' + (variant === 'B' ? ' b' : '') + '">' +
+              testId.slice(0, 8) + ' → Var ' + variant +
+              '</span> ';
+          });
+          debugTests.innerHTML = html || '<span class="dim">No active tests</span>';
+        }
+        // Also check if there are CSS changes applied (ab.js might set classes)
+        if (attempts > 40) { // 2 seconds
+          clearInterval(poll);
+          if (!window.__ab_tests || Object.keys(window.__ab_tests || {}).length === 0) {
+            debug.classList.add('visible');
+            debugTests.innerHTML = '<span class="dim">No tests resolved (check snippet)</span>';
+          }
+        }
+      }, 50);
+    })();
+
+    // ── Visual click feedback ──
+    document.addEventListener('click', function(e) {
+      var el = e.target.closest('[data-ab-goal]');
+      if (el) {
+        el.classList.add('__ab_conv_flash');
+        setTimeout(function() { el.classList.remove('__ab_conv_flash'); }, 600);
+
+        // Log conversion to debug panel
+        var debugTests = document.getElementById('__ab_debug_tests');
+        if (debugTests) {
+          var goal = el.getAttribute('data-ab-goal');
+          var existingConv = debugTests.querySelector('.conv[data-goal="' + goal + '"]');
+          if (existingConv) {
+            var count = parseInt(existingConv.textContent.match(/\d+/)?.[0] || '1') + 1;
+            existingConv.textContent = '✓ ' + goal + ' (' + count + 'x)';
+          } else {
+            var span = document.createElement('span');
+            span.className = 'tag conv';
+            span.setAttribute('data-goal', goal);
+            span.textContent = '✓ ' + goal + ' (1x)';
+            debugTests.appendChild(document.createTextNode(' '));
+            debugTests.appendChild(span);
+          }
+        }
+      }
+    });
+
+    // ── Form submit: prevent default (test page), log conversion ──
+    document.getElementById('signup-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var debugTests = document.getElementById('__ab_debug_tests');
+      var span = document.createElement('span');
+      span.className = 'tag conv';
+      span.setAttribute('data-goal', 'signup_submit');
+      span.textContent = '✓ form submitted';
+      debugTests.appendChild(document.createTextNode(' '));
+      debugTests.appendChild(span);
+
+      // Flash the form
+      this.classList.add('__ab_conv_flash');
+      setTimeout(function() { document.getElementById('signup-form').classList.remove('__ab_conv_flash'); }, 600);
+    });
+
+    // ── URL params for debug mode ──
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+      var debug = document.getElementById('__ab_debug');
+      debug.classList.add('visible');
+      debug.style.bottom = '16px';
+      debug.style.right = '16px';
+    }
+  </script>
+</body>
+</html>
