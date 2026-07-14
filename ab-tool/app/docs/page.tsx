@@ -80,10 +80,10 @@ const sections = [
         <p>Add this snippet to the <code className="rounded-[5px] bg-white/[0.08] px-1.5 py-0.5 font-mono text-[13px] text-[#ededed]/62">&lt;head&gt;</code> of every page you want to test:</p>
         <pre className="mt-3 overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
 {`<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
-<link rel="preconnect" href="https://www.getvariante.com">
+<link rel="preconnect" href="https://www.getvariante.com" crossorigin>
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>`}
+<script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"><\/script>`}
         </pre>
 
         <h3 className="mt-6 text-sm font-semibold text-white">Next.js App Router</h3>
@@ -93,12 +93,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://www.getvariante.com" />
+        <link rel="preconnect" href="https://www.getvariante.com" crossorigin />
         <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"></script>
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"></script>
       </head>
       <body>{children}</body>
     </html>
@@ -115,12 +115,12 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        <link rel="preconnect" href="https://www.getvariante.com" />
+        <link rel="preconnect" href="https://www.getvariante.com" crossorigin />
         <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"></script>
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"></script>
       </Head>
       <body><Main /><NextScript /></body>
     </Html>
@@ -133,10 +133,10 @@ export default function Document() {
 {`<!DOCTYPE html>
 <html>
 <head>
-  <link rel="preconnect" href="https://www.getvariante.com">
+  <link rel="preconnect" href="https://www.getvariante.com" crossorigin>
   <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
   <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-IRhfYvegwpNV4YFObew04X1nQgyv7Mty9M5VWzJoOFry54oKIx4qIJg7lN1igh/T" crossorigin="anonymous"><\/script>
+  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"><\/script>
 </head>
 <body><!-- your content --></body>
 </html>`}

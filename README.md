@@ -38,7 +38,7 @@ Das `ab.js`-Snippet wird auf fremden Websites geladen. Zum Schutz vor Supply-Cha
 
 ```html
 <script async src="https://www.getvariante.com/ab.js"
-  integrity="sha384-btDuwXoWfKgcfKYngl7VREILNLiiXYb66pGhFyRH9W+TV9xUiEdEwAfucgepvQTj"
+  integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll"
   crossorigin="anonymous"></script>
 ```
 

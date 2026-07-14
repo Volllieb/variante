@@ -48,6 +48,11 @@
   })()
 
   if (__abPickerCfg) {
+    // Picker-Mode: Seite sofort sichtbar machen (Anti-Flicker löst sonst
+    // erst nach 10s Safety-Timeout auf, weil der normale A/B-Flow skipped).
+    window.__ab_pending_resolve = true
+    try { document.documentElement.classList.remove('__ab_pending') } catch (_) {}
+
     ;(function startPicker(cfg) {
       if (window.__abPickerActive) return
       // Guard gegen Chrome Extension: content-picker.js checkt dieses
@@ -122,6 +127,10 @@
         try {
           var sheets = document.styleSheets
           for (var i = 0; i < sheets.length; i++) {
+            // Skip cross-origin stylesheets — cssRules access throws anyway.
+            // location.origin check catches CDN / third-party CSS (fonts, analytics).
+            var href = sheets[i].href
+            if (href && href.indexOf(location.origin) !== 0 && href.charAt(0) !== '/') continue
             var rules; try { rules = sheets[i].cssRules } catch (_) { continue }
             if (!rules) continue
             for (var j = 0; j < rules.length; j++) {
