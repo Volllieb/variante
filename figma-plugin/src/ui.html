@@ -559,8 +559,7 @@ code {
 /* ── Error / ok text ─────────────────────────────────────────────────────── */
 .err { color: var(--err); font-size: var(--fs-sm); min-height: 18px; padding: 4px 0; line-height: 1.3; }
 .ok  { color: var(--ok); font-size: var(--fs-sm); padding: 4px 0; }
-.copy-ok { display: none; }
-.copy-ok.vis { display: inline; }
+
 
 /* ── Link button (used in toast undo) ───────────────────────────────────── */
 .link-btn {
@@ -728,9 +727,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Test Details</span>
-    <span class="hdr-step">1 / 6</span>
+    <span class="hdr-step">1 / 5</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="Step 1 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-label="Step 1 of 5">
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -771,9 +770,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Pick Element</span>
-    <span class="hdr-step">2 / 6</span>
+    <span class="hdr-step">2 / 5</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="2" aria-label="Step 2 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2" aria-label="Step 2 of 5">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -848,9 +847,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Variant B in Figma</span>
-    <span class="hdr-step">3 / 6</span>
+    <span class="hdr-step">3 / 5</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="3" aria-label="Step 3 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="3" aria-label="Step 3 of 5">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -948,11 +947,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Generate Variant B</span>
-    <span class="hdr-step">4 / 6</span>
+    <span class="hdr-step">4 / 5</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="4" aria-label="Step 4 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="4" aria-label="Step 4 of 5">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+    <div class="step-dot on"></div><div class="step-dot"></div>
   </div>
   <div class="body">
     <!-- Normal-Mode: HTML-Generierung mit Scope + Preview -->
@@ -1073,11 +1072,11 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Conversion Goal</span>
-    <span class="hdr-step">5 / 6</span>
+    <span class="hdr-step">5 / 5</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="5" aria-label="Step 5 of 6">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="5" aria-label="Step 5 of 5">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
+    <div class="step-dot on"></div><div class="step-dot on"></div>
   </div>
   <div class="body">
     <!-- Active goal — inline chip, not a separate section -->
@@ -1146,85 +1145,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="err" id="e-metric" role="alert" style="margin-top:6px"></div>
   </div>
   <div class="ftr">
-    <button class="btn btn-primary" id="m-generate" onclick="navPush('snippet'); buildSnippet()">Continue to Snippet →</button>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SCREEN 6 · Install Snippet
-════════════════════════════════════════════════════════════════════ -->
-<div id="s-snippet" class="screen">
-  <div class="hdr">
-    <button class="back-btn" onclick="navBack()" aria-label="Back">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6"/>
-      </svg>
-    </button>
-    <span class="hdr-title">Install Snippet</span>
-    <span class="hdr-step">6 / 6</span>
-  </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="6" aria-label="Step 6 of 6">
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot on"></div>
-  </div>
-  <div class="body">
-    <div class="notice notice-green">
-      <div class="notice-title">One snippet — every page</div>
-      <div class="notice-body">Add it once in the <code>&lt;head&gt;</code> of every page. Selector and goal load from the server automatically.</div>
-    </div>
-
-    <!-- Health check status -->
-    <div id="snip-health" style="display:none;margin-bottom:14px;border-radius:var(--r);padding:12px 14px;font-size:var(--fs-sm);line-height:1.5">
-      <div id="snip-health-ok" style="display:none;color:var(--ok)">
-        <strong style="font-weight:var(--fw-semibold)">✓ Snippet already installed</strong>
-        <div style="color:var(--text-2);margin-top:2px">ab.js detected on <span id="snip-health-url">your site</span>. No action needed — data is flowing.</div>
-      </div>
-      <div id="snip-health-warn" style="display:none;color:var(--pro)">
-        <strong style="font-weight:var(--fw-semibold)">⚠ Snippet not detected</strong>
-        <div style="color:var(--text-2);margin-top:2px">Could not find ab.js on <span id="snip-health-url-warn">your site</span>. Install it below.</div>
-        <div style="margin-top:6px">
-          <a href="#" onclick="event.preventDefault();parent.postMessage({pluginMessage:{type:'OPEN_URL',url:'https://www.getvariante.com/playground?source=figma-plugin-snippet'}},'*')" style="color:var(--primary);font-size:var(--fs-xs);font-weight:var(--fw-med);text-decoration:underline">
-            🏖️ While you wait — see how results look in the Playground →
-          </a>
-        </div>
-      </div>
-      <div id="snip-health-err" style="display:none;color:var(--err)">
-        <strong style="font-weight:var(--fw-semibold)">✗ Check failed</strong>
-        <div id="snip-health-err-msg" style="color:var(--text-2);margin-top:2px"></div>
-      </div>
-      <div id="snip-health-chk" style="display:flex;align-items:center;gap:6px;color:var(--text-3)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"/></svg>
-        <span>Checking snippet…</span>
-        <a href="#" onclick="event.preventDefault();parent.postMessage({pluginMessage:{type:'OPEN_URL',url:'https://www.getvariante.com/playground?source=figma-plugin-snippet'}},'*')" style="margin-left:8px;color:var(--primary);font-size:var(--fs-xs);font-weight:var(--fw-med);text-decoration:underline;white-space:nowrap">
-          🏖️ Preview results →
-        </a>
-      </div>
-    </div>
-
-    <!-- Copy prompt -->
-    <button class="btn btn-primary btn-icon-left" onclick="copyAiPrompt(this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-      Copy prompt
-    </button>
-    <div class="hint" style="margin:6px 2px 16px">Ready-made prompt — paste into Cursor, Copilot, ChatGPT or Claude. The AI adds the snippet to your site's <code>&lt;head&gt;</code>. Site: <strong id="cp-ai-url">—</strong>.</div>
-    <div class="copy-ok ok" id="cp-ai" aria-live="polite" style="margin:0 2px 12px;font-size:var(--fs-xs);font-weight:var(--fw-bold)">✓ Prompt copied</div>
-
-    <!-- Copy snippet manually -->
-    <button class="btn btn-secondary btn-icon-left" onclick="copySnippet(this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-      Copy snippet manually
-    </button>
-    <div class="copy-ok ok" id="cp-snippet" aria-live="polite" style="margin:6px 0 0 2px;font-size:var(--fs-xs);font-weight:var(--fw-bold)">✓ Copied</div>
-    <details style="margin:8px 0 0">
-      <summary style="font-size:var(--fs-sm);font-weight:var(--fw-med);color:var(--text-2);cursor:pointer">Show snippet code</summary>
-      <pre id="snippet-code" style="margin-top:8px"></pre>
-    </details>
-
-    <div class="divider"></div>
-
-    <button class="btn btn-secondary" onclick="window.open(API + '/dashboard')" style="margin-bottom:8px">Open in Dashboard →</button>
-    <button class="btn btn-ghost" onclick="navHistory=['dashboard'];go('dashboard')">← Back to overview</button>
+    <button class="btn btn-primary" id="m-generate" onclick="showDashboard()">Finish →</button>
   </div>
 </div>
 
@@ -1318,9 +1239,9 @@ function go(id) {
   if (id !== 'metric')  stopMetricPoll()
   if (id !== 'dashboard' && pendingDelete) commitPendingDelete()
 }
-// ponytail: Wizard-Screen sind setup/element/design/metric/generate/snippet.
+// ponytail: Wizard-Screens sind setup/element/design/generate/metric.
 // Dashboard & connect sind keine Wizard-Screens — da wird der Draft gelöscht.
-const WIZARD_SCREENS = ['setup', 'element', 'design', 'generate', 'metric', 'snippet']
+const WIZARD_SCREENS = ['setup', 'element', 'design', 'generate', 'metric']
 function saveDraft(id) {
   if (!WIZARD_SCREENS.includes(id) || !state.testId) return
   parent.postMessage({ pluginMessage: { type: 'SAVE_DRAFT', draft: { testId: state.testId, screen: id } } }, '*')
@@ -1481,10 +1402,6 @@ async function restoreDraft(draft) {
       } else {
         goGenerate()
       }
-    } else if (screen === 'snippet') {
-      navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric', 'snippet']
-      buildSnippet()
-      go('snippet')
     }
   } catch (_) {
     clearDraft()
@@ -2381,122 +2298,6 @@ async function refine() {
     generating = false
   }
 }
-
-function buildSnippetCode() {
-  return '<!-- variante A/B — paste in <head> on every page -->\n' +
-    '<link rel="preconnect" href="' + API + '">\n' +
-    '<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>\n' +
-    '<script>document.documentElement.classList.add("__ab_pending");' +
-    '(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();' +
-    'setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>\n' +
-    '<script async src="' + API + '/ab.js"><\/script>'
-}
-function buildSnippet() {
-  $('snippet-code').textContent = buildSnippetCode()
-  var urlEl = $('cp-ai-url'); if (urlEl) urlEl.textContent = state.url || '(your site URL)'
-  checkSnippetHealth()
-}
-
-async function checkSnippetHealth() {
-  const healthEl = $('snip-health')
-  if (!healthEl || !state.url) return
-  healthEl.style.display = 'block'
-  // reset all sub-states
-  $('snip-health-ok').style.display = 'none'
-  $('snip-health-warn').style.display = 'none'
-  $('snip-health-err').style.display = 'none'
-  $('snip-health-chk').style.display = 'flex'
-
-  try {
-    const res = await afetch(API + '/api/snippet-check', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site_url: state.url })
-    })
-    const json = await res.json()
-    $('snip-health-chk').style.display = 'none'
-    if (json.detected) {
-      $('snip-health-ok').style.display = 'block'
-      $('snip-health-url').textContent = state.url
-      healthEl.style.background = 'var(--ok-subtle)'
-      healthEl.style.border = '1px solid var(--ok-border)'
-    } else if (json.reason) {
-      $('snip-health-warn').style.display = 'block'
-      $('snip-health-url-warn').textContent = state.url
-      healthEl.style.background = 'var(--pro-subtle)'
-      healthEl.style.border = '1px solid var(--pro-border)'
-    } else {
-      $('snip-health-warn').style.display = 'block'
-      $('snip-health-url-warn').textContent = state.url
-      healthEl.style.background = 'var(--pro-subtle)'
-      healthEl.style.border = '1px solid var(--pro-border)'
-    }
-  } catch {
-    $('snip-health-chk').style.display = 'none'
-    $('snip-health-err').style.display = 'block'
-    $('snip-health-err-msg').textContent = 'Could not reach your site. Install the snippet below, then verify in the dashboard.'
-    healthEl.style.background = 'var(--err-subtle)'
-    healthEl.style.border = '1px solid var(--err-border)'
-  }
-}
-
-function buildAiPrompt() {
-  const url = state.url || '(your site URL)'
-  const testName = state.name || 'my test'
-  const snippet = buildSnippetCode()
-  return [
-    'Add the variante A/B testing snippet below to ' + url + ' (test: "' + testName + '").',
-    '',
-    '## 1. Check if already installed',
-    'Search the codebase for `id="__ab_hide"` or `ab.js`. If found, confirm the snippet is already present and skip the rest.',
-    '',
-    '## 2. Where to insert',
-    'Hardcode the snippet directly into the `<head>` at source level — before all stylesheets, font loaders, and analytics. Never inject via Google Tag Manager or behind a cookie consent banner.',
-    '',
-    '## 3. Detect framework and insert',
-    '- **Next.js**: `app/layout.tsx` or `pages/_document.tsx` (inside `<Head>`)',
-    '- **Nuxt**: `nuxt.config.ts` → `app.head.script`',
-    '- **Astro**: base layout in `src/layouts/`',
-    '- **WordPress**: `header.php` or via `wp_head` hook in `functions.php`',
-    '- **Shopify**: `theme.liquid`, inside `<head>`',
-    '- **Webflow**: Site settings → Custom Code → Head Code',
-    '- **Squarespace**: Settings → Advanced → Code Injection → Header',
-    '- **Wix**: Settings → Custom Code → Head (load on each page)',
-    '- **Static HTML / no framework**: the root file(s) with `<head>`',
-    '- **Unknown or no shared layout**: tell me what you detected and ask where to place the snippet.',
-    '',
-    '## 4. The snippet (do not modify)',
-    '```html',
-    snippet,
-    '```',
-    '',
-    '## 5. Verify',
-    'Check the live page source (view-source:) — the snippet must appear in the rendered `<head>`. Purge CDN caches (Cloudflare, Vercel, etc.) if the site uses one.',
-    '',
-    '## 6. Your response',
-    'When the snippet is inserted, respond ONLY with this short confirmation — no analysis, no caveats:',
-    '"✅ variante snippet added to ' + url + '. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard"',
-  ].join('\n')
-}
-
-function copyText(text) {
-  const ta = document.createElement('textarea')
-  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
-  document.body.appendChild(ta); ta.focus(); ta.select()
-  try { document.execCommand('copy') } catch (_) {}
-  document.body.removeChild(ta)
-}
-function flashCopied(id) {
-  const c = $(id); if (!c) return
-  c.classList.add('vis'); setTimeout(() => c.classList.remove('vis'), 2000)
-}
-function lockCopyBtn(btn) {
-  if (!btn) return
-  btn.disabled = true
-  setTimeout(() => { btn.disabled = false }, 1500)
-}
-function copySnippet(btn) { copyText(buildSnippetCode()); flashCopied('cp-snippet'); lockCopyBtn(btn) }
-function copyAiPrompt(btn) { copyText(buildAiPrompt()); flashCopied('cp-ai'); lockCopyBtn(btn) }
 
 async function togglePause(id, currentStatus) {
   const next = currentStatus === 'paused' ? 'active' : 'paused'
