@@ -1,6 +1,7 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -53,12 +54,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />
         <style id="__ab_hide">html.__ab_pending{"{"}opacity:0!important{"}"}</style>
-        <script
+        <Script
+          id="ab-pending"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)`,
           }}
         />
-        <script async src="https://www.getvariante.com/ab.js"></script>
+        <Script id="ab-js" src="https://www.getvariante.com/ab.js" strategy="beforeInteractive" async />
         {/* JSON-LD Organization — Root-fallback für alle Seiten */}
         <script
           type="application/ld+json"
