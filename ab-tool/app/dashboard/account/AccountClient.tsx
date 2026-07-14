@@ -226,24 +226,13 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
 
           {domains.length === 0 && (
             <div className="space-y-3">
-              <p className="text-[12px] text-[#ededed]/40">No website added yet. Add your domain to start running tests.</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                  placeholder="example.com"
-                  className="flex-1 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#ededed]/30 focus:border-white/[0.18] focus:outline-none"
-                />
-                <button
-                  onClick={addDomain}
-                  disabled={domainBusy || !newDomain.trim()}
-                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-40"
-                >
-                  {domainBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                  Add
-                </button>
-              </div>
+              <p className="text-[12px] text-[#ededed]/40">No website connected. Head to Setup to add one.</p>
+              <Link
+                href="/dashboard/setup"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+              >
+                Go to Setup
+              </Link>
             </div>
           )}
 
@@ -312,25 +301,10 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
           ))}
 
           {domains.length > 0 && (
-            <div className="mt-3 space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                  placeholder="Add another domain…"
-                  className="flex-1 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#ededed]/30 focus:border-white/[0.18] focus:outline-none"
-                />
-                <button
-                  onClick={addDomain}
-                  disabled={domainBusy || !newDomain.trim()}
-                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-40"
-                >
-                  {domainBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                  Add
-                </button>
-              </div>
-            </div>
+            <p className="mt-3 text-[12px] text-[#ededed]/30">
+              To replace this website, delete it first, then add a new one via{' '}
+              <Link href="/dashboard/setup" className="underline hover:text-[#ededed]/60">Setup</Link>.
+            </p>
           )}
 
           {domainError && (
