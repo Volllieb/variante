@@ -9,6 +9,7 @@ import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
+import { AgentPanel } from './components/AgentPanel'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
@@ -200,6 +201,11 @@ export function DashboardClient({
                   is set up — without it, variante can&apos;t track results.
                 </p>
               </div>
+            )}
+
+            {/* Auto-optimize — autonomer CRO-Agent (Pro Feature) */}
+            {setupComplete && primaryDomain && (
+              <AgentPanel domain={primaryDomain} plan={plan} />
             )}
 
             {/* What to test next — AI-powered, page-specific (Pro Feature) */}
