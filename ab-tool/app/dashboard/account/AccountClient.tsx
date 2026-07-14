@@ -272,21 +272,26 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
                 {deleteId === d.id ? (
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => deleteDomain(d.id)}
-                      disabled={domainBusy}
-                      className="cursor-pointer rounded-[4px] bg-err px-2 py-1 text-[10px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
-                    >
-                      {domainBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(null)}
-                      disabled={domainBusy}
-                      className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-[#ededed]/40 hover:text-[#ededed]"
-                    >
-                      Cancel
-                    </button>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[11px] text-pro">
+                      Active tests on this domain will be paused. Test configurations are preserved — reconnect anytime.
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => deleteDomain(d.id)}
+                        disabled={domainBusy}
+                        className="cursor-pointer rounded-[4px] bg-err px-2 py-1 text-[10px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
+                      >
+                        {domainBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(null)}
+                        disabled={domainBusy}
+                        className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-[#ededed]/40 hover:text-[#ededed]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button
