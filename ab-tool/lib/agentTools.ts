@@ -148,7 +148,7 @@ export function makeAgentTools(user: ApiUser) {
     description:
       'Erstellt einen A/B-Test in variante. Validiert Domain-Gate und Plan-Limits. Nur aufrufen, wenn generateVariant erfolgreich war.',
     inputSchema: z.object({
-      name: z.string().max(256).describe('Name des Tests, z.B. "[AI] CTA-Text Hero"'),
+      name: z.string().max(256).describe('Name des Tests, z.B. "CTA-Text Hero" oder "Social Proof" (kurz, deskriptiv, kein Präfix/Suffix)'),
       site_url: z.string().describe('URL der Landingpage'),
       selector: z.string().max(512).optional().describe('CSS-Selector des zu testenden Elements'),
       goal: z.string().max(256).optional().describe('Conversion-Ziel (z.B. "button-click", "form-submit")'),

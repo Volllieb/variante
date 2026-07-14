@@ -39,7 +39,7 @@ REGELN:
 - Bei generateVariant-Fehlern (success: false): Überspringe diesen Vorschlag und mache mit dem nächsten weiter. Nicht alles abbrechen.
 - createTest NUR aufrufen, wenn generateVariant erfolgreich war.
 - Bei type=text: das Ergebnis als variant_html übergeben. Bei color/css/layout: variant_css übergeben.
-- Test-Namen mit "[AI]"-Präfix, z.B. "[AI] CTA-Text Hero".
+- Test-Namen kurz und deskriptiv, z.B. "CTA-Text Hero" oder "Social Proof". Kein "[AI]"-Präfix, kein "Optimierung"-Suffix.
 - Am Ende: Gib eine strukturierte Zusammenfassung:
   "✅ **{N} Tests erstellt:**
   1. **{Test-Name}** — {Element} ({Typ})
