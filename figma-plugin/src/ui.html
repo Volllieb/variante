@@ -396,6 +396,17 @@ textarea { resize: vertical; }
 .adv-group-title svg { flex-shrink: 0; color: var(--text-2); }
 .adv-group-desc { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: 8px; line-height: 1.4; }
 
+/* ── Segmented control (sig level) ───────────────────────────────────────── */
+.segmented-row { display: flex; gap: 2px; background: var(--bg-input); border-radius: 6px; padding: 2px; }
+.seg-btn {
+  flex: 1; padding: 6px 0; font-size: var(--fs-sm); font-weight: var(--fw-med);
+  border: none; background: transparent; color: var(--text-2); border-radius: 4px;
+  cursor: pointer; transition: background var(--dur-fast), color var(--dur-fast);
+  font-family: inherit; text-align: center;
+}
+.seg-btn:hover { color: var(--text); }
+.seg-btn.sel { background: var(--c-accent); color: #000; font-weight: var(--fw-semi); }
+
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -426,6 +437,7 @@ textarea { resize: vertical; }
 .bs-active  { background: var(--accent-subtle); color: var(--accent); }
 .bs-done    { background: var(--ok-subtle); color: var(--ok); }
 .bs-paused  { background: var(--pro-subtle); color: var(--pro); }
+.bs-issues  { background: var(--err-subtle); color: var(--err); border: 1px solid var(--err-border); }
 
 /* ── Code pre ────────────────────────────────────────────────────────────── */
 pre {
@@ -747,6 +759,34 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     </div>
     <div class="field-err" id="name-err" role="alert"></div>
 
+    <button type="button" class="adv-toggle" id="adv-toggle-setup" onclick="toggleAdvancedSetup()" aria-expanded="false" aria-controls="adv-config" style="margin-top:12px">
+      <svg class="adv-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m9 18 6-6-6-6"/>
+      </svg>
+      Advanced config
+    </button>
+    <div class="adv-section" id="adv-config" style="margin-top:8px">
+      <div class="adv-group">
+        <label class="adv-group-title">Significance Level</label>
+        <div class="adv-group-desc">How sure you need to be before declaring a winner.</div>
+        <div class="segmented-row" style="margin-top:6px">
+          <button class="seg-btn" data-value="0.9" onclick="selectSigLevel(0.9, this)">90%</button>
+          <button class="seg-btn sel" data-value="0.95" onclick="selectSigLevel(0.95, this)">95%</button>
+          <button class="seg-btn" data-value="0.99" onclick="selectSigLevel(0.99, this)">99%</button>
+        </div>
+      </div>
+      <div class="adv-group" style="margin-top:12px">
+        <label class="adv-group-title" for="f-visitors">Min Visitors</label>
+        <div class="adv-group-desc">Test needs at least this many visitors before evaluating.</div>
+        <input id="f-visitors" type="number" min="1" value="100" style="width:100%;margin-top:4px;font-size:var(--fs-sm);background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--c-fg)"/>
+      </div>
+      <div class="adv-group" style="margin-top:12px">
+        <label class="adv-group-title">Min Uplift · <span id="uplift-val">5%</span></label>
+        <div class="adv-group-desc">Minimum conversion lift B must show over A to win.</div>
+        <input id="f-uplift" type="range" min="1" max="20" step="0.5" value="5" oninput="$('uplift-val').textContent = this.value + '%'" style="width:100%;margin-top:4px;accent-color:var(--c-accent);height:4px"/>
+      </div>
+    </div>
+
     <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:6px">
       <div class="spinner" aria-hidden="true"></div>
       Creating test…
@@ -769,10 +809,10 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
         <path d="m15 18-6-6 6-6"/>
       </svg>
     </button>
-    <span class="hdr-title">Pick Element</span>
-    <span class="hdr-step">2 / 5</span>
+    <span class="hdr-title">Pick Element A</span>
+    <span class="hdr-step">2 / 6</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2" aria-label="Step 2 of 5">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="2" aria-label="Step 2 of 6">
     <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -827,9 +867,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   <div class="ftr">
     <div id="normal-el-footer">
       <button id="btn-el-next" class="btn btn-primary" onclick="goToDesign()" disabled>Continue to Variant B →</button>
-      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="startSwapMode()">
+      <button class="btn btn-secondary btn-icon-left" onclick="startSwapMode()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
-        Swap two elements instead
+        Swap with a different element
       </button>
     </div>
     <div id="swap-footer" style="display:none;flex-direction:column;gap:var(--sp-2)">
@@ -1184,7 +1224,7 @@ const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
   selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: '',
-  plan: 'free', verifiedDomain: '',
+  plan: 'free', verifiedDomain: '', sigLevel: 0.95,
   swapMode: false, reorderSelector: '',
 }
 let activeTestCount = 0
@@ -1556,12 +1596,21 @@ function renderTestCard(t) {
     ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>'
     : '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
 
+  // Health-Issues-Indikator
+  var healthHtml = ''
+  if (t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length) {
+    var issueLabels = { missing_name:'No name', missing_site_url:'No website', missing_selector:'No element', missing_variant:'No variant', missing_goal:'No goal' }
+    healthHtml = '<span class="badge bs-issues" title="' + t.health_issues.map(function(c){return issueLabels[c]||c}).join(', ') + '">' +
+      t.health_issues.length + ' issue' + (t.health_issues.length !== 1 ? 's' : '') + '</span>'
+  }
+
   const card = document.createElement('div')
   card.className = 'test-card st-' + st
   card.innerHTML =
     '<div class="tc-row1">' +
       '<span class="tc-name">' + escapeHtml(t.name) + '</span>' +
       '<span class="badge bs-' + st + '">' + statusLabel + '</span>' +
+      healthHtml +
     '</div>' +
     (domain ? '<div class="tc-domain">' + escapeHtml(domain) + '</div>' : '') +
     '<div class="tc-row2">' +
@@ -1589,7 +1638,74 @@ const IC_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" st
 const IC_UP    = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
 const IC_DOWN  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>'
 const IC_TROPHY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>'
-function resumeTest(id) { window.open(API + '/results/' + id) }
+function resumeTest(id) {
+  // Prüfe ob der Test Health-Issues hat — dann Wizard öffnen statt Results.
+  afetch(API + '/api/tests/' + id).then(function(r) {
+    if (!r.ok) { window.open(API + '/results/' + id); return }
+    return r.json().then(function(t) {
+      if (t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length > 0) {
+        resumeWizardFromHealth(t)
+      } else {
+        window.open(API + '/results/' + id)
+      }
+    })
+  }).catch(function() {
+    window.open(API + '/results/' + id)
+  })
+}
+
+// Öffnet den Wizard an der Stelle, wo das erste Health-Issue behoben werden muss.
+function resumeWizardFromHealth(t) {
+  clearDraft()
+  state.testId = t.id
+  state.snippetKey = t.snippet_key || ''
+  state.name = t.name || ''
+  state.url = t.site_url || ''
+  state.selector = t.selector || ''
+  state.goal = t.goal || ''
+  state.originalHtml = t.original_html || ''
+  state.goalCandidates = t.goal_candidates || []
+  state.siteCss = t.site_css || ''
+  state.frameContent = null
+  state.html = t.variant_b_html || ''
+  previewVariant = 'b'
+  scope = 'all'
+  generateDone = !!(t.variant_b_html || t.variant_b_css)
+  generateFailed = false
+
+  // Bestimme den Screen basierend auf dem ersten Issue
+  var issues = t.health_issues || []
+  var firstIssue = issues[0] || ''
+
+  if (firstIssue === 'missing_name' || firstIssue === 'missing_site_url') {
+    // Setup-Screen: Name & URL
+    navHistory = ['dashboard', 'setup']
+    go('setup')
+    $('f-name').value = state.name
+    clearFieldError('f-name', 'name-err')
+  } else if (firstIssue === 'missing_selector') {
+    // Element-Screen: Element auswählen
+    navHistory = ['dashboard', 'setup', 'element']
+    go('element')
+    startElementPoll()
+  } else if (firstIssue === 'missing_variant') {
+    // Design/Generate-Screen: Variante erstellen
+    navHistory = ['dashboard', 'setup', 'element', 'design', 'generate']
+    go('generate')
+    $('d-waiting').style.display = 'none'
+    $('d-done').style.display = 'block'
+  } else if (firstIssue === 'missing_goal') {
+    // Metric-Screen: Goal setzen
+    navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric']
+    go('metric')
+    startMetricPoll()
+  } else {
+    // Fallback: Setup
+    navHistory = ['dashboard', 'setup']
+    go('setup')
+    $('f-name').value = state.name
+  }
+}
 
 function normalizeUrl(raw) {
   let u = (raw || '').trim()
@@ -1660,28 +1776,47 @@ async function createTest() {
     return
   }
 
+  const minVisitors = parseInt($('f-visitors').value, 10) || 100
+  const minUplift = parseFloat($('f-uplift').value) / 100 || 0.05
+  const significanceLevel = state.sigLevel || 0.95
+
   const btn = $('btn-create')
   btn.disabled = true
   const lSetup = $('l-setup'); if (lSetup) lSetup.style.display = 'flex'
   try {
-    const res = await afetch(API + '/api/tests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, site_url: url })
-    })
-    if (!res.ok) {
-      var eb = {}; try { eb = await res.json() } catch (_) {}
-      if (eb.upgrade) {
-        showUpgradeBanner(eb.message || 'Free plan allows 1 active experiment. Upgrade for unlimited.')
-        throw new Error(eb.message || 'Free plan limit reached')
+    // Wenn bereits ein testId existiert (User war weiter und ist zurückgegangen),
+    // dann PATCH statt POST — sonst entstehen Duplikate.
+    if (state.testId) {
+      const res = await afetch(API + '/api/tests/' + state.testId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, min_visitors: minVisitors, min_uplift: minUplift, significance_level: significanceLevel })
+      })
+      if (!res.ok) {
+        var eb = {}; try { eb = await res.json() } catch (_) {}
+        throw new Error(apiErrorMessage(res.status, eb))
       }
-      throw new Error(apiErrorMessage(res.status, eb))
+      state.name = name
+    } else {
+      const res = await afetch(API + '/api/tests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, site_url: url, min_visitors: minVisitors, min_uplift: minUplift, significance_level: significanceLevel })
+      })
+      if (!res.ok) {
+        var eb = {}; try { eb = await res.json() } catch (_) {}
+        if (eb.upgrade) {
+          showUpgradeBanner(eb.message || 'Free plan allows 1 active experiment. Upgrade for unlimited.')
+          throw new Error(eb.message || 'Free plan limit reached')
+        }
+        throw new Error(apiErrorMessage(res.status, eb))
+      }
+      const data = await res.json()
+      state.testId = data.id
+      state.snippetKey = data.snippet_key
+      state.name = name; state.url = url
     }
-    const data = await res.json()
     hideUpgradeBanner()
-    state.testId = data.id
-    state.snippetKey = data.snippet_key
-    state.name = name; state.url = url
     navPush('element')
     startElementPoll()
   } catch (e) {
@@ -1797,12 +1932,15 @@ function renderElementChips() {
 
 function updateElementNextButton() {
   if (state.swapMode) {
-    $('btn-el-next').disabled = !(state.selector && state.reorderSelector)
-    // Swap: hide normal continue, show swap continue
+    // Hide both footers — swap auto-finishes when both elements are picked
     var swapFooter = $('swap-footer')
     var normalFooter = $('normal-el-footer')
-    if (swapFooter) swapFooter.style.display = state.reorderSelector ? '' : 'none'
+    if (swapFooter) swapFooter.style.display = 'none'
     if (normalFooter) normalFooter.style.display = 'none'
+    if (state.selector && state.reorderSelector) {
+      finishSwapTest()
+      return
+    }
   } else {
     $('btn-el-next').disabled = !state.selector
     var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
@@ -1848,6 +1986,17 @@ function startSwapMode() {
   openSite('reorder')
   startElementPoll()
 }
+
+var swapFinishing = false
+function finishSwapTest() {
+  if (swapFinishing) return
+  swapFinishing = true
+  stopElementPoll()
+  state.goal = state.selector
+  navPush('metric')
+  finishWizard()
+}
+
 function goToDesign() { navPush('design'); requestSelection() }
 
 // Swap-Modus: optional Figma redesign — überspringen oder designen
@@ -1991,6 +2140,18 @@ function toggleAdvanced() {
   const t = $('adv-toggle'), s = $('adv-section')
   t.classList.toggle('open'); s.classList.toggle('open')
   t.setAttribute('aria-expanded', t.classList.contains('open') ? 'true' : 'false')
+}
+
+function toggleAdvancedSetup() {
+  const t = $('adv-toggle-setup'), s = $('adv-config')
+  t.classList.toggle('open'); s.classList.toggle('open')
+  t.setAttribute('aria-expanded', t.classList.contains('open') ? 'true' : 'false')
+}
+
+function selectSigLevel(val, el) {
+  Array.from(document.querySelectorAll('.seg-btn')).forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+  state.sigLevel = val
 }
 
 async function enterMetric() {
