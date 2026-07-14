@@ -29,7 +29,7 @@ export function calcSignificance(vA: number, cA: number, vB: number, cB: number)
   return 1 - pValue
 }
 
-const WINNER_MIN_SIGNIFICANCE = 0.95
+const DEFAULT_SIGNIFICANCE_LEVEL = 0.95
 const DEFAULT_MIN_VISITORS = 100
 const DEFAULT_MIN_UPLIFT = 0.05
 
@@ -47,10 +47,11 @@ export function determineWinner(
   vA: number,
   vB: number,
   minVisitors: number = DEFAULT_MIN_VISITORS,
-  minUplift: number = DEFAULT_MIN_UPLIFT
+  minUplift: number = DEFAULT_MIN_UPLIFT,
+  significanceLevel: number = DEFAULT_SIGNIFICANCE_LEVEL
 ): string | null {
   if (vA + vB < minVisitors) return null
-  if (significance < WINNER_MIN_SIGNIFICANCE) return null
+  if (significance < significanceLevel) return null
   const crA = vA > 0 ? cA / vA : 0
   const crB = vB > 0 ? cB / vB : 0
   if (crB <= crA) return 'A' // B ist nicht besser (oder gleich) → A gewinnt

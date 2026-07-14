@@ -59,7 +59,11 @@ export function useTestList({ initial, sort = false }: UseTestListOptions): UseT
 
     // Status filter
     if (filter.status !== 'all') {
-      result = result.filter((t) => t.status === filter.status)
+      if (filter.status === 'health-issues') {
+        result = result.filter((t) => (t as any).health_status === 'issues')
+      } else {
+        result = result.filter((t) => t.status === filter.status)
+      }
     }
 
     // Date filter

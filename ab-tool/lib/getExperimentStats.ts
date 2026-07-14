@@ -23,6 +23,7 @@ export type ExperimentData = {
   winner: string | null
   minVisitors: number
   minUplift: number
+  significanceLevel: number
   userId: string | null
   pro: boolean // false → Free-Tier: Signifikanz + Auto-Gewinner gesperrt
   variants: VariantStats[]
@@ -41,7 +42,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const { data: test } = await supabase
     .from('tests')
     .select(
-      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, user_id, original_html, variant_b_html, site_css'
+      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, significance_level, user_id, original_html, variant_b_html, site_css'
     )
     .eq('id', id)
     .single()
@@ -62,6 +63,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const userId: string | null = test.user_id || null
   const minVisitors = test.min_visitors ?? 100
   const minUplift = test.min_uplift ?? 0.05
+  const significanceLevel = test.significance_level ?? 0.95
   const status = test.status
   const winner: string | null = test.winner ?? null
 
@@ -75,6 +77,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     winner,
     minVisitors,
     minUplift,
+    significanceLevel,
     userId,
     pro,
     originalHtml: test.original_html ?? null,

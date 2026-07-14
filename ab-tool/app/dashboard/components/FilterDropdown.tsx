@@ -15,7 +15,7 @@ const T = {
 
 /* ── Filter types ── */
 
-export const STATUS_OPTIONS = ['all', 'active', 'draft', 'paused', 'done'] as const
+export const STATUS_OPTIONS = ['all', 'active', 'draft', 'paused', 'done', 'health-issues'] as const
 export type StatusFilter = (typeof STATUS_OPTIONS)[number]
 
 export const DATE_OPTIONS = ['all', '7d', '30d', '90d'] as const
@@ -49,6 +49,7 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   draft: 'Draft',
   paused: 'Paused',
   done: 'Done',
+  'health-issues': 'Health issues',
 }
 
 const WINNER_LABELS: Record<WinnerFilter, string> = {

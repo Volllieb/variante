@@ -19,7 +19,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       .single(),
     supabase
       .from('tests')
-      .select('id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
+      .select('id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase

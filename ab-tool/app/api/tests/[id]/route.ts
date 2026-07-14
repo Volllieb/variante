@@ -14,11 +14,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params
 
   let body: {
+    name?: string
     goal?: string
     status?: string
     selector?: string | null
     min_visitors?: number
     min_uplift?: number
+    significance_level?: number
     variant_b_html?: string | null
     variant_b_css?: string | null
   }
@@ -29,19 +31,23 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const patch: {
+    name?: string
     goal?: string
     status?: string
     selector?: string | null
     min_visitors?: number
     min_uplift?: number
+    significance_level?: number
     variant_b_html?: string | null
     variant_b_css?: string | null
   } = {}
+  if (typeof body.name === 'string' && body.name.trim().length > 0 && body.name.trim().length <= 256) patch.name = body.name.trim()
   if (typeof body.goal === 'string') patch.goal = body.goal
   if (body.status === 'draft' || body.status === 'active' || body.status === 'done' || body.status === 'paused') patch.status = body.status
   if (typeof body.selector === 'string' || body.selector === null) patch.selector = body.selector
   if (typeof body.min_visitors === 'number') patch.min_visitors = body.min_visitors
   if (typeof body.min_uplift === 'number') patch.min_uplift = body.min_uplift
+  if (typeof body.significance_level === 'number' && [0.9, 0.95, 0.99].includes(body.significance_level)) patch.significance_level = body.significance_level
   if (typeof body.variant_b_html === 'string' || body.variant_b_html === null) patch.variant_b_html = body.variant_b_html
   if (typeof body.variant_b_css === 'string' || body.variant_b_css === null) patch.variant_b_css = body.variant_b_css
 

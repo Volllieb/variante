@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from('tests')
     .select(
-      'id, name, site_url, status, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
+      'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
     )
     .eq('user_id', user.userId)
     .order('created_at', { ascending: false })
@@ -41,6 +41,7 @@ export async function POST(req: Request) {
     traffic_split?: number
     min_visitors?: number
     min_uplift?: number
+    significance_level?: number
   }
   try {
     body = await req.json()
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  const { name, site_url, selector, goal, traffic_split, min_visitors, min_uplift } = body
+  const { name, site_url, selector, goal, traffic_split, min_visitors, min_uplift, significance_level } = body
 
   if (!name) {
     return Response.json({ error: 'name is required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
@@ -128,6 +129,7 @@ export async function POST(req: Request) {
   }
   if (typeof min_visitors === 'number') insert.min_visitors = min_visitors
   if (typeof min_uplift === 'number') insert.min_uplift = min_uplift
+  if (typeof significance_level === 'number' && [0.9, 0.95, 0.99].includes(significance_level)) insert.significance_level = significance_level
 
   const { data, error } = await supabase
     .from('tests')

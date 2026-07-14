@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   // Alle aktiven Tests ohne Winner laden
   const { data: tests, error } = await supabase
     .from('tests')
-    .select('id, name, user_id, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift')
+    .select('id, name, user_id, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
     .in('status', ['active', 'paused'])
     .is('winner', null)
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
   for (const t of tests ?? []) {
     const sig = calcSignificance(t.visitors_a, t.conversions_a, t.visitors_b, t.conversions_b)
-    const winner = determineWinner(sig, t.conversions_a, t.conversions_b, t.visitors_a, t.visitors_b, t.min_visitors ?? 100, t.min_uplift ?? 0.05)
+    const winner = determineWinner(sig, t.conversions_a, t.conversions_b, t.visitors_a, t.visitors_b, t.min_visitors ?? 100, t.min_uplift ?? 0.05, t.significance_level ?? 0.95)
 
     if (winner) {
       // Winner persistieren

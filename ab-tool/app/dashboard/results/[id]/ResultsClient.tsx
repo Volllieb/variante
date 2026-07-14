@@ -66,6 +66,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
+  const [significanceLevel, setSignificanceLevel] = useState(initial.significanceLevel || 0.95)
   const [saved, setSaved] = useState(false)
   const [editingB, setEditingB] = useState(false)
   const [draftB, setDraftB] = useState(initial.variantBHtml || '')
@@ -179,7 +180,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
       await fetch(`/api/tests/${experimentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ min_visitors: minVisitors, min_uplift: minUplift }),
+        body: JSON.stringify({ min_visitors: minVisitors, min_uplift: minUplift, significance_level: significanceLevel }),
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -349,7 +350,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           {/* Visitor bar */}
           <div className="mx-auto mt-5 max-w-[240px]">
             <div className="mb-1 flex justify-between text-[10px] text-[#ededed]/30">
-              <span>Towards significance</span>
+              <span>Minimum sample size</span>
               <span>{visitorPct}%</span>
             </div>
             <div className="h-1 overflow-hidden rounded-full bg-[#111111]">
@@ -692,17 +693,47 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                     />
                   </label>
                   <label className="block space-y-1.5">
-                    <span className="text-xs font-semibold text-[#ededed]/62">Min Uplift B (%)</span>
+                    <span className="text-xs font-semibold text-[#ededed]/62">
+                      Min Uplift B · {Math.round(minUplift * 100)}%
+                    </span>
                     <input
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={Math.round(minUplift * 100)}
+                      type="range"
+                      min={1}
+                      max={20}
+                      step={0.5}
+                      value={minUplift * 100}
                       onChange={e => setMinUplift(Number(e.target.value) / 100)}
-                      className="w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                      className="w-full accent-white h-1.5 rounded-full cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #ededed 0%, #ededed ${(minUplift * 100 - 1) / 19 * 100}%, #111111 ${(minUplift * 100 - 1) / 19 * 100}%, #111111 100%)`,
+                      }}
                     />
                   </label>
                 </div>
+
+                {/* Segmented control: significance level */}
+                <fieldset className="mt-4">
+                  <legend className="text-xs font-semibold text-[#ededed]/62 mb-2">Significance Level</legend>
+                  <div className="flex gap-1">
+                    {([0.9, 0.95, 0.99] as const).map((lvl) => (
+                      <button
+                        key={lvl}
+                        type="button"
+                        onClick={() => setSignificanceLevel(lvl)}
+                        className={`flex-1 cursor-pointer rounded-[6px] border px-3 py-2 text-xs font-semibold transition-colors ${
+                          significanceLevel === lvl
+                            ? 'border-white/30 bg-white text-black'
+                            : 'border-white/10 bg-[#111111] text-[#ededed]/60 hover:text-[#ededed]'
+                        }`}
+                      >
+                        {Math.round(lvl * 100)}%
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-[10px] text-[#ededed]/30">
+                    {significanceLevel === 0.9 ? 'Looser threshold, faster results' : significanceLevel === 0.99 ? 'Strictest threshold, most confident' : 'Balanced confidence (default)'}
+                  </p>
+                </fieldset>
 
                 <div className="mt-4">
                   <div className="mb-1.5 flex justify-between text-xs text-[#ededed]/40">

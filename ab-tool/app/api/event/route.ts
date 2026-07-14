@@ -19,6 +19,7 @@ type TestRow = {
   conversions_b: number
   min_visitors: number
   min_uplift: number
+  significance_level: number
 }
 
 export async function POST(req: Request) {
@@ -86,7 +87,8 @@ export async function POST(req: Request) {
     row.visitors_a,
     row.visitors_b,
     row.min_visitors,
-    row.min_uplift
+    row.min_uplift,
+    row.significance_level ?? 0.95
   )
 
   const { error: updateError } = await supabase

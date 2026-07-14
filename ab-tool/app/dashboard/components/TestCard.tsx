@@ -20,6 +20,8 @@ export type TestRow = {
   name: string
   site_url: string | null
   status: string
+  health_status?: string | null
+  health_issues?: string[] | null
   visitors_a: number
   visitors_b: number
   conversions_a: number
@@ -49,6 +51,17 @@ function formatDuration(iso: string): string {
   if (hours >= 1) return `${hours}h`
   if (mins >= 1) return `${mins}m`
   return `${secs}s`
+}
+
+function issueLabel(code: string): string {
+  const labels: Record<string, string> = {
+    missing_name: 'No name',
+    missing_site_url: 'No website',
+    missing_selector: 'No element selected',
+    missing_variant: 'No variant design',
+    missing_goal: 'No conversion goal',
+  }
+  return labels[code] ?? code
 }
 
 /* ── Pie chart: significance progress, visitors in center ── */
@@ -247,7 +260,7 @@ export function TestCard({
       </div>
 
       {/* ── Row 2: status pill | duration | variant leader ── */}
-      <div className="mt-2.5 flex items-center gap-1.5">
+      <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
         {/* Status pill */}
         <span
           className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2 py-0.5 text-[11px]"
@@ -264,6 +277,18 @@ export function TestCard({
           />
           {status === 'active' ? 'Active' : status === 'paused' ? 'Paused' : status === 'done' ? 'Done' : 'Draft'}
         </span>
+
+        {/* Health issues pill */}
+        {t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length > 0 && (
+          <span
+            className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
+            style={{ borderColor: `${T.err}30`, color: T.err, background: `${T.err}0d` }}
+            title={t.health_issues.map(code => issueLabel(code)).join(', ')}
+          >
+            <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: T.err }} />
+            {t.health_issues.length} {t.health_issues.length === 1 ? 'issue' : 'issues'}
+          </span>
+        )}
 
         {/* Duration pill */}
         <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] text-[#ededed]/50">
