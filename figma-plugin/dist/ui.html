@@ -396,6 +396,17 @@ textarea { resize: vertical; }
 .adv-group-title svg { flex-shrink: 0; color: var(--text-2); }
 .adv-group-desc { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: 8px; line-height: 1.4; }
 
+/* ── Segmented control (sig level) ───────────────────────────────────────── */
+.segmented-row { display: flex; gap: 2px; background: var(--bg-input); border-radius: 6px; padding: 2px; }
+.seg-btn {
+  flex: 1; padding: 6px 0; font-size: var(--fs-sm); font-weight: var(--fw-med);
+  border: none; background: transparent; color: var(--text-2); border-radius: 4px;
+  cursor: pointer; transition: background var(--dur-fast), color var(--dur-fast);
+  font-family: inherit; text-align: center;
+}
+.seg-btn:hover { color: var(--text); }
+.seg-btn.sel { background: var(--c-accent); color: #000; font-weight: var(--fw-semi); }
+
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -748,6 +759,34 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     </div>
     <div class="field-err" id="name-err" role="alert"></div>
 
+    <button type="button" class="adv-toggle" id="adv-toggle-setup" onclick="toggleAdvancedSetup()" aria-expanded="false" aria-controls="adv-config" style="margin-top:12px">
+      <svg class="adv-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m9 18 6-6-6-6"/>
+      </svg>
+      Advanced config
+    </button>
+    <div class="adv-section" id="adv-config" style="margin-top:8px">
+      <div class="adv-group">
+        <label class="adv-group-title">Significance Level</label>
+        <div class="adv-group-desc">How sure you need to be before declaring a winner.</div>
+        <div class="segmented-row" style="margin-top:6px">
+          <button class="seg-btn" data-value="0.9" onclick="selectSigLevel(0.9, this)">90%</button>
+          <button class="seg-btn sel" data-value="0.95" onclick="selectSigLevel(0.95, this)">95%</button>
+          <button class="seg-btn" data-value="0.99" onclick="selectSigLevel(0.99, this)">99%</button>
+        </div>
+      </div>
+      <div class="adv-group" style="margin-top:12px">
+        <label class="adv-group-title" for="f-visitors">Min Visitors</label>
+        <div class="adv-group-desc">Test needs at least this many visitors before evaluating.</div>
+        <input id="f-visitors" type="number" min="1" value="100" style="width:100%;margin-top:4px;font-size:var(--fs-sm);background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--c-fg)"/>
+      </div>
+      <div class="adv-group" style="margin-top:12px">
+        <label class="adv-group-title">Min Uplift · <span id="uplift-val">5%</span></label>
+        <div class="adv-group-desc">Minimum conversion lift B must show over A to win.</div>
+        <input id="f-uplift" type="range" min="1" max="20" step="0.5" value="5" oninput="$('uplift-val').textContent = this.value + '%'" style="width:100%;margin-top:4px;accent-color:var(--c-accent);height:4px"/>
+      </div>
+    </div>
+
     <div class="loading-row" id="l-setup" role="status" style="display:none;margin-top:6px">
       <div class="spinner" aria-hidden="true"></div>
       Creating test…
@@ -805,11 +844,14 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </div>
       <div id="el-waiting-state" style="display:none;text-align:center">
         <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-        <div class="hint-strong" style="margin-top:16px">Waiting for element selection in browser…</div>
-        <button class="btn btn-secondary btn-sm" onclick="openSite('element')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-          Open site again
-        </button>
+        <div class="hint-strong" id="el-waiting-text" style="margin-top:16px">Waiting for element selection in browser…</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+          <button class="btn btn-secondary btn-sm" onclick="reopenPicker()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+            Open site again
+          </button>
+          <button class="btn btn-secondary btn-sm" id="el-cancel-swap-btn" style="display:none" onclick="cancelSwap()">Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -1185,7 +1227,7 @@ const state = {
   testId: '', snippetKey: '', name: '', url: '', goal: '',
   selector: '', originalHtml: '', goalCandidates: [], siteCss: '',
   frameId: '', screenshot: '', frameContent: null, html: '',
-  plan: 'free', verifiedDomain: '',
+  plan: 'free', verifiedDomain: '', sigLevel: 0.95,
   swapMode: false, reorderSelector: '',
 }
 let activeTestCount = 0
@@ -1737,6 +1779,10 @@ async function createTest() {
     return
   }
 
+  const minVisitors = parseInt($('f-visitors').value, 10) || 100
+  const minUplift = parseFloat($('f-uplift').value) / 100 || 0.05
+  const significanceLevel = state.sigLevel || 0.95
+
   const btn = $('btn-create')
   btn.disabled = true
   const lSetup = $('l-setup'); if (lSetup) lSetup.style.display = 'flex'
@@ -1747,7 +1793,7 @@ async function createTest() {
       const res = await afetch(API + '/api/tests/' + state.testId, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ name, min_visitors: minVisitors, min_uplift: minUplift, significance_level: significanceLevel })
       })
       if (!res.ok) {
         var eb = {}; try { eb = await res.json() } catch (_) {}
@@ -1758,7 +1804,7 @@ async function createTest() {
       const res = await afetch(API + '/api/tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, site_url: url })
+        body: JSON.stringify({ name, site_url: url, min_visitors: minVisitors, min_uplift: minUplift, significance_level: significanceLevel })
       })
       if (!res.ok) {
         var eb = {}; try { eb = await res.json() } catch (_) {}
@@ -1796,8 +1842,30 @@ function siteTriggerUrl(mode) {
 }
 function openSiteForPick() {
   $('el-ready-state').style.display = 'none'
-  $('el-waiting-state').style.display = 'block'
-  openSite('element')
+  $('el-waiting-state').style.display = 'flex'
+  openSite(state.swapMode ? 'reorder' : 'element')
+}
+function reopenPicker() {
+  openSiteForPick()
+  if (state.swapMode) startElementPoll()
+}
+function cancelSwap() {
+  state.swapMode = false
+  state.selector = ''
+  state.reorderSelector = ''
+  stopElementPoll()
+  $('el-waiting-state').style.display = 'none'
+  $('el-ready-state').style.display = 'block'
+  $('el-done').style.display = 'none'
+  $('el-chip-wrap').innerHTML = ''
+  $('el-cancel-swap-btn').style.display = 'none'
+  $('el-waiting-text').textContent = 'Waiting for element selection in browser…'
+  var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+  var nf = $('normal-el-footer'); if (nf) nf.style.display = ''
+  afetch(API + '/api/tests/' + state.testId, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selector: null, reorder_selector: null })
+  }).catch(function () {})
 }
 async function openSite(mode) {
   const url = siteTriggerUrl(mode || 'element')
@@ -1931,8 +1999,18 @@ async function reselectElement() {
 
 function startSwapMode() {
   state.swapMode = true
-  // Nach dem ersten Element in den Swap-Modus wechseln
-  // → Browser öffnen mit reorder-Modus, der zwei Klicks erwartet
+  state.selector = ''
+  state.reorderSelector = ''
+  // Stale data aus DB löschen — sonst triggert Poll alte Selektoren
+  afetch(API + '/api/tests/' + state.testId, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selector: null, reorder_selector: null })
+  }).catch(function () {})
+  // UI: direkt in Waiting-State, nicht erst Ready-State zeigen
+  $('el-ready-state').style.display = 'none'
+  $('el-waiting-state').style.display = 'flex'
+  $('el-waiting-text').textContent = 'Pick two elements to swap in the browser…'
+  $('el-cancel-swap-btn').style.display = ''
   $('el-waiting').style.display = 'flex'
   $('el-done').style.display = 'none'
   $('el-chip-wrap').innerHTML = ''
@@ -2097,6 +2175,18 @@ function toggleAdvanced() {
   const t = $('adv-toggle'), s = $('adv-section')
   t.classList.toggle('open'); s.classList.toggle('open')
   t.setAttribute('aria-expanded', t.classList.contains('open') ? 'true' : 'false')
+}
+
+function toggleAdvancedSetup() {
+  const t = $('adv-toggle-setup'), s = $('adv-config')
+  t.classList.toggle('open'); s.classList.toggle('open')
+  t.setAttribute('aria-expanded', t.classList.contains('open') ? 'true' : 'false')
+}
+
+function selectSigLevel(val, el) {
+  Array.from(document.querySelectorAll('.seg-btn')).forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+  state.sigLevel = val
 }
 
 async function enterMetric() {

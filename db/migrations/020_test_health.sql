@@ -38,9 +38,8 @@ BEGIN
     v_issues := v_issues || '["missing_variant"]'::jsonb;
   END IF;
 
-  -- 5. goal — ohne Conversion-Goal kann kein Ergebnis gemessen werden (Warnung, kein Blocker)
-  -- Goal ist optional für die Auslieferung, aber nötig für sinnvolle Ergebnisse.
-  -- Wir behandeln es als Soft-Issue: Test läuft, aber ohne Messung.
+  -- 5. goal — ohne Conversion-Goal kann kein Ergebnis gemessen werden.
+  -- Blockt die Aktivierung, da ein Test ohne Goal keine verwertbaren Daten liefert.
   IF NEW.goal IS NULL OR trim(NEW.goal) = '' THEN
     v_issues := v_issues || '["missing_goal"]'::jsonb;
   END IF;

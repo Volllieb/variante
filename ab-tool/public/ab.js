@@ -50,8 +50,7 @@
   if (__abPickerCfg) {
     // Picker-Mode: Seite sofort sichtbar machen (Anti-Flicker löst sonst
     // erst nach 10s Safety-Timeout auf, weil der normale A/B-Flow skipped).
-    window.__ab_pending_resolve = true
-    try { document.documentElement.classList.remove('__ab_pending') } catch (_) {}
+    reveal()
 
     ;(function startPicker(cfg) {
       if (window.__abPickerActive) return

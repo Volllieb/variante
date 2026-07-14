@@ -83,7 +83,7 @@ const sections = [
 <link rel="preconnect" href="https://www.getvariante.com" crossorigin>
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-<script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"><\/script>`}
+<script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"><\/script>`}
         </pre>
 
         <h3 className="mt-6 text-sm font-semibold text-white">Next.js App Router</h3>
@@ -98,7 +98,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"></script>
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"></script>
       </head>
       <body>{children}</body>
     </html>
@@ -120,7 +120,7 @@ export default function Document() {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"></script>
+        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"></script>
       </Head>
       <body><Main /><NextScript /></body>
     </Html>
@@ -136,7 +136,7 @@ export default function Document() {
   <link rel="preconnect" href="https://www.getvariante.com" crossorigin>
   <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
   <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-WmnP7J7YjtVXVDkh3u1ITwERXOn4u7UvwF36cNGbYDyODMHBC3LkBb1nW9NAx/Ll" crossorigin="anonymous"><\/script>
+  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"><\/script>
 </head>
 <body><!-- your content --></body>
 </html>`}

@@ -844,11 +844,14 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </div>
       <div id="el-waiting-state" style="display:none;text-align:center">
         <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-        <div class="hint-strong" style="margin-top:16px">Waiting for element selection in browser…</div>
-        <button class="btn btn-secondary btn-sm" onclick="openSite('element')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-          Open site again
-        </button>
+        <div class="hint-strong" id="el-waiting-text" style="margin-top:16px">Waiting for element selection in browser…</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+          <button class="btn btn-secondary btn-sm" onclick="reopenPicker()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+            Open site again
+          </button>
+          <button class="btn btn-secondary btn-sm" id="el-cancel-swap-btn" style="display:none" onclick="cancelSwap()">Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -1692,13 +1695,38 @@ function resumeWizardFromHealth(t) {
     // Design/Generate-Screen: Variante erstellen
     navHistory = ['dashboard', 'setup', 'element', 'design', 'generate']
     go('generate')
-    $('d-waiting').style.display = 'none'
-    $('d-done').style.display = 'block'
   } else if (firstIssue === 'missing_goal') {
-    // Metric-Screen: Goal setzen
+    // Metric-Screen: Goal setzen — UI-State wie enterMetric() aufbauen
     navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric']
     go('metric')
-    startMetricPoll()
+    $('m-waiting').style.display = 'none'
+    $('m-goal-display').style.display = 'none'
+    $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
+    $('m-pick-wrap').style.display = 'none'
+    $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
+    $('adv-toggle').classList.remove('open')
+    $('adv-toggle').setAttribute('aria-expanded', 'false')
+    $('adv-section').classList.remove('open')
+    $('m-custom-selector').value = ''
+    var clickable = isClickable(state.originalHtml)
+    if (clickable) {
+      state.goal = state.selector
+      $('m-default-opt').classList.add('m-selected')
+      $('m-default-opt').classList.remove('m-disabled', 'm-highlight')
+      $('m-default-opt').style.opacity = ''
+      $('m-default-desc').textContent = ''; $('m-default-desc').style.display = 'none'
+      $('m-generate').disabled = false
+    } else {
+      state.goal = ''
+      $('m-default-opt').classList.remove('m-selected')
+      $('m-default-opt').classList.add('m-disabled')
+      $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
+      $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
+      $('m-generate').disabled = true
+      $('m-pick-opt').classList.add('m-selected', 'm-highlight')
+      $('m-pick-wrap').style.display = 'block'
+    }
+    renderGoalChip()
   } else {
     // Fallback: Setup
     navHistory = ['dashboard', 'setup']
@@ -1839,8 +1867,30 @@ function siteTriggerUrl(mode) {
 }
 function openSiteForPick() {
   $('el-ready-state').style.display = 'none'
-  $('el-waiting-state').style.display = 'block'
-  openSite('element')
+  $('el-waiting-state').style.display = 'flex'
+  openSite(state.swapMode ? 'reorder' : 'element')
+}
+function reopenPicker() {
+  openSiteForPick()
+  if (state.swapMode) startElementPoll()
+}
+function cancelSwap() {
+  state.swapMode = false
+  state.selector = ''
+  state.reorderSelector = ''
+  stopElementPoll()
+  $('el-waiting-state').style.display = 'none'
+  $('el-ready-state').style.display = 'block'
+  $('el-done').style.display = 'none'
+  $('el-chip-wrap').innerHTML = ''
+  $('el-cancel-swap-btn').style.display = 'none'
+  $('el-waiting-text').textContent = 'Waiting for element selection in browser…'
+  var sf = $('swap-footer'); if (sf) sf.style.display = 'none'
+  var nf = $('normal-el-footer'); if (nf) nf.style.display = ''
+  afetch(API + '/api/tests/' + state.testId, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selector: null, reorder_selector: null })
+  }).catch(function () {})
 }
 async function openSite(mode) {
   const url = siteTriggerUrl(mode || 'element')
@@ -1974,8 +2024,18 @@ async function reselectElement() {
 
 function startSwapMode() {
   state.swapMode = true
-  // Nach dem ersten Element in den Swap-Modus wechseln
-  // → Browser öffnen mit reorder-Modus, der zwei Klicks erwartet
+  state.selector = ''
+  state.reorderSelector = ''
+  // Stale data aus DB löschen — sonst triggert Poll alte Selektoren
+  afetch(API + '/api/tests/' + state.testId, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selector: null, reorder_selector: null })
+  }).catch(function () {})
+  // UI: direkt in Waiting-State, nicht erst Ready-State zeigen
+  $('el-ready-state').style.display = 'none'
+  $('el-waiting-state').style.display = 'flex'
+  $('el-waiting-text').textContent = 'Pick two elements to swap in the browser…'
+  $('el-cancel-swap-btn').style.display = ''
   $('el-waiting').style.display = 'flex'
   $('el-done').style.display = 'none'
   $('el-chip-wrap').innerHTML = ''
