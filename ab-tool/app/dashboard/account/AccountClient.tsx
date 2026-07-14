@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, X, Plus } from 'lucide-react'
+import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, X } from 'lucide-react'
 import Link from 'next/link'
 
 const T = {
@@ -17,7 +17,6 @@ type Domain = { id: string; url: string; verified: boolean; verified_at?: string
 export function AccountClient({ email, domains: initialDomains }: { email: string; domains: Domain[] }) {
   const router = useRouter()
   const [domains, setDomains] = useState<Domain[]>(initialDomains)
-  const [newDomain, setNewDomain] = useState('')
   const [domainBusy, setDomainBusy] = useState(false)
   const [domainError, setDomainError] = useState('')
   const [verifying, setVerifying] = useState<string | null>(null) // domain id being verified
@@ -68,31 +67,6 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
       setError('Connection failed.')
     } finally {
       setBusy(false)
-    }
-  }
-
-  async function addDomain() {
-    const raw = newDomain.trim()
-    if (!raw) return
-    setDomainBusy(true)
-    setDomainError('')
-    try {
-      const res = await fetch('/api/domains', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: raw }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setDomainError(data.error ?? 'Failed to add domain.')
-        return
-      }
-      setDomains((prev) => [data, ...prev])
-      setNewDomain('')
-    } catch {
-      setDomainError('Connection failed.')
-    } finally {
-      setDomainBusy(false)
     }
   }
 

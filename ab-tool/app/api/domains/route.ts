@@ -108,7 +108,21 @@ export async function DELETE(req: Request) {
     return Response.json({ error: 'domain not found' }, { status: 404, headers: corsHeaders('DELETE, OPTIONS') })
   }
 
-  // Domain löschen
+  // Erst Tests pausieren, dann Domain löschen.
+  // Reihenfolge wichtig: Wenn Pausieren fehlschlägt, bleibt die Domain erhalten (retry-safe).
+  // Wenn Löschen nach Pausieren fehlschlägt, sind Tests paused aber Domain existiert noch → harmlos.
+  const { error: pauseError } = await supabase
+    .from('tests')
+    .update({ status: 'paused' })
+    .eq('user_id', user.userId)
+    .eq('site_url', domain.url)
+    .in('status', ['active', 'draft'])
+
+  if (pauseError) {
+    safeError('domains:delete:pause-tests', pauseError)
+    return Response.json({ error: 'Failed to pause tests. Domain not deleted.' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })
+  }
+
   const { error } = await supabase
     .from('domains')
     .delete()
@@ -120,19 +134,8 @@ export async function DELETE(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })
   }
 
-  // Aktive Tests dieser Domain pausieren
-  const { data: paused, error: pauseError } = await supabase
-    .from('tests')
-    .update({ status: 'paused' })
-    .eq('user_id', user.userId)
-    .eq('site_url', domain.url)
-    .in('status', ['active', 'draft'])
-    .select('id')
-
-  if (pauseError) {
-    safeError('domains:delete:pause-tests', pauseError)
-  }
-
   revalidatePath('/dashboard')
-  return Response.json({ ok: true, pausedTests: (paused ?? []).length }, { headers: corsHeaders('DELETE, OPTIONS') })
+  revalidatePath('/dashboard/setup')
+  revalidatePath('/dashboard/account')
+  return Response.json({ ok: true }, { headers: corsHeaders('DELETE, OPTIONS') })
 }
