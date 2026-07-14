@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Play, MousePointer2, Image, Target, Code2, BarChart3, Trophy, FlaskConical } from 'lucide-react'
+import { Play, MousePointer2, Image, Sparkles, Target, Code2, BarChart3, Trophy, FlaskConical } from 'lucide-react'
 
 /* ── Types ── */
 
-type Step = 'welcome' | 'element' | 'variant' | 'goal' | 'snippet' | 'dashboard'
+type Step = 'welcome' | 'element' | 'variant' | 'generate' | 'goal' | 'snippet' | 'dashboard'
 type DashboardPhase = 'counting' | 'done'
 
 /* ── Animation tick data ── */
@@ -47,6 +47,9 @@ export default function PlaygroundPage() {
   const [copiedPrompt, setCopiedPrompt] = useState(false)
   const [copiedSnippet, setCopiedSnippet] = useState(false)
   const [showSnippet, setShowSnippet] = useState(false)
+  const [scope, setScope] = useState<'all' | 'text' | 'color'>('all')
+  const [generating, setGenerating] = useState(false)
+  const [genDone, setGenDone] = useState(false)
   const tickRef = useRef(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -85,6 +88,14 @@ export default function PlaygroundPage() {
     if (step === 'dashboard') startAnimation()
   }, [step, startAnimation])
 
+  // Reset generation state when entering generate step
+  useEffect(() => {
+    if (step === 'generate') {
+      setGenerating(false)
+      setGenDone(false)
+    }
+  }, [step])
+
   // ── Navigation ──
   const goTo = (s: Step) => {
     setStep(s)
@@ -101,6 +112,9 @@ export default function PlaygroundPage() {
     setCopiedPrompt(false)
     setCopiedSnippet(false)
     setShowSnippet(false)
+    setScope('all')
+    setGenerating(false)
+    setGenDone(false)
     if (intervalRef.current) clearInterval(intervalRef.current!)
   }
 
@@ -136,7 +150,7 @@ export default function PlaygroundPage() {
       body: (
         <>
           <p className="mb-3">
-            Full workflow, end-to-end: <strong>pick → design → ship → measure.</strong>
+            Full workflow, end-to-end: <strong>pick → design → generate → ship → measure.</strong>
           </p>
           <p className="mb-3">
             Sandbox demo. Pre-loaded test site, no Figma needed. Same flow on your site —
@@ -150,7 +164,7 @@ export default function PlaygroundPage() {
     },
     element: {
       icon: <MousePointer2 className="h-4 w-4 text-text-2 shrink-0" />,
-      title: 'Step 1: Pick an element',
+      title: 'Pick an element',
       body: (
         <>
           <p className="mb-3">
@@ -159,14 +173,14 @@ export default function PlaygroundPage() {
           </p>
           <p>
             We&apos;ve pre-picked a &ldquo;Get Started&rdquo; button. Click{' '}
-            <strong>Continue</strong> to see Variant B.
+            <strong>Continue</strong> to design Variant B.
           </p>
         </>
       ),
     },
     variant: {
       icon: <Image className="h-4 w-4 text-text-2 shrink-0" />,
-      title: 'Step 2: Design Variant B in Figma',
+      title: 'Design Variant B in Figma',
       body: (
         <>
           <p className="mb-3">
@@ -174,30 +188,44 @@ export default function PlaygroundPage() {
             The AI uses your layer as the blueprint — <strong>no code required.</strong>
           </p>
           <p>
-            Layer is pre-selected here. Click <strong>Continue</strong> to set the goal.
+            Layer is pre-selected here. Click <strong>Continue</strong> to scope generation.
+          </p>
+        </>
+      ),
+    },
+    generate: {
+      icon: <Sparkles className="h-4 w-4 text-text-2 shrink-0" />,
+      title: 'Scope & generate Variant B',
+      body: (
+        <>
+          <p className="mb-3">
+            Choose what the AI changes — <strong>everything, text only, or colors only.</strong>{' '}
+            Then generate. AI produces clean HTML with your Figma design as the blueprint.
+          </p>
+          <p>
+            Scope is set to Everything. Click <strong>Generate</strong>, then set your goal.
           </p>
         </>
       ),
     },
     goal: {
       icon: <Target className="h-4 w-4 text-text-2 shrink-0" />,
-      title: 'Step 3: Define success',
+      title: 'Set your conversion goal',
       body: (
         <>
           <p className="mb-3">
             Default: a <strong>click on the tested element</strong>. Simple and usually
-            what you want.
+            what you want. Also supports custom CSS selectors for any element.
           </p>
           <p>
-            Also works with page views, form submits, or custom events.
-            Goal is pre-set. Click <strong>Generate HTML</strong>.
+            Goal is pre-set. Click <strong>Continue</strong> to install the snippet.
           </p>
         </>
       ),
     },
     snippet: {
       icon: <Code2 className="h-4 w-4 text-text-2 shrink-0" />,
-      title: 'Step 4: One script tag. Done.',
+      title: 'One script tag. Done.',
       body: (
         <>
           <p className="mb-3">
@@ -247,7 +275,7 @@ export default function PlaygroundPage() {
   }
 
   const currentStepIndex =
-    step === 'welcome' ? 1 : step === 'element' ? 2 : step === 'variant' ? 3 : step === 'goal' ? 4 : step === 'snippet' ? 5 : 6
+    step === 'welcome' ? 1 : step === 'element' ? 2 : step === 'variant' ? 3 : step === 'generate' ? 4 : step === 'goal' ? 5 : step === 'snippet' ? 6 : 7
 
   /* ── Render ── */
 
@@ -305,7 +333,18 @@ export default function PlaygroundPage() {
                 copiedPrompt={copiedPrompt}
                 copiedSnippet={copiedSnippet}
                 showSnippet={showSnippet}
+                scope={scope}
+                generating={generating}
+                genDone={genDone}
                 onGo={goTo}
+                onSetScope={setScope}
+                onGenerate={() => {
+                  setGenerating(true)
+                  setTimeout(() => {
+                    setGenerating(false)
+                    setGenDone(true)
+                  }, 1500)
+                }}
                 onCopyPrompt={copyPrompt}
                 onCopySnippet={copySnippet}
                 onToggleSnippet={() => setShowSnippet(!showSnippet)}
@@ -332,7 +371,7 @@ export default function PlaygroundPage() {
               </div>
               {/* Step indicator */}
               <div className="mt-5 flex items-center gap-1.5">
-                {[1, 2, 3, 4, 5, 6].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                   <div
                     key={n}
                     className={`h-2 w-2 rounded-full transition-colors ${
@@ -341,7 +380,7 @@ export default function PlaygroundPage() {
                   />
                 ))}
                 <span className="ml-2 text-xs text-text-3">
-                  Step {currentStepIndex} of 6
+                  Step {currentStepIndex} of 7
                 </span>
               </div>
             </div>
@@ -390,7 +429,11 @@ type PluginBoxProps = {
   totalVisitors: number
   status: string
   copiedPrompt: boolean; copiedSnippet: boolean; showSnippet: boolean
+  scope: 'all' | 'text' | 'color'
+  generating: boolean; genDone: boolean
   onGo: (s: Step) => void
+  onSetScope: (s: 'all' | 'text' | 'color') => void
+  onGenerate: () => void
   onCopyPrompt: () => void
   onCopySnippet: () => void
   onToggleSnippet: () => void
@@ -400,7 +443,9 @@ function PluginBox({
   step, dashboardPhase, visitorsA, visitorsB, convA, convB,
   d, totalVisitors, status,
   copiedPrompt, copiedSnippet, showSnippet,
-  onGo, onCopyPrompt, onCopySnippet, onToggleSnippet,
+  scope, generating, genDone,
+  onGo, onSetScope, onGenerate,
+  onCopyPrompt, onCopySnippet, onToggleSnippet,
 }: PluginBoxProps) {
   /* Common styles matching the Figma plugin */
   const boxBtn = 'w-full cursor-pointer rounded-[6px] py-2.5 text-[13px] font-semibold transition-opacity hover:opacity-85'
@@ -443,14 +488,14 @@ function PluginBox({
       {step === 'element' && (
         <>
           <div className={screenHdr}>
-            <span className="text-[13px] font-semibold text-gray-500">Connect</span>
-            <span className="text-[11px] text-gray-300">2 / 6</span>
+            <span className="text-[13px] font-semibold text-gray-500">Pick Element</span>
+            <span className="text-[11px] text-gray-300">2 / 7</span>
           </div>
           <div className="flex gap-0.5 px-4 pt-2">
             {[1, 2].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-[#0D99FF]" />
             ))}
-            {[3, 4, 5, 6].map((n) => (
+            {[3, 4, 5, 6, 7].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-gray-100" />
             ))}
           </div>
@@ -503,13 +548,13 @@ function PluginBox({
         <>
           <div className={screenHdr}>
             <span className="text-[13px] font-semibold text-gray-500">Variant B in Figma</span>
-            <span className="text-[11px] text-gray-300">3 / 6</span>
+            <span className="text-[11px] text-gray-300">3 / 7</span>
           </div>
           <div className="flex gap-0.5 px-4 pt-2">
             {[1, 2, 3].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-[#0D99FF]" />
             ))}
-            {[4, 5, 6].map((n) => (
+            {[4, 5, 6, 7].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-gray-100" />
             ))}
           </div>
@@ -539,9 +584,106 @@ function PluginBox({
             </button>
           </div>
           <div className="border-t border-gray-100 px-4 py-3">
-            <button className={boxBtnPrimary} onClick={() => onGo('goal')}>
-              Continue to Goal →
+            <button className={boxBtnPrimary} onClick={() => onGo('generate')}>
+              Continue to Generate →
             </button>
+          </div>
+        </>
+      )}
+
+      {step === 'generate' && (
+        <>
+          <div className={screenHdr}>
+            <span className="text-[13px] font-semibold text-gray-500">Generate Variant B</span>
+            <span className="text-[11px] text-gray-300">4 / 7</span>
+          </div>
+          <div className="flex gap-0.5 px-4 pt-2">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="h-1 flex-1 rounded-full bg-[#0D99FF]" />
+            ))}
+            {[5, 6, 7].map((n) => (
+              <div key={n} className="h-1 flex-1 rounded-full bg-gray-100" />
+            ))}
+          </div>
+          <div className={screenBody}>
+            {!genDone && (
+              <>
+                <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Scope</span>
+                <div className="mt-2 flex gap-1.5" role="radiogroup" aria-label="Generation scope">
+                  {(['all', 'text', 'color'] as const).map((s) => (
+                    <button
+                      key={s}
+                      className={`flex-1 rounded-[6px] py-1.5 text-[12px] font-medium transition-colors ${
+                        scope === s
+                          ? 'bg-[#0D99FF] text-white'
+                          : 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                      }`}
+                      onClick={() => onSetScope(s)}
+                      role="radio"
+                      aria-checked={scope === s}
+                    >
+                      {s === 'all' ? 'Everything' : s === 'text' ? 'Text only' : 'Colors only'}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[11px] text-gray-400">
+                  {scope === 'all' ? 'Full visual redesign — layout, colors, and copy can all change.' :
+                   scope === 'text' ? 'Only copy changes. Layout and colors stay the same.' :
+                   'Only colors change. Text and layout remain untouched.'}
+                </p>
+              </>
+            )}
+
+            {generating && (
+              <div className="mt-6 flex flex-col items-center gap-3 py-6" role="status" aria-live="polite">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0D99FF] border-t-transparent" />
+                <span className="text-[12px] text-gray-400">AI generating Variant B… (up to 30s)</span>
+              </div>
+            )}
+
+            {genDone && (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Preview</span>
+                  <div className="flex rounded-md border border-gray-200 overflow-hidden">
+                    <button className="px-2.5 py-1 text-[11px] font-medium bg-gray-100 text-gray-400 cursor-default">A</button>
+                    <button className="px-2.5 py-1 text-[11px] font-medium bg-[#0D99FF] text-white">B</button>
+                  </div>
+                </div>
+                {/* Simulated variant B preview */}
+                <div className="rounded-lg border border-gray-200 bg-white p-4 text-center overflow-hidden">
+                  <p className="text-[11px] text-gray-300 mb-2">Variant B (preview)</p>
+                  <div className="inline-block rounded-md bg-[#0D99FF] px-6 py-2.5 text-[13px] font-semibold text-white shadow-sm">
+                    Start free trial →
+                  </div>
+                  <p className="mt-1.5 text-[10px] text-gray-400">
+                    Design-based · generated from Figma layer
+                  </p>
+                </div>
+
+                <details className="mt-2 rounded-lg border border-gray-200">
+                  <summary className="px-3 py-2 text-[11px] text-gray-400 cursor-pointer">Show generated HTML</summary>
+                  <pre className="px-3 pb-3 text-[10px] text-gray-500 overflow-auto">
+{`<button class="cta-btn blue">
+  Start free trial →
+</button>`}
+                  </pre>
+                </details>
+              </>
+            )}
+          </div>
+          <div className="border-t border-gray-100 px-4 py-3">
+            {!genDone ? (
+              <button className={boxBtnPrimary} onClick={onGenerate}>
+                Generate Variant B →
+              </button>
+            ) : (
+              <button className={boxBtnPrimary} onClick={() => {
+                onGo('goal')
+              }}>
+                Continue to Goal →
+              </button>
+            )}
           </div>
         </>
       )}
@@ -550,21 +692,22 @@ function PluginBox({
         <>
           <div className={screenHdr}>
             <span className="text-[13px] font-semibold text-gray-500">Conversion Goal</span>
-            <span className="text-[11px] text-gray-300">4 / 6</span>
+            <span className="text-[11px] text-gray-300">5 / 7</span>
           </div>
           <div className="flex gap-0.5 px-4 pt-2">
-            {[1, 2, 3, 4].map((n) => (
+            {[1, 2, 3, 4, 5].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-[#0D99FF]" />
             ))}
-            {[5, 6].map((n) => (
+            {[6, 7].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-gray-100" />
             ))}
           </div>
           <div className={screenBody}>
-            <p className="text-[12px] font-medium text-gray-700">What should we measure?</p>
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Conversion goal</span>
 
-            <div className="mt-3 rounded-lg border border-[#0D99FF]/30 bg-[#0D99FF]/5 p-3">
-              <label className="flex items-start gap-2.5 cursor-pointer">
+            {/* Option 1: Click on tested element — selected by default */}
+            <div className="mt-2 rounded-lg border border-[#0D99FF]/30 bg-[#0D99FF]/5 p-3" role="radio" aria-checked="true">
+              <label className="flex items-start gap-2.5">
                 <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-[#0D99FF]">
                   <div className="h-2 w-2 rounded-full bg-[#0D99FF]" />
                 </div>
@@ -577,15 +720,28 @@ function PluginBox({
               </label>
             </div>
 
-            <div className="mt-3">
-              <button className={boxBtnGhost} disabled>
-                ▶ Advanced settings
-              </button>
+            {/* Option 2: Another element — disabled in demo */}
+            <div className="mt-2 rounded-lg border border-gray-200/50 p-3 opacity-50">
+              <label className="flex items-start gap-2.5">
+                <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-gray-300" />
+                <div>
+                  <p className="text-[12px] font-medium text-gray-600">Another element on the page</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Pick any clickable element in your browser.</p>
+                </div>
+              </label>
             </div>
+
+            {/* Advanced settings */}
+            <button className="mt-3 flex items-center gap-1.5 text-[11px] text-gray-300 cursor-default" disabled>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+              Advanced settings
+            </button>
           </div>
           <div className="border-t border-gray-100 px-4 py-3">
             <button className={boxBtnPrimary} onClick={() => onGo('snippet')}>
-              Generate HTML →
+              Continue →
             </button>
           </div>
         </>
@@ -595,10 +751,10 @@ function PluginBox({
         <>
           <div className={screenHdr}>
             <span className="text-[13px] font-semibold text-gray-500">Install Snippet</span>
-            <span className="text-[11px] text-gray-300">5 / 6</span>
+            <span className="text-[11px] text-gray-300">6 / 7</span>
           </div>
           <div className="flex gap-0.5 px-4 pt-2">
-            {[1, 2, 3, 4, 5].map((n) => (
+            {[1, 2, 3, 4, 5, 6].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-[#0D99FF]" />
             ))}
             <div className="h-1 flex-1 rounded-full bg-gray-100" />
@@ -670,10 +826,10 @@ function PluginBox({
         <>
           <div className={screenHdr}>
             <span className="text-[13px] font-semibold text-gray-500">Results</span>
-            <span className="text-[11px] text-gray-300">6 / 6</span>
+            <span className="text-[11px] text-gray-300">7 / 7</span>
           </div>
           <div className="flex gap-0.5 px-4 pt-2">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
               <div key={n} className="h-1 flex-1 rounded-full bg-[#0D99FF]" />
             ))}
           </div>
