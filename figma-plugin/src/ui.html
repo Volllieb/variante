@@ -405,7 +405,7 @@ textarea { resize: vertical; }
   font-family: inherit; text-align: center;
 }
 .seg-btn:hover { color: var(--text); }
-.seg-btn.sel { background: var(--c-accent); color: #000; font-weight: var(--fw-semi); }
+.seg-btn.sel { background: var(--accent); color: #fff; font-weight: var(--fw-semibold); }
 
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
@@ -778,7 +778,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <div class="adv-group" style="margin-top:12px">
         <label class="adv-group-title" for="f-visitors">Min Visitors</label>
         <div class="adv-group-desc">Test needs at least this many visitors before evaluating.</div>
-        <input id="f-visitors" type="number" min="1" value="100" style="width:100%;margin-top:4px;font-size:var(--fs-sm);background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--c-fg)"/>
+        <input id="f-visitors" type="number" min="1" value="100" style="width:100%;margin-top:4px;font-size:var(--fs-sm);background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text)"/>
       </div>
       <div class="adv-group" style="margin-top:12px">
         <label class="adv-group-title">Min Uplift · <span id="uplift-val">5%</span></label>
@@ -875,13 +875,8 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
         Swap with a different element
       </button>
     </div>
-    <div id="swap-footer" style="display:none;flex-direction:column;gap:var(--sp-2)">
-      <button id="btn-el-swap-next" class="btn btn-primary" onclick="goToSwapDesign()">Continue →</button>
-      <button class="btn btn-secondary btn-sm btn-icon-left" onclick="reselectElement()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-        Start over
-      </button>
-    </div>
+    <div id="swap-footer" style="display:none"></div>
+  </div>
   </div>
 </div>
 
@@ -925,64 +920,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </div>
     </div>
 
-    <!-- Swap-Mode: Figma redesign optional -->
-    <div id="design-swap" style="display:none">
-      <div class="notice notice-pro" style="margin-bottom:16px">
-        <div class="notice-head">
-          <span class="notice-icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
-          </span>
-          <div>
-            <div class="notice-title">Swap test — CSS only</div>
-            <div class="notice-body">Your two elements will be swapped using CSS (flexbox order). No DOM changes needed.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hint-strong" style="margin-bottom:12px">Optionally redesign the elements in Figma first</div>
-      <p style="font-size:var(--fs-sm);color:var(--text-2);margin-bottom:16px">
-        Skip Figma to generate a pure CSS swap. Or design the swapped layout in Figma first for more control.
-      </p>
-
-      <div class="card" style="margin-bottom:12px">
-        <span class="lbl">Swap</span>
-        <div class="card-val" id="swap-summary"></div>
-      </div>
-
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="skipToGenerateSwap()">
-          Skip Figma → Generate CSS
-        </button>
-        <button class="btn btn-secondary btn-sm btn-icon-left" onclick="requestSelection()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Redesign in Figma
-        </button>
-      </div>
-
-      <div id="d-waiting-swap" style="display:none;margin-top:16px">
-        <div class="loading-row" role="status" aria-live="polite">
-          <div class="spinner" aria-hidden="true"></div>
-          <span>Waiting for Figma selection…</span>
-        </div>
-      </div>
-      <div id="d-done-swap" style="display:none;margin-top:12px">
-        <span class="lbl">Layer selected</span>
-        <div class="card"><div class="card-val" id="sel-info-swap"></div></div>
-      </div>
-    </div>
-
-    <div class="loading-row" id="l-design" role="status" style="display:none;margin-top:10px">
-      <div class="spinner" aria-hidden="true"></div>
-      Exporting layer…
-    </div>
-    <div class="err" id="e-design" role="alert" style="margin-top:6px"></div>
-  </div>
-  <div class="ftr">
-    <button id="btn-export" class="btn btn-primary" onclick="exportSelection()" disabled>Continue to Scope →</button>
-    <div id="swap-ftr" style="display:none;flex-direction:column;gap:8px">
-      <button id="btn-swap-generate" class="btn btn-primary" onclick="exportSwapSelection()" disabled>Generate CSS Swap →</button>
-    </div>
-  </div>
 </div>
 
 
@@ -1061,32 +998,6 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
           Refine with AI
         </button>
         <button class="btn btn-ghost" onclick="startOver()" style="width:100%;margin-bottom:6px">Start over — regenerate from scratch</button>
-      </div>
-    </div>
-
-    <!-- Swap-Mode: CSS-Generierung mit Code-Preview -->
-    <div id="gen-swap" style="display:none">
-      <div class="card" style="margin-bottom:16px">
-        <span class="lbl">Swapping</span>
-        <div class="card-val" id="gen-swap-summary"></div>
-      </div>
-
-      <button class="btn btn-primary" id="gen-swap-start-btn" onclick="startSwapGeneration()" style="width:100%">Generate CSS Swap →</button>
-
-      <div class="loading-row loading-center" id="l-generate-swap" role="status" aria-live="polite" style="display:none">
-        <div class="spinner" aria-hidden="true"></div>
-        <span>AI generating CSS swap… (up to 30s)</span>
-      </div>
-
-      <div id="gen-swap-result" style="display:none">
-        <span class="lbl">Generated CSS</span>
-        <pre id="gen-swap-css" style="background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r);padding:12px;font:11px 'SF Mono','Fira Code',monospace;color:var(--text);max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:8px"></pre>
-
-        <button class="btn btn-secondary" onclick="openRefine()" style="margin-bottom:6px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-          Refine with AI
-        </button>
-        <button class="btn btn-ghost" onclick="startOver()" style="width:100%">Start over</button>
       </div>
     </div>
 
@@ -2059,20 +1970,6 @@ function finishSwapTest() {
 
 function goToDesign() { navPush('design'); requestSelection() }
 
-// Swap-Modus: optional Figma redesign — überspringen oder designen
-function goToSwapDesign() {
-  // Upgrade-Check für Swap (Pro-Feature)
-  if (state.plan === 'free') {
-    showUpgradeBanner('Swap tests require a Pro plan.')
-    return
-  }
-  // Design-Screen im Swap-Modus: zeigt "Skip → Generate CSS" Option
-  navPush('design')
-  $('design-normal').style.display = 'none'
-  $('design-swap').style.display = 'block'
-  requestSelection()
-}
-
 function requestSelection() {
   parent.postMessage({ pluginMessage: { type: 'GET_SELECTION' } }, '*')
 }
@@ -2086,36 +1983,6 @@ function reselectDesign() {
   $('d-done').style.display = 'none'
   $('d-waiting').style.display = 'block'
   $('btn-export').disabled = true
-}
-
-// Swap: Figma überspringen → direkt zum Generate-Screen für CSS
-function skipToGenerateSwap() {
-  // Fill swap summary
-  $('swap-summary').textContent = state.selector + ' ↔ ' + state.reorderSelector
-  state.frameContent = null // kein Figma-Design
-  navPush('generate')
-  $('gen-normal').style.display = 'none'
-  $('gen-swap').style.display = 'block'
-  // Pre-fill swap summary in generate screen
-  var s = $('gen-swap-summary')
-  if (s) s.textContent = state.selector + ' ↔ ' + state.reorderSelector
-}
-
-// Swap: Figma-Export durchführen, dann zum Generate-Screen
-async function exportSwapSelection() {
-  var btn = $('btn-swap-generate')
-  if (btn) btn.disabled = true
-  $('l-design').style.display = 'flex'
-  parent.postMessage({ pluginMessage: { type: 'EXPORT_SELECTION' } }, '*')
-  // Nach dem Export (onmessage) wird goToGenerateSwap() aufgerufen
-}
-
-function goToGenerateSwap() {
-  navPush('generate')
-  $('gen-normal').style.display = 'none'
-  $('gen-swap').style.display = 'block'
-  var s = $('gen-swap-summary')
-  if (s) s.textContent = state.selector + ' ↔ ' + state.reorderSelector
 }
 
 function isClickable(html) {
@@ -2209,7 +2076,7 @@ function toggleAdvancedSetup() {
 }
 
 function selectSigLevel(val, el) {
-  Array.from(document.querySelectorAll('.seg-btn')).forEach(b => b.classList.remove('sel'))
+  el.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('sel'))
   el.classList.add('sel')
   state.sigLevel = val
 }
@@ -2454,60 +2321,6 @@ async function generate() {
   }
 }
 
-// Swap-Mode: CSS-Generierung (kein HTML-Preview)
-function startSwapGeneration() {
-  if (generating) return
-  generateSwap()
-}
-
-async function generateSwap() {
-  if (generating) return
-  generating = true
-  generateDone = false
-  generateFailed = false
-  $('gen-swap-result').style.display = 'none'
-  $('l-generate-swap').style.display = 'flex'
-  var startBtn = $('gen-swap-start-btn'); if (startBtn) startBtn.style.display = 'none'
-  hideUpgradeBanner()
-  try {
-    var body = {
-      testId: state.testId,
-      mode: 'reorder',
-      frameContent: state.frameContent || null,
-      scope: 'all',
-      selector_b: state.reorderSelector,
-    }
-    var res = await afetch(API + '/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-    if (!res.ok) {
-      var eb = {}; try { eb = await res.json() } catch (_) {}
-      if (eb.upgrade) {
-        showUpgradeBanner(eb.message || 'Generation limit reached.')
-        throw new Error(eb.message || 'Generation limit reached')
-      }
-      throw new Error(apiErrorMessage(res.status, eb))
-    }
-    var data = await res.json()
-    state.html = data.css || '' // Store CSS in state.html for consistency
-    $('gen-swap-css').textContent = state.html
-    $('gen-swap-result').style.display = 'block'
-    $('gen-ftr').style.display = 'block'
-    $('btn-gen-retry').style.display = 'none'
-    generateDone = true
-  } catch (e) {
-    generateFailed = true
-    err('generate', e.message)
-    $('btn-gen-retry').style.display = 'block'
-    if (state.html) { $('gen-swap-result').style.display = 'block'; $('gen-ftr').style.display = 'block' }
-  } finally {
-    $('l-generate-swap').style.display = 'none'
-    generating = false
-  }
-}
-
 async function refine() {
   if (generating) return
   generating = true
@@ -2662,32 +2475,20 @@ window.onmessage = (event) => {
   if (msg.type === 'SELECTION') {
     const s = msg.selection || { count: 0 }
     const valid = s.count === 1 && s.exportable
-    const swapActive = $('design-swap') && $('design-swap').style.display !== 'none'
-
-    if (swapActive) {
-      // Swap-Mode: Figma-Design optional
-      if (valid) {
-        $('sel-info-swap').textContent = s.name + '  ·  ' + s.nodeType
-        $('d-waiting-swap').style.display = 'none'
-        $('d-done-swap').style.display = 'block'
-        var btnSwap = $('btn-swap-generate'); if (btnSwap) btnSwap.disabled = false
-      }
+    const exportBtn = $('btn-export')
+    if (valid) {
+      $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
+      $('d-waiting').style.display = 'none'
+      $('d-done').style.display = 'block'
+      if (exportBtn) exportBtn.disabled = false
     } else {
-      const exportBtn = $('btn-export')
-      if (valid) {
-        $('sel-info').textContent = s.name + '  ·  ' + s.nodeType
-        $('d-waiting').style.display = 'none'
-        $('d-done').style.display = 'block'
-        if (exportBtn) exportBtn.disabled = false
-      } else {
-        let hint = ''
-        if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
-        else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
-        $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
-        $('d-waiting').style.display = 'block'
-        $('d-done').style.display = 'none'
-        if (exportBtn) exportBtn.disabled = true
-      }
+      let hint = ''
+      if (s.count > 1)                      hint = '(' + s.count + ' selected — pick exactly one)'
+      else if (s.count === 1 && !s.exportable) hint = '(layer not exportable)'
+      $('d-info').textContent = hint || 'Click a layer in Figma to select it…'
+      $('d-waiting').style.display = 'block'
+      $('d-done').style.display = 'none'
+      if (exportBtn) exportBtn.disabled = true
     }
     return
   }
@@ -2696,14 +2497,9 @@ window.onmessage = (event) => {
     state.screenshot  = msg.base64
     state.frameContent = msg.content || null
     $('l-design').style.display = 'none'
-    const swapActive = $('design-swap') && $('design-swap').style.display !== 'none'
-    if (swapActive) {
-      goToGenerateSwap()
-    } else {
-      const exportBtn = $('btn-export')
-      if (exportBtn) exportBtn.disabled = false
-      navPush('generate')
-    }
+    const exportBtn = $('btn-export')
+    if (exportBtn) exportBtn.disabled = false
+    navPush('generate')
     return
   }
 

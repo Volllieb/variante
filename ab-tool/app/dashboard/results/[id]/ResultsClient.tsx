@@ -66,7 +66,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
   const [minVisitors, setMinVisitors] = useState(initial.minVisitors)
   const [minUplift, setMinUplift] = useState(initial.minUplift)
-  const [significanceLevel, setSignificanceLevel] = useState(initial.significanceLevel || 0.95)
+  const [significanceLevel, setSignificanceLevel] = useState(initial.significanceLevel ?? 0.95)
   const [saved, setSaved] = useState(false)
   const [editingB, setEditingB] = useState(false)
   const [draftB, setDraftB] = useState(initial.variantBHtml || '')
@@ -446,14 +446,14 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 <circle
                   cx="18" cy="18" r="14"
                   fill="none"
-                  stroke={significance >= 0.95 ? T.ok : significance >= 0.7 ? T.pro : 'rgba(255,255,255,0.2)'}
+                  stroke={significance >= significanceLevel ? T.ok : significance >= 0.7 ? T.pro : 'rgba(255,255,255,0.2)'}
                   strokeWidth="3"
                   strokeDasharray={`${significance * 87.96} 87.96`}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-2xl font-bold ${significance >= 0.95 ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
+                <span className={`text-2xl font-bold ${significance >= significanceLevel ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
                   {Math.round(significance * 100)}%
                 </span>
                 <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/30">Confidence</span>
@@ -475,7 +475,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
             )}
           </div>
           <p className="mt-3 text-center text-[12px] text-[#ededed]/40">
-            {significance >= 0.95
+            {significance >= significanceLevel
               ? 'Statistical significance reached — result is reliable.'
               : significance >= 0.7
               ? 'Approaching significance — more data needed.'
