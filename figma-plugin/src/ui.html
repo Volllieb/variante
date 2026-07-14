@@ -793,16 +793,23 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </div>
     </div>
 
-    <!-- Waiting state — centered with dot animation -->
+    <!-- Element picker: ready state (first visit) -->
     <div id="el-waiting" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0 0">
-      <div style="text-align:center;margin-bottom:20px">
-        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      <div id="el-ready-state">
+        <div class="hint-strong" style="margin-bottom:14px">Your site opens in a new tab. Click any element on the page — then come back here.</div>
+        <button class="btn btn-primary btn-sm btn-icon-left" onclick="openSiteForPick()" style="width:auto;margin:0 auto">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+          Open site to pick →
+        </button>
       </div>
-      <div class="hint-strong">Waiting for element selection in browser…</div>
-      <button class="btn btn-secondary btn-sm" onclick="openSite('element')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-        Open site again
-      </button>
+      <div id="el-waiting-state" style="display:none;text-align:center">
+        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+        <div class="hint-strong" style="margin-top:16px">Waiting for element selection in browser…</div>
+        <button class="btn btn-secondary btn-sm" onclick="openSite('element')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+          Open site again
+        </button>
+      </div>
     </div>
 
     <!-- Done state -->
@@ -1079,73 +1086,88 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="step-dot on"></div><div class="step-dot on"></div>
   </div>
   <div class="body">
-    <!-- Active goal — inline chip, not a separate section -->
-    <div id="m-goal-display" style="display:none;margin-bottom:14px">
-      <span class="lbl">Active goal</span>
-      <div id="m-goal-chip-wrap"></div>
-    </div>
-
-    <div class="hint" id="m-hint" style="display:none"></div>
-
-    <span class="lbl">Conversion goal</span>
-    <div role="radiogroup" aria-label="Conversion goal">
-      <!-- Default: click on tested element -->
-      <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()" role="radio" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDefaultMetric()}">
-        <div class="m-radio"></div>
-        <div>
-          <div class="m-title">Click on the tested element</div>
-          <div class="m-desc" id="m-default-desc" style="display:none"></div>
-        </div>
+    <!-- Metric form (hidden after Finish) -->
+    <div id="m-form">
+      <div id="m-goal-display" style="display:none;margin-bottom:14px">
+        <span class="lbl">Active goal</span>
+        <div id="m-goal-chip-wrap"></div>
       </div>
 
-      <!-- Pick another element — highlighted when default unavailable -->
-      <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPickMetric()}">
-        <div class="m-radio"></div>
-        <div>
-          <div class="m-title">Another element on the page</div>
-          <div class="m-desc">Pick any clickable element in your browser.</div>
-        </div>
-      </div>
-    </div>
-    <div id="m-pick-wrap" style="display:none;margin:8px 0 12px 36px">
-      <button class="btn btn-primary btn-sm btn-icon-left" onclick="openSite('goal')" style="width:auto">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-        Open in Browser
-      </button>
-      <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:8px">
-        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-        Waiting for goal selection…
-      </div>
-    </div>
+      <div class="hint" id="m-hint" style="display:none"></div>
 
-    <!-- Advanced -->
-    <button type="button" class="adv-toggle" id="adv-toggle" onclick="toggleAdvanced()" aria-expanded="false" aria-controls="adv-section">
-      <svg class="adv-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m9 18 6-6-6-6"/>
-      </svg>
-      Advanced settings
-    </button>
-    <div class="adv-section" id="adv-section">
-      <div class="adv-group">
-        <label class="adv-group-title" for="m-custom-selector">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
-          Custom CSS selector
-        </label>
-        <div class="adv-group-desc">Target any element by selector.</div>
-        <div class="input-wrap has-prefix">
-          <div class="input-icon-left">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
+      <span class="lbl">Conversion goal</span>
+      <div role="radiogroup" aria-label="Conversion goal">
+        <div class="m-opt m-selected" id="m-default-opt" onclick="selectDefaultMetric()" role="radio" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDefaultMetric()}">
+          <div class="m-radio"></div>
+          <div>
+            <div class="m-title">Click on the tested element</div>
+            <div class="m-desc" id="m-default-desc" style="display:none"></div>
           </div>
-          <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:var(--fs-sm);font-family:'SF Mono',monospace"/>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()" style="margin-top:4px">Apply selector</button>
+
+        <div class="m-opt" id="m-pick-opt" onclick="selectPickMetric()" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPickMetric()}">
+          <div class="m-radio"></div>
+          <div>
+            <div class="m-title">Another element on the page</div>
+            <div class="m-desc">Pick any clickable element in your browser.</div>
+          </div>
+        </div>
       </div>
+      <div id="m-pick-wrap" style="display:none;margin:8px 0 12px 36px">
+        <button class="btn btn-primary btn-sm btn-icon-left" onclick="openSite('goal')" style="width:auto">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+          Open in Browser
+        </button>
+        <div class="loading-row" id="m-waiting" role="status" style="display:none;margin-top:8px">
+          <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+          Waiting for goal selection…
+        </div>
+      </div>
+
+      <button type="button" class="adv-toggle" id="adv-toggle" onclick="toggleAdvanced()" aria-expanded="false" aria-controls="adv-section">
+        <svg class="adv-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+        Advanced settings
+      </button>
+      <div class="adv-section" id="adv-section">
+        <div class="adv-group">
+          <label class="adv-group-title" for="m-custom-selector">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
+            Custom CSS selector
+          </label>
+          <div class="adv-group-desc">Target any element by selector.</div>
+          <div class="input-wrap has-prefix">
+            <div class="input-icon-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
+            </div>
+            <input id="m-custom-selector" placeholder=".my-button, #cta" style="font-size:var(--fs-sm);font-family:'SF Mono',monospace"/>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="applyCustomSelector()" style="margin-top:4px">Apply selector</button>
+        </div>
+      </div>
+
+      <div class="err" id="e-metric" role="alert" style="margin-top:6px"></div>
     </div>
 
-    <div class="err" id="e-metric" role="alert" style="margin-top:6px"></div>
+    <!-- Done state (shown after Finish) -->
+    <div id="m-done" style="display:none;text-align:center;padding:20px 0">
+      <div style="margin-bottom:20px">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="hint-strong" style="margin-bottom:6px;border:none;background:none;padding:0">Test is running</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-2);margin-bottom:24px">
+        <span id="m-done-name"></span> · <span id="m-done-url"></span>
+      </div>
+      <button class="btn btn-primary btn-icon-left" onclick="parent.postMessage({pluginMessage:{type:'OPEN_URL',url:API+'/dashboard'}},'*')" style="margin-bottom:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+        Open in Dashboard →
+      </button>
+      <button class="btn btn-ghost" onclick="newTest()" style="width:100%">Create another test</button>
+    </div>
   </div>
   <div class="ftr">
-    <button class="btn btn-primary" id="m-generate" onclick="showDashboard()">Finish →</button>
+    <button class="btn btn-primary" id="m-generate" onclick="finishWizard()">Finish →</button>
   </div>
 </div>
 
@@ -1296,7 +1318,7 @@ function createAccount() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
 }
 function openDashboardForToken() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?source=figma-plugin#api-token' } }, '*')
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard/setup?source=figma-plugin' } }, '*')
 }
 function openLoginForToken() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/login?source=figma-plugin' } }, '*')
@@ -1662,7 +1684,6 @@ async function createTest() {
     state.name = name; state.url = url
     navPush('element')
     startElementPoll()
-    openSite('element')
   } catch (e) {
     err('setup', e.message)
   } finally {
@@ -1680,6 +1701,11 @@ function siteTriggerUrl(mode) {
     '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
   if (mode === 'reorder') url += '&ab_reorder=1'
   return url
+}
+function openSiteForPick() {
+  $('el-ready-state').style.display = 'none'
+  $('el-waiting-state').style.display = 'block'
+  openSite('element')
 }
 async function openSite(mode) {
   const url = siteTriggerUrl(mode || 'element')
@@ -2004,6 +2030,13 @@ async function enterMetric() {
     $('m-pick-wrap').style.display = 'block'
   }
   renderGoalChip()
+}
+
+function finishWizard() {
+  $('m-form').style.display = 'none'
+  $('m-done').style.display = 'flex'
+  $('m-done-name').textContent = state.name || state.testId || ''
+  $('m-done-url').textContent = state.url || ''
 }
 
 function startMetricPoll() {
