@@ -1695,13 +1695,38 @@ function resumeWizardFromHealth(t) {
     // Design/Generate-Screen: Variante erstellen
     navHistory = ['dashboard', 'setup', 'element', 'design', 'generate']
     go('generate')
-    $('d-waiting').style.display = 'none'
-    $('d-done').style.display = 'block'
   } else if (firstIssue === 'missing_goal') {
-    // Metric-Screen: Goal setzen
+    // Metric-Screen: Goal setzen — UI-State wie enterMetric() aufbauen
     navHistory = ['dashboard', 'setup', 'element', 'design', 'generate', 'metric']
     go('metric')
-    startMetricPoll()
+    $('m-waiting').style.display = 'none'
+    $('m-goal-display').style.display = 'none'
+    $('m-pick-opt').classList.remove('m-selected', 'm-highlight')
+    $('m-pick-wrap').style.display = 'none'
+    $('m-hint').textContent = ''; $('m-hint').style.display = 'none'
+    $('adv-toggle').classList.remove('open')
+    $('adv-toggle').setAttribute('aria-expanded', 'false')
+    $('adv-section').classList.remove('open')
+    $('m-custom-selector').value = ''
+    var clickable = isClickable(state.originalHtml)
+    if (clickable) {
+      state.goal = state.selector
+      $('m-default-opt').classList.add('m-selected')
+      $('m-default-opt').classList.remove('m-disabled', 'm-highlight')
+      $('m-default-opt').style.opacity = ''
+      $('m-default-desc').textContent = ''; $('m-default-desc').style.display = 'none'
+      $('m-generate').disabled = false
+    } else {
+      state.goal = ''
+      $('m-default-opt').classList.remove('m-selected')
+      $('m-default-opt').classList.add('m-disabled')
+      $('m-default-desc').textContent = 'Not clickable (e.g. a heading or paragraph).'; $('m-default-desc').style.display = 'block'
+      $('m-hint').textContent = 'Pick a different goal below.'; $('m-hint').style.display = 'block'
+      $('m-generate').disabled = true
+      $('m-pick-opt').classList.add('m-selected', 'm-highlight')
+      $('m-pick-wrap').style.display = 'block'
+    }
+    renderGoalChip()
   } else {
     // Fallback: Setup
     navHistory = ['dashboard', 'setup']
