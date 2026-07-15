@@ -6,4 +6,9 @@ export {
   Sparkles,
   Rocket,
   Zap,
+  Shield,
+  Gauge,
+  Globe,
+  Palette,
+  Figma,
 } from 'lucide-react'

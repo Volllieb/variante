@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointer2, Sparkles, Rocket, Zap } from '@/components/LandingIcons'
+import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette, Figma } from '@/components/LandingIcons'
+import { techLogos } from '@/components/TechLogos'
 import LangToggle from './components/LangToggle'
 import { getLang, getCopy } from '@/lib/landingCopy'
 import type { Lang } from '@/lib/landingCopy'
@@ -114,6 +115,86 @@ export default async function HomePage() {
           <p className="mt-4 text-xs text-text-3">
             {cp.heroFootnote}
           </p>
+        </div>
+      </section>
+
+      {/* ── Micro-Trust Bar ── */}
+      <section className="px-4 py-8 sm:px-6 sm:py-12">
+        <div className="mx-auto max-w-4xl">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { icon: Shield, ...cp.trustItems[0] },
+              { icon: Gauge, ...cp.trustItems[1] },
+              { icon: Globe, ...cp.trustItems[2] },
+              { icon: Palette, ...cp.trustItems[3] },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex flex-col items-center gap-1.5 rounded-lg border border-border bg-bg-1 px-3 py-4 text-center"
+              >
+                <item.icon className="mb-0.5 h-5 w-5 text-white/50" />
+                <span className="text-xs font-semibold text-white/70">{item.label}</span>
+                <span className="text-[11px] text-text-3 leading-snug">{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Works-With Logo Bar ── */}
+      <section className="px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
+            {cp.sectionWorks}
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
+            {techLogos.map(({ name, Logo }) => (
+              <div key={name} className="flex flex-col items-center gap-2">
+                <Logo className="h-7 w-7 text-white/25" />
+                <span className="text-[10px] text-text-3">{name}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-xs text-text-3">
+            {cp.worksLabel}
+          </p>
+        </div>
+      </section>
+
+      {/* ── Social Proof: Figma Community + Solo Dev ── */}
+      <section className="px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-4xl">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* Figma Community */}
+            <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
+              <div className="mb-3 flex items-center gap-2">
+                <Figma className="h-5 w-5 text-white/70" />
+                <h3 className="text-sm font-semibold text-white">{cp.figmaCommunityTitle}</h3>
+              </div>
+              <p className="text-sm text-white/50 leading-relaxed">
+                {cp.figmaCommunityText}
+              </p>
+              <a
+                href="https://www.figma.com/community/plugin/1653734891132085565"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white/80"
+              >
+                {cp.figmaCommunityLinkText}
+              </a>
+            </div>
+
+            {/* Solo Dev Transparency */}
+            <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
+              <h3 className="text-sm font-semibold text-white">{cp.soloDevTitle}</h3>
+              <p className="mt-2 text-sm text-white/50 leading-relaxed">
+                {cp.soloDevBody}
+              </p>
+              <p className="mt-4 text-xs text-text-3 italic">
+                {cp.impliedUsersText}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

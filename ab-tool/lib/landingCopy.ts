@@ -51,6 +51,24 @@ export interface LandingCopy {
   agencyFeatures: string[]
   agencyFeatureExclusive: boolean[]
 
+  // Micro-Trust
+  sectionTrust: string
+  trustItems: { label: string; text: string }[]
+
+  // Works-with logos
+  sectionWorks: string
+  worksLabel: string
+
+  // Figma Community
+  figmaCommunityTitle: string
+  figmaCommunityText: string
+  figmaCommunityLinkText: string
+
+  // Solo-dev transparency + implied usage
+  soloDevTitle: string
+  soloDevBody: string
+  impliedUsersText: string
+
   // FAQ
   sectionFaq: string
   faqs: { q: string; a: string }[]
@@ -149,6 +167,29 @@ const de: LandingCopy = {
     'Frühzugang zu neuen Features',
   ],
   agencyFeatureExclusive: [true, true, true, true, false, false, false, false],
+
+  // Micro-Trust
+  sectionTrust: '',
+  trustItems: [
+    { label: 'Keine Kreditkarte', text: 'Jederzeit kündbar. Kein Lock-in.' },
+    { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact.' },
+    { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten.' },
+    { label: 'Figma-nativ', text: 'Kein Dev-Ticket. Dein Workflow, deine Tools.' },
+  ],
+
+  // Works-with logos
+  sectionWorks: 'Funktioniert mit deinem Stack',
+  worksLabel: 'Ein Snippet — überall wo du ein Script-Tag einfügen kannst',
+
+  // Figma Community
+  figmaCommunityTitle: 'Live in der Figma Community',
+  figmaCommunityText: 'Das Plugin ist live in der Figma Community — direkt aus deinem Editor installierbar. Designer testen bereits ohne auf Entwickler zu warten.',
+  figmaCommunityLinkText: 'Plugin in Figma öffnen →',
+
+  // Solo-dev transparency + implied usage
+  soloDevTitle: 'Gebaut von einem Designer, für Designer.',
+  soloDevBody: 'Kein VC, kein 20-Personen-Team. Ein Solo-Dev aus Bayern, der die "kannst du das mal eben testen?"-Frage satt hatte. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
+  impliedUsersText: 'Schließ dich Designern an, die testen ohne auf Dev-Tickets zu warten.',
 
   sectionFaq: 'Häufige Fragen',
   faqs: [
@@ -264,6 +305,29 @@ const en: LandingCopy = {
     'Early access to new features',
   ],
   agencyFeatureExclusive: [true, true, true, true, false, false, false, false],
+
+  // Micro-Trust
+  sectionTrust: '',
+  trustItems: [
+    { label: 'No credit card', text: 'Cancel anytime. No lock-in.' },
+    { label: '5 KB snippet', text: 'Loads async. Zero performance impact.' },
+    { label: 'GDPR-compliant', text: 'EU hosting. No third-country data.' },
+    { label: 'Figma-native', text: 'No dev ticket. Your workflow, your tools.' },
+  ],
+
+  // Works-with logos
+  sectionWorks: 'Works with your stack',
+  worksLabel: 'One snippet — anywhere you can paste a script tag',
+
+  // Figma Community
+  figmaCommunityTitle: 'Live on Figma Community',
+  figmaCommunityText: 'The plugin is live on the Figma Community — install it right from your editor. Designers are already testing without waiting on developers.',
+  figmaCommunityLinkText: 'Open plugin in Figma →',
+
+  // Solo-dev transparency + implied usage
+  soloDevTitle: 'Built by a designer, for designers.',
+  soloDevBody: 'No VC, no 20-person team. A solo dev from Bavaria who got tired of the "can you just quickly test this?" question. Every line of code is documented, every update public in the changelog.',
+  impliedUsersText: 'Join designers who test without waiting on dev tickets.',
 
   sectionFaq: 'You might be wondering',
   faqs: [
