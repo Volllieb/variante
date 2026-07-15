@@ -26,7 +26,7 @@
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
 | Snippet | `ab.js` (Vanilla JS, ~14 KB, kein Build-Step, eingebauter Element-Picker) |
 | Figma-Plugin | TypeScript + HTML (360×560px, Figma-native Tokens) · [Community](https://www.figma.com/community/plugin/1653734891132085565) |
-| **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` |
+| **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` · **VS Code Settings:** `github.copilot.chat.agent.bypassApproval` = `true` (default) |
 
 ## §3 Struktur
 
