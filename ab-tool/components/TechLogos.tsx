@@ -1,83 +1,66 @@
-// Simple recognizable SVG logos for the "Works with" section
-// Monochrome, matching the dark theme text-white/30
+// Official brand marks for the "Works with your stack" bar.
+//
+// Path data from simple-icons (CC0-1.0). Each mark is a trademark of its owner
+// and is used nominatively — to state that Variante works with that platform.
+// All marks share a 24×24 viewBox and a single path, so they render monochrome
+// in `currentColor` at one uniform optical size (brandguidelines §2.1, §10).
+//
+// This list is the single source of truth for supported platforms: the logo bar,
+// the "How it works" platform line, and the FAQ all read from it.
 
-export function FigmaLogo({ className }: { className?: string }) {
+export interface TechLogo {
+  /** Display name — also used verbatim in prose copy. */
+  name: string
+  /** Official mark, single path, 24×24 viewBox. */
+  path: string
+}
+
+export const techLogos: TechLogo[] = [
+  {
+    name: 'WordPress',
+    path: 'M21.469 6.825c.84 1.537 1.318 3.3 1.318 5.175 0 3.979-2.156 7.456-5.363 9.325l3.295-9.527c.615-1.54.82-2.771.82-3.864 0-.405-.026-.78-.07-1.11m-7.981.105c.647-.03 1.232-.105 1.232-.105.582-.075.514-.93-.067-.899 0 0-1.755.135-2.88.135-1.064 0-2.85-.15-2.85-.15-.585-.03-.661.855-.075.885 0 0 .54.061 1.125.09l1.68 4.605-2.37 7.08L5.354 6.9c.649-.03 1.234-.1 1.234-.1.585-.075.516-.93-.065-.896 0 0-1.746.138-2.874.138-.2 0-.438-.008-.69-.015C4.911 3.15 8.235 1.215 12 1.215c2.809 0 5.365 1.072 7.286 2.833-.046-.003-.091-.009-.141-.009-1.06 0-1.812.923-1.812 1.914 0 .89.513 1.643 1.06 2.531.411.72.89 1.643.89 2.977 0 .915-.354 1.994-.821 3.479l-1.075 3.585-3.9-11.61.001.014zM12 22.784c-1.059 0-2.081-.153-3.048-.437l3.237-9.406 3.315 9.087c.024.053.05.101.078.149-1.12.393-2.325.609-3.582.609M1.211 12c0-1.564.336-3.05.935-4.39L7.29 21.709C3.694 19.96 1.212 16.271 1.211 12M12 0C5.385 0 0 5.385 0 12s5.385 12 12 12 12-5.385 12-12S18.615 0 12 0',
+  },
+  {
+    name: 'Webflow',
+    path: 'm24 4.515-7.658 14.97H9.149l3.205-6.204h-.144C9.566 16.713 5.621 18.973 0 19.485v-6.118s3.596-.213 5.71-2.435H0V4.515h6.417v5.278l.144-.001 2.622-5.277h4.854v5.244h.144l2.72-5.244H24Z',
+  },
+  {
+    name: 'Shopify',
+    path: 'M15.337 23.979l7.216-1.561s-2.604-17.613-2.625-17.73c-.018-.116-.114-.192-.211-.192s-1.929-.136-1.929-.136-1.275-1.274-1.439-1.411c-.045-.037-.075-.057-.121-.074l-.914 21.104h.023zM11.71 11.305s-.81-.424-1.774-.424c-1.447 0-1.504.906-1.504 1.141 0 1.232 3.24 1.715 3.24 4.629 0 2.295-1.44 3.76-3.406 3.76-2.354 0-3.54-1.465-3.54-1.465l.646-2.086s1.245 1.066 2.28 1.066c.675 0 .975-.545.975-.932 0-1.619-2.654-1.694-2.654-4.359-.034-2.237 1.571-4.416 4.827-4.416 1.257 0 1.875.361 1.875.361l-.945 2.715-.02.01zM11.17.83c.136 0 .271.038.405.135-.984.465-2.064 1.639-2.508 3.992-.656.213-1.293.405-1.889.578C7.697 3.75 8.951.84 11.17.84V.83zm1.235 2.949v.135c-.754.232-1.583.484-2.394.736.466-1.777 1.333-2.645 2.085-2.971.193.501.309 1.176.309 2.1zm.539-2.234c.694.074 1.141.867 1.429 1.755-.349.114-.735.231-1.158.366v-.252c0-.752-.096-1.371-.271-1.871v.002zm2.992 1.289c-.02 0-.06.021-.078.021s-.289.075-.714.21c-.423-1.233-1.176-2.37-2.508-2.37h-.115C12.135.209 11.669 0 11.265 0 8.159 0 6.675 3.877 6.21 5.846c-1.194.365-2.063.636-2.16.674-.675.213-.694.232-.772.87-.075.462-1.83 14.063-1.83 14.063L15.009 24l.927-21.166z',
+  },
+  {
+    name: 'Framer',
+    path: 'M4 0h16v8h-8zM4 8h8l8 8H4zM4 16h8v8z',
+  },
+  {
+    name: 'Squarespace',
+    path: 'M22.655 8.719c-1.802-1.801-4.726-1.801-6.564 0l-7.351 7.35c-.45.45-.45 1.2 0 1.65.45.449 1.2.449 1.65 0l7.351-7.351c.899-.899 2.362-.899 3.264 0 .9.9.9 2.364 0 3.264l-7.239 7.239c.9.899 2.362.899 3.263 0l5.589-5.589c1.836-1.838 1.836-4.763.037-6.563zm-2.475 2.437c-.451-.45-1.201-.45-1.65 0l-7.354 7.389c-.9.899-2.361.899-3.262 0-.45-.45-1.2-.45-1.65 0s-.45 1.2 0 1.649c1.801 1.801 4.726 1.801 6.564 0l7.351-7.35c.449-.487.449-1.239.001-1.688zm-2.439-7.35c-1.801-1.801-4.726-1.801-6.564 0l-7.351 7.351c-.45.449-.45 1.199 0 1.649s1.2.45 1.65 0l7.395-7.351c.9-.899 2.371-.899 3.27 0 .451.45 1.201.45 1.65 0 .421-.487.421-1.199-.029-1.649h-.021zm-2.475 2.437c-.45-.45-1.2-.45-1.65 0l-7.351 7.389c-.899.9-2.363.9-3.265 0-.9-.899-.9-2.363 0-3.264l7.239-7.239c-.9-.9-2.362-.9-3.263 0L1.35 8.719c-1.8 1.8-1.8 4.725 0 6.563 1.801 1.801 4.725 1.801 6.564 0l7.35-7.351c.451-.488.451-1.238 0-1.688h.002z',
+  },
+  {
+    name: 'React',
+    path: 'M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z',
+  },
+  {
+    name: 'Next.js',
+    path: 'M18.665 21.978C16.758 23.255 14.465 24 12 24 5.377 24 0 18.623 0 12S5.377 0 12 0s12 5.377 12 12c0 3.583-1.574 6.801-4.067 9.001L9.219 7.2H7.2v9.596h1.615V9.251l9.85 12.727Zm-3.332-8.533 1.6 2.061V7.2h-1.6v6.245Z',
+  },
+  {
+    name: 'HTML',
+    path: 'M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z',
+  },
+]
+
+/** Comma-joined platform names, for prose that lists the supported stacks. */
+export const techLogoNames = techLogos.map((l) => l.name)
+
+/**
+ * A single brand mark. Decorative by default — the logo bar renders the name as
+ * visible text next to it, so announcing it twice would just be noise.
+ */
+export function TechLogoMark({ logo, className }: { logo: TechLogo; className?: string }) {
   return (
-    <svg viewBox="0 0 38 57" fill="none" className={className} aria-label="Figma">
-      <path d="M19 28.5C19 25.98 20.998 23.94 23.46 23.94H27.92V33.06H23.46C20.998 33.06 19 31.02 19 28.5Z" fill="currentColor" fillOpacity="0.4" />
-      <path d="M10.08 47.88C10.08 45.36 12.078 43.32 14.54 43.32H19V47.88H14.54C12.078 47.88 10.08 49.92 10.08 52.44C10.08 54.96 12.078 57 14.54 57H19V47.88Z" fill="currentColor" fillOpacity="0.8" />
-      <path d="M19 0V11.4H27.92C30.382 11.4 32.38 9.36 32.38 6.84C32.38 4.32 30.382 2.28 27.92 2.28C25.458 2.28 23.46 4.32 23.46 6.84V11.4H19V0Z" fill="currentColor" fillOpacity="0.6" />
-      <path d="M0 28.5C0 25.98 1.998 23.94 4.46 23.94H8.92V33.06H4.46C1.998 33.06 0 31.02 0 28.5Z" fill="currentColor" fillOpacity="0.7" />
-      <path d="M0 6.84C0 4.32 1.998 2.28 4.46 2.28H8.92V11.4H4.46C1.998 11.4 0 9.36 0 6.84Z" fill="currentColor" fillOpacity="0.5" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d={logo.path} />
     </svg>
   )
 }
-
-export function WordPressLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-label="WordPress">
-      <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" />
-      <path d="M24 2C24 2 28 18 24 46" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.5" />
-      <path d="M24 2C24 2 20 18 24 46" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.3" />
-      <circle cx="24" cy="13" r="3" fill="currentColor" fillOpacity="0.7" />
-    </svg>
-  )
-}
-
-export function ShopifyLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-label="Shopify">
-      <path d="M32 18L30 28C29.7 29.8 28 31 26 31H18C16 31 14.3 29.8 14 28L10 10H36L34 18H32Z" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.6" />
-      <path d="M14 14L16 6C16.3 4.5 17.5 3.5 19 3.5H29C30.5 3.5 31.7 4.5 32 6L34 14" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" />
-      <circle cx="20" cy="37" r="2.5" fill="currentColor" fillOpacity="0.5" />
-      <circle cx="28" cy="37" r="2.5" fill="currentColor" fillOpacity="0.5" />
-    </svg>
-  )
-}
-
-export function ReactLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-label="React">
-      <ellipse cx="24" cy="24" rx="10" ry="20" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.6" transform="rotate(60 24 24)" />
-      <ellipse cx="24" cy="24" rx="10" ry="20" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" transform="rotate(-60 24 24)" />
-      <ellipse cx="24" cy="24" rx="10" ry="20" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.5" />
-      <circle cx="24" cy="24" r="4" fill="currentColor" fillOpacity="0.7" />
-    </svg>
-  )
-}
-
-export function NextLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-label="Next.js">
-      <path d="M24 4L42 44H6L24 4Z" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.6" />
-      <path d="M24 16V28L34 44" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" />
-    </svg>
-  )
-}
-
-export function VercelLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-label="Vercel">
-      <path d="M24 4L46 44H2L24 4Z" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.5" />
-    </svg>
-  )
-}
-
-export function SupabaseLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-label="Supabase">
-      <path d="M24 4L40 32H8L24 4Z" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.6" />
-      <path d="M24 31L16 44H32L24 31Z" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.3" />
-    </svg>
-  )
-}
-
-export const techLogos = [
-  { name: 'Figma', Logo: FigmaLogo },
-  { name: 'WordPress', Logo: WordPressLogo },
-  { name: 'Shopify', Logo: ShopifyLogo },
-  { name: 'React', Logo: ReactLogo },
-  { name: 'Next.js', Logo: NextLogo },
-  { name: 'Vercel', Logo: VercelLogo },
-  { name: 'Supabase', Logo: SupabaseLogo },
-] as const

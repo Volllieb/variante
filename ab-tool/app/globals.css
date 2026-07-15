@@ -10,6 +10,11 @@
   --color-text: #ededed;
   --color-text-2: rgba(237, 237, 237, 0.62);
   --color-text-3: rgba(237, 237, 237, 0.40);
+  /* Inverted primary buttons (brandguidelines §2.2) — flips with the theme so a
+     "white pill, black label" in dark mode becomes "black pill, white label" in light. */
+  --color-fill-invert: #ffffff;
+  --color-fill-invert-hover: rgba(255, 255, 255, 0.90);
+  --color-text-on-invert: #000000;
   --color-ok: #2fd76c;
   --color-ok-bg: rgba(47, 215, 108, 0.12);
   --color-pro: #f5a623;
@@ -29,6 +34,9 @@ html.light {
   --color-text: #1a1a1a;
   --color-text-2: rgba(26, 26, 26, 0.62);
   --color-text-3: rgba(26, 26, 26, 0.40);
+  --color-fill-invert: #1a1a1a;
+  --color-fill-invert-hover: rgba(26, 26, 26, 0.85);
+  --color-text-on-invert: #ffffff;
   --color-ok: #1a9e4b;
   --color-ok-bg: rgba(26, 158, 75, 0.10);
   --color-pro: #c6860e;
@@ -47,6 +55,9 @@ html.light {
   --color-text: var(--color-text);
   --color-text-2: var(--color-text-2);
   --color-text-3: var(--color-text-3);
+  --color-fill-invert: var(--color-fill-invert);
+  --color-fill-invert-hover: var(--color-fill-invert-hover);
+  --color-text-on-invert: var(--color-text-on-invert);
   --color-ok: var(--color-ok);
   --color-ok-bg: var(--color-ok-bg);
   --color-pro: var(--color-pro);
