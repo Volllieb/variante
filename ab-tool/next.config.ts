@@ -5,6 +5,10 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Turbopack root auf ab-tool/ festlegen, da Root package-lock.json existiert
+  turbopack: {
+    root: '.',
+  },
   async redirects() {
     return [
       {
