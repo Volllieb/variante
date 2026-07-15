@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { useTestsInsert } from '@/lib/useRealtime'
-import { FlaskConical, Loader2, Check, Copy, Puzzle, Code, X } from 'lucide-react'
+import { FlaskConical, Loader2, Check, Copy, Puzzle, Code, X, Bot, Sparkles, Palette } from 'lucide-react'
 
 /* ── Token palette ── */
 const T = {
@@ -12,7 +12,7 @@ const T = {
   ok: '#2fd76c', pro: '#f5a623', err: '#f5455c',
 }
 
-type FlowState = 'idle' | 'awaiting_figma' | 'test_received' | 'timeout' | 'error' | 'plan_limit'
+type FlowState = 'choice' | 'idle' | 'awaiting_figma' | 'test_received' | 'timeout' | 'error' | 'plan_limit'
 
 type NewTestFlowProps = {
   apiToken: string
@@ -24,7 +24,7 @@ type NewTestFlowProps = {
 export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }: NewTestFlowProps) {
   const router = useRouter()
   const [state, setState] = useState<FlowState>(
-    isAtFreeLimit ? 'plan_limit' : hasFigmaPlugin ? 'awaiting_figma' : 'idle'
+    isAtFreeLimit ? 'plan_limit' : hasFigmaPlugin ? 'awaiting_figma' : 'choice'
   )
   const [busy, setBusy] = useState(false)
   const [elapsed, setElapsed] = useState(0)
@@ -98,7 +98,9 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
           </div>
           <div>
             <p className="text-[13px] font-semibold text-[#ededed]">New test</p>
-            <p className="text-[11px] text-[#ededed]/40">via Figma plugin</p>
+            <p className="text-[11px] text-[#ededed]/40">
+              {state === 'choice' ? 'Choose your workflow' : 'via Figma plugin'}
+            </p>
           </div>
         </div>
         <button onClick={onClose}
@@ -108,6 +110,54 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
       </div>
 
       <div className="px-4 py-4">
+        {/* ── State: choice (pick Figma or Auto) ── */}
+        {state === 'choice' && (
+          <div className="space-y-4">
+            <p className="text-[12px] leading-relaxed text-[#ededed]/50">
+              How would you like to create your first test?
+            </p>
+
+            {/* Option 1: Figma */}
+            <button
+              onClick={() => setState('idle')}
+              className="flex w-full cursor-pointer items-start gap-3 rounded-[8px] border border-white/10 bg-[#111111] px-4 py-3.5 text-left transition-colors hover:border-white/[0.18]"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px]" style={{ background: `${T.pro}1a` }}>
+                <Palette className="h-4.5 w-4.5" style={{ color: T.pro }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-[13px] font-semibold text-[#ededed]">Start with Figma</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[#ededed]/45">
+                  Design variants visually in Figma and sync them to variante. Best for designers who work in Figma daily.
+                </p>
+                <p className="mt-1.5 text-[10px] text-[#ededed]/30">
+                  Requires Figma plugin installation
+                </p>
+              </div>
+            </button>
+
+            {/* Option 2: Auto-Optimize */}
+            <button
+              onClick={onClose}
+              className="flex w-full cursor-pointer items-start gap-3 rounded-[8px] border border-white/10 bg-[#111111] px-4 py-3.5 text-left transition-colors hover:border-white/[0.18]"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px]" style={{ background: '#7c3aed1a' }}>
+                <Bot className="h-4.5 w-4.5 text-[#a78bfa]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[13px] font-semibold text-[#ededed]">Start with Auto-Optimize</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[#ededed]/45">
+                  Our AI scans your site, finds the top 3 optimizations, generates variants and creates A/B tests — in 30 seconds. No Figma needed.
+                </p>
+                <p className="mt-1.5 flex items-center gap-1 text-[10px] text-[#a78bfa]/80">
+                  <Sparkles className="h-3 w-3" />
+                  AI-powered — works with just ab.js
+                </p>
+              </div>
+            </button>
+          </div>
+        )}
+
         {/* ── State: idle (no Figma detected) ── */}
         {state === 'idle' && (
           <div className="space-y-4">
@@ -167,6 +217,11 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
               className="w-full cursor-pointer rounded-[6px] bg-white py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85">
               I&apos;m ready — start listening
             </button>
+
+            <button onClick={() => setState('choice')}
+              className="w-full cursor-pointer rounded-[6px] border border-white/10 py-2 text-[12px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]">
+              ← Back
+            </button>
           </div>
         )}
 
@@ -202,7 +257,7 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
               </div>
             </div>
 
-            <button onClick={() => setState('idle')}
+            <button onClick={() => setState('choice')}
               className="w-full cursor-pointer rounded-[6px] border border-white/10 py-2 text-[12px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]">
               Cancel
             </button>

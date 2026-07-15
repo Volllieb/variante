@@ -144,6 +144,7 @@ test.describe('Conversion via ab.js (Client-Simulation) (@conversion)', () => {
       return { firstAllowed: true, secondBlocked: secondAttempt }
     })
 
+    if (!result) throw new Error('sessionStorage already had key — test precondition failed')
     expect(result.firstAllowed).toBe(true)
     expect(result.secondBlocked).toBe(true)
   })

@@ -38,7 +38,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} highlightNew={searchParams.new === '1'} upgraded={false} email={user.email ?? ''} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} email={user.email ?? ''} userId={user.id} />
   }
 
   return (
@@ -53,6 +53,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}
       email={user.email ?? ''}
+      userId={user.id}
     />
   )
 }

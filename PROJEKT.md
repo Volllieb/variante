@@ -13,7 +13,7 @@
 | **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 15.07.2026 — � **Agency-Plan live** — 99 €/Monat, bis zu 100 Domains, White-Label, dedizierter Support, höheres KI-Budget (60 $/Mo). Stripe-Checkout + Webhook erkennen Agency vs Pro. Landingpage 3-Spalten-Pricing. Billing-Seite zeigt Agency-Badge. �🌐 **Multi-Domain-Support** — Plan-basierte Domain-Limits (Free=1, Pro=5, Agency=100). `POST /api/tests` matched jetzt gegen alle verified Domains, nicht nur die erste. 🎉 Erster organischer User (Google OAuth, 13.07.). 🤖 **"What to test next" AI-Suggestions** — KI analysiert Live-Seite nach 7 CRO-Kriterien, 4 page-spezifische Vorschläge (Pro, ~$0.005/Call). Free-User sehen geblurrten Teaser + Paywall. 🧠 **Autonomer CRO-Agent** live — `POST /api/agent` mit Vercel AI SDK v7, analysiert Site, generiert Varianten, erstellt Tests in einem Run (Pro, ~$0.03/Run). 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs. 📧 **Weekly Digest Cron** (montags 9:00 UTC, Resend). |
+| **Stand** | 15.07.2026 — 🌐 **Multi-Domain-Support** — Plan-basierte Domain-Limits (Free=1, Pro=5, Agency=100). 🎉 Erster organischer User. 🤖 **"What to test next" AI-Suggestions** + 🧠 **Autonomer CRO-Agent** live. 🚀 **Onboarding v2: Choice-Screen** — User wählt nach ab.js-Installation zwischen "Start with Figma" (Plugin) und "Start with Auto-Optimize" (AI scannt Site, erstellt Tests). Kein Figma-Plugin-Gate mehr für Free. 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs. 📧 **Weekly Digest Cron**. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -62,7 +62,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 |---|---|---|
 | **Free** | 0 € | 1 aktives Experiment, Badge **an** |
 | **Pro** | 35 €/Monat | Unbegrenzt, Badge **aus**, Signifikanz, Auto-Winner |
-| **Agency** | 99 €/Monat | Bis zu 100 Domains, White-Label, dedizierter Support, Team-Zugang, Kunden-Reports, KI-Budget 60 $/Mo |
+| **Agency** | 99 €/Monat | ❄️ Auf Eis — erst bei 5+ Pro-Kunden |
 
 **KI-Kosten:** ~0,3 ct/Call → Marge ~100 %. AI-Gen auch im Free-Tier (Aha-Moment > Kosten).
 **Währung:** EUR (Sitz DE, Kunden DACH).
@@ -89,8 +89,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 
 | Datum | Eintrag |
 |---|---|
-| 15.07.2026 | **🏢 Agency-Plan live.** Stripe-Checkout: `POST /api/billing/checkout` akzeptiert `{ plan: 'agency' }`, nutzt `STRIPE_PRICE_AGENCY`. Webhook: erkennt Agency vs Pro anhand Subscription-Price-ID + Checkout-Metadata. Landingpage: 3-Spalten-Pricing (Free/Pro/Agency) mit `landingCopy.ts`-I18n. Billing-Seite: Agency-Badge (orange) + spezifische Features (100 Domains, White-Label, Team, Reports). KI-Budget: `OPENAI_MAX_MONTHLY_COST_AGENCY` (Default 60 $) für Agent + Suggestions. `.env.example` um `STRIPE_PRICE_AGENCY` + `OPENAI_MAX_MONTHLY_COST_AGENCY` ergänzt. Agency ist jetzt vollständig kaufbar, alle Features auf maximaler Kapazität. |
-| 15.07.2026 | **Multi-Domain-Support.** Plan-basierte Domain-Limits statt hartem 1-Domain-Cap: Free=1, Pro=5, Agency=100. Neue `lib/planLimits.ts` als Single Source of Truth. `POST /api/domains`: prüft `count(*)` gegen `getDomainLimit(plan)` statt `limit(2).length >= 1`. `POST /api/tests` + `lib/agentTools.ts`: Domain-Gate matched `site_url`-Host jetzt gegen ALLE verified Domains (nicht nur `.limit(1)` primary). `DomainGate.tsx`: 402-Error parst API-Nachricht dynamisch. `/api/resolve` + `ab.js`: keine Änderung nötig — Host-basiertes Matching funktioniert out-of-the-box für Multi-Domain. |
+| 15.07.2026 | **Onboarding v2: Choice-Screen + Kein Figma-Gate für Free.** NewTestFlow umgebaut: Statt nur Figma-Plugin-Instruktionen jetzt Choice-Screen mit zwei klaren Pfaden — "Start with Figma" (Plugin, bestehender Flow) und "Start with Auto-Optimize" (AI-Agent, kein Plugin nötig). AgentPanel: Free-Gating entfernt — Auto-Optimize jetzt für alle Tiers verfügbar (Aha-Moment > API-Kosten). PROJEKT.md §10: Vision "ab.js → Auto-Scan → 1-Klick" dokumentiert. | Neue `lib/planLimits.ts` als Single Source of Truth. `POST /api/domains`: prüft `count(*)` gegen `getDomainLimit(plan)` statt `limit(2).length >= 1`. `POST /api/tests` + `lib/agentTools.ts`: Domain-Gate matched `site_url`-Host jetzt gegen ALLE verified Domains (nicht nur `.limit(1)` primary). `DomainGate.tsx`: 402-Error parst API-Nachricht dynamisch. `/api/resolve` + `ab.js`: keine Änderung nötig — Host-basiertes Matching funktioniert out-of-the-box für Multi-Domain. |
 | 14.07.2026 | **Autonomer CRO-Agent live (Ansatz B, Vercel AI SDK).** `POST /api/agent` — `streamText()` (AI SDK v7, gpt-4o-mini) mit 4 Tools: `fetchSite` (SSRF-geschützt, 10s Timeout), `analyzeCRO` (nutzt `lib/croAnalyze.ts`), `generateVariant` (`lib/generateVariantText.ts`, text/color/css/layout), `createTest` (Domain-Gate + Free-Gating, Insert mit `variant_b_html`/`variant_b_css`). Tools als Factory `makeAgentTools(user)` — user_id ist kein LLM-Parameter (Injection-sicher). Kostenkontrolle: $0.03 upfront via `increment_gen_cost`-RPC, max 10 Steps (`stepCountIs`). CRO-Logik aus `/api/suggestions` nach `lib/croAnalyze.ts` extrahiert (Route refactored, +`type`/`selector` im Schema). UI: `AgentPanel.tsx` mit `useChat` — Live-Tool-Status-Zeilen, Free-Paywall analog WhatToTestNext, `router.refresh()` nach Run. Migration 019: `agent_runs` (Audit) + `site_insights` (Learning-Loop-v2-Schema) ausgeführt + deployt. Neue Packages: `ai@7`, `@ai-sdk/openai`, `@ai-sdk/react`, `zod`. Build grün. Konzept: `docs/future-features/autonomous-ab-agent.md`. |
 | 14.07.2026 | **🎉 Erster organischer User!** unnoorain Masroor (css.edu.apps@gmail.com) — Google OAuth Signup am 13.07.2026 08:42 UTC. Kein Outreach, kein Design-Partner — jemand hat variante von selbst gefunden und sich registriert. Validierung dass die Landingpage funktioniert. |
 | 13.07.2026 | **"What to test next" — AI-gestützte CRO-Vorschläge live.** `/api/suggestions` (POST, Pro-gated) fetched die Live-Seite, analysiert sie per GPT-4o-mini nach 7 CRO-Kriterien (Headlines, CTAs, Social Proof, Friction, Urgency, Trust, Above-the-Fold) und gibt 4 page-spezifische A/B-Test-Vorschläge zurück. `WhatToTestNext.tsx`-Komponente: 3 Zustände — versteckt (Setup nicht komplett), geblurrter Teaser + Paywall (Free), AI-Vorschläge mit Regenerate-Button (Pro). Ersetzt die alten statischen 4 Tipps in `DashboardClient.tsx`. Kosten: ~$0.005/Call, gleicher `increment_gen_cost`-RPC wie `/api/generate`. |
@@ -184,10 +183,24 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 - **Self-Improving Site Engine = Moat.** Kein anderes A/B-Tool analysiert deine Site und sagt dir, was du als nächstes testen sollst — geschweige denn, dass es aus deinen Ergebnissen lernt.
 - **Keine Features ohne Revenue-Signal.**
 
+### Vision: ab.js → Auto-Scan → 1-Klick
+
+Der Happy Path für neue User:
+1. **ab.js installieren** — DomainGate führt durch Snippet-Installation + Verify
+2. **Auto-Scan** — Sobald ab.js lebt, scannt variante die Site automatisch
+3. **1-Klick "Optimize my site"** — User klickt einen Button, der CRO-Agent analysiert die Seite, generiert 3 Varianten und legt A/B-Tests an
+
+**Onboarding-Wahl:** Nach der Domain-Verifikation bekommt der User zwei klare Pfade:
+- 🎨 **Start with Figma** — Designer-native: Plugin installieren, Varianten in Figma bauen, syncen
+- 🤖 **Start with Auto-Optimize** — AI-native: Site wird gescannt, Varianten automatisch generiert, Tests in 30s live
+
+**Kein Figma-Plugin-Gate mehr für Free.** Der Auto-Pfad funktioniert ohne Figma — ab.js + AI reichen. Der Figma-Pfad bleibt für Designer, die visuell arbeiten wollen. Beide Pfade führen zum gleichen Ergebnis: aktive A/B-Tests auf der Site.
+
 ### Anti-Roadmap
 
 | Nicht bauen | Warum |
 |---|---|
+| Agency-Tier | Kein Revenue-Signal |
 | Mehrere Metriken parallel | 6–10h, alle Schichten |
 | A/B-Editor im Web | Creation = Plugin |
 | Analytics-Dashboard | Fokus auf A/B-Testing |

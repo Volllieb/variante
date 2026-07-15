@@ -26,6 +26,7 @@ export const maxDuration = 120
 // Analyse ~$0.005 + 3× Variant-Gen ~$0.003 + Agent-Loop ~$0.01 ≈ $0.02.
 // Konservativ $0.03 — wird upfront gegen das Monatslimit gebucht.
 const ESTIMATED_COST = 0.03
+const MAX_MONTHLY_COST_FREE = Number(process.env.OPENAI_MAX_MONTHLY_COST_FREE) || 5
 const MAX_MONTHLY_COST_PRO = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
 const MAX_MONTHLY_COST_AGENCY = Number(process.env.OPENAI_MAX_MONTHLY_COST_AGENCY) || 60
 
@@ -69,10 +70,7 @@ export async function POST(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('POST, OPTIONS')
 
-  // ─── Pro-Gate (wie /api/suggestions) ───
-  if (user.plan !== 'pro' && user.plan !== 'agency') {
-    return paymentRequired('POST, OPTIONS', 'The autonomous optimization agent requires a Pro plan.')
-  }
+  // ─── Auto-Optimize für alle Pläne (Free hat eigenes Cost-Limit, $5/Monat) ───
 
   // ─── Body parsen (useChat schickt { messages, ...body } — wir lesen nur body) ───
   let domain: string | undefined
@@ -94,7 +92,7 @@ export async function POST(req: Request) {
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`
 
   // ─── Cost-Limit: atomar prüfen + buchen (gleicher RPC wie /api/generate) ───
-  const costLimit = user.plan === 'agency' ? MAX_MONTHLY_COST_AGENCY : MAX_MONTHLY_COST_PRO
+  const costLimit = user.plan === 'agency' ? MAX_MONTHLY_COST_AGENCY : user.plan === 'pro' ? MAX_MONTHLY_COST_PRO : MAX_MONTHLY_COST_FREE
   const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
     p_user_id: user.userId,
     p_amount: ESTIMATED_COST,

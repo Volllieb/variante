@@ -12,6 +12,8 @@ import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
+import { AgentPanel } from './components/AgentPanel'
+import { ConnectWebsite } from './components/ConnectWebsite'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
@@ -29,7 +31,6 @@ import {
   RefreshCw,
   Plus,
   Sparkles,
-  Code2,
   Settings,
   CreditCard,
   HeartPulse,
@@ -102,6 +103,7 @@ export function DashboardClient({
   upgraded,
   openNewTest,
   email,
+  userId,
 }: {
   plan: string
   apiToken: string
@@ -113,6 +115,7 @@ export function DashboardClient({
   upgraded?: boolean
   openNewTest?: boolean
   email: string
+  userId: string
 }) {
   const router = useRouter()
   const { toast } = useToast()
@@ -339,7 +342,7 @@ export function DashboardClient({
                 ))}
               </div>
             ) : testList.length === 0 ? (
-              <OnboardingCards onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} onLoadDemo={() => setShowDemo(true)} />
+              <EmptyDashboard onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} onLoadDemo={() => setShowDemo(true)} onDomainVerified={() => router.refresh()} />
             ) : filteredTests.length === 0 ? (
               <EmptyState
                 icon={Search}
@@ -402,7 +405,13 @@ function MetricRow({
   )
 }
 
-function OnboardingCards({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadDemo }: { onNewTest: () => void; hasFigmaPlugin: boolean; hasVerifiedDomain: boolean; onLoadDemo: () => void }) {
+function EmptyDashboard({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadDemo, onDomainVerified }: {
+  onNewTest: () => void
+  hasFigmaPlugin: boolean
+  hasVerifiedDomain: boolean
+  onLoadDemo: () => void
+  onDomainVerified: () => void
+}) {
   const setupReady = hasVerifiedDomain && hasFigmaPlugin
 
   return (
@@ -429,42 +438,43 @@ function OnboardingCards({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadD
         </div>
       </div>
 
-      {/* Quick-start guide */}
-      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-        <p className="text-[13px] font-semibold text-[#ededed]">Quick-start guide</p>
-        <p className="mt-1 text-[12px] text-[#ededed]/60">Three steps to your first real test.</p>
+      {/* Domain-Connect oder Quick-Start */}
+      {!hasVerifiedDomain ? (
+        <ConnectWebsite onVerified={onDomainVerified} />
+      ) : (
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <p className="text-[13px] font-semibold text-[#ededed]">Quick-start guide</p>
+          <p className="mt-1 text-[12px] text-[#ededed]/60">Two more steps to your first real test.</p>
 
-        <div className="mt-4 space-y-2.5">
-          {/* Step 1: Add website */}
-          <StepRow
-            num={1}
-            label="Add your website"
-            hint="Connect a domain to run tests on"
-            done={hasVerifiedDomain}
-            action={hasVerifiedDomain ? null : { label: 'Add website', href: '/dashboard/account' }}
-            icon={Globe}
-          />
-          {/* Step 2: Install snippet */}
-          <StepRow
-            num={2}
-            label="Install the snippet"
-            hint="One line in &lt;head&gt; enables A/B testing"
-            done={hasFigmaPlugin}
-            action={hasFigmaPlugin ? null : { label: 'Run setup check', href: '/dashboard/setup' }}
-            icon={Code2}
-          />
-          {/* Step 3: Create first test */}
-          <StepRow
-            num={3}
-            label="Create your first test"
-            hint="Pick an element, design a variant, ship it"
-            done={false}
-            action={setupReady ? { label: 'New test', onClick: onNewTest } : null}
-            icon={FlaskConical}
-            locked={!setupReady}
-          />
+          <div className="mt-4 space-y-2.5">
+            <StepRow
+              num={1}
+              label="Add your website"
+              hint={hasVerifiedDomain ? 'Website connected' : 'Connect a domain to run tests on'}
+              done={hasVerifiedDomain}
+              action={null}
+              icon={Globe}
+            />
+            <StepRow
+              num={2}
+              label="Install the snippet"
+              hint="One line in &lt;head&gt; enables A/B testing"
+              done={hasFigmaPlugin}
+              action={hasFigmaPlugin ? null : { label: 'Run setup check', href: '/dashboard/setup' }}
+              icon={FlaskConical}
+            />
+            <StepRow
+              num={3}
+              label="Create your first test"
+              hint="Pick an element, design a variant, ship it"
+              done={false}
+              action={setupReady ? { label: 'New test', onClick: onNewTest } : null}
+              icon={FlaskConical}
+              locked={!setupReady}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

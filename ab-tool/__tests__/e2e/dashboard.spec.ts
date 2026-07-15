@@ -9,13 +9,13 @@
  * Run: npx playwright test --grep "@dashboard"
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 const TEST_EMAIL = process.env.E2E_TEST_EMAIL
 const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD
 
 /** Hilfsfunktion: Login via Supabase-Auth-Formular. */
-async function login(page: ReturnType<typeof test['info'] extends never ? never : never>, email: string, password: string) {
+async function login(page: Page, email: string, password: string) {
   await page.goto('/login')
   await page.getByLabel(/email/i).fill(email)
   await page.getByLabel(/password/i).fill(password)
