@@ -12,6 +12,7 @@ import type { ApiUser } from '@/lib/auth'
 import { stripForCRO, extractStructure, extractStyleContext, analyzePage } from '@/lib/croAnalyze'
 import { generateVariantText } from '@/lib/generateVariantText'
 import { redactPII } from '@/lib/pii'
+import { analyzeHeuristics } from '@/lib/croHeuristics'
 export function makeAgentTools(user: ApiUser) {
   // ─── Tool 1: fetchSite ───
 
@@ -237,7 +238,38 @@ export function makeAgentTools(user: ApiUser) {
     },
   })
 
-  return { fetchSite, analyzeCRO, generateVariant, createTest }
+  // ─── Tool 5: analyzeHeuristics ───
+  // Regelbasierte CRO-Heuristiken: scannt das HTML auf 10 Conversion-Dimensionen.
+  // Läuft parallel zu analyzeCRO — braucht kein LLM, hat keine API-Kosten.
+  // Gibt Scores (0–100), Gaps und Fix-Vorschläge zurück.
+
+  const analyzeHeuristicsTool = tool({
+    description:
+      'Analysiert die Landingpage mit regelbasierten CRO-Heuristiken. Scannt 10 Dimensionen: CTA-Position, Social Proof, Trust Signals, Formular-Komplexität, Headline, CTA-Text, Dringlichkeit, Mobile, Navigation, Visuelle Hierarchie. Gibt Scores (0–100) und Top-3-Handlungsempfehlungen. Parallel zu analyzeCRO nutzbar — ergänzt die AI-Analyse um deterministische Checks.',
+    inputSchema: z.object({
+      html: z.string().describe('Das bereinigte HTML der Landingpage (aus fetchSite)'),
+    }),
+    execute: async ({ html }) => {
+      const report = analyzeHeuristics(html)
+      return {
+        overallScore: report.overallScore,
+        topGaps: report.topGaps.map(r => ({
+          id: r.id,
+          label: r.label,
+          score: r.score,
+          gap: r.gap,
+          suggestion: r.suggestion,
+        })),
+        allResults: report.results.map(r => ({
+          id: r.id,
+          label: r.label,
+          score: r.score,
+        })),
+      }
+    },
+  })
+
+  return { fetchSite, analyzeCRO, generateVariant, createTest, analyzeHeuristics: analyzeHeuristicsTool }
 }
 
 export type AgentTools = ReturnType<typeof makeAgentTools>
