@@ -6,7 +6,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import type { UIMessage } from 'ai'
@@ -17,7 +16,6 @@ import {
   CheckCircle2,
   XCircle,
   RefreshCw,
-  Lock,
   Globe,
   Search,
   FlaskConical,
@@ -48,56 +46,12 @@ interface AgentRun {
 }
 
 export function AgentPanel({ domain, plan, userId }: AgentPanelProps) {
-  const isPro = plan === 'pro' || plan === 'agency'
-
-  if (!isPro) return <AgentTeaser domain={domain} />
-  return <AgentRunner domain={domain} userId={userId} />
-}
-
-/* ── Free Tier: Geblurrter Teaser (analog WhatToTestNext) ── */
-
-function AgentTeaser({ domain }: { domain: string }) {
-  const host = domain.replace(/^https?:\/\//, '')
-  return (
-    <div className="mb-3 mt-6">
-      <div className="mb-3 flex items-center gap-2">
-        <Bot className="h-3.5 w-3.5 text-[#f5a623]" />
-        <h2 className="text-[13px] font-semibold text-[#ededed]">Auto-optimize</h2>
-        <span className="rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#f5a623]">PRO</span>
-      </div>
-
-      <div className="relative overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
-        {/* Blur-Silhouette eines Agent-Runs */}
-        <div className="pointer-events-none select-none space-y-2 px-3.5 py-3 blur-[6px]">
-          <p className="text-[11px] text-[#ededed]/70">🔍 Analyzing {host}…</p>
-          <p className="text-[11px] text-[#ededed]/70">✅ 3 optimizations found</p>
-          <p className="text-[11px] text-[#ededed]/70">🧪 Generating variants…</p>
-          <p className="text-[11px] text-[#ededed]/70">📊 Test #1: CTA copy ✓</p>
-        </div>
-
-        {/* Paywall Overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0a0a0a]/70 backdrop-blur-[2px]">
-          <Lock className="h-5 w-5 text-[#f5a623]" />
-          <p className="text-[12px] font-medium text-[#ededed]">Autonomous optimization</p>
-          <p className="max-w-[210px] text-center text-[11px] leading-relaxed text-[#ededed]/45">
-            Our AI analyzes your page, generates variants and creates A/B tests — all in one run.
-          </p>
-          <Link
-            href="/dashboard/billing"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-[6px] bg-[#f5a623] px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
-          >
-            <Sparkles className="h-3 w-3" />
-            Upgrade to Pro
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
+  return <AgentRunner domain={domain} userId={userId} plan={plan} />
 }
 
 /* ── Pro: Agent-Run mit Live-Stream ── */
 
-function AgentRunner({ domain, userId }: { domain: string; userId: string }) {
+function AgentRunner({ domain, userId, plan }: { domain: string; userId: string; plan: string }) {
   const router = useRouter()
   const host = domain.replace(/^https?:\/\//, '')
 
