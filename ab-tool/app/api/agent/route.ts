@@ -17,7 +17,8 @@ export const maxDuration = 120
 // Analyse ~$0.005 + 3× Variant-Gen ~$0.003 + Agent-Loop ~$0.01 ≈ $0.02.
 // Konservativ $0.03 — wird upfront gegen das Monatslimit gebucht.
 const ESTIMATED_COST = 0.03
-const MAX_MONTHLY_COST = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
+const MAX_MONTHLY_COST_PRO = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
+const MAX_MONTHLY_COST_AGENCY = Number(process.env.OPENAI_MAX_MONTHLY_COST_AGENCY) || 60
 
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
@@ -83,14 +84,15 @@ export async function POST(req: Request) {
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`
 
   // ─── Cost-Limit: atomar prüfen + buchen (gleicher RPC wie /api/generate) ───
+  const costLimit = user.plan === 'agency' ? MAX_MONTHLY_COST_AGENCY : MAX_MONTHLY_COST_PRO
   const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
     p_user_id: user.userId,
     p_amount: ESTIMATED_COST,
-    p_limit: MAX_MONTHLY_COST,
+    p_limit: costLimit,
   })
   if (limitErr || withinLimit === false) {
     return Response.json(
-      { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
+      { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${costLimit}/mo). Resets on the 1st.` },
       { status: 429, headers: corsHeaders('POST, OPTIONS') }
     )
   }
@@ -111,6 +113,7 @@ export async function POST(req: Request) {
       temperature: 0.7,
       onFinish: async ({ toolCalls, toolResults, finishReason }) => {
         // Run persistieren (Audit + Monitoring, Tabelle: 019_agent_runs.sql)
+        // + site_insights für Learning Loop v3 befüllen
         try {
           const testIds = toolResults
             .filter(tr => tr.toolName === 'createTest')
@@ -134,6 +137,26 @@ export async function POST(req: Request) {
             finish_reason: finishReason,
           })
           if (error) safeError('agent-run-persist', error)
+
+          // ─── site_insights upsert (Learning Loop v3) ───
+          const fetchResult = toolResults.find(tr => tr.toolName === 'fetchSite')?.output as
+            { url?: string; structure?: string; title?: string } | undefined
+          const analyzeResult = toolResults.find(tr => tr.toolName === 'analyzeCRO')?.output as
+            { suggestions?: unknown[]; industry?: string; pageGoal?: string } | undefined
+
+          if (fetchResult?.url && analyzeResult?.suggestions?.length) {
+            const { error: insightsErr } = await supabase.from('site_insights').upsert({
+              user_id: user.userId,
+              domain: url,
+              page_url: fetchResult.url,
+              page_goal: pageGoal,
+              detected_industry: analyzeResult.industry ?? null,
+              analysis_json: { structure: fetchResult.structure, title: fetchResult.title },
+              top_opportunities: analyzeResult.suggestions.slice(0, 3),
+              analyzed_at: new Date().toISOString(),
+            }, { onConflict: 'user_id, domain, page_url' })
+            if (insightsErr) safeError('agent-site-insights-upsert', insightsErr)
+          }
         } catch (err) {
           safeError('agent-run-persist', err)
         }

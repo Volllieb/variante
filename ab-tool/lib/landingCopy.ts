@@ -43,6 +43,14 @@ export interface LandingCopy {
   proFeatures: string[]
   proFeatureExclusive: boolean[]
 
+  // Agency
+  agencyLabel: string
+  agencyPrice: string
+  agencySub: string
+  agencyCta: string
+  agencyFeatures: string[]
+  agencyFeatureExclusive: boolean[]
+
   // FAQ
   sectionFaq: string
   faqs: { q: string; a: string }[]
@@ -125,6 +133,22 @@ const de: LandingCopy = {
     'Priority-Support',
   ],
   proFeatureExclusive: [true, false, true, true, true, true, true, true],
+
+  agencyLabel: 'Agency',
+  agencyPrice: '99 €',
+  agencySub: 'Alles aus Pro, für Agenturen:',
+  agencyCta: 'Agentur starten',
+  agencyFeatures: [
+    'Alles aus Pro',
+    'Bis zu 100 Domains — alle Kunden-Sites managen',
+    'White-Label — keine Variante-Erwähnung auf Kunden-Sites',
+    'Dedizierter Support — Direktkontakt, kein Ticket-System',
+    'Team-Zugang — Tests agenturweit teilen',
+    'Kunden-Reports — gebrandete PDFs für deine Kunden',
+    'Priority-Feature-Requests — gestalte die Roadmap mit',
+    'Frühzugang zu neuen Features',
+  ],
+  agencyFeatureExclusive: [true, true, true, true, false, false, false, false],
 
   sectionFaq: 'Häufige Fragen',
   faqs: [
@@ -224,6 +248,22 @@ const en: LandingCopy = {
     'Priority support',
   ],
   proFeatureExclusive: [true, false, true, true, true, true, true, true],
+
+  agencyLabel: 'Agency',
+  agencyPrice: '99 €',
+  agencySub: 'Everything in Pro, for agencies:',
+  agencyCta: 'Start agency',
+  agencyFeatures: [
+    'Everything in Pro',
+    'Up to 100 domains — manage all client sites',
+    'White-label — no Variante mention on client sites',
+    'Dedicated support — direct line, not tickets',
+    'Team access — share tests across your agency',
+    'Client reports — branded PDFs for your customers',
+    'Priority feature requests — shape the roadmap',
+    'Early access to new features',
+  ],
+  agencyFeatureExclusive: [true, true, true, true, false, false, false, false],
 
   sectionFaq: 'You might be wondering',
   faqs: [

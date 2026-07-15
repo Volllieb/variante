@@ -51,10 +51,12 @@ export async function POST(req: Request) {
         }
         const customerId = typeof s.customer === 'string' ? s.customer : s.customer?.id
         const subId = typeof s.subscription === 'string' ? s.subscription : s.subscription?.id
+        // Plan aus Checkout-Metadata lesen (Fallback: pro)
+        const plan = s.metadata?.plan === 'agency' ? 'agency' : 'pro'
         if (customerId) {
           await supabase
             .from('profiles')
-            .update({ plan: 'pro', plan_status: 'active', stripe_subscription_id: subId ?? null })
+            .update({ plan, plan_status: 'active', stripe_subscription_id: subId ?? null })
             .eq('stripe_customer_id', customerId)
         }
         break
@@ -70,7 +72,12 @@ export async function POST(req: Request) {
         // past_due/incomplete/paused: User hat gezahlt/gestartet, nicht degradieren.
         // Nur bei canceled/unpaid auf 'free' setzen.
         const ended = sub.status === 'canceled' || sub.status === 'unpaid'
-        const plan = active || !ended ? 'pro' : 'free'
+
+        // Plan anhand der Subscription-Items Price-ID erkennen.
+        const agencyPriceId = process.env.STRIPE_PRICE_AGENCY
+        const priceId = sub.items?.data?.[0]?.price?.id
+        const detectedPlan = priceId && agencyPriceId && priceId === agencyPriceId ? 'agency' : 'pro'
+        const plan = active || !ended ? detectedPlan : 'free'
 
         await supabase
           .from('profiles')

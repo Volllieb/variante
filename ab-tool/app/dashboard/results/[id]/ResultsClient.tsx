@@ -11,17 +11,28 @@ import {
   RefreshCw,
   Users,
   Target,
-  Lock,
   Check,
   Pause,
   Play,
   Pencil,
   X,
   Trash2,
-  Activity,
   BarChart3,
   Table2,
+  TrendingUp,
 } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+} from 'recharts'
 
 const T = {
   ok: '#2fd76c',
@@ -89,14 +100,14 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     }
   }, [deleteError])
 
-  // Fetch analytics (Pro only, 402 if not)
+  // Fetch analytics — available for all plans
   useEffect(() => {
-    if (!data.pro || analyticsLoaded) return
+    if (analyticsLoaded) return
     fetch(`/api/analytics/${experimentId}`)
       .then(res => res.ok ? res.json() : null)
       .then(json => { if (json) setAnalytics(json) })
       .finally(() => setAnalyticsLoaded(true))
-  }, [experimentId, data.pro, analyticsLoaded])
+  }, [experimentId, analyticsLoaded])
 
   async function upgrade() {
     setBusy(true)
@@ -161,19 +172,6 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const lift = a.views > 0 && a.conversions > 0
     ? ((b.cr - a.cr) / a.cr) * 100
     : null
-
-  // Sparkline helpers — cumulative daily totals
-  const cumA = (analytics?.daily || []).map((d) => d.visitors_a)
-  const cumB = (analytics?.daily || []).map((d) => d.visitors_b)
-  const cumConvA = (analytics?.daily || []).map((d) => d.conversions_a)
-  const cumConvB = (analytics?.daily || []).map((d) => d.conversions_b)
-  const cumTotal = cumA.map((v, i) => v + cumB[i])
-  const allValues = [...cumA, ...cumB]
-  const sparkMax = Math.max(1, ...allValues)
-  const dates = (analytics?.daily || []).map((d) => {
-    const date = new Date(d.date)
-    return `${date.getDate()}.${date.getMonth() + 1}.`
-  })
 
   async function saveConfig() {
     try {
@@ -362,66 +360,85 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           </div>
         </div>
 
-        {/* Sparkline (Pro only) */}
-        {pro && analytics && analytics.daily.length >= 2 ? (
+        {/* Visitors over time — available for all plans */}
+        {analytics && analytics.daily.length >= 2 ? (
           <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Activity className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <TrendingUp className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Daily Visitors
+                Visitors over Time
               </span>
             </div>
-            <div className="relative h-[100px] w-full">
-              <svg viewBox={`0 0 ${analytics.daily.length - 1} 100`} preserveAspectRatio="none" className="h-full w-full">
-                {/* Grid lines */}
-                {[25, 50, 75].map((y) => (
-                  <line key={y} x1={0} y1={y} x2={analytics.daily.length - 1} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
-                ))}
-                {/* B line */}
-                <polyline
-                  fill="none"
-                  stroke={T.pro}
-                  strokeWidth={1.5}
-                  vectorEffect="non-scaling-stroke"
-                  points={cumB.map((v, i) => `${i},${100 - (v / sparkMax) * 100}`).join(' ')}
-                />
-                {/* A line */}
-                <polyline
-                  fill="none"
-                  stroke="rgba(255,255,255,0.25)"
-                  strokeWidth={1.5}
-                  vectorEffect="non-scaling-stroke"
-                  points={cumA.map((v, i) => `${i},${100 - (v / sparkMax) * 100}`).join(' ')}
-                />
-              </svg>
+            <div className="h-[180px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={analytics.daily.map((d) => ({
+                    date: new Date(d.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                    A: d.visitors_a,
+                    B: d.visitors_b,
+                  }))}
+                  margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+                >
+                  <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: '#1a1a1a',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      color: '#ededed',
+                    }}
+                    labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="A"
+                    stroke="rgba(255,255,255,0.35)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, fill: 'rgba(255,255,255,0.5)' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="B"
+                    stroke={T.pro}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, fill: T.pro }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
             <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: T.pro }} /> B
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: T.pro }} /> Variant B
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }} /> A
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.35)' }} /> Variant A
               </span>
             </div>
           </div>
-        ) : pro && analyticsLoaded ? (
+        ) : analyticsLoaded ? (
           <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
             <div className="flex items-center gap-2">
-              <Activity className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <TrendingUp className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Daily Visitors
+                Visitors over Time
               </span>
               <span className="ml-auto text-[11px] text-[#ededed]/50">Not enough data yet</span>
-            </div>
-          </div>
-        ) : !pro ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-            <div className="flex items-center gap-2">
-              <Lock className="h-3.5 w-3.5 text-[#ededed]/40" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Daily Analytics
-              </span>
-              <span className="ml-auto text-[11px] text-[#ededed]/50">Pro feature</span>
             </div>
           </div>
         ) : null}
@@ -434,7 +451,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               Significance
             </span>
           </div>
-          <div className={`flex items-center justify-center${!pro ? ' relative' : ''}`}>
+          <div className="flex items-center justify-center">
             <div className="relative h-[120px] w-[120px]">
               <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
                 <circle
@@ -459,20 +476,6 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/50">Confidence</span>
               </div>
             </div>
-            {/* Free tier: semi-transparent overlay */}
-            {!pro && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[10px] bg-black/60 backdrop-blur-[1px]">
-                <Lock className="h-4 w-4 text-[#ededed]/50" />
-                <p className="mt-1.5 text-[11px] font-medium text-[#ededed]/70">Pro feature</p>
-                <button
-                  onClick={upgrade}
-                  disabled={busy}
-                  className="mt-2 cursor-pointer rounded-[6px] bg-white px-3 py-1 text-[11px] font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
-                >
-                  {busy ? '…' : 'Upgrade to Pro'}
-                </button>
-              </div>
-            )}
           </div>
           <p className="mt-3 text-center text-[12px] text-[#ededed]/40">
             {significance >= significanceLevel
@@ -542,6 +545,88 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           })}
         </div>
 
+        {/* Variant comparison bar chart — available for all plans */}
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+              Variant Comparison
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {/* Visitors bar chart */}
+            <div>
+              <p className="mb-2 text-[10px] font-medium text-[#ededed]/40">Visitors</p>
+              <div className="h-[140px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { variant: 'A', value: a.views },
+                      { variant: 'B', value: b.views },
+                    ]}
+                    margin={{ top: 0, right: 0, bottom: 20, left: 0 }}
+                  >
+                    <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" vertical={false} />
+                    <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+                    <Tooltip
+                      contentStyle={{
+                        background: '#1a1a1a',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 8,
+                        fontSize: 12,
+                        color: '#ededed',
+                      }}
+                      formatter={(_value: number, _name: string) => [_value.toLocaleString(), 'Visitors'] as [string, string]}
+                    />
+                    <Bar
+                      dataKey="value"
+                      radius={[4, 4, 0, 0]}
+                      fill="rgba(255,255,255,0.15)"
+                      maxBarSize={48}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: (v: number) => v.toLocaleString() }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            {/* Conversion rate bar chart */}
+            <div>
+              <p className="mb-2 text-[10px] font-medium text-[#ededed]/40">Conversion Rate</p>
+              <div className="h-[140px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { variant: 'A', value: a.cr },
+                      { variant: 'B', value: b.cr },
+                    ]}
+                    margin={{ top: 0, right: 0, bottom: 20, left: 0 }}
+                  >
+                    <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" vertical={false} />
+                    <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+                    <Tooltip
+                      contentStyle={{
+                        background: '#1a1a1a',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 8,
+                        fontSize: 12,
+                        color: '#ededed',
+                      }}
+                      formatter={(_value: number, _name: string) => [`${_value}%`, 'Conv. Rate'] as [string, string]}
+                    />
+                    <Bar
+                      dataKey="value"
+                      radius={[4, 4, 0, 0]}
+                      fill={T.pro}
+                      maxBarSize={48}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: number) => `${v}%` }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Raw data table (Pro only) */}
         {pro && analytics && analytics.daily.length > 0 && (
           <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
@@ -600,37 +685,40 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
         {/* Preview */}
         {(data.originalHtml || data.variantBHtml || editingB) && (
           <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6">
-            <h2 className="mb-4 text-sm font-semibold text-[#ededed]">Preview</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-[#ededed]">Preview</h2>
+              <span className="text-[10px] text-[#ededed]/30">Live rendering of your variants</span>
+            </div>
+            <div className="grid grid-cols-2 gap-5">
               {data.originalHtml && (
                 <VariantPreview
                   html={data.originalHtml}
                   css={data.siteCss}
-                  label="A (Original)"
+                  label="A · Original"
                   winner={winner === 'A'}
                 />
               )}
               {!editingB && data.variantBHtml && (
-                <div>
+                <div className="space-y-2">
                   <VariantPreview
                     html={data.variantBHtml}
                     css={data.siteCss}
-                    label="B (Variant)"
+                    label="B · Variant"
                     winner={winner === 'B'}
                   />
                   <button
                     onClick={() => { setDraftB(data.variantBHtml || ''); setEditingB(true) }}
-                    className="mt-2 flex cursor-pointer items-center gap-1 text-xs text-[#ededed]/50 transition-colors hover:text-[#ededed]/60"
+                    className="flex cursor-pointer items-center gap-1.5 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]/70"
                   >
-                    <Pencil className="h-3 w-3" /> Edit HTML
+                    <Pencil className="h-3 w-3" /> Edit Variant B HTML
                   </button>
                 </div>
               )}
               {!editingB && !data.variantBHtml && data.originalHtml && (
-                <div className="flex items-center justify-center rounded-xl border border-dashed border-white/[0.10] p-6">
+                <div className="flex items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] min-h-[280px]">
                   <button
                     onClick={() => { setDraftB('<div class="ab-v">\n  <style>\n    .ab-v { /* your styles */ }\n  </style>\n</div>'); setEditingB(true) }}
-                    className="cursor-pointer text-xs text-[#ededed]/50 transition-colors hover:text-[#ededed]/60"
+                    className="cursor-pointer text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]/70"
                   >
                     + Add Variant B HTML
                   </button>

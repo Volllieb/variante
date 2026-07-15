@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-@theme {
+/* ── Dark mode (default) ── */
+:root {
   --color-bg-0: #000000;
   --color-bg-1: #0a0a0a;
   --color-bg-2: #111111;
@@ -15,6 +16,43 @@
   --color-pro-bg: rgba(245, 166, 35, 0.12);
   --color-err: #f5455c;
   --color-err-bg: rgba(245, 69, 92, 0.12);
+  color-scheme: dark;
+}
+
+/* ── Light mode ── */
+html.light {
+  --color-bg-0: #ffffff;
+  --color-bg-1: #f8f9fa;
+  --color-bg-2: #f0f1f3;
+  --color-border: rgba(0, 0, 0, 0.10);
+  --color-border-strong: rgba(0, 0, 0, 0.18);
+  --color-text: #1a1a1a;
+  --color-text-2: rgba(26, 26, 26, 0.62);
+  --color-text-3: rgba(26, 26, 26, 0.40);
+  --color-ok: #1a9e4b;
+  --color-ok-bg: rgba(26, 158, 75, 0.10);
+  --color-pro: #c6860e;
+  --color-pro-bg: rgba(198, 134, 14, 0.10);
+  --color-err: #d63031;
+  --color-err-bg: rgba(214, 48, 49, 0.10);
+  color-scheme: light;
+}
+
+@theme {
+  --color-bg-0: var(--color-bg-0);
+  --color-bg-1: var(--color-bg-1);
+  --color-bg-2: var(--color-bg-2);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-text: var(--color-text);
+  --color-text-2: var(--color-text-2);
+  --color-text-3: var(--color-text-3);
+  --color-ok: var(--color-ok);
+  --color-ok-bg: var(--color-ok-bg);
+  --color-pro: var(--color-pro);
+  --color-pro-bg: var(--color-pro-bg);
+  --color-err: var(--color-err);
+  --color-err-bg: var(--color-err-bg);
 }
 
 @layer base {

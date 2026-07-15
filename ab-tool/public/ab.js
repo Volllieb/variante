@@ -523,6 +523,13 @@
     var el = document.querySelector(selector)
     if (!el) return false
     try {
+      // Plain-Text (keine HTML-Tags): textContent statt DOM-Tausch.
+      // Verhindert, dass z.B. <button> durch "Neuer Text" ersetzt wird.
+      if (!/<[a-zA-Z]/.test(html)) {
+        el.textContent = html
+        if (key) el.setAttribute('data-ab-el', key)
+        return true
+      }
       var tmp = document.createElement('div')
       tmp.innerHTML = html
       sanitizeSvgs(tmp)

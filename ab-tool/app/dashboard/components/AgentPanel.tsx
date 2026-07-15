@@ -22,11 +22,26 @@ import {
   Search,
   FlaskConical,
   Wand2,
+  Clock,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react'
 
 interface AgentPanelProps {
   domain: string
   plan: string
+}
+
+interface AgentRun {
+  id: string
+  domain: string
+  page_goal: string
+  suggestions_json: unknown[] | null
+  tests_created: string[] | null
+  tool_calls_count: number
+  cost_estimate: number
+  finish_reason: string | null
+  created_at: string
 }
 
 export function AgentPanel({ domain, plan }: AgentPanelProps) {
@@ -91,12 +106,28 @@ function AgentRunner({ domain }: { domain: string }) {
   const hasRun = messages.length > 0
   const isDone = hasRun && status === 'ready'
 
+  // Agent run history
+  const [history, setHistory] = useState<AgentRun[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+
+  // History laden (Initial + nach jedem Run)
+  useEffect(() => {
+    fetch('/api/agent/runs')
+      .then(r => r.json())
+      .then(d => { if (d.runs) setHistory(d.runs) })
+      .catch(() => {})
+  }, [])
+
   // Nach erfolgreichem Run: Server-Components refreshen, damit neue Tests
-  // im Grid auftauchen.
+  // im Grid auftauchen. Und History neu laden.
   const prevStatus = useRef(status)
   useEffect(() => {
     if (prevStatus.current === 'streaming' && status === 'ready') {
       router.refresh()
+      fetch('/api/agent/runs')
+        .then(r => r.json())
+        .then(d => { if (d.runs) setHistory(d.runs) })
+        .catch(() => {})
     }
     prevStatus.current = status
   }, [status, router])
@@ -174,9 +205,67 @@ function AgentRunner({ domain }: { domain: string }) {
             )}
           </div>
         )}
+
+        {/* ── Agent Run History ── */}
+        {history.length > 0 && (
+          <div className="mt-3 border-t border-white/[0.06] pt-3">
+            <button
+              onClick={() => setHistoryOpen(o => !o)}
+              className="flex w-full items-center gap-1.5 text-[11px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/60"
+            >
+              {historyOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <Clock className="h-3 w-3" />
+              History ({history.length})
+            </button>
+
+            {historyOpen && (
+              <div className="mt-2 space-y-1.5">
+                {history.map(run => {
+                  const date = new Date(run.created_at)
+                  const timeAgo = getTimeAgo(date)
+                  const testCount = run.tests_created?.length ?? 0
+                  const sugCount = Array.isArray(run.suggestions_json) ? run.suggestions_json.length : 0
+                  return (
+                    <div
+                      key={run.id}
+                      className="rounded-[6px] border border-white/[0.05] bg-white/[0.02] px-2.5 py-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] text-[#ededed]/60">{timeAgo}</span>
+                        <span className="text-[10px] text-[#ededed]/30">
+                          {run.domain.replace(/^https?:\/\//, '').split('/')[0]}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-3 text-[10px] text-[#ededed]/40">
+                        <span>{sugCount} {sugCount === 1 ? 'suggestion' : 'suggestions'}</span>
+                        <span>{testCount} {testCount === 1 ? 'test' : 'tests'} created</span>
+                        {run.cost_estimate ? <span>${run.cost_estimate.toFixed(2)}</span> : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
+}
+
+/* ── Relative Zeitdarstellung ── */
+
+function getTimeAgo(date: Date): string {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return date.toLocaleDateString('de-DE', { month: 'short', day: 'numeric' })
 }
 
 /* ── Assistant-Message: Text-Parts + Tool-Status-Zeilen ── */

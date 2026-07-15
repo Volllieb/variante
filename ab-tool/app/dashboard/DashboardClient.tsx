@@ -5,14 +5,17 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { useTestList } from '@/lib/useTestList'
+import { useToast } from '@/app/components/Toast'
+import { Tooltip } from '@/app/components/Tooltip'
+import { EmptyState } from '@/app/components/EmptyState'
 import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
-import { AgentPanel } from './components/AgentPanel'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
+import { PandaLogo } from '@/components/PandaLogo'
 import {
   Check,
   X,
@@ -20,18 +23,17 @@ import {
   Users,
   TrendingUp,
   Percent,
-  LogIn,
-  HeartPulse,
-  Puzzle,
   Globe,
   Search,
   ArrowUpDown,
   RefreshCw,
   Plus,
-  ArrowRight,
   Sparkles,
   Code2,
   Play,
+  Settings,
+  CreditCard,
+  HeartPulse,
 } from 'lucide-react'
 
 /* ── Token palette (docs/brandguidelines.md §2) ── */
@@ -100,6 +102,7 @@ export function DashboardClient({
   highlightNew,
   upgraded,
   openNewTest,
+  email,
 }: {
   plan: string
   apiToken: string
@@ -110,11 +113,12 @@ export function DashboardClient({
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
+  email: string
 }) {
   const router = useRouter()
+  const { toast } = useToast()
   const [busy, setBusy] = useState(false)
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
-  const [billingError, setBillingError] = useState<string | null>(null)
   const [showDemo, setShowDemo] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
   const setupComplete = hasVerifiedDomain && hasFigmaPlugin
@@ -137,13 +141,6 @@ export function DashboardClient({
     filteredTests,
     handleDeleteTest,
   } = useTestList({ initial: tests, sort: true })
-
-  useEffect(() => {
-    if (billingError) {
-      const t = setTimeout(() => setBillingError(null), 6000)
-      return () => clearTimeout(t)
-    }
-  }, [billingError])
 
   useEffect(() => {
     if (openNewTest) setNewTestOpen(true)
@@ -174,9 +171,9 @@ export function DashboardClient({
       }
       const data = await res.json()
       if (data.url) window.location.href = data.url
-      else setBillingError(data.error || 'Something went wrong. Please try again.')
+      else toast('error', data.error || 'Something went wrong. Please try again.')
     } catch {
-      setBillingError('Connection failed. Check your internet and try again.')
+      toast('error', 'Connection failed. Check your internet and try again.')
     } finally {
       setBusy(false)
     }
@@ -212,17 +209,6 @@ export function DashboardClient({
           </div>
         )}
 
-        {/* Error toast */}
-        {billingError && (
-          <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[#f5455c]/20 bg-[#f5455c]/5 px-5 py-3.5">
-            <X className="h-4 w-4 shrink-0 text-[#f5455c]" />
-            <p className="flex-1 text-[13px] text-[#f5455c]">{billingError}</p>
-            <button onClick={() => setBillingError(null)} className="cursor-pointer text-[#f5455c]/60 hover:text-[#f5455c]">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
-
         {/* Demo mode banner */}
         {demoActive && (
           <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[#f5a623]/20 bg-[#f5a623]/5 px-5 py-3.5">
@@ -236,14 +222,14 @@ export function DashboardClient({
           </div>
         )}
 
-        {/* ── Two-column layout: 30% / 70% ── */}
+        {/* ── Three-column layout ── */}
         <div className="flex gap-5">
-          {/* ═══ LEFT COLUMN (30%) ═══ */}
+          {/* ═══ COLUMN 1 (22%) — Overview + Navigation ═══ */}
           <ErrorBoundary label="Overview">
-          <div className="w-[30%] shrink-0">
+          <div className="w-[22%] shrink-0 flex flex-col gap-4">
             {/* Overview */}
-            <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Overview</h2>
             <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
+              <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Overview</h2>
               <div>
                 <MetricRow icon={FlaskConical} label="Active Tests" value={isPro ? running.toString() : `${running} / 1`} />
                 <MetricRow icon={Users} label="Total Visitors" value={totalVisitors.toLocaleString()} />
@@ -259,7 +245,7 @@ export function DashboardClient({
 
             {/* 0-conversions guidance */}
             {totalConversions === 0 && running > 0 && (
-              <div className="mt-3 rounded-[8px] border border-[#f5a623]/20 bg-[#f5a623]/5 px-3 py-2.5">
+              <div className="rounded-[8px] border border-[#f5a623]/20 bg-[#f5a623]/5 px-3 py-2.5">
                 <p className="text-[11px] leading-relaxed text-[#f5a623]/80">
                   No conversions yet. Make sure your{' '}
                   <a href="/docs#goals" target="_blank" className="underline hover:opacity-80">conversion goal</a>{' '}
@@ -268,58 +254,31 @@ export function DashboardClient({
               </div>
             )}
 
-            {/* Auto-optimize — autonomer CRO-Agent (Pro Feature) */}
-            {setupComplete && primaryDomain && (
-              <AgentPanel domain={primaryDomain} plan={plan} />
-            )}
+            {/* Navigation card — bottom of column */}
+            <NavCard
+              email={email}
+              plan={plan}
+              hasVerifiedDomain={hasVerifiedDomain}
+              hasFigmaPlugin={hasFigmaPlugin}
+            />
+          </div>
+          </ErrorBoundary>
 
-            {/* What to test next — AI-powered, page-specific (Pro Feature) */}
+          {/* ═══ COLUMN 2 (28%) — AI: What to test next + Auto-optimize ═══ */}
+          <ErrorBoundary label="AI">
+          <div className="w-[28%] shrink-0">
             <WhatToTestNext
               siteUrl={siteUrl}
               plan={plan}
               setupComplete={setupComplete}
+              domain={primaryDomain}
             />
-
-            {/* Setup — compact 3-step checklist */}
-            <div className="mb-3 mt-6 flex items-center gap-2">
-              <h2 className="text-[13px] font-semibold text-[#ededed]">Setup</h2>
-              <span
-                className="inline-block h-2 w-2 shrink-0 rounded-full"
-                style={{
-                  background: hasVerifiedDomain && hasFigmaPlugin ? T.ok : hasVerifiedDomain || hasFigmaPlugin ? T.pro : T.err,
-                }}
-                title={hasVerifiedDomain && hasFigmaPlugin ? 'All set' : hasVerifiedDomain || hasFigmaPlugin ? 'Partially set up' : 'Setup needed'}
-              />
-              <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/40" />
-            </div>
-            <Link
-              href="/dashboard/setup"
-              className="block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 transition-colors hover:border-white/[0.18]"
-            >
-              <div>
-                <MetricRow
-                  icon={LogIn}
-                  label="Login"
-                  value={<Check className="h-3.5 w-3.5 text-[#2fd76c]" />}
-                />
-                <MetricRow
-                  icon={Globe}
-                  label="Connect Website"
-                  value={hasVerifiedDomain && primaryDomain ? <span className="text-[11px]">{primaryDomain}</span> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
-                />
-                <MetricRow
-                  icon={Puzzle}
-                  label="Figma Plugin"
-                  value={hasFigmaPlugin ? <Check className="h-3.5 w-3.5 text-[#2fd76c]" /> : <X className="h-3.5 w-3.5 text-[#f5455c]" />}
-                />
-              </div>
-            </Link>
           </div>
           </ErrorBoundary>
 
-          {/* ═══ RIGHT COLUMN (70%) ═══ */}
+          {/* ═══ COLUMN 3 (50%) — Tests ═══ */}
           <ErrorBoundary label="Tests">
-          <div className="w-[70%] shrink-0 min-w-0">
+          <div className="w-[50%] shrink-0 min-w-0">
             {/* Tests heading */}
             <h2 className="mb-3 text-[13px] font-semibold text-[#ededed]">Tests</h2>
 
@@ -334,30 +293,33 @@ export function DashboardClient({
                   className="w-full h-[30px] rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
                 />
               </div>
-              <button
-                onClick={() => setSortAsc((v) => !v)}
-                title={sortAsc ? 'Sort: ascending' : 'Sort: descending'}
-                className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-              >
-                <ArrowUpDown className="h-3.5 w-3.5" />
-              </button>
+              <Tooltip content={sortAsc ? 'Newest first' : 'Oldest first'}>
+                <button
+                  onClick={() => setSortAsc((v) => !v)}
+                  className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
               <FilterDropdown filter={filter} onChange={setFilter} />
-              <button
-                onClick={() => router.refresh()}
-                title="Refresh test list"
-                className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
-                disabled={!hasVerifiedDomain}
-                title={hasVerifiedDomain ? undefined : 'Add your website first'}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                New test
-              </button>
+              <Tooltip content="Refresh test list">
+                <button
+                  onClick={() => router.refresh()}
+                  className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
+              <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Add your website first'}>
+                <button
+                  onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
+                  disabled={!hasVerifiedDomain}
+                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  New test
+                </button>
+              </Tooltip>
             </div>
 
             {/* New test flow overlay */}
@@ -543,5 +505,96 @@ function StepRow({ num, label, hint, done, action, icon: Icon, locked }: {
         ) : null
       )}
     </div>
+  )
+}
+/* ── Navigation card (replaces sidebar) ── */
+
+function avatarColor(email: string): string {
+  let hash = 0
+  for (let i = 0; i < email.length; i++) hash = email.charCodeAt(i) + ((hash << 5) - hash)
+  const colors = ['#2fd76c', '#f5a623', '#f5455c', '#ededed']
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function initials(email: string): string {
+  const [name] = email.split('@')
+  return name.slice(0, 2).toUpperCase()
+}
+
+function NavCard({ email, plan, hasVerifiedDomain, hasFigmaPlugin }: {
+  email: string
+  plan: string
+  hasVerifiedDomain: boolean
+  hasFigmaPlugin: boolean
+}) {
+  const isPro = plan === 'pro' || plan === 'agency'
+  const setupOk = hasVerifiedDomain && hasFigmaPlugin
+  const setupPartial = hasVerifiedDomain || hasFigmaPlugin
+
+  return (
+    <div className="mt-auto rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4">
+      {/* Logo row */}
+      <Link href="/dashboard" className="flex items-center gap-2 mb-4">
+        <PandaLogo className="h-5 w-5 rounded-[5px]" />
+        <span className="text-[13px] font-medium text-[#ededed]">variante</span>
+        {isPro && (
+          <span className="ml-auto rounded-[4px] border border-white/[0.15] px-1.5 py-0.5 text-[9px] font-semibold uppercase text-[#ededed]/50">
+            {plan}
+          </span>
+        )}
+      </Link>
+
+      {/* Nav links */}
+      <div className="space-y-0.5">
+        <NavRow icon={CreditCard} label="Billing" href="/dashboard/billing" />
+        <NavRow icon={Settings} label="Account" href="/dashboard/account" />
+        <NavRow
+          icon={HeartPulse}
+          label="Setup"
+          href="/dashboard/setup"
+          dot={setupOk ? 'ok' : setupPartial ? 'pro' : 'err'}
+        />
+      </div>
+
+      {/* Divider + profile */}
+      <div className="mt-3 border-t border-white/[0.06] pt-3">
+        <Link
+          href="/dashboard/account"
+          className="flex items-center gap-2.5 rounded-[6px] p-[5px] transition-colors duration-150 hover:bg-[#111111]"
+        >
+          <div
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
+            style={{ background: `${avatarColor(email)}1f`, color: avatarColor(email) }}
+          >
+            {initials(email)}
+          </div>
+          <span className="truncate text-[11px] font-medium text-[#ededed]/50">{email}</span>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function NavRow({ icon: Icon, label, href, dot }: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  href: string
+  dot?: 'ok' | 'pro' | 'err'
+}) {
+  const dotColor = dot === 'ok' ? T.ok : dot === 'pro' ? T.pro : dot === 'err' ? T.err : undefined
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-2.5 rounded-[6px] px-[9px] py-[7px] text-[12px] text-[#ededed]/55 transition-colors duration-150 hover:bg-[#111111] hover:text-[#ededed]/80"
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate">{label}</span>
+      {dot && (
+        <span
+          className="ml-auto h-2 w-2 shrink-0 rounded-full"
+          style={{ background: dotColor }}
+        />
+      )}
+    </Link>
   )
 }

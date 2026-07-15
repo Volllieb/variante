@@ -23,6 +23,7 @@ const T = {
 export function BillingClient({ data }: { data: BillingData }) {
   const [busy, setBusy] = useState(false)
   const isPro = data.plan === 'pro' || data.plan === 'agency'
+  const isAgency = data.plan === 'agency'
 
   async function billing(path: 'checkout' | 'portal') {
     setBusy(true)
@@ -53,16 +54,25 @@ export function BillingClient({ data }: { data: BillingData }) {
             <span
               className="rounded-[5px] border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
               style={{
-                borderColor: isPro ? `${T.ok}33` : 'rgba(255,255,255,.10)',
-                color: isPro ? T.ok : '#ededed62',
-                background: isPro ? `${T.ok}0f` : 'transparent',
+                borderColor: isAgency ? `${T.pro}33` : isPro ? `${T.ok}33` : 'rgba(255,255,255,.10)',
+                color: isAgency ? T.pro : isPro ? T.ok : '#ededed62',
+                background: isAgency ? `${T.pro}0f` : isPro ? `${T.ok}0f` : 'transparent',
               }}
             >
-              {isPro ? 'Pro' : 'Free'}
+              {isAgency ? 'Agency' : isPro ? 'Pro' : 'Free'}
             </span>
           </div>
 
-          {isPro ? (
+          {isAgency ? (
+            <div className="mt-4 space-y-2">
+              <FeatureRow icon={Check} label="Everything in Pro" />
+              <FeatureRow icon={Check} label="Up to 100 domains" />
+              <FeatureRow icon={Check} label="White-label — no Variante mention" />
+              <FeatureRow icon={Check} label="Dedicated support — direct line" />
+              <FeatureRow icon={Check} label="Team access" />
+              <FeatureRow icon={Check} label="Client reports — branded PDFs" />
+            </div>
+          ) : isPro ? (
             <div className="mt-4 space-y-2">
               <FeatureRow icon={Check} label="Unlimited experiments" />
               <FeatureRow icon={Check} label="Statistical significance" />

@@ -2,6 +2,10 @@ import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
+import { ToastProvider } from '@/app/components/Toast'
+import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
+import { getLang } from '@/lib/landingCopy'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -47,9 +51,15 @@ export const metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const headersList = await headers()
+  const cookieStore = await cookies()
+  const acceptLang = headersList.get('accept-language')
+  const cookieLang = cookieStore.get('lang')?.value ?? null
+  const lang = getLang(acceptLang, cookieLang)
+
   return (
-    <html lang="en" className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
+    <html lang={lang} className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
       <head>
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />
@@ -79,8 +89,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className="min-h-screen bg-bg-0 text-white/80 antialiased" suppressHydrationWarning>
-        {children}
+      <body className="min-h-screen bg-bg-0 text-[#ededed]/80 antialiased" suppressHydrationWarning>
+        {/* Inline theme script — prevents flash of wrong mode */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('variante-theme')||'dark';document.documentElement.classList.toggle('light',t==='light')})()`,
+          }}
+        />
+        <ToastProvider>{children}</ToastProvider>
         {/* Plain script tags — zero client JS (React wrappers force hydration of the entire tree).
             Vercel scripts use History API for SPA navigation detection, no React needed. */}
         <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics/next" />

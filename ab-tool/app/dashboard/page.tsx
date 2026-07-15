@@ -52,6 +52,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       highlightNew={searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}
+      email={user.email ?? ''}
     />
   )
 }

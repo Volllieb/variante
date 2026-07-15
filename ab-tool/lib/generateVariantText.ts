@@ -93,7 +93,11 @@ export async function generateVariantText(
     explanation: input.variantDescription,
   }
 
-  // text/color: raw IST die Variante.
+  // text: raw IST die Variante. variant_html explizit setzen, damit der
+  // Agent nicht selbst result.variant → variant_html mappen muss.
+  if (input.type === 'text') {
+    output.variant_html = raw
+  }
   // color mit Selector: zusätzlich als CSS-Regel ausgeben, damit ab.js sie injecten kann.
   if (input.type === 'color' && input.selector) {
     output.variant_css = `${input.selector} { background-color: ${raw}; }`

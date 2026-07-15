@@ -1,80 +1,60 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, MousePointer2, Sparkles, Rocket, Zap } from '@/components/LandingIcons'
+import LangToggle from './components/LangToggle'
+import { getLang, getCopy } from '@/lib/landingCopy'
+import type { Lang } from '@/lib/landingCopy'
 
-export const metadata: Metadata = {
-  title: 'A/B Testing for Designers — No Developer Needed | Variante',
-  description:
-    'Every designer can now run A/B tests. Pick an element, redesign in Figma, AI ships Variant B. No dev, no pipeline. Start free.',
-  openGraph: {
-    title: 'A/B Testing for Designers — No Developer Needed | Variante',
-    description: 'Every designer can now improve conversions with A/B testing. Pick → Generate → Ship. No developer needed.',
-    url: 'https://www.getvariante.com',
-    siteName: 'Variante',
-    images: [
-      {
-        url: 'https://www.getvariante.com/og',
-        width: 1200,
-        height: 630,
-        alt: 'Variante — A/B Testing from Figma',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'A/B Testing for Designers — No Developer Needed | Variante',
-    description: 'Every designer can now improve conversions with A/B testing. No developer needed.',
-    images: ['https://www.getvariante.com/og'],
-  },
+/* ── Language detection (server-side) ── */
+
+async function detectLang(): Promise<Lang> {
+  const headersList = await headers()
+  const cookieStore = await cookies()
+  const acceptLang = headersList.get('accept-language')
+  const cookieLang = cookieStore.get('lang')?.value ?? null
+  return getLang(acceptLang, cookieLang)
 }
 
-/* ── Data ── */
+/* ── Metadata (dynamic by language) ── */
 
-const steps = [
-  {
-    icon: MousePointer2,
-    step: '01',
-    title: 'No dev ticket. No briefing.',
-    body: 'Open your site, click the element you want to test. The picker captures everything — HTML, CSS, framework context. You stay in control.',
-  },
-  {
-    icon: Sparkles,
-    step: '02',
-    title: 'Your design, pixel‑perfect.',
-    body: 'Redesign the element in Figma — your tools, your workflow. AI reads both sides and writes Variant B matching your existing styles and breakpoints.',
-  },
-  {
-    icon: Rocket,
-    step: '03',
-    title: 'Live in 60 seconds.',
-    body: 'Paste one snippet into your site. It serves the right variant, tracks conversions, reports results — without touching your deploy pipeline.',
-  },
-]
-
-const freeFeatures = [
-  { label: '1 active experiment — test your first idea, free.' },
-  { label: 'AI variant generation — pixel-perfect from Figma.' },
-  { label: 'Live-page editing in Figma — pull your site, edit, A/B test instead of save.' },
-  { label: 'Test full sections — hero, pricing, CTAs. Not just single elements.' },
-  { label: 'Conversion tracking — built-in, no extra setup.' },
-  { label: '"Powered by Variante" badge — your visitors become your referrals.' },
-]
-
-const proFeatures = [
-  { label: 'Unlimited experiments', pro: true },
-  { label: 'AI variant generation', pro: false },
-  { label: 'Dynamic content — different pages for YouTube, Google & co. visitors', pro: true },
-  { label: 'Price testing — experiment with pricing plans and price points', pro: true },
-  { label: 'Statistical significance — know when to stop testing', pro: true },
-  { label: 'Auto-winner — best variant ships automatically', pro: true },
-  { label: 'No branding on your site', pro: true },
-  { label: 'Priority support', pro: true },
-]
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await detectLang()
+  const cp = getCopy(lang)
+  return {
+    title: cp.metaTitle,
+    description: cp.metaDescription,
+    openGraph: {
+      title: cp.ogTitle,
+      description: cp.ogDescription,
+      url: 'https://www.getvariante.com',
+      siteName: 'Variante',
+      images: [
+        {
+          url: 'https://www.getvariante.com/og',
+          width: 1200,
+          height: 630,
+          alt: cp.ogImageAlt,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: cp.twitterTitle,
+      description: cp.twitterDescription,
+      images: ['https://www.getvariante.com/og'],
+    },
+  }
+}
 
 /* ── Page ── */
 
-export default function HomePage() {
+export default async function HomePage() {
+  const lang = await detectLang()
+  const cp = getCopy(lang)
+
   return (
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased">
 
@@ -91,21 +71,22 @@ export default function HomePage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/playground"
-              className="hidden rounded-full border border-border bg-bg-2 px-3.5 py-1.5 text-sm font-medium text-text-2 transition-all duration-200 hover:border-border-strong hover:bg-bg-1 hover:text-text sm:mr-4 sm:block"
+              className="hidden rounded-full border border-border bg-bg-2 px-3.5 py-1.5 text-sm font-medium text-text-2 transition-all duration-200 hover:border-border-strong hover:bg-bg-1 hover:text-text sm:mr-2 sm:block"
             >
-              🏖️ Playground
+              {cp.navPlayground}
             </Link>
+            <LangToggle current={lang} />
             <Link
               href="/login"
               className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
             >
-              Log in
+              {cp.navLogin}
             </Link>
             <Link
               href="/signup"
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
-              Sign up — free
+              {cp.navSignup}
             </Link>
           </div>
         </nav>
@@ -117,24 +98,21 @@ export default function HomePage() {
       <section className="px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-32">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            Every designer can now
-            <br className="hidden sm:block" />
-            improve conversions with A/B testing.
+            {cp.heroH1}
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/55 sm:text-lg">
-            Pick any element on your live site, redesign it in Figma, and AI generates Variant B.
-            One snippet. No developer. No deploy pipeline.
+            {cp.heroSub}
           </p>
           <div className="mt-8 sm:mt-9">
             <Link
               href="/signup"
               className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
             >
-              Start free — no developer needed
+              {cp.heroCta}
             </Link>
           </div>
           <p className="mt-4 text-xs text-text-3">
-            No credit card · 1 free experiment
+            {cp.heroFootnote}
           </p>
         </div>
       </section>
@@ -142,9 +120,13 @@ export default function HomePage() {
       {/* ── How It Works ── */}
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-xl font-semibold text-white">How it works</h2>
+          <h2 className="text-center text-xl font-semibold text-white">{cp.sectionHow}</h2>
           <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {steps.map((s) => (
+            {[
+              { icon: MousePointer2, step: '01', title: cp.step1Title, body: cp.step1Body },
+              { icon: Sparkles, step: '02', title: cp.step2Title, body: cp.step2Body },
+              { icon: Rocket, step: '03', title: cp.step3Title, body: cp.step3Body },
+            ].map((s) => (
               <div
                 key={s.step}
                 className="rounded-[10px] border border-border bg-bg-1 p-6"
@@ -157,13 +139,14 @@ export default function HomePage() {
             ))}
           </div>
           <p className="mt-8 text-center text-sm text-white/50">
-            One snippet. Works with{' '}
-            <span className="text-white/55">WordPress</span>,{' '}
-            <span className="text-white/55">React</span>,{' '}
-            <span className="text-white/55">Next.js</span>,{' '}
-            <span className="text-white/55">Shopify</span>,{' '}
-            <span className="text-white/55">Custom HTML</span>{' '}
-            — anywhere you can paste a script tag.
+            {cp.platformNote}{' '}
+            {cp.platformItems.split(', ').map((item, i) => (
+              <span key={item}>
+                <span className="text-white/55">{item}</span>
+                {i < cp.platformItems.split(', ').length - 1 ? ', ' : ''}
+              </span>
+            ))}{' '}
+            — {lang === 'de' ? 'überall wo du ein Script-Tag einfügen kannst.' : 'anywhere you can paste a script tag.'}
           </p>
         </div>
       </section>
@@ -171,65 +154,97 @@ export default function HomePage() {
       {/* ── Pricing ── */}
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-xl font-semibold text-white">Pricing</h2>
-          <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
+          <h2 className="text-center text-xl font-semibold text-white">{cp.sectionPricing}</h2>
+          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {/* Free */}
-            <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-8">
+            <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                Free
+                {cp.freeLabel}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-4xl font-semibold text-white">0 €</span>
+                <span className="text-3xl font-semibold text-white">{cp.freePrice}</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">Forever free. No credit card.</p>
+              <p className="mt-1 text-xs text-text-3">{cp.freeSub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {freeFeatures.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
+                {cp.freeFeatures.map((label) => (
+                  <li key={label} className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 shrink-0 text-ok" />
-                    <span className="text-white/60">{f.label}</span>
+                    <span className="text-white/60">{label}</span>
                   </li>
                 ))}
               </ul>
               <Link
                 href="/signup"
-                className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
+                className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
-                Start free
+                {cp.freeCta}
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="relative flex flex-col rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-8">
+            <div className="relative flex flex-col rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-6">
               <span className="absolute -top-3 right-6 rounded-full border border-pro bg-black px-3 py-1 text-[11px] font-semibold text-pro">
-                Most popular
+                {cp.proBadge}
               </span>
               <p className="text-xs font-semibold uppercase tracking-wider text-pro">
-                Pro
+                {cp.proLabel}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-4xl font-semibold text-white">35 €</span>
+                <span className="text-3xl font-semibold text-white">{cp.proPrice}</span>
                 <span className="text-sm text-text-3">/mo</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">Everything in Free, plus:</p>
+              <p className="mt-1 text-xs text-text-3">{cp.proSub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {proFeatures.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
-                    {f.pro ? (
+                {cp.proFeatures.map((label, i) => (
+                  <li key={label} className="flex items-center gap-2.5">
+                    {cp.proFeatureExclusive[i] ? (
                       <Zap className="h-4 w-4 shrink-0 text-pro" />
                     ) : (
                       <Check className="h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.pro ? 'text-white/80' : 'text-white/60'}>
-                      {f.label}
+                    <span className={cp.proFeatureExclusive[i] ? 'text-white/80' : 'text-white/60'}>
+                      {label}
                     </span>
                   </li>
                 ))}
               </ul>
               <Link
                 href="/signup?plan=pro"
-                className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
+                className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
               >
-                Get started
+                {cp.proCta}
+              </Link>
+            </div>
+
+            {/* Agency */}
+            <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
+                {cp.agencyLabel}
+              </p>
+              <div className="mt-3 flex items-baseline gap-1.5">
+                <span className="text-3xl font-semibold text-white">{cp.agencyPrice}</span>
+                <span className="text-sm text-text-3">/mo</span>
+              </div>
+              <p className="mt-1 text-xs text-text-3">{cp.agencySub}</p>
+              <ul className="mt-6 mb-10 space-y-2.5 text-sm">
+                {cp.agencyFeatures.map((label, i) => (
+                  <li key={label} className="flex items-center gap-2.5">
+                    {cp.agencyFeatureExclusive[i] ? (
+                      <Zap className="h-4 w-4 shrink-0 text-pro" />
+                    ) : (
+                      <Check className="h-4 w-4 shrink-0 text-ok" />
+                    )}
+                    <span className={cp.agencyFeatureExclusive[i] ? 'text-white/80' : 'text-white/60'}>
+                      {label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/signup?plan=agency"
+                className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
+              >
+                {cp.agencyCta}
               </Link>
             </div>
           </div>
@@ -239,26 +254,9 @@ export default function HomePage() {
       {/* ── FAQ ── */}
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-2xl">
-          <h2 className="text-center text-xl font-semibold text-white">You might be wondering</h2>
+          <h2 className="text-center text-xl font-semibold text-white">{cp.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
-            {[
-              {
-                q: 'Does the snippet slow down my site?',
-                a: 'No. It\'s under 5 KB, loads asynchronously, and never blocks rendering. Your Core Web Vitals stay untouched.',
-              },
-              {
-                q: 'What if the AI generates broken code?',
-                a: 'You review every variant before it goes live. Preview, diff, approve — nothing ships without your sign-off.',
-              },
-              {
-                q: 'Does this work with my stack?',
-                a: 'If you can paste a &lt;script&gt; tag, it works. WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, custom HTML — all supported.',
-              },
-              {
-                q: 'How is this different from Optimizely or VWO?',
-                a: 'No developer setup. No tracking plan. No \"enterprise\" sales call. Just pick an element, redesign in Figma, ship.',
-              },
-            ].map((item) => (
+            {cp.faqs.map((item) => (
               <details
                 key={item.q}
                 className="group rounded-[10px] border border-border bg-bg-1 transition-colors duration-150 hover:border-border-strong"
@@ -284,39 +282,39 @@ export default function HomePage() {
         className="fixed bottom-3 right-3 z-50 rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
-        A/B by Variante
+        {cp.badgeText}
       </Link>
 
       {/* ── Footer ── */}
       <footer className="border-t border-border px-4 py-5 sm:px-6 sm:py-6">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <p className="text-xs text-text-3">
-            © 2026 Variante · Made in Bavaria
+            {cp.footerLine}
           </p>
           <div className="flex items-center gap-4">
             <Link
               href="/docs"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
-              Docs
+              {cp.footerDocs}
             </Link>
             <Link
               href="/privacy"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
-              Privacy
+              {cp.footerPrivacy}
             </Link>
             <Link
               href="/imprint"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
-              Imprint
+              {cp.footerImprint}
             </Link>
           </div>
         </div>
       </footer>
 
-      {/* JSON-LD SoftwareApplication — Rich Result für Software-Kategorie */}
+      {/* JSON-LD SoftwareApplication */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -327,21 +325,20 @@ export default function HomePage() {
             applicationCategory: 'DesignApplication',
             operatingSystem: 'Web',
             url: 'https://www.getvariante.com',
-            description:
-              'Every designer can now run A/B tests from Figma — no developer, no pipeline.',
+            description: cp.jsonldDescription,
             offers: [
               {
                 '@type': 'Offer',
-                name: 'Free',
+                name: cp.freeLabel,
                 price: '0',
                 priceCurrency: 'EUR',
               },
               {
                 '@type': 'Offer',
-                name: 'Pro',
+                name: cp.proLabel,
                 price: '35',
                 priceCurrency: 'EUR',
-                description: 'Unlimited experiments, significance analysis, auto-winner detection',
+                description: cp.jsonldProDescription,
               },
             ],
           }),

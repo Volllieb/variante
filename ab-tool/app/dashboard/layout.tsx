@@ -13,10 +13,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('user_id', user.id)
     .single()
 
-  const plan = profileRes.data?.plan ?? 'free'
-
   return (
-    <DashboardShell email={user.email ?? ''} plan={plan}>
+    <DashboardShell email={user.email ?? ''} plan={profileRes.data?.plan ?? 'free'}>
       {children}
     </DashboardShell>
   )

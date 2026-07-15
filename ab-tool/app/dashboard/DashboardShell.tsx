@@ -1,7 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { PandaLogo } from '@/components/PandaLogo'
+import { ThemeToggle } from '@/app/components/ThemeToggle'
+import { NotificationCenter } from '@/app/components/NotificationCenter'
+import { Tooltip } from '@/app/components/Tooltip'
 import {
   FlaskConical,
   LayoutGrid,
@@ -9,27 +13,19 @@ import {
   Settings,
   HeartPulse,
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-/* ── Token palette (docs/brandguidelines.md §2) ── */
 const T = {
-  bg1: '#0a0a0a',
   bg2: '#111111',
-  text: '#ededed',
   ok: '#2fd76c',
   pro: '#f5a623',
   err: '#f5455c',
 }
 
-type DashboardShellProps = {
-  email: string
-  plan: string
-  children: React.ReactNode
-}
-
 function avatarColor(email: string): string {
   let hash = 0
   for (let i = 0; i < email.length; i++) hash = email.charCodeAt(i) + ((hash << 5) - hash)
-  const colors = ['#2fd76c', '#f5a623', '#f5455c', '#ededed']
+  const colors = ['#2fd76c', '#f5a623', '#f5455c', '#60a5fa']
   return colors[Math.abs(hash) % colors.length]
 }
 
@@ -38,129 +34,144 @@ function initials(email: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
+type DashboardShellProps = {
+  email: string
+  plan: string
+  children: React.ReactNode
+}
+
 export function DashboardShell({ email, plan, children }: DashboardShellProps) {
+  const pathname = usePathname()
+  const [avatarFailed, setAvatarFailed] = useState(false)
+
+  const gravatarHash = useMemo(() => {
+    let h = 0
+    for (let i = 0; i < email.length; i++) {
+      const c = email.charCodeAt(i)
+      h = ((h << 5) - h) + c
+      h |= 0
+    }
+    return Math.abs(h).toString(16)
+  }, [email])
+
+  const gravatarSrc = `https://www.gravatar.com/avatar/${gravatarHash}?d=404&s=56`
 
   return (
-    <div className="min-h-screen bg-black font-[family-name:var(--font-sans)] text-[13px] text-[#ededed]/62 antialiased">
-      <div className="flex">
-        {/* ── Sidebar — full height, edge to edge ── */}
-        <aside className="sticky top-0 flex h-screen w-[200px] shrink-0 flex-col border-r border-white/10 p-3">
-          {/* Logo + plan pill */}
-          <Link href="/dashboard" className="mb-1.5 flex items-center gap-2 px-[9px] py-1.5">
-            <PandaLogo className="h-6 w-6 rounded-[6px]" />
-            <span className="text-[13px] font-medium text-[#ededed]">variante</span>
+    <div className="min-h-screen bg-bg-0 font-[family-name:var(--font-sans)] text-[13px] antialiased">
+      {/* ── Top Nav Bar ── */}
+      <header className="sticky top-0 z-40 border-b border-border bg-bg-0/80 backdrop-blur-md">
+        <div className="flex h-11 items-center gap-1 px-3">
+          {/* Logo */}
+          <Link href="/dashboard" className="flex items-center gap-2 px-1.5 mr-2">
+            <PandaLogo className="h-5 w-5 rounded-[5px]" />
+            <span className="text-[13px] font-semibold text-text hidden sm:inline">variante</span>
           </Link>
+
+          {/* Plan pill */}
           {plan !== 'free' && (
-            <span className="mb-3 ml-[9px] self-start rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/60">
+            <span className="rounded-[5px] border border-border-strong px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-3 mr-1">
               {plan}
             </span>
           )}
 
-          {/* Nav — main pages */}
-          <nav className="flex flex-col gap-0.5">
-            <NavLink icon={FlaskConical} label="Overview" href="/dashboard" />
-            <NavLink icon={LayoutGrid} label="Tests" href="/dashboard/tests" />
+          {/* Nav links */}
+          <nav className="flex items-center gap-0.5">
+            <TopNavLink icon={FlaskConical} label="Overview" href="/dashboard" active={pathname === '/dashboard'} />
+            <TopNavLink icon={LayoutGrid} label="Tests" href="/dashboard/tests" active={pathname.startsWith('/dashboard/tests')} />
+            <TopNavLink icon={HeartPulse} label="Setup" href="/dashboard/setup" active={pathname === '/dashboard/setup'} />
           </nav>
-
-          {/* Nav — health check */}
-          <div className="mt-3 border-t border-white/[0.06] pt-3">
-            <nav className="flex flex-col gap-0.5">
-              <NavLink icon={HeartPulse} label="Setup" href="/dashboard/setup" />
-            </nav>
-          </div>
 
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Nav — account (bottom) */}
-          <nav className="flex flex-col gap-0.5 border-t border-white/[0.06] pt-3">
-            <NavLink icon={CreditCard} label="Billing" href="/dashboard/billing" />
-            <NavLink icon={Settings} label="Account" href="/dashboard/account" />
-          </nav>
+          {/* Right-side actions */}
+          <div className="flex items-center gap-0.5">
+            <Tooltip content="Billing">
+              <Link
+                href="/dashboard/billing"
+                className={`flex h-7 w-7 items-center justify-center rounded-[6px] transition-colors ${
+                  pathname === '/dashboard/billing'
+                    ? 'bg-bg-2 text-text'
+                    : 'text-text-3 hover:bg-bg-2 hover:text-text/80'
+                }`}
+              >
+                <CreditCard className="h-4 w-4" />
+              </Link>
+            </Tooltip>
 
-          {/* Profile — bottom of sidebar */}
-          <Link
-            href="/dashboard/account"
-            className="flex items-center gap-2.5 rounded-[6px] p-[7px] transition-colors duration-150 hover:bg-[#111111]"
-          >
-            <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-              style={{ background: `${avatarColor(email)}1f`, color: avatarColor(email) }}
-            >
-              {initials(email)}
-            </div>
-            <span className="truncate text-[11px] font-medium text-[#ededed]/62">{email}</span>
-          </Link>
-        </aside>
+            <Tooltip content="Account settings">
+              <Link
+                href="/dashboard/account"
+                className={`flex h-7 w-7 items-center justify-center rounded-[6px] transition-colors ${
+                  pathname === '/dashboard/account'
+                    ? 'bg-bg-2 text-text'
+                    : 'text-text-3 hover:bg-bg-2 hover:text-text/80'
+                }`}
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
+            </Tooltip>
 
-        {/* ── Page content ── */}
-        <div className="min-w-0 flex-1">
-          {children}
+            <NotificationCenter />
+            <ThemeToggle />
+
+            {/* Avatar */}
+            <Tooltip content={email}>
+              <Link
+                href="/dashboard/account"
+                className="ml-1 flex items-center gap-2 rounded-[6px] p-0.5 transition-colors hover:bg-bg-2"
+              >
+                {!avatarFailed ? (
+                  <img
+                    src={gravatarSrc}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="h-6 w-6 rounded-full"
+                    onError={() => setAvatarFailed(true)}
+                  />
+                ) : (
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold"
+                    style={{ background: `${avatarColor(email)}1f`, color: avatarColor(email) }}
+                  >
+                    {initials(email)}
+                  </div>
+                )}
+              </Link>
+            </Tooltip>
+          </div>
         </div>
-      </div>
+      </header>
+
+      {/* ── Page Content ── */}
+      {children}
     </div>
   )
 }
 
-function NavLink({
+function TopNavLink({
   icon: Icon,
   label,
   href,
-  anchor,
   active,
-  state,
-  onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
-  href?: string
-  anchor?: string
+  href: string
   active?: boolean
-  state?: 'soon' | 'locked'
-  onClick?: () => void
 }) {
-  const base = `flex items-center justify-between gap-2 rounded-[6px] px-[9px] py-[7px] text-[13px] transition-colors duration-150 ${
-    active ? 'font-medium text-[#ededed]' : 'text-[#ededed]/62 hover:text-[#ededed]/85'
-  }`
-  const style = active ? { background: T.bg2 } : undefined
-  const content = (
-    <>
-      <span className="flex min-w-0 items-center gap-2.5">
-        <Icon className="h-4 w-4 shrink-0" />
-        <span className="truncate">{label}</span>
-      </span>
-      {state === 'soon' && (
-        <span className="shrink-0 rounded-[5px] border border-white/10 px-1.5 py-px text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/50">
-          Soon
-        </span>
-      )}
-    </>
-  )
-
-  if (href) {
-    return (
-      <Link href={href} className={base} style={style}>
-        {content}
-      </Link>
-    )
-  }
-  if (anchor) {
-    return (
-      <a href={anchor} className={base} style={style}>
-        {content}
-      </a>
-    )
-  }
-  if (onClick) {
-    return (
-      <button onClick={onClick} className={`${base} cursor-pointer text-left`} style={style}>
-        {content}
-      </button>
-    )
-  }
   return (
-    <div className={`${base} cursor-default text-[#ededed]/40`} style={style}>
-      {content}
-    </div>
+    <Link
+      href={href}
+      className={`flex items-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-[12px] transition-colors ${
+        active
+          ? 'bg-bg-2 font-medium text-text'
+          : 'text-text-3 hover:bg-bg-2 hover:text-text/70'
+      }`}
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0" />
+      <span className="hidden sm:inline">{label}</span>
+    </Link>
   )
 }

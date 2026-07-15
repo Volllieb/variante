@@ -10,7 +10,8 @@ export const maxDuration = 60
 // ~5K Input (gekürztes HTML + System-Prompt) + ~1K Output = ~$0.001
 // Konservativ auf $0.005 gerundet.
 const ESTIMATED_COST = 0.005
-const MAX_MONTHLY_COST = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
+const MAX_MONTHLY_COST_PRO = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
+const MAX_MONTHLY_COST_AGENCY = Number(process.env.OPENAI_MAX_MONTHLY_COST_AGENCY) || 60
 
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
@@ -55,14 +56,15 @@ export async function POST(req: Request) {
 
   // Cost-Limit check (gleicher RPC wie /api/generate)
   const { supabase } = await import('@/lib/supabase')
+  const costLimit = user.plan === 'agency' ? MAX_MONTHLY_COST_AGENCY : MAX_MONTHLY_COST_PRO
   const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
     p_user_id: user.userId,
     p_amount: ESTIMATED_COST,
-    p_limit: MAX_MONTHLY_COST,
+    p_limit: costLimit,
   })
   if (limitErr || withinLimit === false) {
     return Response.json(
-      { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
+      { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${costLimit}/mo). Resets on the 1st.` },
       { status: 429, headers: corsHeaders('POST, OPTIONS') }
     )
   }

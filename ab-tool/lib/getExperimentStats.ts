@@ -25,7 +25,7 @@ export type ExperimentData = {
   minUplift: number
   significanceLevel: number
   userId: string | null
-  pro: boolean // false → Free-Tier: Signifikanz + Auto-Gewinner gesperrt
+  pro: boolean // false → Free-Tier: Raw Data + Auto-Winner gesperrt
   variants: VariantStats[]
   originalHtml: string | null
   variantBHtml: string | null
@@ -49,7 +49,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
 
   if (!test) return null
 
-  // Plan des Besitzers: Signifikanz + Auto-Gewinner sind Pro-Features.
+  // Plan des Besitzers: Raw Data + Auto-Winner sind Pro-Features.
   let pro = false
   if (test.user_id) {
     const { data: profile } = await supabase
