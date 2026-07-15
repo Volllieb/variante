@@ -12,6 +12,10 @@ Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features)
 - Aussage mit allgemeinem Überbegriff verknüpfen
 - Sei kritisch aber zuversichtlich und optimistisch. Jedes Problem sollte mit einer lösungsorientierten Haltung aufgezeigt und proaktiv angegangen werden.
 
+## Schätzungen & Qualität
+- **Keine Zeitschätzungen.** Nie "das dauert 2 Stunden" oder "in 30 Min fertig". Stattdessen: Aufwand einschätzen — "das ist trivial", "mittlerer Aufwand", "das ist aufwändig weil X, Y, Z". Begründung mitliefern, nicht nur Label.
+- **Immer sauberste Version & Best Practice.** Nie Quick-and-Dirty nur weil's schneller ginge. Korrekte Typisierung, keine any-Hacks, keine ungetesteten Workarounds. Der saubere Weg ist der einzig akzeptable — außer es gibt einen expliziten Grund (z. B. bewusster Tradeoff mit Protokoll in PROJEKT.md).
+
 ## Standing Order
 - **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` fortschreiben (Stand, Entscheidungen, Brainstorms, Interview-Erkenntnisse). Lokale Tool- oder IDE-Konfigurationen bleiben frei von Projekt-Logik.
 - **Nach jeder Änderung: Selbstprüfung aus §9 PROJEKT.md durchführen** — Struktur, Git, Doku, Deployment, Produkt-Health checken.
