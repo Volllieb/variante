@@ -125,6 +125,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
                   <img
                     src={gravatarSrc}
                     alt=""
+                    role="presentation"
                     width={24}
                     height={24}
                     className="h-6 w-6 rounded-full"

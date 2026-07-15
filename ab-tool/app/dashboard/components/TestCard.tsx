@@ -194,6 +194,7 @@ export function TestCard({
           <img
             src={`https://www.google.com/s2/favicons?domain=${domain}&sz=48`}
             alt=""
+            role="presentation"
             width={18}
             height={18}
             className="shrink-0 rounded-[4px]"

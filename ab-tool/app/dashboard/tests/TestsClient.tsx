@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTestList } from '@/lib/useTestList'
+import { Tooltip } from '@/app/components/Tooltip'
+import { EmptyState } from '@/app/components/EmptyState'
 import { NewTestFlow } from '../NewTestFlow'
 import { TestCard, type TestRow } from '../components/TestCard'
 import {
@@ -69,20 +71,23 @@ export function TestsClient({
           />
         </div>
         <FilterDropdown filter={filter} onChange={setFilter} />
-        <button
-          onClick={() => router.refresh()}
-          title="Refresh test list"
-          className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={() => setNewTestOpen(true)}
-          className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          New test
-        </button>
+        <Tooltip content="Refresh test list">
+          <button
+            onClick={() => router.refresh()}
+            className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+          </button>
+        </Tooltip>
+        <Tooltip content="Create new test">
+          <button
+            onClick={() => setNewTestOpen(true)}
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            New test
+          </button>
+        </Tooltip>
       </div>
 
       {/* New test flow overlay */}
@@ -97,17 +102,16 @@ export function TestsClient({
 
       {/* Empty / No results */}
       {testList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
-            <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
-          </div>
-          <p className="mt-4 text-[14px] font-medium text-[#ededed]">No experiments yet</p>
-          <p className="mt-1.5 max-w-xs text-[12px] leading-relaxed text-[#ededed]/40">
-            {hasFigmaPlugin
+        <EmptyState
+          icon={FlaskConical}
+          title="No experiments yet"
+          description={
+            hasFigmaPlugin
               ? 'Create your first variant in Figma and push it here — it appears automatically.'
-              : 'Install the Figma plugin first, then create variants directly from your designs.'}
-          </p>
-          <div className="mt-5 flex items-center gap-3">
+              : 'Install the Figma plugin first, then create variants directly from your designs.'
+          }
+        >
+          <div className="flex items-center gap-3">
             {hasFigmaPlugin ? (
               <button
                 onClick={() => setNewTestOpen(true)}
@@ -126,13 +130,13 @@ export function TestsClient({
               </a>
             )}
           </div>
-        </div>
+        </EmptyState>
       ) : filteredTests.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
-          <p className="text-[13px] font-medium text-[#ededed]/62">
-            {query ? `No tests match "${query}"` : 'No tests in this filter'}
-          </p>
-        </div>
+        <EmptyState
+          icon={Search}
+          title={query ? `No tests match "${query}"` : 'No tests in this filter'}
+          description={query ? 'Try a different search term or clear the filter.' : 'Try a different filter selection.'}
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredTests.map((t) => (

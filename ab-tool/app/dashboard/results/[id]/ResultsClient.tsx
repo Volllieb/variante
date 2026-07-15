@@ -214,21 +214,10 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
       {/* Test toolbar */}
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
         <div className="flex items-center gap-3">
-          <Link
-            href={backHref}
-            className="flex items-center gap-1.5 rounded-[6px] border border-white/10 px-3 py-1.5 text-xs text-[#ededed]/40 transition-colors duration-200 hover:border-white/[0.18] hover:text-[#ededed]"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {from === 'tests' ? 'Tests' : 'Dashboard'}
-          </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-[15px] font-semibold text-[#ededed]">
-              {name}
-            </h1>
-            <span className="text-[11px] text-[#ededed]/50">
-              Created {formatCreatedAt(created_at)}
-            </span>
-          </div>
+          <Breadcrumbs items={[{ label: from === 'tests' ? 'Tests' : 'Dashboard', href: backHref }, { label: name }]} />
+          <span className="text-[11px] text-[#ededed]/50 ml-3">
+            Created {formatCreatedAt(created_at)}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className={`rounded-[6px] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
@@ -250,20 +239,24 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <Play className="h-3 w-3" /> Resume
             </button>
           )}
-          <button
-            onClick={refresh}
-            className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-white/10 text-[#ededed]/40 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-          {!deleteConfirm ? (
+          <Tooltip content="Refresh data">
             <button
-              onClick={() => setDeleteConfirm(true)}
-              className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-white/10 text-[#ededed]/40 transition-colors hover:border-err/30 hover:text-err"
-              aria-label="Delete experiment"
+              onClick={refresh}
+              className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-white/10 text-[#ededed]/40 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
+          </Tooltip>
+          {!deleteConfirm ? (
+            <Tooltip content="Delete experiment">
+              <button
+                onClick={() => setDeleteConfirm(true)}
+                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-white/10 text-[#ededed]/40 transition-colors hover:border-err/30 hover:text-err"
+                aria-label="Delete experiment"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </Tooltip>
           ) : (
             <div className="flex items-center gap-1.5 rounded-[6px] border border-err/20 bg-err-bg px-3 py-1.5">
               <button
@@ -284,19 +277,6 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           )}
         </div>
       </div>
-
-      {/* Error toast */}
-      {deleteError && (
-        <div className="mx-auto max-w-2xl px-6 pt-5">
-          <div className="flex items-center gap-3 rounded-[10px] border border-[#f5455c]/20 bg-[#f5455c]/5 px-5 py-3.5">
-            <X className="h-4 w-4 shrink-0 text-[#f5455c]" />
-            <p className="flex-1 text-[13px] text-[#f5455c]">{deleteError}</p>
-            <button onClick={() => setDeleteError(null)} className="cursor-pointer text-[#f5455c]/60 hover:text-[#f5455c]">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="mx-auto max-w-2xl px-6 py-8 space-y-5">
 
@@ -580,7 +560,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                       radius={[4, 4, 0, 0]}
                       fill="rgba(255,255,255,0.15)"
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: (v: string | number) => typeof v === 'number' ? v.toLocaleString() : v }}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? v.toLocaleString() : v) as any } as any}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -616,7 +596,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                       radius={[4, 4, 0, 0]}
                       fill={T.pro}
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: string | number) => typeof v === 'number' ? `${v}%` : v }}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? `${v}%` : v) as any } as any}
                     />
                   </BarChart>
                 </ResponsiveContainer>
