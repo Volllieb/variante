@@ -1,7 +1,4 @@
 {
-  "buildCommand": "cd ab-tool && npm run vercel-build",
-  "installCommand": "cd ab-tool && npm ci",
-  "outputDirectory": "ab-tool/.next",
   "crons": [
     {
       "path": "/api/cron/check-winners",
