@@ -6,6 +6,7 @@ import { ToastProvider } from '@/app/components/Toast'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
 import { getLang } from '@/lib/landingCopy'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -97,6 +98,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           }}
         />
         <ToastProvider>{children}</ToastProvider>
+        <Analytics />
         {/* Plain script tags — zero client JS (React wrappers force hydration of the entire tree).
             Vercel scripts use History API for SPA navigation detection, no React needed. */}
         <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics/next" />
