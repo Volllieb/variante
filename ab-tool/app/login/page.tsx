@@ -53,6 +53,9 @@ export default function LoginPage() {
         return
       }
       setSessionChecked(true)
+    }).catch(() => {
+      // Netzwerk- oder Config-Fehler: Form trotzdem zeigen, User kann's nochmal probieren
+      setSessionChecked(true)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {

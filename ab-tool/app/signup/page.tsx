@@ -51,6 +51,8 @@ export default function SignupPage() {
         return
       }
       setSessionChecked(true)
+    }).catch(() => {
+      setSessionChecked(true)
     })
   }, [router])
 
