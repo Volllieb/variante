@@ -6,6 +6,9 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTestUpdate } from '@/lib/useRealtime'
 import Link from 'next/link'
+import { Breadcrumbs } from '@/app/components/Breadcrumbs'
+import { Tooltip } from '@/app/components/Tooltip'
+import { useToast } from '@/app/components/Toast'
 import {
   ArrowLeft,
   RefreshCw,
@@ -27,7 +30,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -85,20 +88,13 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
   const [busy, setBusy] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [showRawData, setShowRawData] = useState(false)
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
+  const { toast } = useToast()
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
   const backHref = from === 'tests' ? '/dashboard/tests' : '/dashboard'
-
-  useEffect(() => {
-    if (deleteError) {
-      const t = setTimeout(() => setDeleteError(null), 6000)
-      return () => clearTimeout(t)
-    }
-  }, [deleteError])
 
   // Fetch analytics — available for all plans
   useEffect(() => {
@@ -129,7 +125,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
         router.refresh()
       } else {
         const err = await res.json().catch(() => ({ error: 'Failed to delete test' }))
-        setDeleteError(err.error || 'Failed to delete test')
+        toast('error', err.error || 'Failed to delete test')
       }
     } finally {
       setDeleting(false)
@@ -393,7 +389,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                     tickLine={false}
                     width={40}
                   />
-                  <Tooltip
+                  <RechartsTooltip
                     contentStyle={{
                       background: '#1a1a1a',
                       border: '1px solid rgba(255,255,255,0.1)',
@@ -568,7 +564,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   >
                     <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" vertical={false} />
                     <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         background: '#1a1a1a',
                         border: '1px solid rgba(255,255,255,0.1)',
@@ -576,14 +572,15 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                         fontSize: 12,
                         color: '#ededed',
                       }}
-                      formatter={(_value: number, _name: string) => [_value.toLocaleString(), 'Visitors'] as [string, string]}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      formatter={((value: any) => [Number(value).toLocaleString(), 'Visitors']) as any}
                     />
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
                       fill="rgba(255,255,255,0.15)"
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: (v: number) => v.toLocaleString() }}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: (v: string | number) => typeof v === 'number' ? v.toLocaleString() : v }}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -603,7 +600,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   >
                     <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" vertical={false} />
                     <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         background: '#1a1a1a',
                         border: '1px solid rgba(255,255,255,0.1)',
@@ -611,14 +608,15 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                         fontSize: 12,
                         color: '#ededed',
                       }}
-                      formatter={(_value: number, _name: string) => [`${_value}%`, 'Conv. Rate'] as [string, string]}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      formatter={((value: any) => [`${Number(value)}%`, 'Conv. Rate']) as any}
                     />
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
                       fill={T.pro}
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: number) => `${v}%` }}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: string | number) => typeof v === 'number' ? `${v}%` : v }}
                     />
                   </BarChart>
                 </ResponsiveContainer>

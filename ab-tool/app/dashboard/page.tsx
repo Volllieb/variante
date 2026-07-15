@@ -38,7 +38,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} highlightNew={searchParams.new === '1'} upgraded={false} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} highlightNew={searchParams.new === '1'} upgraded={false} email={user.email ?? ''} />
   }
 
   return (

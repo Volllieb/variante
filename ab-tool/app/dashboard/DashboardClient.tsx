@@ -340,13 +340,24 @@ export function DashboardClient({
                 ))}
               </div>
             ) : testList.length === 0 ? (
-              <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} onLoadDemo={() => setShowDemo(true)} />
+              <OnboardingCards onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} onLoadDemo={() => setShowDemo(true)} />
             ) : filteredTests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
-                <p className="text-[13px] font-medium text-[#ededed]/62">
-                  {query ? `No tests match "${query}"` : 'No tests found'}
-                </p>
-              </div>
+              <EmptyState
+                icon={Search}
+                title={query ? `No tests match "${query}"` : 'No tests found'}
+                description={query ? 'Try a different search term or clear the filter.' : 'Create your first test to get started.'}
+              >
+                {!query && (
+                  <button
+                    onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
+                    disabled={!hasVerifiedDomain}
+                    className="inline-flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    New test
+                  </button>
+                )}
+              </EmptyState>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredTests.map((t, i) => (
@@ -392,7 +403,7 @@ function MetricRow({
   )
 }
 
-function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadDemo }: { onNewTest: () => void; hasFigmaPlugin: boolean; hasVerifiedDomain: boolean; onLoadDemo: () => void }) {
+function OnboardingCards({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadDemo }: { onNewTest: () => void; hasFigmaPlugin: boolean; hasVerifiedDomain: boolean; onLoadDemo: () => void }) {
   const setupReady = hasVerifiedDomain && hasFigmaPlugin
 
   return (

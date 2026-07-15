@@ -331,21 +331,24 @@ function MiniAgent({ domain }: { domain: string }) {
                       </p>
                     )
                   }
-                  if (part.type === 'tool-invocation') {
-                    const info = TOOL_LABELS[part.toolName]
-                    const label = info
-                      ? part.state === 'result' ? info.done : info.running
-                      : part.toolName
-                    const Icon = info?.icon
+                  const info = TOOL_LABELS[part.type]
+                  if (info && 'state' in part) {
+                    const state = part.state as string
+                    const done = state === 'output-available'
+                    const failed = state === 'output-error'
+                    const Icon = info.icon
+                    const label = done ? info.done : info.running
                     return (
                       <p
                         key={i}
                         className={`flex items-center gap-1.5 text-[10px] ${
-                          part.state === 'result' ? 'text-[#2fd76c]/70' : 'text-[#a78bfa]/70'
+                          done ? 'text-[#2fd76c]/70' : failed ? 'text-[#f5455c]/70' : 'text-[#a78bfa]/70'
                         }`}
                       >
-                        {part.state === 'result' ? (
+                        {done ? (
                           <CheckCircle2 className="h-3 w-3 shrink-0" />
+                        ) : failed ? (
+                          <XCircle className="h-3 w-3 shrink-0" />
                         ) : (
                           <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
                         )}
