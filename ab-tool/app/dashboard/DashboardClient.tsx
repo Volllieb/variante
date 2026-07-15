@@ -490,7 +490,7 @@ function StepRow({ num, label, hint, done, action, icon: Icon, locked }: {
       <Icon className={`h-3.5 w-3.5 shrink-0 ${done ? 'text-[#2fd76c]/80' : locked ? 'text-[#ededed]/30' : 'text-[#ededed]/55'}`} />
       <div className="min-w-0 flex-1">
         <p className={`text-[12px] font-medium ${locked ? 'text-[#ededed]/30' : done ? 'text-[#2fd76c]' : 'text-[#ededed]'}`}>{label}</p>
-        <p className={`text-[11px] ${done ? 'text-[#2fd76c]/70' : 'text-[#ededed]/55'}`}>{hint}</p>
+        <p className={`text-[11px] ${done ? 'text-[#2fd76c]/90' : 'text-[#ededed]/65'}`}>{hint}</p>
       </div>
       {action && !done && (
         action.href ? (

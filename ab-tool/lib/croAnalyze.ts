@@ -4,6 +4,7 @@
 // Cache-Layer: site_insights vermeidet wiederholte Fetch+Analyze (24h TTL).
 
 import { safeError } from '@/lib/safeLog'
+import { redactPII } from '@/lib/pii'
 import { supabase } from '@/lib/supabase'
 
 const MODEL = 'gpt-4o-mini'

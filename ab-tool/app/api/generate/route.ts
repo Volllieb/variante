@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
+import { scanPII, type PIIFindings, type PIIKey } from '@/lib/pii'
 
 export const maxDuration = 60
 
@@ -13,49 +14,8 @@ const ESTIMATED_COST_PER_GEN = 0.005
 const MAX_MONTHLY_COST = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
 
 // =============================================================================
-// DSGVO / GDPR: PII-Scanner für Original-HTML vor OpenAI-Sendung.
-// Scannt das HTML vor der Übergabe an OpenAI auf personenbezogene Daten.
-// Funde führen zu einem 422-Fehler mit Hinweis, welche PII-Typen gefunden wurden.
+// PII-Scanner: importiert aus lib/pii.ts (DSGVO/GDPR).
 // =============================================================================
-
-interface PIIFindings {
-  emails: string[]
-  phones: string[]
-  ibans: string[]
-  cards: string[]
-  ips: string[]
-}
-
-type PIIKey = keyof PIIFindings
-
-const PII_PATTERNS: Array<{ key: PIIKey; re: RegExp; label: string }> = [
-  { key: 'emails', re: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, label: 'email addresses' },
-  { key: 'phones', re: /(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{3,8}/g, label: 'phone numbers' },
-  { key: 'ibans', re: /\b[A-Z]{2}\d{2}[A-Z0-9]{1,30}\b/g, label: 'IBANs' },
-  { key: 'cards', re: /\b(?:\d[ -]*?){13,19}\b/g, label: 'credit card numbers' },
-  { key: 'ips', re: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, label: 'IP addresses' },
-]
-
-const PII_HAYSTACK_THRESHOLD = 8
-
-function scanPII(html: string | null): PIIFindings | null {
-  if (!html || html.length < PII_HAYSTACK_THRESHOLD) return null
-  const findings: PIIFindings = { emails: [], phones: [], ibans: [], cards: [], ips: [] }
-  let found = false
-  for (const { key, re } of PII_PATTERNS) {
-    const matches = html.match(re)
-    if (!matches?.length) continue
-    const filtered = matches.filter(m => {
-      if (key === 'phones') { const d = m.replace(/\D/g, ''); return d.length >= 7 && d.length <= 15 }
-      if (key === 'cards') { const d = m.replace(/\D/g, ''); return d.length >= 13 && d.length <= 19 }
-      if (key === 'ips') { const o = m.split('.').map(Number); return o.length === 4 && o.every(x => x >= 0 && x <= 255) }
-      return true
-    })
-    if (filtered.length > 0) { findings[key] = filtered; found = true }
-  }
-  return found ? findings : null
-}
-
 
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
