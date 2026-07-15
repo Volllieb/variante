@@ -123,17 +123,6 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
               </div>
             </div>
 
-            {/* Playground hint */}
-            <a
-              href="/playground"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text"
-            >
-              <span className="text-sm">🏖️</span>
-              <span>New here? <span className="font-medium text-text">Try the demo first</span> — see the full workflow in 2 minutes, no setup.</span>
-            </a>
-
             {/* Step-by-step */}
             <ol className="space-y-2.5">
               {[
@@ -199,14 +188,6 @@ export function NewTestFlow({ apiToken, hasFigmaPlugin, isAtFreeLimit, onClose }
                 <span>·</span>
                 <span>{timeStr} elapsed</span>
               </div>
-              <a
-                href="/playground"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-text-3 underline transition-colors hover:text-text-2"
-              >
-                🏖️ See how results work while you wait →
-              </a>
             </div>
 
             <div className="flex items-start gap-2.5 rounded-[6px] px-3 py-2.5" style={{ background: '#111111' }}>

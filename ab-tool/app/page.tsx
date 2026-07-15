@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette, Figma } from '@/components/LandingIcons'
+import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette, FigmaIcon } from '@/components/LandingIcons'
 import { techLogos } from '@/components/TechLogos'
 import LangToggle from './components/LangToggle'
 import { getLang, getCopy } from '@/lib/landingCopy'
@@ -71,10 +71,10 @@ export default async function HomePage() {
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              href="/playground"
+              href="#demo"
               className="hidden rounded-full border border-border bg-bg-2 px-3.5 py-1.5 text-sm font-medium text-text-2 transition-all duration-200 hover:border-border-strong hover:bg-bg-1 hover:text-text sm:mr-2 sm:block"
             >
-              {cp.navPlayground}
+              {cp.navDemo}
             </Link>
             <LangToggle current={lang} />
             <Link
@@ -96,25 +96,53 @@ export default async function HomePage() {
       <main>
 
       {/* ── Hero ── */}
-      <section className="px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-32">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            {cp.heroH1}
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-base text-white/55 sm:text-lg">
-            {cp.heroSub}
-          </p>
-          <div className="mt-8 sm:mt-9">
-            <Link
-              href="/signup"
-              className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
-            >
-              {cp.heroCta}
-            </Link>
+      <section className="px-4 py-16 sm:px-6 sm:py-24 lg:py-32">
+        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+          {/* Left: Text */}
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl text-left">
+              {cp.heroH1}
+            </h1>
+            <p className="mt-4 max-w-xl text-base text-white/55 sm:text-lg text-left">
+              {cp.heroSub}
+            </p>
+            <div className="mt-8 sm:mt-9">
+              <Link
+                href="/signup"
+                className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
+              >
+                {cp.heroCta}
+              </Link>
+            </div>
+            <p className="mt-4 text-xs text-text-3">
+              {cp.heroFootnote}
+            </p>
           </div>
-          <p className="mt-4 text-xs text-text-3">
-            {cp.heroFootnote}
-          </p>
+
+          {/* Right: Demo Video */}
+          <div id="demo" className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-bg-1 shadow-lg shadow-black/20">
+            {/* Placeholder until video is recorded — replace with YouTube/Loom embed */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-bg-2 to-bg-1">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/10">
+                <svg className="ml-0.5 h-6 w-6 text-white/70" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-white/60">Product Demo</p>
+                <p className="mt-0.5 text-xs text-text-3">60 seconds — no fluff</p>
+              </div>
+            </div>
+            {/* Uncomment when video is ready:
+            <iframe
+              className="absolute inset-0 h-full w-full"
+              src="https://www.youtube-nocookie.com/embed/YOUR_VIDEO_ID?rel=0&modestbranding=1&controls=1"
+              title="Variante Product Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+            */}
+          </div>
         </div>
       </section>
 
@@ -168,7 +196,7 @@ export default async function HomePage() {
             {/* Figma Community */}
             <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
               <div className="mb-3 flex items-center gap-2">
-                <Figma className="h-5 w-5 text-white/70" />
+                <FigmaIcon className="h-5 w-5 text-white/70" />
                 <h3 className="text-sm font-semibold text-white">{cp.figmaCommunityTitle}</h3>
               </div>
               <p className="text-sm text-white/50 leading-relaxed">

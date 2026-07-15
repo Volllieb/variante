@@ -1,10 +1,15 @@
 // Wiederverwendbare CRO-Analyse — extrahiert aus /api/suggestions,
 // damit Suggestions-Route und Agent-Tools (/api/agent) dieselbe Logik nutzen.
 // Kein Cost-Tracking hier — das machen die Aufrufer (increment_gen_cost RPC).
+// Cache-Layer: site_insights vermeidet wiederholte Fetch+Analyze (24h TTL).
 
 import { safeError } from '@/lib/safeLog'
+import { supabase } from '@/lib/supabase'
 
 const MODEL = 'gpt-4o-mini'
+
+// Cache-TTL: 24 Stunden. Danach wird die Seite neu analysiert.
+const CACHE_TTL_HOURS = 24
 
 // Maximale HTML-Größe für die Analyse: 120KB. Reicht für die Struktur
 // (Headlines, CTAs, Layout), spart Token-Kosten.
@@ -462,6 +467,59 @@ export async function analyzePage(
     safeError('croAnalyze-parse-error', { message: raw.slice(0, 300) })
     throw new Error('Failed to parse AI response')
   }
+
+  return (parsed.suggestions ?? []).slice(0, 4)
+}
+
+// ─── Cache-Layer: site_insights als Analyse-Cache ───
+
+// Prüft ob für userId+pageUrl eine frische Analyse (< 24h) in site_insights liegt.
+// Gibt die gespeicherten CRO-Vorschläge zurück oder null bei Cache-Miss.
+export async function getCachedInsights(
+  userId: string,
+  pageUrl: string
+): Promise<{ suggestions: CROSuggestion[]; analyzedAt: string } | null> {
+  const { data } = await supabase
+    .from('site_insights')
+    .select('top_opportunities, analyzed_at')
+    .eq('user_id', userId)
+    .eq('page_url', pageUrl)
+    .maybeSingle()
+
+  if (!data?.top_opportunities || !data?.analyzed_at) return null
+
+  const age = Date.now() - new Date(data.analyzed_at).getTime()
+  if (age > CACHE_TTL_HOURS * 3_600_000) return null
+
+  return {
+    suggestions: data.top_opportunities as CROSuggestion[],
+    analyzedAt: data.analyzed_at,
+  }
+}
+
+// Schreibt Analyse-Ergebnisse in site_insights (upsert via unique constraint).
+// Überschreibt existierende Einträge — analyzed_at wird aktualisiert.
+export async function cacheInsights(
+  userId: string,
+  pageUrl: string,
+  suggestions: CROSuggestion[],
+  meta?: { structure?: string; title?: string; industry?: string; pageGoal?: string }
+): Promise<void> {
+  const hostname = new URL(pageUrl).hostname.replace(/^www\./, '')
+
+  const { error } = await supabase.from('site_insights').upsert({
+    user_id: userId,
+    domain: hostname,
+    page_url: pageUrl,
+    top_opportunities: suggestions,
+    analysis_json: meta ? { structure: meta.structure, title: meta.title } : null,
+    detected_industry: meta?.industry ?? null,
+    page_goal: meta?.pageGoal ?? null,
+    analyzed_at: new Date().toISOString(),
+  }, { onConflict: 'user_id, domain, page_url' })
+
+  if (error) safeError('cacheInsights-upsert', error)
+}
 
   return parsed.suggestions?.slice(0, 4) ?? []
 }

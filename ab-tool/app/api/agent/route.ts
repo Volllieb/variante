@@ -8,6 +8,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { makeAgentTools } from '@/lib/agentTools'
+import { getCachedInsights } from '@/lib/croAnalyze'
 import { supabase } from '@/lib/supabase'
 
 // Agent-Runs laufen länger als normale API-Calls (4+ sequentielle LLM-Calls).
@@ -100,13 +101,21 @@ export async function POST(req: Request) {
 
   // ─── Agent Run ───
   try {
+    // Cache-Check: site_insights als Context für den Agenten.
+    // Wenn frische Analyse existiert, geben wir sie dem LLM als Vorsprung —
+    // es kann fetchSite+analyzeCRO überspringen und direkt Varianten generieren.
+    const cached = await getCachedInsights(user.userId, url)
+    const cacheContext = cached
+      ? `\n\n💾 **Cache-Treffer**: Für ${url} liegt eine frische Analyse vom ${new Date(cached.analyzedAt).toLocaleDateString('de-DE')} vor:\n${JSON.stringify(cached.suggestions.slice(0, 3), null, 2)}\n\nDu kannst fetchSite und analyzeCRO ÜBERSPRINGEN und direkt mit generateVariant für diese Vorschläge weitermachen — es sei denn, die Seite hat sich seitdem geändert.`
+      : ''
+
     const result = streamText({
       model: openai('gpt-4o-mini'),
       system: AGENT_SYSTEM_PROMPT,
       messages: [
         {
           role: 'user',
-          content: `Analysiere ${url} und erstelle A/B-Tests. Conversion-Ziel: ${pageGoal}.`,
+          content: `Analysiere ${url} und erstelle A/B-Tests. Conversion-Ziel: ${pageGoal}.${cacheContext}`,
         },
       ],
       tools: makeAgentTools(user),

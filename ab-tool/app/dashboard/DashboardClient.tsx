@@ -30,7 +30,6 @@ import {
   Plus,
   Sparkles,
   Code2,
-  Play,
   Settings,
   CreditCard,
   HeartPulse,
@@ -466,17 +465,6 @@ function OnboardingCards({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadD
           />
         </div>
       </div>
-
-      {/* Playground link — secondary */}
-      <a
-        href="/playground"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 rounded-[10px] border border-dashed border-white/[0.10] p-4 text-[12px] text-[#ededed]/60 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
-      >
-        <Play className="h-4 w-4 shrink-0" />
-        <span>Want the full interactive walkthrough? <span className="underline">Open the Playground →</span></span>
-      </a>
     </div>
   )
 }
@@ -502,7 +490,7 @@ function StepRow({ num, label, hint, done, action, icon: Icon, locked }: {
       <Icon className={`h-3.5 w-3.5 shrink-0 ${done ? 'text-[#2fd76c]/60' : locked ? 'text-[#ededed]/20' : 'text-[#ededed]/40'}`} />
       <div className="min-w-0 flex-1">
         <p className={`text-[12px] font-medium ${locked ? 'text-[#ededed]/30' : done ? 'text-[#2fd76c]' : 'text-[#ededed]'}`}>{label}</p>
-        <p className={`text-[11px] ${done ? 'text-[#2fd76c]/50' : 'text-[#ededed]/40'}`}>{hint}</p>
+        <p className={`text-[11px] ${done ? 'text-[#2fd76c]/70' : 'text-[#ededed]/55'}`}>{hint}</p>
       </div>
       {action && !done && (
         action.href ? (

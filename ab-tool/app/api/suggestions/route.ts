@@ -2,7 +2,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
 import { safeError } from '@/lib/safeLog'
-import { stripForCRO, extractStructure, analyzePage } from '@/lib/croAnalyze'
+import { stripForCRO, extractStructure, analyzePage, getCachedInsights, cacheInsights } from '@/lib/croAnalyze'
 
 export const maxDuration = 60
 
@@ -54,7 +54,18 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Blocked host' }, { status: 403, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  // Cost-Limit check (gleicher RPC wie /api/generate)
+  // ─── Cache-Check (vor Cost-Booking — kein Spend bei Cache-Hit) ───
+  const cached = await getCachedInsights(user.userId, url)
+  if (cached) {
+    return Response.json({
+      suggestions: cached.suggestions,
+      analyzed_url: url,
+      cached: true,
+      analyzed_at: cached.analyzedAt,
+    }, { headers: corsHeaders('POST, OPTIONS') })
+  }
+
+  // ─── Cost-Limit: atomar prüfen + buchen (nur bei Cache-Miss) ───
   const { supabase } = await import('@/lib/supabase')
   const costLimit = user.plan === 'agency' ? MAX_MONTHLY_COST_AGENCY : MAX_MONTHLY_COST_PRO
   const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
@@ -93,11 +104,20 @@ export async function POST(req: Request) {
 
   // Strip + Analyse (Logik in lib/croAnalyze.ts, geteilt mit /api/agent)
   try {
-    const suggestions = await analyzePage(stripForCRO(html), extractStructure(html))
+    const stripped = stripForCRO(html)
+    const structure = extractStructure(html)
+    const suggestions = await analyzePage(stripped, structure)
     if (suggestions.length === 0) {
       return Response.json({ error: 'No suggestions generated' }, { status: 422, headers: corsHeaders('POST, OPTIONS') })
     }
-    return Response.json({ suggestions, analyzed_url: url }, { headers: corsHeaders('POST, OPTIONS') })
+
+    // Cache befüllen (fire-and-forget — Fehler loggen, Response nicht blockieren)
+    cacheInsights(user.userId, url, suggestions, {
+      structure,
+      title: html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim() ?? '',
+    }).catch(err => safeError('suggestions-cache-write', err))
+
+    return Response.json({ suggestions, analyzed_url: url, cached: false }, { headers: corsHeaders('POST, OPTIONS') })
   } catch (err) {
     safeError('suggestions-analyze', err)
     return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })

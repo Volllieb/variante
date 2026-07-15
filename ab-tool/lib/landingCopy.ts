@@ -5,7 +5,7 @@ export type Lang = 'de' | 'en'
 
 export interface LandingCopy {
   // Header
-  navPlayground: string
+  navDemo: string
   navLogin: string
   navSignup: string
 
@@ -97,7 +97,7 @@ export interface LandingCopy {
 }
 
 const de: LandingCopy = {
-  navPlayground: '🏖️ Playground',
+  navDemo: '🏖️ Playground',
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
@@ -235,7 +235,7 @@ const de: LandingCopy = {
 }
 
 const en: LandingCopy = {
-  navPlayground: '🏖️ Playground',
+  navDemo: '▶️ Watch demo',
   navLogin: 'Log in',
   navSignup: 'Sign up — free',
 
