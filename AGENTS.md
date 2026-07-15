@@ -23,8 +23,17 @@ Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features)
 - Ist kein Remote eingerichtet: in PROJEKT.md §7 den Punkt „GitHub-Remote einrichten" offen lassen.
 - Bei erstmaligem Remote-Setup: `post-commit`-Hook aktivieren (siehe `.githooks/post-commit`).
 
+## Build-Pflicht (seit 2026-07-15)
+**Vor JEDEM Commit, der Dateien in `ab-tool/` ändert:**
+1. `cd ab-tool && npm run vercel-build` ausführen.
+2. Schlägt der Build fehl → Fix einbauen, Build wiederholen, ERST DANN committen.
+3. Kein Commit mit rotem Build. Keine Ausnahme.
+- Das schließt auch Typisierung und Linting ein (`tsc --noEmit`-Äquivalent via Next.js Build).
+- Ziel: Vercel-Deployments brechen nicht mehr wegen Syntax-/Type-Errors nach Push.
+
 ## Prüfpflicht
 Bei JEDEM Task (Code, Doku, Config):
 1. **Vor dem Task:** PROJEKT.md §10 durchgehen — gibt es offene Prüfpunkte?
 2. **Nach dem Task:** PROJEKT.md §10 erneut durchgehen — hat der Task neue Prüfpunkte erzeugt?
 3. **Nicht bestandene Prüfung = Task nicht fertig.**
+4. **Build-Pflicht:** Bei Code-Änderungen in `ab-tool/` → `npm run vercel-build` muss grün sein (s.o.).

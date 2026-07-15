@@ -11,6 +11,14 @@ import { makeAgentTools } from '@/lib/agentTools'
 import { getCachedInsights } from '@/lib/croAnalyze'
 import { supabase } from '@/lib/supabase'
 
+// Extrahiert Domain aus einer URL.
+function extractDomain(url: string): string | null {
+  try {
+    const host = new URL(url).hostname
+    return host.replace(/^www\./, '')
+  } catch { return null }
+}
+
 // Agent-Runs laufen länger als normale API-Calls (4+ sequentielle LLM-Calls).
 export const maxDuration = 120
 
@@ -105,8 +113,32 @@ export async function POST(req: Request) {
     // Wenn frische Analyse existiert, geben wir sie dem LLM als Vorsprung —
     // es kann fetchSite+analyzeCRO überspringen und direkt Varianten generieren.
     const cached = await getCachedInsights(user.userId, url)
-    const previousTests = cached?.testResults?.length
-      ? `\n\n📊 **Vorherige Tests** auf dieser Domain (${cached.testResults.length} abgeschlossen):\n${JSON.stringify(cached.testResults, null, 2)}\n\nLerne aus diesen Ergebnissen: Was hat funktioniert, was nicht? Wiederhole keine gescheiterten Patterns. Baue auf erfolgreichen Änderungen auf.`
+
+    // Learning Loop: Wenn die aktuelle page_url keine Test-Ergebnisse hat,
+    // suche domain-weit nach abgeschlossenen Tests (andere Seiten derselben Domain).
+    let allTestResults: Record<string, unknown>[] | undefined = cached?.testResults
+    if (!allTestResults?.length) {
+      try {
+        const domain = extractDomain(url)
+        if (domain) {
+          const { data: domainInsights } = await supabase
+            .from('site_insights')
+            .select('test_results_json')
+            .eq('user_id', user.userId)
+            .eq('domain', domain)
+            .not('test_results_json', 'is', null)
+            .order('analyzed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (domainInsights?.test_results_json) {
+            allTestResults = domainInsights.test_results_json as Record<string, unknown>[]
+          }
+        }
+      } catch { /* non-critical */ }
+    }
+
+    const previousTests = allTestResults?.length
+      ? `\n\n📊 **Vorherige Tests** auf dieser Domain (${allTestResults.length} abgeschlossen):\n${JSON.stringify(allTestResults, null, 2)}\n\nLerne aus diesen Ergebnissen: Was hat funktioniert, was nicht? Wiederhole keine gescheiterten Patterns. Baue auf erfolgreichen Änderungen auf.`
       : ''
     const cacheContext = cached
       ? `\n\n💾 **Cache-Treffer**: Für ${url} liegt eine frische Analyse vom ${new Date(cached.analyzedAt).toLocaleDateString('de-DE')} vor:\n${JSON.stringify(cached.suggestions.slice(0, 3), null, 2)}\n\nDu kannst fetchSite und analyzeCRO ÜBERSPRINGEN und direkt mit generateVariant für diese Vorschläge weitermachen — es sei denn, die Seite hat sich seitdem geändert.${previousTests}`

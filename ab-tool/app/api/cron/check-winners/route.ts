@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   // Alle aktiven Tests ohne Winner laden
   const { data: tests, error } = await supabase
     .from('tests')
-    .select('id, name, user_id, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
+    .select('id, name, user_id, site_url, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
     .in('status', ['active', 'paused'])
     .is('winner', null)
 
