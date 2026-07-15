@@ -366,7 +366,7 @@ function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain }: { onNewTes
         <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
       </div>
       <p className="mt-4 text-[14px] font-medium text-[#ededed]">No tests yet</p>
-      <p className="mt-1.5 max-w-[340px] text-[12px] leading-relaxed text-[#ededed]/40">
+      <p className="mt-1.5 max-w-[340px] text-[12px] leading-relaxed text-[#ededed]/60">
         {!hasVerifiedDomain
           ? 'Add your website first — tests only run on verified domains.'
           : hasFigmaPlugin
@@ -406,7 +406,7 @@ function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain }: { onNewTes
         href="/playground"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-text-3 underline transition-colors hover:text-text-2"
+        className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-[#ededed]/60 underline transition-colors hover:text-[#ededed]"
       >
         🏖️ Not sure yet? See the full workflow in the Playground →
       </a>

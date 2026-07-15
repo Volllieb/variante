@@ -51,7 +51,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
             <span className="text-[13px] font-medium text-[#ededed]">variante</span>
           </Link>
           {plan !== 'free' && (
-            <span className="mb-3 ml-[9px] self-start rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/40">
+            <span className="mb-3 ml-[9px] self-start rounded-[5px] border border-white/[0.18] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/60">
               {plan}
             </span>
           )}

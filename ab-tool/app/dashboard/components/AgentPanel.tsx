@@ -112,9 +112,9 @@ function AgentRunner({ domain }: { domain: string }) {
   return (
     <div className="mb-3 mt-6">
       <div className="mb-3 flex items-center gap-2">
-        <Bot className="h-3.5 w-3.5 text-[#8b5cf6]" />
+        <Bot className="h-3.5 w-3.5 text-[#a78bfa]" />
         <h2 className="text-[13px] font-semibold text-[#ededed]">Auto-optimize</h2>
-        <span className="rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#8b5cf6]">AI AGENT</span>
+        <span className="rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#a78bfa]">AI AGENT</span>
       </div>
 
       <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
@@ -127,7 +127,7 @@ function AgentRunner({ domain }: { domain: string }) {
             </p>
             <button
               onClick={handleRun}
-              className="mt-3 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-[#8b5cf6] px-3 py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-85"
+              className="mt-3 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-[#7c3aed] px-3 py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-85"
             >
               <Sparkles className="h-3 w-3" />
               Optimize {host}
@@ -146,7 +146,7 @@ function AgentRunner({ domain }: { domain: string }) {
 
             {/* Spinner solange der Agent arbeitet */}
             {isRunning && (
-              <div className="flex items-center gap-2 py-1 text-[11px] text-[#8b5cf6]/80">
+              <div className="flex items-center gap-2 py-1 text-[11px] text-[#a78bfa]">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 {messages.filter((m) => m.role === 'assistant').length === 0
                   ? `Analyzing ${host}…`
@@ -166,7 +166,7 @@ function AgentRunner({ domain }: { domain: string }) {
             {(isDone || error) && (
               <button
                 onClick={handleRun}
-                className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[6px] border border-white/[0.08] py-1.5 text-[11px] text-[#ededed]/40 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/60"
+                className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[6px] border border-white/[0.08] py-1.5 text-[11px] text-[#ededed]/60 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70"
               >
                 <RefreshCw className="h-3 w-3" />
                 Run again
@@ -223,7 +223,7 @@ function AssistantMessage({ message }: { message: UIMessage }) {
               ) : done ? (
                 <CheckCircle2 className="h-3 w-3 shrink-0 text-[#2fd76c]/70" />
               ) : (
-                <Loader2 className="h-3 w-3 shrink-0 animate-spin text-[#8b5cf6]/70" />
+                <Loader2 className="h-3 w-3 shrink-0 animate-spin text-[#a78bfa]" />
               )}
               <Icon className="h-3 w-3 shrink-0 text-[#ededed]/50" />
               <span className={failed ? 'text-[#f5455c]/70' : undefined}>
@@ -249,6 +249,6 @@ function renderInline(text: string): string {
     .replace(/"/g, '&quot;')
   return escaped
     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#ededed]">$1</strong>')
-    .replace(/`([^`]*)`/g, '<code class="text-[#8b5cf6]">$1</code>')
+    .replace(/`([^`]*)`/g, '<code class="text-[#a78bfa]">$1</code>')
     .replace(/\n/g, '<br/>')
 }

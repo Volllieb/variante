@@ -463,7 +463,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
             {!pro && (
               <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[10px] bg-black/60 backdrop-blur-[1px]">
                 <Lock className="h-4 w-4 text-[#ededed]/50" />
-                <p className="mt-1.5 text-[11px] font-medium text-[#ededed]/50">Pro feature</p>
+                <p className="mt-1.5 text-[11px] font-medium text-[#ededed]/70">Pro feature</p>
                 <button
                   onClick={upgrade}
                   disabled={busy}

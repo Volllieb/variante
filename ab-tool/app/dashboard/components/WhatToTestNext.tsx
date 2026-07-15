@@ -75,7 +75,7 @@ function FreeTeaser() {
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] leading-relaxed text-[#ededed]/70">
                   Test <span className="font-medium text-[#ededed]/90">"{tip.original}"</span> vs{' '}
-                  <span className="font-medium text-[#8b5cf6]">"{tip.variant}"</span>
+                  <span className="font-medium text-[#a78bfa]">"{tip.variant}"</span>
                 </p>
                 <p className="mt-0.5 text-[10px] text-[#ededed]/50">{tip.why}</p>
               </div>
@@ -183,17 +183,17 @@ function ProSuggestions({ siteUrl }: { siteUrl: string }) {
   return (
     <div className="mb-3 mt-6">
       <div className="mb-3 flex items-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-[#8b5cf6]" />
+        <Sparkles className="h-3.5 w-3.5 text-[#a78bfa]" />
         <h2 className="text-[13px] font-semibold text-[#ededed]">What to test next</h2>
-        <span className="rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#8b5cf6]">AI</span>
+        <span className="rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#a78bfa]">AI</span>
       </div>
 
       <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
         {/* Loading */}
         {state === 'loading' && (
           <div className="flex flex-col items-center gap-2 py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-[#8b5cf6]/60" />
-            <p className="text-[11px] text-[#ededed]/40">Analyzing {siteUrl.replace(/^https?:\/\//, '')}…</p>
+            <Loader2 className="h-5 w-5 animate-spin text-[#a78bfa]" />
+            <p className="text-[11px] text-[#ededed]/60">Analyzing {siteUrl.replace(/^https?:\/\//, '')}…</p>
           </div>
         )}
 
@@ -203,7 +203,7 @@ function ProSuggestions({ siteUrl }: { siteUrl: string }) {
             {suggestions.map((s, i) => (
               <div key={i} className="flex items-start gap-2 rounded-[6px] border border-[#8b5cf6]/10 bg-[#8b5cf6]/[0.03] px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-[#8b5cf6]/60">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-[#a78bfa]">
                     {s.element}
                   </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/80">
@@ -218,7 +218,7 @@ function ProSuggestions({ siteUrl }: { siteUrl: string }) {
             ))}
             <button
               onClick={fetchSuggestions}
-              className="flex w-full items-center justify-center gap-1.5 rounded-[6px] border border-white/[0.08] py-1.5 text-[11px] text-[#ededed]/40 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/60 cursor-pointer"
+              className="flex w-full items-center justify-center gap-1.5 rounded-[6px] border border-white/[0.08] py-1.5 text-[11px] text-[#ededed]/60 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
               Regenerate
@@ -232,7 +232,7 @@ function ProSuggestions({ siteUrl }: { siteUrl: string }) {
             <p className="text-[11px] text-[#f5455c]/70">{error}</p>
             <button
               onClick={fetchSuggestions}
-              className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] px-3 py-1.5 text-[11px] text-[#ededed]/50 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] px-3 py-1.5 text-[11px] text-[#ededed]/60 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
