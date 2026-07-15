@@ -31,9 +31,17 @@ Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features)
 - Das schließt auch Typisierung und Linting ein (`tsc --noEmit`-Äquivalent via Next.js Build).
 - Ziel: Vercel-Deployments brechen nicht mehr wegen Syntax-/Type-Errors nach Push.
 
+## Deploy-Pflicht (seit 2026-07-15)
+**Nach jedem Push mit `ab-tool/`-Änderungen:**
+1. `npx vercel list` prüfen — ist das neueste Deployment grün (● Ready)?
+2. Bei ● Error: Logs checken (`npx vercel inspect <url> --logs`), Fehler fixen, neu deployen.
+3. **Aufgabe gilt erst als fertig, wenn das Deployment grün ist.**
+4. Geht ein Deployment nicht durch wegen Projekt-Konfiguration (Root Directory, Env-Vars), Hinweis an User mit exaktem Link zur Settings-Page.
+
 ## Prüfpflicht
 Bei JEDEM Task (Code, Doku, Config):
 1. **Vor dem Task:** PROJEKT.md §10 durchgehen — gibt es offene Prüfpunkte?
 2. **Nach dem Task:** PROJEKT.md §10 erneut durchgehen — hat der Task neue Prüfpunkte erzeugt?
 3. **Nicht bestandene Prüfung = Task nicht fertig.**
 4. **Build-Pflicht:** Bei Code-Änderungen in `ab-tool/` → `npm run vercel-build` muss grün sein (s.o.).
+5. **Deploy-Pflicht:** Bei Push → `vercel list` muss grün sein (s.o.).
