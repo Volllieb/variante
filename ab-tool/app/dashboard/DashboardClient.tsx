@@ -12,7 +12,6 @@ import { NewTestFlow } from './NewTestFlow'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
-import { AgentPanel } from './components/AgentPanel'
 import { ConnectWebsite } from './components/ConnectWebsite'
 import {
   FilterDropdown,
