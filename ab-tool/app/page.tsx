@@ -1,12 +1,24 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Bot } from '@/components/LandingIcons'
+import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos, TechLogoMark } from '@/components/TechLogos'
 import LangToggle from './components/LangToggle'
 import HeroAnimation from './components/HeroAnimation'
-import { getCopy, PLANS, platformSentence } from '@/lib/landingCopy'
-import { detectLang } from '@/lib/detectLang'
+import { getLang, getCopy } from '@/lib/landingCopy'
+import type { Lang } from '@/lib/landingCopy'
+
+/* ── Language detection (server-side) ── */
+
+async function detectLang(): Promise<Lang> {
+  const headersList = await headers()
+  const cookieStore = await cookies()
+  const acceptLang = headersList.get('accept-language')
+  const cookieLang = cookieStore.get('lang')?.value ?? null
+  return getLang(acceptLang, cookieLang)
+}
 
 /* ── Metadata (dynamic by language) ── */
 
@@ -41,9 +53,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /* ── Page ── */
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams?: Promise<{ source?: string }> }) {
+  const { source } = (await searchParams) ?? {}
   const lang = await detectLang()
   const cp = getCopy(lang)
+  const signupUrl = (base: string) => source ? `${base}${base.includes('?') ? '&' : '?'}source=${encodeURIComponent(source)}` : base
 
   return (
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased">
@@ -73,7 +87,7 @@ export default async function HomePage() {
               {cp.navLogin}
             </Link>
             <Link
-              href="/signup"
+              href={signupUrl("/signup")}
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
               {cp.navSignup}
@@ -97,7 +111,7 @@ export default async function HomePage() {
             </p>
             <div className="mt-8 sm:mt-9">
               <Link
-                href="/signup"
+                href={signupUrl("/signup")}
                 className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
@@ -123,7 +137,7 @@ export default async function HomePage() {
               { icon: Shield, ...cp.trustItems[0] },
               { icon: Gauge, ...cp.trustItems[1] },
               { icon: Globe, ...cp.trustItems[2] },
-              { icon: Bot, ...cp.trustItems[3] },
+              { icon: Palette, ...cp.trustItems[3] },
             ].map((item) => (
               <div
                 key={item.label}
@@ -166,14 +180,17 @@ export default async function HomePage() {
             <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
               <div className="mb-3 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-white/70" />
-                <h3 className="text-sm font-semibold text-white">{cp.agentH}</h3>
+                <h3 className="text-sm font-semibold text-white">{cp.figmaCommunityTitle}</h3>
               </div>
               <p className="text-sm text-white/50 leading-relaxed">
-                {cp.agentSub}
+                {cp.figmaCommunityText}
               </p>
-              <p className="mt-4 text-xs text-text-3 italic">
-                {cp.agentVideoPending}
-              </p>
+              <a
+                href="#demo"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white/80"
+              >
+                {cp.figmaCommunityLinkText}
+              </a>
             </div>
 
             {/* Solo Dev Transparency */}
@@ -196,9 +213,9 @@ export default async function HomePage() {
           <h2 className="text-center text-xl font-semibold text-white">{cp.sectionHow}</h2>
           <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { icon: MousePointer2, step: '01', title: cp.steps[0].title, body: cp.steps[0].body },
-              { icon: Sparkles, step: '02', title: cp.steps[1].title, body: cp.steps[1].body },
-              { icon: Rocket, step: '03', title: cp.steps[2].title, body: cp.steps[2].body },
+              { icon: MousePointer2, step: '01', title: cp.step1Title, body: cp.step1Body },
+              { icon: Sparkles, step: '02', title: cp.step2Title, body: cp.step2Body },
+              { icon: Rocket, step: '03', title: cp.step3Title, body: cp.step3Body },
             ].map((s) => (
               <div
                 key={s.step}
@@ -212,7 +229,14 @@ export default async function HomePage() {
             ))}
           </div>
           <p className="mt-8 text-center text-sm text-white/50">
-            {platformSentence(cp)}
+            {cp.platformNote}{' '}
+            {cp.platformItems.split(', ').map((item, i) => (
+              <span key={item}>
+                <span className="text-white/55">{item}</span>
+                {i < cp.platformItems.split(', ').length - 1 ? ', ' : ''}
+              </span>
+            ))}{' '}
+            — {lang === 'de' ? 'überall wo du ein Script-Tag einfügen kannst.' : 'anywhere you can paste a script tag.'}
           </p>
         </div>
       </section>
@@ -225,25 +249,25 @@ export default async function HomePage() {
             {/* Free */}
             <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                {cp.plans.free.label}
+                {cp.freeLabel}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-3xl font-semibold text-white">{PLANS[0].price}</span>
+                <span className="text-3xl font-semibold text-white">{cp.freePrice}</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">{cp.plans.free.sub}</p>
+              <p className="mt-1 text-xs text-text-3">{cp.freeSub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {cp.plans.free.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
+                {cp.freeFeatures.map((label) => (
+                  <li key={label} className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 shrink-0 text-ok" />
-                    <span className="text-white/60">{f.label}</span>
+                    <span className="text-white/60">{label}</span>
                   </li>
                 ))}
               </ul>
               <Link
-                href={PLANS[0].href}
+                href={signupUrl("/signup")}
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
-                {cp.plans.free.cta}
+                {cp.freeCta}
               </Link>
             </div>
 
@@ -253,64 +277,64 @@ export default async function HomePage() {
                 {cp.proBadge}
               </span>
               <p className="text-xs font-semibold uppercase tracking-wider text-pro">
-                {cp.plans.pro.label}
+                {cp.proLabel}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-3xl font-semibold text-white">{PLANS[1].price}</span>
-                <span className="text-sm text-text-3">{cp.period}</span>
+                <span className="text-3xl font-semibold text-white">{cp.proPrice}</span>
+                <span className="text-sm text-text-3">/mo</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">{cp.plans.pro.sub}</p>
+              <p className="mt-1 text-xs text-text-3">{cp.proSub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {cp.plans.pro.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
-                    {f.exclusive ? (
+                {cp.proFeatures.map((label, i) => (
+                  <li key={label} className="flex items-center gap-2.5">
+                    {cp.proFeatureExclusive[i] ? (
                       <Zap className="h-4 w-4 shrink-0 text-pro" />
                     ) : (
                       <Check className="h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.exclusive ? 'text-white/80' : 'text-white/60'}>
-                      {f.label}
+                    <span className={cp.proFeatureExclusive[i] ? 'text-white/80' : 'text-white/60'}>
+                      {label}
                     </span>
                   </li>
                 ))}
               </ul>
               <Link
-                href={PLANS[1].href}
+                href={signupUrl("/signup?plan=pro")}
                 className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
               >
-                {cp.plans.pro.cta}
+                {cp.proCta}
               </Link>
             </div>
 
             {/* Agency */}
             <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                {cp.plans.agency.label}
+                {cp.agencyLabel}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-3xl font-semibold text-white">{PLANS[2].price}</span>
-                <span className="text-sm text-text-3">{cp.period}</span>
+                <span className="text-3xl font-semibold text-white">{cp.agencyPrice}</span>
+                <span className="text-sm text-text-3">/mo</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">{cp.plans.agency.sub}</p>
+              <p className="mt-1 text-xs text-text-3">{cp.agencySub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {cp.plans.agency.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
-                    {f.exclusive ? (
+                {cp.agencyFeatures.map((label, i) => (
+                  <li key={label} className="flex items-center gap-2.5">
+                    {cp.agencyFeatureExclusive[i] ? (
                       <Zap className="h-4 w-4 shrink-0 text-pro" />
                     ) : (
                       <Check className="h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.exclusive ? 'text-white/80' : 'text-white/60'}>
-                      {f.label}
+                    <span className={cp.agencyFeatureExclusive[i] ? 'text-white/80' : 'text-white/60'}>
+                      {label}
                     </span>
                   </li>
                 ))}
               </ul>
               <Link
-                href={PLANS[2].href}
+                href={signupUrl("/signup?plan=agency")}
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
-                {cp.plans.agency.cta}
+                {cp.agencyCta}
               </Link>
             </div>
           </div>
@@ -344,7 +368,7 @@ export default async function HomePage() {
 
       {/* ── Badge Demo ── */}
       <Link
-        href="/signup"
+        href={signupUrl("/signup")}
         className="fixed bottom-3 right-3 z-50 rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
@@ -395,13 +419,13 @@ export default async function HomePage() {
             offers: [
               {
                 '@type': 'Offer',
-                name: cp.plans.free.label,
+                name: cp.freeLabel,
                 price: '0',
                 priceCurrency: 'EUR',
               },
               {
                 '@type': 'Offer',
-                name: cp.plans.pro.label,
+                name: cp.proLabel,
                 price: '35',
                 priceCurrency: 'EUR',
                 description: cp.jsonldProDescription,

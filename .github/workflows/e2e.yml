@@ -48,6 +48,12 @@ jobs:
         run: npx playwright install chromium --with-deps
         working-directory: ab-tool
 
+      # Node-Tests vor dem Build: schnelles Feedback, keine Browser nötig.
+      # resolve-host-parity schützt den Resolve-Hotpath (site_host == hostOf()).
+      - name: Run Node Unit Tests
+        run: npm run test:node
+        working-directory: ab-tool
+
       - name: Build Next.js
         run: npm run build
         working-directory: ab-tool

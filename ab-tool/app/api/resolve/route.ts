@@ -43,12 +43,17 @@ export async function GET(req: Request) {
     return Response.json({ tests: [] }, { headers: corsHeaders('GET, OPTIONS') })
   }
 
+  // Host-Filter passiert in der DB (site_host, Migration 021 — generierte Spalte,
+  // normalisiert wie hostOf()). Vorher wurden ALLE non-paused Tests geladen und
+  // erst in JS gefiltert: ab >200 Tests global fielen Kunden-Tests still aus der
+  // Antwort, plus Full-Scan pro Pageview. Das Limit ist jetzt pro Host.
   const { data, error } = await supabase
     .from('tests')
     .select('snippet_key, selector, goal, status, site_url, winner, traffic_split, variant_b_html, variant_b_css, user_id')
+    .eq('site_host', host)
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
-    .limit(200) // ponytail: vernünftiges Limit statt ALLER non-paused Tests
+    .limit(200)
 
   if (error) {
     safeError('resolve', error)
@@ -59,6 +64,9 @@ export async function GET(req: Request) {
     // Abgeschlossene Tests nur dann ausliefern, wenn B gewonnen hat (→ erzwungenes B).
     // done+A bleibt draußen, weil das Original ohnehin Variante A ist.
     .filter(t => !(t.status === 'done' && t.winner !== 'B'))
+    // Backstop: der Host-Filter läuft bereits in der DB (site_host). Diese Zeile
+    // fängt ein Auseinanderlaufen von SQL-Normalisierung und hostOf() ab, damit im
+    // Zweifel KEIN fremder Test ausgeliefert wird. Kostet nichts (wenige Zeilen).
     .filter(t => hostOf(t.site_url) === host)
     // DSGVO: Kein server-seitiges Path-Matching mehr. Der Client filtert
     // per pathMatches() — der Server sieht nur die Domain, nicht den Pfad.

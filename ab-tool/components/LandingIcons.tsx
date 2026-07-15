@@ -15,15 +15,13 @@ export {
   Shield,
   Gauge,
   Globe,
-  Bot,
   // How it works
   MousePointer2,
   Sparkles,
   Rocket,
-  // Agent loop
-  Search,
-  PenLine,
-  BarChart3,
-  // Demo video
-  Play,
+  // AI translation
+  Languages,
+  Wand2,
+  RefreshCw,
+  Palette,
 } from 'lucide-react'

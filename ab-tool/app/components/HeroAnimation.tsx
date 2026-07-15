@@ -41,13 +41,9 @@ export default function HeroAnimation() {
     const ro = new ResizeObserver(fit)
     ro.observe(root)
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      gsap.set(stage, { autoAlpha: 1 })
-      gsap.set([cardB, convCard, panel, picker, badgeA, badgeB, cursor], { autoAlpha: 0 })
-      gsap.set([cardA, cardB, convCard], { xPercent: -50, yPercent: -50 })
-      return () => ro.disconnect()
-    }
-
+    // No prefers-reduced-motion branch on purpose: Windows sets it whenever OS
+    // animation effects are off, which would freeze the hero's product demo for
+    // a large chunk of desktop visitors.
     const ctx = gsap.context(() => {
       /* ---- initial states ---- */
       gsap.set([cardA, cardB, convCard], { xPercent: -50, yPercent: -50 })

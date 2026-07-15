@@ -1,7 +1,6 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import { ToastProvider } from '@/app/components/Toast'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
@@ -64,14 +63,24 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />
         <style id="__ab_hide" dangerouslySetInnerHTML={{ __html: 'html.__ab_pending{opacity:0!important}' }} />
-        <Script
-          id="ab-pending"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)`,
-          }}
-        />
-        <Script id="ab-js" src="https://www.getvariante.com/ab.js" strategy="beforeInteractive" async />
+        {/* Plain script tags, not next/script: beforeInteractive doesn't support inline
+            scripts and re-renders the tag through React on the client ("Encountered a
+            script tag..."). A plain tag in the server-rendered <head> executes during
+            HTML parsing — same timing, no React involvement.
+            Production-only: on localhost the CSP (script-src 'self') blocks the
+            cross-origin ab.js, so __ab_pending_resolve never fires and the page
+            would sit at opacity 0 until the 10s safety timeout. */}
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <script
+              id="ab-pending"
+              dangerouslySetInnerHTML={{
+                __html: `document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)`,
+              }}
+            />
+            <script id="ab-js" src="https://www.getvariante.com/ab.js" async />
+          </>
+        )}
         {/* JSON-LD Organization — Root-fallback für alle Seiten */}
         <script
           type="application/ld+json"

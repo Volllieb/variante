@@ -15,7 +15,7 @@
     "test:conversion": "playwright test --project=chromium --grep \"@conversion\"",
     "test:ci": "playwright test --project=chromium-ci",
     "test:ci:smoke": "playwright test --project=chromium-ci --grep \"@smoke\"",
-    "test:node": "node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs",
+    "test:node": "node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs && node __tests__/resolve-host-parity.mjs",
     "test:report": "playwright show-report",
     "bot": "node scripts/ab-bot.mjs",
     "bot:prod": "node scripts/ab-bot.mjs --prod"
@@ -23,6 +23,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^4.0.13",
     "@ai-sdk/react": "^4.0.27",
+    "@sentry/nextjs": "^10.65.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
     "@upstash/redis": "^1.38.0",
@@ -39,6 +40,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
