@@ -25,11 +25,14 @@ import {
   Clock,
   ChevronDown,
   ChevronRight,
+  Trophy,
+  ArrowRight,
 } from 'lucide-react'
 
 interface AgentPanelProps {
   domain: string
   plan: string
+  userId: string
 }
 
 interface AgentRun {
@@ -44,11 +47,11 @@ interface AgentRun {
   created_at: string
 }
 
-export function AgentPanel({ domain, plan }: AgentPanelProps) {
+export function AgentPanel({ domain, plan, userId }: AgentPanelProps) {
   const isPro = plan === 'pro' || plan === 'agency'
 
   if (!isPro) return <AgentTeaser domain={domain} />
-  return <AgentRunner domain={domain} />
+  return <AgentRunner domain={domain} userId={userId} />
 }
 
 /* ── Free Tier: Geblurrter Teaser (analog WhatToTestNext) ── */
@@ -94,7 +97,7 @@ function AgentTeaser({ domain }: { domain: string }) {
 
 /* ── Pro: Agent-Run mit Live-Stream ── */
 
-function AgentRunner({ domain }: { domain: string }) {
+function AgentRunner({ domain, userId }: { domain: string; userId: string }) {
   const router = useRouter()
   const host = domain.replace(/^https?:\/\//, '')
 
@@ -110,13 +113,29 @@ function AgentRunner({ domain }: { domain: string }) {
   const [history, setHistory] = useState<AgentRun[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
 
-  // History laden (Initial + nach jedem Run)
+  // Recent winner: Auto-Trigger Banner nach abgeschlossenem Test
+  const [recentWinner, setRecentWinner] = useState<{ testName: string; winner: string; testId: string } | null>(null)
+
+  // History + Winner laden
   useEffect(() => {
     fetch('/api/agent/runs')
       .then(r => r.json())
       .then(d => { if (d.runs) setHistory(d.runs) })
       .catch(() => {})
   }, [])
+
+  // Recent winner check: Tests mit winner='B' aus den letzten 7 Tagen
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetch(`/api/agent/runs?winnerCheck=1&userId=${encodeURIComponent(userId)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.winner && !d.dismissed) setRecentWinner(d.winner)
+        })
+        .catch(() => {})
+    }, 2000)
+    return () => clearTimeout(t)
+  }, [userId, status])
 
   // Nach erfolgreichem Run: Server-Components refreshen, damit neue Tests
   // im Grid auftauchen. Und History neu laden.
@@ -149,6 +168,31 @@ function AgentRunner({ domain }: { domain: string }) {
       </div>
 
       <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+        {/* ─── Auto-Trigger Banner: Recent Winner ─── */}
+        {recentWinner && (
+          <div className="mb-3 flex items-start gap-2.5 rounded-[8px] border border-[#a78bfa]/20 bg-[#7c3aed]/[0.08] px-3 py-2.5">
+            <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-[#a78bfa]" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-[#ededed]">
+                🏆 Your test &quot;{recentWinner.testName}&quot; has a winner!
+              </p>
+              <p className="mt-0.5 text-[10px] text-[#ededed]/50">
+                Variant <strong>{recentWinner.winner}</strong> won. The agent can learn from this and suggest new optimizations.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setRecentWinner(null)
+                handleRun()
+              }}
+              className="shrink-0 inline-flex cursor-pointer items-center gap-1 rounded-[5px] bg-[#7c3aed] px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-85"
+            >
+              Optimize now
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
         {/* Idle: Erklärung + Run-Button */}
         {!hasRun && !isRunning && (
           <div>
