@@ -7,7 +7,7 @@ export async function OPTIONS() {
   return preflight('GET, OPTIONS')
 }
 
-// GET /api/analytics/:testId — Zeitreihen-Daten (Pro-gated)
+// GET /api/analytics/:testId — Zeitreihen-Daten (alle Pläne)
 export async function GET(req: Request, { params }: { params: Promise<{ testId: string }> }) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, OPTIONS')

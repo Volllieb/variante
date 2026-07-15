@@ -5,12 +5,10 @@ import { VariantPreview } from '@/app/components/VariantPreview'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTestUpdate } from '@/lib/useRealtime'
-import Link from 'next/link'
 import { Breadcrumbs } from '@/app/components/Breadcrumbs'
 import { Tooltip } from '@/app/components/Tooltip'
 import { useToast } from '@/app/components/Toast'
 import {
-  ArrowLeft,
   RefreshCw,
   Users,
   Target,
@@ -34,7 +32,6 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend,
 } from 'recharts'
 
 const T = {

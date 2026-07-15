@@ -57,14 +57,18 @@ export function makeAgentTools(user: ApiUser) {
           throw new Error('Page returned no usable content (empty or JS-rendered SPA?)')
         }
 
-        const structure = extractStructure(html)
-        const styleContext = extractStyleContext(html)
+        // PII redact BEVOR HTML an Analyse-Funktionen geht (DSGVO/GDPR).
+        // scanPII (block) für User-Elemente, redactPII (replace) für fremde Seiten.
+        const safeHtml = redactPII(html)
+
+        const structure = extractStructure(safeHtml)
+        const styleContext = extractStyleContext(safeHtml)
 
         return {
-          html: stripForCRO(html),
+          html: stripForCRO(safeHtml),
           structure,
           styleContext,
-          title: html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim() ?? '',
+          title: safeHtml.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim() ?? '',
           url,
           success: true,
         }

@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
-import { scanPII, type PIIFindings, type PIIKey } from '@/lib/pii'
+import { scanPII, PII_PATTERNS, type PIIFindings, type PIIKey } from '@/lib/pii'
 
 export const maxDuration = 60
 

@@ -14,7 +14,7 @@ export interface PIIFindings {
 
 export type PIIKey = keyof PIIFindings
 
-const PII_PATTERNS: Array<{ key: PIIKey; re: RegExp; label: string }> = [
+export const PII_PATTERNS: Array<{ key: PIIKey; re: RegExp; label: string }> = [
   { key: 'emails', re: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, label: 'email addresses' },
   { key: 'phones', re: /(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{3,8}/g, label: 'phone numbers' },
   { key: 'ibans', re: /\b[A-Z]{2}\d{2}[A-Z0-9]{1,30}\b/g, label: 'IBANs' },

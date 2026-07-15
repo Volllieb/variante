@@ -44,6 +44,8 @@ export function stripForCRO(html: string): string {
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
   // Entferne Kommentare
   cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '')
+  // PII-Redaktion (DSGVO/GDPR): Emails, Telefonnummern etc. durch Platzhalter ersetzen
+  cleaned = redactPII(cleaned)
   return cleaned.slice(0, MAX_HTML_BYTES)
 }
 
