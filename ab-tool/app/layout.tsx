@@ -2,6 +2,7 @@ import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ToastProvider } from '@/app/components/Toast'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
@@ -100,7 +101,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* Plain script tags — zero client JS (React wrappers force hydration of the entire tree).
             Vercel scripts use History API for SPA navigation detection, no React needed. */}
         <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics/next" />
-        <script defer src="/_vercel/speed-insights/script.js" data-sdkn="@vercel/speed-insights/next" />
+        <SpeedInsights />
       </body>
     </html>
   )
