@@ -1,4 +1,5 @@
-// Landingpage-Copy DE/EN — ICP: Designer ohne Dev-Zugriff (WordPress, Next.js, Shopify)
+// Landingpage-Copy DE/EN — ICP: Designer, Indie Hacker, Gründer (solopreneurs & small teams)
+// Agent-first: autonomer KI-Agent analysiert, generiert Varianten, misst & rolled aus
 // Deutsch = Default (DACH-ICP), Englisch = Fallback für internationale Reach
 
 export type Lang = 'de' | 'en'
@@ -101,22 +102,22 @@ const de: LandingCopy = {
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
-  heroH1: 'Dein Kunde will Daten. Du hast keinen Dev. Jetzt hast du beides.',
+  heroH1: 'Dein KI-Agent für A/B-Tests. Kein Dev. Kein Aufwand. Nur Ergebnisse.',
   heroSub:
-    'Klick auf ein Element der Live-Seite deines Kunden. Redesign in Figma. Die KI baut Variante B — pixelgenau, mit den bestehenden Breakpoints. WordPress, Next.js, Shopify — überall, wo du ein Script-Tag einfügen kannst. Kein FTP, kein Dev-Briefing, kein "geht nicht".',
+    'Sag dem Agenten, was du verbessern willst — Hero, Pricing, CTAs. Er analysiert deine Seite, schreibt Varianten, misst Conversions und rollt den Winner aus. Während du das nächste Feature baust. Für jede Website, jeden Stack, jedes Team ab einer Person.',
   heroCta: 'Kostenlos starten — kein Entwickler nötig',
   heroFootnote: 'Keine Kreditkarte · 1 kostenloses Experiment',
 
   sectionHow: 'So funktioniert\'s',
-  step1Title: 'Der Kunde hat dir nur WordPress-Admin gegeben. Reicht.',
+  step1Title: 'Deine Seite. Deine Regeln. Dein Agent.',
   step1Body:
-    'Kein FTP. Kein Dev, den du briefen musst. Kein "ich schau mir das nächste Woche an". Klick das Element an, das du testen willst — der Picker erfasst HTML, CSS und den Framework-Kontext. Du entscheidest, was getestet wird. In 2 Minuten.',
-  step2Title: 'Dein Design. Pixelgenau. Ohne Kompromisse.',
+    'Sag dem Agenten, welche Seite er optimieren soll. Er analysiert automatisch den Aufbau, die Conversion-Pfade und die UX — völlig egal ob WordPress, Next.js, Shopify oder Custom. Du musst nicht wissen, wie der Code aussieht.',
+  step2Title: 'Varianten entstehen von allein.',
   step2Body:
-    'Redesign in Figma — deine Tools, dein Workflow. Die KI liest Original und Redesign, schreibt Variante B passend zu den bestehenden Styles und Breakpoints deines Kunden. Kein Dev, der sagt "das geht so nicht" oder "dafür hab ich jetzt keine Zeit".',
-  step3Title: 'Live beim Kunden. Ohne dass er was merkt.',
+    'Der Agent generiert Varianten basierend auf dem, was er gelernt hat — bessere CTAs, klarere Hierarchie, optimierte Texte. Du reviewst, was live gehen soll. Der Rest passiert automatisch.',
+  step3Title: 'Daten statt Bauchgefühl. In Tagen, nicht Wochen.',
   step3Body:
-    'Ein Snippet — fertig. Variante serviert die richtige Version, trackt Conversions, liefert dir die Daten, die dein Kunde seit Monaten haben will. Ohne Deployment-Pipeline. Ohne "kannst du mir kurz FTP-Zugang geben?".',
+    'Ein Snippet in deine Seite — fertig. Der Agent serviert Varianten, trackt Conversions, errechnet Signifikanz und rollt den Winner aus. Ohne dass du eine Pipeline anfassen musst.',
   platformNote:
     'Ein Snippet. Funktioniert mit',
   platformItems: 'WordPress, React, Next.js, Shopify, Webflow, Custom HTML',
@@ -134,15 +135,15 @@ const de: LandingCopy = {
 
   freeFeatures: [
     '1 aktives Experiment — teste deine erste Idee, kostenlos.',
-    'KI-Variantengenerierung — pixelgenau aus Figma.',
-    'Live-Page-Editing in Figma — Seite pullen, editieren, A/B-testen statt speichern.',
+    'KI-Agent analysiert deine Seite — findet automatisch Optimierungspotenzial.',
+    'Autonome Variantengenerierung — der Agent schreibt den Code.',
     'Ganze Sektionen testen — Hero, Pricing, CTAs. Nicht nur einzelne Elemente.',
     'Conversion-Tracking — eingebaut, kein Extra-Setup.',
     '"Powered by Variante"-Badge — deine Besucher werden zu Empfehlungen.',
   ],
   proFeatures: [
     'Unbegrenzt Experimente',
-    'KI-Variantengenerierung',
+    'Autonomer KI-Agent — Varianten ohne manuelles Briefing',
     'Dynamic Content — verschiedene Inhalte für YouTube-, Google- & Co.-Besucher',
     'Preis-Testing — experimentiere mit Preisplänen und Preispunkten',
     'Statistische Signifikanz — weiß, wann du aufhören kannst zu testen',
@@ -172,46 +173,46 @@ const de: LandingCopy = {
   sectionTrust: '',
   trustItems: [
     { label: 'Keine Kreditkarte', text: 'Jederzeit kündbar. Kein Lock-in.' },
-    { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact für deine Kunden.' },
+    { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact.' },
     { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten. BayLDA-ready.' },
-    { label: 'Figma-nativ', text: 'Dein Workflow. Deine Tools. Kein Dev-Ticket.' },
+    { label: 'KI-Agent', text: 'Autonom. Kein Briefing. Kein Dev-Ticket. Kein Mikromanagement.' },
   ],
 
   // Works-with logos
   sectionWorks: 'Funktioniert mit deinem Stack',
   worksLabel: 'Ein Snippet — überall wo du ein Script-Tag einfügen kannst',
 
-  // Figma Community
-  figmaCommunityTitle: 'Live in der Figma Community',
-  figmaCommunityText: 'Das Plugin ist live in der Figma Community — direkt aus deinem Editor installierbar. Designer testen bereits ohne auf Entwickler zu warten.',
-  figmaCommunityLinkText: 'Plugin in Figma öffnen →',
+  // Figma Community (repurposed: Agent social proof)
+  figmaCommunityTitle: 'Dein autonomer Optimierungs-Agent',
+  figmaCommunityText: 'Kein Figma nötig. Kein manuelles Redesign. Der Agent analysiert deine Seite, findet Schwachstellen, schreibt Varianten und misst Ergebnisse — alles automatisch. Du triffst die Entscheidungen, der Agent macht die Arbeit.',
+  figmaCommunityLinkText: 'Playground ausprobieren →',
 
   // Solo-dev transparency + implied usage
-  soloDevTitle: 'Gebaut von einem Designer, für Designer.',
-  soloDevBody: 'Kein VC, kein 20-Personen-Team. Ein Solo-Dev aus Bayern, der die "kannst du das mal eben testen?"-Frage satt hatte — und die "und, hat das neue Design was gebracht?"-Frage gleich mit. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
-  impliedUsersText: 'Schließ dich Designern an, die testen ohne auf Dev-Tickets zu warten — und ihren Kunden endlich Daten statt Bauchgefühl liefern.',
+  soloDevTitle: 'Gebaut für Builder. Designer, Indie Hacker, Gründer.',
+  soloDevBody: 'Kein VC, kein 20-Personen-Team. Ein Solo-Dev aus Bayern, der selbst Produkte launched und die "soll ich das testen oder shippen?"-Frage kennt. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
+  impliedUsersText: 'Schließ dich Designern, Indie Hackern und Gründern an, die shippen UND testen — ohne Dev-Team.',
 
   sectionFaq: 'Häufige Fragen',
   faqs: [
     {
-      q: 'Bremst das Snippet die Seite meines Kunden aus?',
-      a: 'Nein. Unter 5 KB, lädt asynchron, blockiert nie das Rendering. Die Core Web Vitals deines Kunden bleiben unberührt — und du kriegst keinen Anruf von wegen "die Seite ist langsam".',
+      q: 'Bremst das Snippet meine Seite aus?',
+      a: 'Nein. Unter 5 KB, lädt asynchron, blockiert nie das Rendering. Deine Core Web Vitals bleiben unberührt.',
     },
     {
-      q: 'Was, wenn die KI fehlerhaften Code generiert?',
-      a: 'Du prüfst jede Variante, bevor sie live geht. Preview, Diff, Freigabe — nichts geht ohne dein OK raus. Du bleibst in Control.',
+      q: 'Muss ich dem Agenten genau sagen, was er tun soll?',
+      a: 'Nur grob. "Optimier meine Pricing-Page" reicht. Der Agent analysiert eigenständig, schreibt Varianten, du reviewst — fertig. Kein Prompt-Engineering nötig.',
     },
     {
-      q: 'Funktioniert das mit dem Stack meiner Kunden?',
-      a: 'WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, Custom HTML — wenn du ein &lt;script&gt;-Tag einfügen kannst, funktioniert es. Die meisten Kunden-Projekte haben irgendwo ein Custom-Code-Feld.',
+      q: 'Funktioniert das mit meinem Stack?',
+      a: 'WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, Custom HTML — wenn du ein &lt;script&gt;-Tag einfügen kannst, funktioniert es.',
     },
     {
       q: 'Wieso nicht einfach Optimizely oder VWO?',
-      a: 'Weil du dafür einen Entwickler brauchst, der Tracking-Pläne schreibt und "Enterprise"-Sales-Calls führt. Variante: Element anklicken, in Figma redesignen, live. Ohne Dev. Ohne Sales-Call.',
+      a: 'Weil du dafür einen Entwickler und einen Tracking-Plan brauchst. Variante: Agent anschalten, Varianten reviewen, Winner ausrollen. Ohne Dev. Ohne Enterprise-Sales-Call.',
     },
     {
-      q: 'Mein Kunde fragt ständig "was bringt das neue Design?" — hilft das?',
-      a: 'Genau dafür ist es gebaut. Statt "sieht besser aus" lieferst du Zahlen: Variante B hatte 23 % mehr Klicks. Dein Kunde sieht ROI, du siehst Folgeaufträge.',
+      q: 'Ich bin Solo-Founder — lohnt sich das?',
+      a: 'Gerade dann. Deine Zeit ist zu wertvoll für manuelles A/B-Testing. Der Agent arbeitet, während du baust, verkaufst oder schläfst. Ein Experiment kann dir sagen, ob deine Pricing-Page 20 % mehr converted — das ist der ROI eines Nachmittags.',
     },
   ],
 
@@ -223,19 +224,19 @@ const de: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'A/B-Tests für Webdesigner ohne Dev-Zugriff — aus Figma, für WordPress/Next.js/Shopify, kein Entwickler, kein Deployment.',
+    'A/B-Tests per KI-Agent — für Designer, Indie Hacker & Gründer. Kein Entwickler, kein Deployment.',
   jsonldProDescription: 'Unbegrenzt Experimente, Signifikanz-Analyse, Auto-Winner',
 
-  metaTitle: 'A/B-Tests für Webdesigner — Kein Entwickler nötig | Variante',
+  metaTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
   metaDescription:
-    'A/B-Tests für Designer ohne Dev-Zugriff. Element anklicken, in Figma redesignen, KI generiert Variante B. Für WordPress, Next.js, Shopify. Kein Entwickler, kein Deployment.',
-  ogTitle: 'A/B-Tests für Webdesigner — Kein Entwickler nötig | Variante',
+    'Autonomer KI-Agent für A/B-Tests. Seite analysieren, Varianten generieren, Conversions messen — kein Entwickler nötig. Für WordPress, Next.js, Shopify.',
+  ogTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
   ogDescription:
-    'Dein Kunde will Daten. Du hast keinen Dev. Klick → Redesign → Live. WordPress, Next.js, Shopify.',
-  twitterTitle: 'A/B-Tests für Webdesigner — Kein Entwickler nötig | Variante',
+    'Dein KI-Agent optimiert deine Seite. Varianten generieren, testen, Winner ausrollen — autonom.',
+  twitterTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
   twitterDescription:
-    'A/B-Tests für Designer ohne Dev-Zugriff. Aus Figma, für Kundenprojekte. Kein Entwickler nötig.',
-  ogImageAlt: 'Variante — A/B-Testing aus Figma für Webdesigner',
+    'Autonomer KI-Agent für A/B-Tests. Kein Entwickler nötig.',
+  ogImageAlt: 'Variante — A/B-Testing per KI-Agent',
 }
 
 const en: LandingCopy = {
@@ -243,25 +244,25 @@ const en: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Sign up — free',
 
-  heroH1: 'A/B testing for designers who don\'t have a developer.',
+  heroH1: 'Your AI agent for A/B testing. No dev. No busywork. Just results.',
   heroSub:
-    'Click any element on your live site. Redesign in Figma. AI builds Variant B — pixel-perfect, with your breakpoints. Works with WordPress, Next.js, Shopify — anywhere you can paste a script tag.',
+    'Tell the agent what to improve — hero, pricing, CTAs. It analyzes your site, writes variants, tracks conversions, and ships the winner. While you build the next feature. For any website, any stack, any team of one.',
   heroCta: 'Start free — no developer needed',
   heroFootnote: 'No credit card · 1 free experiment',
 
   sectionHow: 'How it works',
-  step1Title: 'No dev. No FTP. No briefing.',
+  step1Title: 'Your site. Your rules. Your agent.',
   step1Body:
-    'Client only gave you WordPress admin? Or the Shopify login? No problem. Click the element you want to test — the picker captures HTML, CSS, and framework context. You decide what gets tested.',
-  step2Title: 'Your design, pixel‑perfect.',
+    'Tell the agent which page to optimize. It automatically analyzes structure, conversion paths, and UX — WordPress, Next.js, Shopify, custom, doesn\'t matter. You don\'t need to know what the code looks like.',
+  step2Title: 'Variants generate themselves.',
   step2Body:
-    'Redesign in Figma — your tools, your workflow. AI reads both sides and writes Variant B matching your existing styles and breakpoints. No developer telling you "can\'t be done."',
-  step3Title: 'Live in 60 seconds.',
+    'The agent writes variants based on what it learned — better CTAs, clearer hierarchy, optimized copy. You review what ships. Everything else is automatic.',
+  step3Title: 'Data over gut feel. Days, not weeks.',
   step3Body:
-    'Paste one snippet into the site — done. It serves the right variant, tracks conversions, reports results. No deploy pipeline. Your client won\'t even notice.',
+    'One snippet into your site — done. The agent serves variants, tracks conversions, computes significance, and rolls out the winner. Without touching a pipeline.',
   platformNote:
     'One snippet. Works with',
-  platformItems: 'WordPress, React, Next.js, Shopify, Custom HTML',
+  platformItems: 'WordPress, React, Next.js, Shopify, Webflow, Custom HTML',
 
   sectionPricing: 'Pricing',
   freeLabel: 'Free',
@@ -276,15 +277,15 @@ const en: LandingCopy = {
 
   freeFeatures: [
     '1 active experiment — test your first idea, free.',
-    'AI variant generation — pixel-perfect from Figma.',
-    'Live-page editing in Figma — pull your site, edit, A/B test instead of save.',
+    'AI agent analyzes your site — finds optimization opportunities automatically.',
+    'Autonomous variant generation — the agent writes the code.',
     'Test full sections — hero, pricing, CTAs. Not just single elements.',
     'Conversion tracking — built-in, no extra setup.',
     '"Powered by Variante" badge — your visitors become your referrals.',
   ],
   proFeatures: [
     'Unlimited experiments',
-    'AI variant generation',
+    'Autonomous AI agent — variants without manual briefing',
     'Dynamic content — different pages for YouTube, Google & co. visitors',
     'Price testing — experiment with pricing plans and price points',
     'Statistical significance — know when to stop testing',
@@ -316,40 +317,44 @@ const en: LandingCopy = {
     { label: 'No credit card', text: 'Cancel anytime. No lock-in.' },
     { label: '5 KB snippet', text: 'Loads async. Zero performance impact.' },
     { label: 'GDPR-compliant', text: 'EU hosting. No third-country data.' },
-    { label: 'Figma-native', text: 'No dev ticket. Your workflow, your tools.' },
+    { label: 'AI Agent', text: 'Autonomous. No briefing. No dev ticket. No micromanagement.' },
   ],
 
   // Works-with logos
   sectionWorks: 'Works with your stack',
   worksLabel: 'One snippet — anywhere you can paste a script tag',
 
-  // Figma Community
-  figmaCommunityTitle: 'Live on Figma Community',
-  figmaCommunityText: 'The plugin is live on the Figma Community — install it right from your editor. Designers are already testing without waiting on developers.',
-  figmaCommunityLinkText: 'Open plugin in Figma →',
+  // Figma Community (repurposed: Agent social proof)
+  figmaCommunityTitle: 'Your autonomous optimization agent',
+  figmaCommunityText: 'No Figma required. No manual redesign. The agent analyzes your site, finds weak spots, writes variants, and measures results — all automatically. You make the calls, the agent does the work.',
+  figmaCommunityLinkText: 'Try the playground →',
 
   // Solo-dev transparency + implied usage
-  soloDevTitle: 'Built by a designer, for designers.',
-  soloDevBody: 'No VC, no 20-person team. A solo dev from Bavaria who got tired of the "can you just quickly test this?" question. Every line of code is documented, every update public in the changelog.',
-  impliedUsersText: 'Join designers who test without waiting on dev tickets.',
+  soloDevTitle: 'Built for builders. Designers, indie hackers, founders.',
+  soloDevBody: 'No VC, no 20-person team. A solo dev from Bavaria who launches products himself and knows the "should I test this or just ship it?" dilemma. Every line of code is documented, every update public in the changelog.',
+  impliedUsersText: 'Join designers, indie hackers, and founders who ship AND test — without a dev team.',
 
   sectionFaq: 'You might be wondering',
   faqs: [
     {
       q: 'Does the snippet slow down my site?',
-      a: 'No. It\'s under 5 KB, loads asynchronously, and never blocks rendering. Your Core Web Vitals stay untouched.',
+      a: 'No. Under 5 KB, loads async, never blocks rendering. Your Core Web Vitals stay untouched.',
     },
     {
-      q: 'What if the AI generates broken code?',
-      a: 'You review every variant before it goes live. Preview, diff, approve — nothing ships without your sign-off.',
+      q: 'Do I need to tell the agent exactly what to do?',
+      a: 'Just roughly. "Optimize my pricing page" is enough. The agent analyzes independently, writes variants, you review — done. No prompt engineering needed.',
     },
     {
       q: 'Does this work with my stack?',
-      a: 'If you can paste a &lt;script&gt; tag, it works. WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, custom HTML — all supported.',
+      a: 'WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, custom HTML — if you can paste a &lt;script&gt; tag, it works.',
     },
     {
       q: 'How is this different from Optimizely or VWO?',
-      a: 'No developer setup. No tracking plan. No "enterprise" sales call. Just pick an element, redesign in Figma, ship.',
+      a: 'You\'d need a developer and a tracking plan for those. Variante: turn on the agent, review variants, ship the winner. No dev. No enterprise sales call.',
+    },
+    {
+      q: 'I\'m a solo founder — is this worth it?',
+      a: 'Especially then. Your time is too valuable for manual A/B testing. The agent works while you build, sell, or sleep. One experiment can tell you if your pricing page converts 20% better — that\'s an afternoon\'s ROI.',
     },
   ],
 
@@ -361,19 +366,19 @@ const en: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'A/B testing for designers without dev access — from Figma, no developer, no pipeline.',
+    'AI agent for A/B testing — for designers, indie hackers & founders. No developer, no pipeline.',
   jsonldProDescription: 'Unlimited experiments, significance analysis, auto-winner detection',
 
-  metaTitle: 'A/B Testing for Designers — No Developer Needed | Variante',
+  metaTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
   metaDescription:
-    'A/B testing for designers without dev access. Click any element, redesign in Figma, AI ships Variant B. No developer, no pipeline.',
-  ogTitle: 'A/B Testing for Designers — No Developer Needed | Variante',
+    'Autonomous AI agent for A/B testing. Analyze your site, generate variants, track conversions — no developer needed. Works with WordPress, Next.js, Shopify.',
+  ogTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
   ogDescription:
-    'A/B testing for designers without dev access. Click → Redesign → Ship. No developer needed.',
-  twitterTitle: 'A/B Testing for Designers — No Developer Needed | Variante',
+    'Your AI agent optimizes your site. Generate variants, run tests, ship winners — autonomously.',
+  twitterTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
   twitterDescription:
-    'A/B testing for designers without dev access. No developer needed.',
-  ogImageAlt: 'Variante — A/B Testing from Figma',
+    'Autonomous AI agent for A/B testing. No developer needed.',
+  ogImageAlt: 'Variante — AI Agent for A/B Testing',
 }
 
 // Helper: detect language from request headers

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette, FigmaIcon } from '@/components/LandingIcons'
+import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos } from '@/components/TechLogos'
 import LangToggle from './components/LangToggle'
 import { getLang, getCopy } from '@/lib/landingCopy'
@@ -189,23 +189,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Social Proof: Figma Community + Solo Dev ── */}
+      {/* ── Social Proof: Agent + Solo Dev ── */}
       <section className="px-4 py-10 sm:px-6 sm:py-14">
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Figma Community */}
+            {/* Agent */}
             <div className="rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
               <div className="mb-3 flex items-center gap-2">
-                <FigmaIcon className="h-5 w-5 text-white/70" />
+                <Sparkles className="h-5 w-5 text-white/70" />
                 <h3 className="text-sm font-semibold text-white">{cp.figmaCommunityTitle}</h3>
               </div>
               <p className="text-sm text-white/50 leading-relaxed">
                 {cp.figmaCommunityText}
               </p>
               <a
-                href="https://www.figma.com/community/plugin/1653734891132085565"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#demo"
                 className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white/80"
               >
                 {cp.figmaCommunityLinkText}
