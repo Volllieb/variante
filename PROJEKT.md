@@ -9,11 +9,11 @@
 
 | Feld | Wert |
 |---|---|
-| **Produkt** | variante — Designer-natives A/B-Testing aus Figma, kein Dev nötig |
-| **ICP** | Designer & kleine Agenturen auf Plattformen **ohne** natives A/B (Custom HTML, WordPress, Next/React, Shopify) |
+| **Produkt** | variante — autonomer KI-Agent für A/B-Testing, kein Dev nötig |
+| **ICP** | Designer, Indie Hacker & Gründer (Solopreneure & kleine Teams) auf beliebigen Plattformen (Custom HTML, WordPress, Next/React, Shopify) |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 15.07.2026 — 🌐 **Multi-Domain-Support** — Plan-basierte Domain-Limits (Free=1, Pro=5, Agency=100). 🎉 Erster organischer User. 🤖 **"What to test next" AI-Suggestions** + 🧠 **Autonomer CRO-Agent** live. 🚀 **Onboarding v2: Choice-Screen** — User wählt nach ab.js-Installation zwischen "Start with Figma" (Plugin) und "Start with Auto-Optimize" (AI scannt Site, erstellt Tests). Kein Figma-Plugin-Gate mehr für Free. 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs. 📧 **Weekly Digest Cron**. 🎨 **Onboarding-Illustrationen** — Inline-SVG-Animationen (ConnectChecking, ConnectVerified) im EmptyState-Dashboard, 5-State-Machine ConnectWebsite statt totem DomainGate. |
+| **Stand** | 15.07.2026 — � **ICP-Pivot** — Zielgruppe erweitert auf Designer + Indie Hacker + Gründer. Copywriting auf autonomen KI-Agenten umgestellt (statt Figma-first). �🌐 **Multi-Domain-Support** — Plan-basierte Domain-Limits (Free=1, Pro=5, Agency=100). 🎉 Erster organischer User. 🤖 **"What to test next" AI-Suggestions** + 🧠 **Autonomer CRO-Agent** live. 🚀 **Onboarding v2: Choice-Screen** — User wählt nach ab.js-Installation zwischen "Start with Figma" (Plugin) und "Start with Auto-Optimize" (AI scannt Site, erstellt Tests). Kein Figma-Plugin-Gate mehr für Free. 🧪 **E2E-Test-Suite mit Playwright** — 4 Specs. 📧 **Weekly Digest Cron**. 🎨 **Onboarding-Illustrationen** — Inline-SVG-Animationen (ConnectChecking, ConnectVerified) im EmptyState-Dashboard, 5-State-Machine ConnectWebsite statt totem DomainGate. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
