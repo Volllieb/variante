@@ -29,6 +29,9 @@ import {
   RefreshCw,
   Plus,
   ArrowRight,
+  Sparkles,
+  Code2,
+  Play,
 } from 'lucide-react'
 
 /* ── Token palette (docs/brandguidelines.md §2) ── */
@@ -40,6 +43,52 @@ const T = {
   pro: '#f5a623',
   err: '#f5455c',
 }
+
+/* ── Demo data — sample tests shown when user has none ── */
+const DEMO_TESTS: TestRow[] = [
+  {
+    id: 'demo-1',
+    name: 'Hero CTA — "Get Started" vs "Try Free"',
+    site_url: 'demo.getvariante.com',
+    status: 'active',
+    health_status: 'healthy',
+    health_issues: null,
+    visitors_a: 1247,
+    visitors_b: 1231,
+    conversions_a: 53,
+    conversions_b: 78,
+    winner: null,
+    created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+  },
+  {
+    id: 'demo-2',
+    name: 'Pricing headline — benefit vs feature',
+    site_url: 'demo.getvariante.com',
+    status: 'done',
+    health_status: 'healthy',
+    health_issues: null,
+    visitors_a: 3420,
+    visitors_b: 3398,
+    conversions_a: 89,
+    conversions_b: 134,
+    winner: 'B',
+    created_at: new Date(Date.now() - 21 * 86400000).toISOString(),
+  },
+  {
+    id: 'demo-3',
+    name: 'Signup form — 3 fields vs 2 fields',
+    site_url: 'demo.getvariante.com',
+    status: 'paused',
+    health_status: 'warning',
+    health_issues: ['missing_goal'],
+    visitors_a: 560,
+    visitors_b: 0,
+    conversions_a: 12,
+    conversions_b: 0,
+    winner: null,
+    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+  },
+]
 
 export function DashboardClient({
   plan,
@@ -66,6 +115,7 @@ export function DashboardClient({
   const [busy, setBusy] = useState(false)
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [billingError, setBillingError] = useState<string | null>(null)
+  const [showDemo, setShowDemo] = useState(false)
   const isPro = plan === 'pro' || plan === 'agency'
   const setupComplete = hasVerifiedDomain && hasFigmaPlugin
 
@@ -132,13 +182,15 @@ export function DashboardClient({
     }
   }
 
-  /* ── Aggregate stats ── */
-  const totalVisitors = testList.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
-  const totalConversions = testList.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
-  const running = testList.filter((t) => t.status === 'active').length
+  /* ── Aggregate stats (use demo data when enabled and no real tests) ── */
+  const demoActive = showDemo && testList.length === 0
+  const activeTests = demoActive ? DEMO_TESTS : testList
+  const totalVisitors = activeTests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
+  const totalConversions = activeTests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
+  const running = activeTests.filter((t) => t.status === 'active').length
   const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
 
-  const lifts = testList
+  const lifts = activeTests
     .map((t) => {
       const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
       const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
@@ -166,6 +218,19 @@ export function DashboardClient({
             <X className="h-4 w-4 shrink-0 text-[#f5455c]" />
             <p className="flex-1 text-[13px] text-[#f5455c]">{billingError}</p>
             <button onClick={() => setBillingError(null)} className="cursor-pointer text-[#f5455c]/60 hover:text-[#f5455c]">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Demo mode banner */}
+        {demoActive && (
+          <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[#f5a623]/20 bg-[#f5a623]/5 px-5 py-3.5">
+            <Sparkles className="h-4 w-4 shrink-0 text-[#f5a623]" />
+            <p className="flex-1 text-[13px] text-[#f5a623]">
+              <strong className="font-semibold">Demo mode</strong> — sample data. These aren&apos;t real tests.
+            </p>
+            <button onClick={() => setShowDemo(false)} className="cursor-pointer text-[#f5a623]/60 hover:text-[#f5a623]">
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -305,9 +370,15 @@ export function DashboardClient({
               />
             )}
 
-            {/* Test grid or empty */}
-            {testList.length === 0 ? (
-              <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} />
+            {/* Test grid, empty state, or demo cards */}
+            {demoActive ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {DEMO_TESTS.map((t) => (
+                  <TestCard key={t.id} t={t} highlight={false} onDelete={handleDeleteTest} from="overview" />
+                ))}
+              </div>
+            ) : testList.length === 0 ? (
+              <EmptyState onNewTest={() => setNewTestOpen(true)} hasFigmaPlugin={hasFigmaPlugin} hasVerifiedDomain={hasVerifiedDomain} onLoadDemo={() => setShowDemo(true)} />
             ) : filteredTests.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
                 <p className="text-[13px] font-medium text-[#ededed]/62">
@@ -359,57 +430,118 @@ function MetricRow({
   )
 }
 
-function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain }: { onNewTest: () => void; hasFigmaPlugin: boolean; hasVerifiedDomain: boolean }) {
+function EmptyState({ onNewTest, hasFigmaPlugin, hasVerifiedDomain, onLoadDemo }: { onNewTest: () => void; hasFigmaPlugin: boolean; hasVerifiedDomain: boolean; onLoadDemo: () => void }) {
+  const setupReady = hasVerifiedDomain && hasFigmaPlugin
+
   return (
-    <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-white/[0.18] py-16 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/[0.04]">
-        <FlaskConical className="h-5 w-5 text-[#ededed]/40" />
+    <div className="space-y-4">
+      {/* Demo card — always shown, most prominent */}
+      <div className="rounded-[10px] border border-[#f5a623]/15 bg-[#f5a623]/[0.03] p-5">
+        <div className="flex items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-[#f5a623]/10">
+            <Sparkles className="h-5 w-5 text-[#f5a623]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-[#ededed]">See how it works — in 10 seconds</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-[#ededed]/60">
+              Load sample test data and explore the full dashboard. No setup, no snippet, no real visitors.
+            </p>
+            <button
+              onClick={onLoadDemo}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Load demo data
+            </button>
+          </div>
+        </div>
       </div>
-      <p className="mt-4 text-[14px] font-medium text-[#ededed]">No tests yet</p>
-      <p className="mt-1.5 max-w-[340px] text-[12px] leading-relaxed text-[#ededed]/60">
-        {!hasVerifiedDomain
-          ? 'Add your website first — tests only run on verified domains.'
-          : hasFigmaPlugin
-            ? 'Create your first variant in Figma and push it here.'
-            : 'Run the setup health check first — it walks you through snippet, plugin, and your first test.'}
-      </p>
-      <div className="mt-5 flex items-center gap-3">
-        {!hasVerifiedDomain && (
-          <Link
-            href="/dashboard/account"
-            className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
-          >
-            <Globe className="h-3.5 w-3.5" />
-            Add website
-          </Link>
-        )}
-        {hasVerifiedDomain && !hasFigmaPlugin && (
-          <Link
-            href="/dashboard/setup"
-            className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.18] px-3.5 py-2 text-[12px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]"
-          >
-            <HeartPulse className="h-3.5 w-3.5" />
-            Run setup check
-          </Link>
-        )}
-        {hasVerifiedDomain && hasFigmaPlugin && (
-          <button
-            onClick={onNewTest}
-            className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New test
-          </button>
-        )}
+
+      {/* Quick-start guide */}
+      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <p className="text-[13px] font-semibold text-[#ededed]">Quick-start guide</p>
+        <p className="mt-1 text-[12px] text-[#ededed]/60">Three steps to your first real test.</p>
+
+        <div className="mt-4 space-y-2.5">
+          {/* Step 1: Add website */}
+          <StepRow
+            num={1}
+            label="Add your website"
+            hint="Connect a domain to run tests on"
+            done={hasVerifiedDomain}
+            action={hasVerifiedDomain ? null : { label: 'Add website', href: '/dashboard/account' }}
+            icon={Globe}
+          />
+          {/* Step 2: Install snippet */}
+          <StepRow
+            num={2}
+            label="Install the snippet"
+            hint="One line in &lt;head&gt; enables A/B testing"
+            done={hasFigmaPlugin}
+            action={hasFigmaPlugin ? null : { label: 'Run setup check', href: '/dashboard/setup' }}
+            icon={Code2}
+          />
+          {/* Step 3: Create first test */}
+          <StepRow
+            num={3}
+            label="Create your first test"
+            hint="Pick an element, design a variant, ship it"
+            done={false}
+            action={setupReady ? { label: 'New test', onClick: onNewTest } : null}
+            icon={FlaskConical}
+            locked={!setupReady}
+          />
+        </div>
       </div>
+
+      {/* Playground link — secondary */}
       <a
         href="/playground"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-[#ededed]/60 underline transition-colors hover:text-[#ededed]"
+        className="flex items-center gap-2 rounded-[10px] border border-dashed border-white/[0.10] p-4 text-[12px] text-[#ededed]/60 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
       >
-        🏖️ Not sure yet? See the full workflow in the Playground →
+        <Play className="h-4 w-4 shrink-0" />
+        <span>Want the full interactive walkthrough? <span className="underline">Open the Playground →</span></span>
       </a>
+    </div>
+  )
+}
+
+function StepRow({ num, label, hint, done, action, icon: Icon, locked }: {
+  num: number
+  label: string
+  hint: string
+  done: boolean
+  action: { label: string; href?: string; onClick?: () => void } | null
+  icon: React.ComponentType<{ className?: string }>
+  locked?: boolean
+}) {
+  return (
+    <div className={`flex items-center gap-3 rounded-[8px] border px-4 py-3 ${
+      done ? 'border-[#2fd76c]/15 bg-[#2fd76c]/[0.04]' : 'border-white/[0.06] bg-[#111111]'
+    }`}>
+      <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
+        done ? 'bg-[#2fd76c] text-black' : locked ? 'bg-white/[0.06] text-[#ededed]/30' : 'bg-white/[0.08] text-[#ededed]'
+      }`}>
+        {done ? <Check className="h-3 w-3" /> : num}
+      </div>
+      <Icon className={`h-3.5 w-3.5 shrink-0 ${done ? 'text-[#2fd76c]/60' : locked ? 'text-[#ededed]/20' : 'text-[#ededed]/40'}`} />
+      <div className="min-w-0 flex-1">
+        <p className={`text-[12px] font-medium ${locked ? 'text-[#ededed]/30' : done ? 'text-[#2fd76c]' : 'text-[#ededed]'}`}>{label}</p>
+        <p className={`text-[11px] ${done ? 'text-[#2fd76c]/50' : 'text-[#ededed]/40'}`}>{hint}</p>
+      </div>
+      {action && !done && (
+        action.href ? (
+          <Link href={action.href} className="shrink-0 rounded-[5px] border border-white/[0.12] px-2.5 py-1.5 text-[11px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]">
+            {action.label}
+          </Link>
+        ) : action.onClick ? (
+          <button onClick={action.onClick} className="shrink-0 cursor-pointer rounded-[5px] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85">
+            {action.label}
+          </button>
+        ) : null
+      )}
     </div>
   )
 }

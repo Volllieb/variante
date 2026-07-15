@@ -12,14 +12,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ testId: 
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, OPTIONS')
 
-  // Pro-Gating
-  if (user.plan !== 'pro' && user.plan !== 'agency') {
-    return Response.json(
-      { error: 'plan_limit', message: 'Analytics requires Pro plan. Upgrade to access time-series data.', upgrade: true },
-      { status: 402, headers: corsHeaders('GET, OPTIONS') }
-    )
-  }
-
   const { testId } = await params
 
   // Security: nur eigene Tests
