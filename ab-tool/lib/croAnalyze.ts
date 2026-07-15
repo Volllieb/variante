@@ -481,10 +481,10 @@ export async function analyzePage(
 export async function getCachedInsights(
   userId: string,
   pageUrl: string
-): Promise<{ suggestions: CROSuggestion[]; analyzedAt: string } | null> {
+): Promise<{ suggestions: CROSuggestion[]; analyzedAt: string; testResults?: Record<string, unknown>[] } | null> {
   const { data } = await supabase
     .from('site_insights')
-    .select('top_opportunities, analyzed_at')
+    .select('top_opportunities, analyzed_at, test_results_json')
     .eq('user_id', userId)
     .eq('page_url', pageUrl)
     .maybeSingle()
@@ -497,6 +497,7 @@ export async function getCachedInsights(
   return {
     suggestions: data.top_opportunities as CROSuggestion[],
     analyzedAt: data.analyzed_at,
+    testResults: (data.test_results_json as Record<string, unknown>[]) ?? undefined,
   }
 }
 
@@ -522,7 +523,4 @@ export async function cacheInsights(
   }, { onConflict: 'user_id, domain, page_url' })
 
   if (error) safeError('cacheInsights-upsert', error)
-}
-
-  return parsed.suggestions?.slice(0, 4) ?? []
 }

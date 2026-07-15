@@ -10,7 +10,8 @@ import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
 import { safeError } from '@/lib/safeLog'
 import type { ApiUser } from '@/lib/auth'
 import { stripForCRO, extractStructure, extractStyleContext, analyzePage } from '@/lib/croAnalyze'
-import { generateVariantText } from '@/lib/generateVariantText'import { redactPII } from '@/lib/pii'
+import { generateVariantText } from '@/lib/generateVariantText'
+import { redactPII } from '@/lib/pii'
 export function makeAgentTools(user: ApiUser) {
   // ─── Tool 1: fetchSite ───
 

@@ -3,6 +3,16 @@ import { determineWinner, calcSignificance } from '@/lib/significance'
 import { safeError } from '@/lib/safeLog'
 import { sendEmail } from '@/lib/email'
 
+// Extrahiert Domain aus einer URL (ohne Protokoll, Pfad, Port).
+// "https://www.example.com/page?q=1" → "example.com"
+function extractDomain(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const host = new URL(url.startsWith('http') ? url : `https://${url}`).hostname
+    return host.replace(/^www\./, '')
+  } catch { return null }
+}
+
 // POST /api/cron/check-winners — Von Vercel Cron stündlich aufgerufen.
 // Prüft alle aktiven Tests auf neu erkannte Winner und sendet
 // E-Mail-Benachrichtigungen via Resend.
@@ -82,6 +92,41 @@ export async function POST(req: Request) {
       }
 
       notified.push(t.id)
+
+      // ─── Learning Loop v3: Winner-Daten in site_insights schreiben ───
+      const domain = extractDomain(t.site_url)
+      if (domain) {
+        try {
+          const { data: insights } = await supabase
+            .from('site_insights')
+            .select('id, test_results_json')
+            .eq('user_id', t.user_id)
+            .eq('domain', domain)
+            .order('analyzed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          if (insights) {
+            const crA = t.visitors_a > 0 ? t.conversions_a / t.visitors_a : 0
+            const crB = t.visitors_b > 0 ? t.conversions_b / t.visitors_b : 0
+            const uplift = crA > 0 ? Math.round(((crB - crA) / crA) * 10000) / 100 : 0
+            const resultEntry = {
+              test_id: t.id,
+              test_name: t.name,
+              winner,
+              uplift,
+              significance: Math.round(sig * 10000) / 10000,
+              detected_at: new Date().toISOString(),
+            }
+            const existing = (insights.test_results_json as Record<string, unknown>[]) ?? []
+            await supabase.from('site_insights')
+              .update({ test_results_json: [...existing, resultEntry] })
+              .eq('id', insights.id)
+          }
+        } catch (err) {
+          safeError('cron:learning-loop-write', err)
+        }
+      }
     }
   }
 

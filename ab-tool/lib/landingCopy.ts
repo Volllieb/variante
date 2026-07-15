@@ -101,25 +101,25 @@ const de: LandingCopy = {
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
-  heroH1: 'A/B-Tests für Designer, die keinen Entwickler haben.',
+  heroH1: 'Dein Kunde will Daten. Du hast keinen Dev. Jetzt hast du beides.',
   heroSub:
-    'Klick auf ein Element deiner Live-Seite. Redesign in Figma. Die KI baut Variante B — pixelgenau, mit deinen Breakpoints. Funktioniert mit WordPress, Next.js, Shopify — überall, wo du ein Script-Tag einfügen kannst.',
+    'Klick auf ein Element der Live-Seite deines Kunden. Redesign in Figma. Die KI baut Variante B — pixelgenau, mit den bestehenden Breakpoints. WordPress, Next.js, Shopify — überall, wo du ein Script-Tag einfügen kannst. Kein FTP, kein Dev-Briefing, kein "geht nicht".',
   heroCta: 'Kostenlos starten — kein Entwickler nötig',
   heroFootnote: 'Keine Kreditkarte · 1 kostenloses Experiment',
 
   sectionHow: 'So funktioniert\'s',
-  step1Title: 'Kein Dev. Kein FTP. Kein Briefing.',
+  step1Title: 'Der Kunde hat dir nur WordPress-Admin gegeben. Reicht.',
   step1Body:
-    'Dein Kunde hat dir nur WordPress-Admin gegeben? Oder den Shopify-Login? Kein Problem. Klick das Element an, das du testen willst — der Picker erfasst HTML, CSS und den Framework-Kontext. Du entscheidest, was getestet wird.',
-  step2Title: 'Dein Design, pixelgenau.',
+    'Kein FTP. Kein Dev, den du briefen musst. Kein "ich schau mir das nächste Woche an". Klick das Element an, das du testen willst — der Picker erfasst HTML, CSS und den Framework-Kontext. Du entscheidest, was getestet wird. In 2 Minuten.',
+  step2Title: 'Dein Design. Pixelgenau. Ohne Kompromisse.',
   step2Body:
-    'Redesign in Figma — deine Tools, dein Workflow. Die KI liest Original und Redesign, schreibt Variante B passend zu deinen bestehenden Styles und Breakpoints. Kein Dev, der „geht nicht" sagt.',
-  step3Title: 'Live in 60 Sekunden.',
+    'Redesign in Figma — deine Tools, dein Workflow. Die KI liest Original und Redesign, schreibt Variante B passend zu den bestehenden Styles und Breakpoints deines Kunden. Kein Dev, der sagt "das geht so nicht" oder "dafür hab ich jetzt keine Zeit".',
+  step3Title: 'Live beim Kunden. Ohne dass er was merkt.',
   step3Body:
-    'Ein Snippet in die Seite einfügen — fertig. Variante serviert die richtige Version, trackt Conversions, liefert Ergebnisse. Ohne Deployment-Pipeline. Ohne dass der Kunde was merkt.',
+    'Ein Snippet — fertig. Variante serviert die richtige Version, trackt Conversions, liefert dir die Daten, die dein Kunde seit Monaten haben will. Ohne Deployment-Pipeline. Ohne "kannst du mir kurz FTP-Zugang geben?".',
   platformNote:
     'Ein Snippet. Funktioniert mit',
-  platformItems: 'WordPress, React, Next.js, Shopify, Custom HTML',
+  platformItems: 'WordPress, React, Next.js, Shopify, Webflow, Custom HTML',
 
   sectionPricing: 'Preise',
   freeLabel: 'Free',
@@ -133,12 +133,12 @@ const de: LandingCopy = {
   proBadge: 'Am beliebtesten',
 
   freeFeatures: [
-    '1 aktives Experiment — test your first idea, free.',
+    '1 aktives Experiment — teste deine erste Idee, kostenlos.',
     'KI-Variantengenerierung — pixelgenau aus Figma.',
     'Live-Page-Editing in Figma — Seite pullen, editieren, A/B-testen statt speichern.',
     'Ganze Sektionen testen — Hero, Pricing, CTAs. Nicht nur einzelne Elemente.',
     'Conversion-Tracking — eingebaut, kein Extra-Setup.',
-    '"Powered by Variante"-Badge — deine Besucher werden deine Empfehlungen.',
+    '"Powered by Variante"-Badge — deine Besucher werden zu Empfehlungen.',
   ],
   proFeatures: [
     'Unbegrenzt Experimente',
@@ -172,9 +172,9 @@ const de: LandingCopy = {
   sectionTrust: '',
   trustItems: [
     { label: 'Keine Kreditkarte', text: 'Jederzeit kündbar. Kein Lock-in.' },
-    { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact.' },
-    { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten.' },
-    { label: 'Figma-nativ', text: 'Kein Dev-Ticket. Dein Workflow, deine Tools.' },
+    { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact für deine Kunden.' },
+    { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten. BayLDA-ready.' },
+    { label: 'Figma-nativ', text: 'Dein Workflow. Deine Tools. Kein Dev-Ticket.' },
   ],
 
   // Works-with logos
@@ -188,26 +188,30 @@ const de: LandingCopy = {
 
   // Solo-dev transparency + implied usage
   soloDevTitle: 'Gebaut von einem Designer, für Designer.',
-  soloDevBody: 'Kein VC, kein 20-Personen-Team. Ein Solo-Dev aus Bayern, der die "kannst du das mal eben testen?"-Frage satt hatte. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
-  impliedUsersText: 'Schließ dich Designern an, die testen ohne auf Dev-Tickets zu warten.',
+  soloDevBody: 'Kein VC, kein 20-Personen-Team. Ein Solo-Dev aus Bayern, der die "kannst du das mal eben testen?"-Frage satt hatte — und die "und, hat das neue Design was gebracht?"-Frage gleich mit. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
+  impliedUsersText: 'Schließ dich Designern an, die testen ohne auf Dev-Tickets zu warten — und ihren Kunden endlich Daten statt Bauchgefühl liefern.',
 
   sectionFaq: 'Häufige Fragen',
   faqs: [
     {
-      q: 'Bremst das Snippet meine Seite aus?',
-      a: 'Nein. Unter 5 KB, lädt asynchron, blockiert nie das Rendering. Deine Core Web Vitals bleiben unberührt.',
+      q: 'Bremst das Snippet die Seite meines Kunden aus?',
+      a: 'Nein. Unter 5 KB, lädt asynchron, blockiert nie das Rendering. Die Core Web Vitals deines Kunden bleiben unberührt — und du kriegst keinen Anruf von wegen "die Seite ist langsam".',
     },
     {
       q: 'Was, wenn die KI fehlerhaften Code generiert?',
-      a: 'Du prüfst jede Variante, bevor sie live geht. Vorschau, Diff, Freigabe — nichts geht ohne dein OK raus.',
+      a: 'Du prüfst jede Variante, bevor sie live geht. Preview, Diff, Freigabe — nichts geht ohne dein OK raus. Du bleibst in Control.',
     },
     {
-      q: 'Funktioniert das mit meinem Stack?',
-      a: 'Wenn du ein &lt;script&gt;-Tag einfügen kannst, funktioniert es. WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, Custom HTML — alles supported.',
+      q: 'Funktioniert das mit dem Stack meiner Kunden?',
+      a: 'WordPress, React, Next.js, Shopify, Webflow, Framer, Squarespace, Custom HTML — wenn du ein &lt;script&gt;-Tag einfügen kannst, funktioniert es. Die meisten Kunden-Projekte haben irgendwo ein Custom-Code-Feld.',
     },
     {
       q: 'Wieso nicht einfach Optimizely oder VWO?',
-      a: 'Kein Entwickler-Setup. Kein Tracking-Plan. Kein „Enterprise"-Sales-Call. Klick auf ein Element, redesign in Figma, live.',
+      a: 'Weil du dafür einen Entwickler brauchst, der Tracking-Pläne schreibt und "Enterprise"-Sales-Calls führt. Variante: Element anklicken, in Figma redesignen, live. Ohne Dev. Ohne Sales-Call.',
+    },
+    {
+      q: 'Mein Kunde fragt ständig "was bringt das neue Design?" — hilft das?',
+      a: 'Genau dafür ist es gebaut. Statt "sieht besser aus" lieferst du Zahlen: Variante B hatte 23 % mehr Klicks. Dein Kunde sieht ROI, du siehst Folgeaufträge.',
     },
   ],
 
@@ -219,19 +223,19 @@ const de: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'A/B-Tests für Designer ohne Dev-Zugriff — aus Figma, kein Entwickler, kein Deployment.',
+    'A/B-Tests für Webdesigner ohne Dev-Zugriff — aus Figma, für WordPress/Next.js/Shopify, kein Entwickler, kein Deployment.',
   jsonldProDescription: 'Unbegrenzt Experimente, Signifikanz-Analyse, Auto-Winner',
 
-  metaTitle: 'A/B-Tests für Designer — Kein Entwickler nötig | Variante',
+  metaTitle: 'A/B-Tests für Webdesigner — Kein Entwickler nötig | Variante',
   metaDescription:
-    'A/B-Tests für Designer ohne Dev-Zugriff. Element anklicken, in Figma redesignen, KI generiert Variante B. Kein Entwickler, kein Deployment.',
-  ogTitle: 'A/B-Tests für Designer — Kein Entwickler nötig | Variante',
+    'A/B-Tests für Designer ohne Dev-Zugriff. Element anklicken, in Figma redesignen, KI generiert Variante B. Für WordPress, Next.js, Shopify. Kein Entwickler, kein Deployment.',
+  ogTitle: 'A/B-Tests für Webdesigner — Kein Entwickler nötig | Variante',
   ogDescription:
-    'A/B-Tests für Designer ohne Dev-Zugriff. Klick → Redesign → Live. Kein Entwickler nötig.',
-  twitterTitle: 'A/B-Tests für Designer — Kein Entwickler nötig | Variante',
+    'Dein Kunde will Daten. Du hast keinen Dev. Klick → Redesign → Live. WordPress, Next.js, Shopify.',
+  twitterTitle: 'A/B-Tests für Webdesigner — Kein Entwickler nötig | Variante',
   twitterDescription:
-    'A/B-Tests für Designer ohne Dev-Zugriff. Kein Entwickler nötig.',
-  ogImageAlt: 'Variante — A/B-Testing aus Figma',
+    'A/B-Tests für Designer ohne Dev-Zugriff. Aus Figma, für Kundenprojekte. Kein Entwickler nötig.',
+  ogImageAlt: 'Variante — A/B-Testing aus Figma für Webdesigner',
 }
 
 const en: LandingCopy = {

@@ -105,8 +105,11 @@ export async function POST(req: Request) {
     // Wenn frische Analyse existiert, geben wir sie dem LLM als Vorsprung —
     // es kann fetchSite+analyzeCRO überspringen und direkt Varianten generieren.
     const cached = await getCachedInsights(user.userId, url)
+    const previousTests = cached?.testResults?.length
+      ? `\n\n📊 **Vorherige Tests** auf dieser Domain (${cached.testResults.length} abgeschlossen):\n${JSON.stringify(cached.testResults, null, 2)}\n\nLerne aus diesen Ergebnissen: Was hat funktioniert, was nicht? Wiederhole keine gescheiterten Patterns. Baue auf erfolgreichen Änderungen auf.`
+      : ''
     const cacheContext = cached
-      ? `\n\n💾 **Cache-Treffer**: Für ${url} liegt eine frische Analyse vom ${new Date(cached.analyzedAt).toLocaleDateString('de-DE')} vor:\n${JSON.stringify(cached.suggestions.slice(0, 3), null, 2)}\n\nDu kannst fetchSite und analyzeCRO ÜBERSPRINGEN und direkt mit generateVariant für diese Vorschläge weitermachen — es sei denn, die Seite hat sich seitdem geändert.`
+      ? `\n\n💾 **Cache-Treffer**: Für ${url} liegt eine frische Analyse vom ${new Date(cached.analyzedAt).toLocaleDateString('de-DE')} vor:\n${JSON.stringify(cached.suggestions.slice(0, 3), null, 2)}\n\nDu kannst fetchSite und analyzeCRO ÜBERSPRINGEN und direkt mit generateVariant für diese Vorschläge weitermachen — es sei denn, die Seite hat sich seitdem geändert.${previousTests}`
       : ''
 
     const result = streamText({
