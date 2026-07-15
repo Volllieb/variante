@@ -162,19 +162,23 @@ export function makeAgentTools(user: ApiUser) {
         .select('url')
         .eq('user_id', user.userId)
         .eq('verified', true)
-        .limit(1)
 
-      const primaryDomain = verifiedDomains?.[0]?.url
-      if (!primaryDomain) {
+      const verifiedUrls = verifiedDomains?.map(d => d.url) ?? []
+
+      function hostOf(u: string) {
+        return u.trim().toLowerCase()
+          .replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
+          .replace(/^www\./, '')
+      }
+
+      if (verifiedUrls.length === 0) {
         throw new Error('No verified domain. The user must verify their website in the dashboard first.')
       }
 
-      let testHost = site_url.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
-      testHost = testHost.replace(/^www\./, '')
-      const domainHost = primaryDomain.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '')
-
-      if (testHost !== domainHost) {
-        throw new Error(`site_url must match verified domain (${domainHost}). Got: ${testHost}`)
+      const testHost = hostOf(site_url)
+      const allowedHosts = verifiedUrls.map(u => hostOf(u))
+      if (!allowedHosts.includes(testHost)) {
+        throw new Error(`site_url must match a verified domain. Allowed: ${allowedHosts.join(', ')}. Got: ${testHost}`)
       }
 
       // ─── Free-Gating: max 1 aktiver Test ───

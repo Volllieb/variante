@@ -3,6 +3,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
+import { getDomainLimit } from '@/lib/planLimits'
 import { revalidatePath } from 'next/cache'
 
 export async function OPTIONS() {
@@ -54,16 +55,17 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid domain' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  // Jeder Plan: max 1 Website. Kein Plan hat mehrere Domains.
-  const { data: existing } = await supabase
-    .from('domains')
-    .select('id')
-    .eq('user_id', user.userId)
-    .limit(2)
+  // Plan-basiertes Domain-Limit (Free=1, Pro=5, Agency=100)
+  const domainLimit = getDomainLimit(user.plan)
 
-  if ((existing ?? []).length >= 1) {
+  const { count } = await supabase
+    .from('domains')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.userId)
+
+  if ((count ?? 0) >= domainLimit) {
     return Response.json(
-      { error: 'Each account can only connect one website. Delete your existing domain first.' },
+      { error: `Your ${user.plan} plan allows ${domainLimit} website${domainLimit > 1 ? 's' : ''}. Delete an existing domain or upgrade.`, limit: domainLimit },
       { status: 402, headers: corsHeaders('POST, OPTIONS') }
     )
   }

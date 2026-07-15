@@ -135,9 +135,10 @@ export function DomainGate() {
       })
 
       // 409 = domain already exists (ok, proceed to check)
-      // 402 = already have a domain
+      // 402 = plan limit reached
       if (saveRes.status === 402) {
-        setError('Each account can only connect one website.')
+        const data = await saveRes.json().catch(() => ({}))
+        setError(data.error || 'Domain limit reached. Upgrade your plan to add more websites.')
         setState('input')
         return
       }
