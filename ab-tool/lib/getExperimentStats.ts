@@ -25,7 +25,6 @@ export type ExperimentData = {
   minUplift: number
   significanceLevel: number
   userId: string | null
-  pro: boolean // false → Free-Tier: Raw Data + Auto-Winner gesperrt
   variants: VariantStats[]
   originalHtml: string | null
   variantBHtml: string | null
@@ -49,37 +48,18 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
 
   if (!test) return null
 
-  // Plan des Besitzers: Raw Data + Auto-Winner sind Pro-Features.
-  let pro = false
-  if (test.user_id) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('plan')
-      .eq('user_id', test.user_id)
-      .single()
-    pro = profile?.plan === 'pro' || profile?.plan === 'agency'
-  }
-
-  const userId: string | null = test.user_id || null
-  const minVisitors = test.min_visitors ?? 100
-  const minUplift = test.min_uplift ?? 0.05
-  const significanceLevel = test.significance_level ?? 0.95
-  const status = test.status
-  const winner: string | null = test.winner ?? null
-
   return {
     id: test.id,
     name: test.name,
     site_url: test.site_url,
-    status,
+    status: test.status,
     created_at: test.created_at,
     significance: test.significance ?? 0,
-    winner,
-    minVisitors,
-    minUplift,
-    significanceLevel,
-    userId,
-    pro,
+    winner: test.winner ?? null,
+    minVisitors: test.min_visitors ?? 100,
+    minUplift: test.min_uplift ?? 0.05,
+    significanceLevel: test.significance_level ?? 0.95,
+    userId: test.user_id ?? null,
     originalHtml: test.original_html ?? null,
     variantBHtml: test.variant_b_html ?? null,
     siteCss: test.site_css ?? null,

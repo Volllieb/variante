@@ -17,5 +17,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // Security: nur Owner darf Results sehen
   if (data.userId !== user.userId) return unauthorized('GET, OPTIONS')
 
-  return Response.json(data, { headers: corsHeaders('GET, OPTIONS') })
+  const pro = user.plan === 'pro' || user.plan === 'agency'
+  return Response.json({ ...data, pro }, { headers: corsHeaders('GET, OPTIONS') })
 }

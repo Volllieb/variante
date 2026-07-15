@@ -34,7 +34,7 @@ import {
   Bar,
 } from 'recharts'
 
-const T = {
+const C = {
   ok: '#2fd76c',
   pro: '#f5a623',
   err: '#f5455c',
@@ -71,7 +71,7 @@ type AnalyticsData = {
   daily: DailyRow[]
 }
 
-export function ResultsClient({ initial, experimentId }: { initial: ExperimentData; experimentId: string }) {
+export function ResultsClient({ initial, experimentId, pro }: { initial: ExperimentData; experimentId: string; pro: boolean }) {
   const [data, setData] = useState(initial)
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
@@ -156,7 +156,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
     }
   }, [])
 
-  const { name, status, significance, winner, variants, pro, created_at } = data
+  const { name, status, significance, winner, variants, created_at } = data
   const [a, b] = variants
   const totalVisitors = a.views + b.views
   const done = status === 'done' || !!winner
@@ -387,17 +387,17 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   <Line
                     type="monotone"
                     dataKey="B"
-                    stroke={T.pro}
+                    stroke={C.pro}
                     strokeWidth={2}
                     dot={false}
-                    activeDot={{ r: 4, fill: T.pro }}
+                    activeDot={{ r: 4, fill: C.pro }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: T.pro }} /> Variant B
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: C.pro }} /> Variant B
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.35)' }} /> Variant A
@@ -436,7 +436,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 <circle
                   cx="18" cy="18" r="14"
                   fill="none"
-                  stroke={significance >= significanceLevel ? T.ok : significance >= 0.7 ? T.pro : 'rgba(255,255,255,0.2)'}
+                  stroke={significance >= significanceLevel ? C.ok : significance >= 0.7 ? C.pro : 'rgba(255,255,255,0.2)'}
                   strokeWidth="3"
                   strokeDasharray={`${significance * 87.96} 87.96`}
                   strokeLinecap="round"
@@ -591,7 +591,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
-                      fill={T.pro}
+                      fill={C.pro}
                       maxBarSize={48}
                       label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? `${v}%` : v) as any } as any}
                     />
@@ -833,7 +833,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           <div className="rounded-[10px] border border-dashed border-white/10 p-6 text-center">
             <h2 className="text-sm font-semibold text-[#ededed]">Auto Winner</h2>
             <p className="mt-2 text-xs text-[#ededed]/40">
-              Statistical significance and the auto-winner are available from the Pro plan onward.
+              Auto-Winner configuration and raw data are available from the Pro plan onward.
             </p>
             <button
               onClick={upgrade}
