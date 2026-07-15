@@ -57,7 +57,7 @@ export default function HeroAnimation() {
       gsap.set([panel, picker], { xPercent: -50, autoAlpha: 0, transformOrigin: 'top center' })
       gsap.set(crown, { scale: 0, rotation: -18, transformOrigin: 'bottom center' })
       gsap.set([badgeA, badgeB], { autoAlpha: 0 })
-      gsap.set(cursor, { x: 840, y: 565 })
+      gsap.set(cursor, { x: 840, y: 565, autoAlpha: 1 })
 
       /* ---- measure click targets (stage-space coordinates) ---- */
       function pt(el: HTMLElement, dx = 0, dy = 0) {
@@ -105,6 +105,7 @@ export default function HeroAnimation() {
         gsap.set([scrollA, scrollB], { y: 0 })
         gsap.set([buyA, buyB], { clearProps: 'backgroundColor' })
         gsap.set(swGreen, { clearProps: 'boxShadow' })
+        gsap.set(cursor, { x: 840, y: 565, autoAlpha: 1 })
       }
 
       const tl = gsap.timeline({

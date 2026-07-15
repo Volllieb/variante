@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />
-        <style id="__ab_hide">html.__ab_pending{"{"}opacity:0!important{"}"}</style>
+        <style id="__ab_hide" dangerouslySetInnerHTML={{ __html: 'html.__ab_pending{opacity:0!important}' }} />
         <Script
           id="ab-pending"
           strategy="beforeInteractive"
