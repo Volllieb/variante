@@ -213,7 +213,7 @@ function FilterSection({
 }) {
   return (
     <div className={`${isLast ? '' : 'mb-2 border-b border-white/[0.06] pb-2'}`}>
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[#ededed]/30">
+      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[#ededed]/50">
         {label}
       </span>
       <div className="flex flex-col gap-0.5">{children}</div>

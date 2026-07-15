@@ -260,7 +260,7 @@ window.__ab_track_conversion()`}
     body: (
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-[6px] border border-white/10 bg-white/[0.02] p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#ededed]/25">Free</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#ededed]/40">Free</p>
           <p className="mt-1 text-2xl font-semibold text-white">0 €</p>
           <p className="mt-0.5 text-[11px] text-[#ededed]/40">Forever free. No credit card.</p>
           <ul className="mt-4 space-y-1.5 text-[13px] text-[#ededed]/55">
@@ -272,7 +272,7 @@ window.__ab_track_conversion()`}
         </div>
         <div className="rounded-[6px] border border-[#f5a623]/30 bg-white/[0.02] p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[#f5a623]">Pro</p>
-          <p className="mt-1 text-2xl font-semibold text-white">35 €<span className="text-sm font-normal text-[#ededed]/25">/mo</span></p>
+          <p className="mt-1 text-2xl font-semibold text-white">35 €<span className="text-sm font-normal text-[#ededed]/40">/mo</span></p>
           <p className="mt-0.5 text-[11px] text-[#ededed]/40">Everything in Free, plus:</p>
           <ul className="mt-4 space-y-1.5 text-[13px] text-[#ededed]/55">
             <li>· Unlimited experiments</li>

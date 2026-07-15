@@ -171,7 +171,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#ededed]/30 focus:border-white/[0.18] focus:outline-none"
+                className="flex-1 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#ededed]/50 focus:border-white/[0.18] focus:outline-none"
               />
               <button
                 onClick={changeEmail}
@@ -241,7 +241,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
                   href={`https://${d.url}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="cursor-pointer rounded-[6px] p-1.5 text-[#ededed]/30 transition-colors hover:text-[#ededed]/60"
+                  className="cursor-pointer rounded-[6px] p-1.5 text-[#ededed]/50 transition-colors hover:text-[#ededed]/60"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -270,7 +270,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
                 ) : (
                   <button
                     onClick={() => setDeleteId(d.id)}
-                    className="cursor-pointer rounded-[6px] p-1.5 text-[#ededed]/20 transition-colors hover:text-err"
+                    className="cursor-pointer rounded-[6px] p-1.5 text-[#ededed]/40 transition-colors hover:text-err"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -280,7 +280,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
           ))}
 
           {domains.length > 0 && (
-            <p className="mt-3 text-[12px] text-[#ededed]/30">
+            <p className="mt-3 text-[12px] text-[#ededed]/50">
               To replace this website, delete it first, then add a new one via{' '}
               <Link href="/dashboard/setup" className="underline hover:text-[#ededed]/60">Setup</Link>.
             </p>
@@ -342,7 +342,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-[6px] border border-err/20 bg-[#111111] px-3 py-2 font-mono text-[13px] text-[#ededed] placeholder:text-[#ededed]/20 focus:border-err/40 focus:outline-none"
+                className="w-full rounded-[6px] border border-err/20 bg-[#111111] px-3 py-2 font-mono text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-err/40 focus:outline-none"
               />
               <div className="flex items-center gap-2">
                 <button
@@ -376,7 +376,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
         <div className="text-center">
           <button
             onClick={logout}
-            className="cursor-pointer text-[12px] text-[#ededed]/30 transition-colors hover:text-err"
+            className="cursor-pointer text-[12px] text-[#ededed]/50 transition-colors hover:text-err"
           >
             Sign out
           </button>

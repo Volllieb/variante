@@ -231,7 +231,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
             <h1 className="text-[15px] font-semibold text-[#ededed]">
               {name}
             </h1>
-            <span className="text-[11px] text-[#ededed]/30">
+            <span className="text-[11px] text-[#ededed]/50">
               Created {formatCreatedAt(created_at)}
             </span>
           </div>
@@ -339,7 +339,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Collecting data
               </p>
-              <p className="mt-3 text-5xl font-bold tracking-tight text-[#ededed]/30">
+              <p className="mt-3 text-5xl font-bold tracking-tight text-[#ededed]/50">
                 {totalVisitors.toLocaleString()}
               </p>
               <p className="mt-2 text-[13px] text-[#ededed]/62">
@@ -349,7 +349,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
           )}
           {/* Visitor bar */}
           <div className="mx-auto mt-5 max-w-[240px]">
-            <div className="mb-1 flex justify-between text-[10px] text-[#ededed]/30">
+            <div className="mb-1 flex justify-between text-[10px] text-[#ededed]/50">
               <span>Minimum sample size</span>
               <span>{visitorPct}%</span>
             </div>
@@ -411,7 +411,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Daily Visitors
               </span>
-              <span className="ml-auto text-[11px] text-[#ededed]/30">Not enough data yet</span>
+              <span className="ml-auto text-[11px] text-[#ededed]/50">Not enough data yet</span>
             </div>
           </div>
         ) : !pro ? (
@@ -421,7 +421,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Daily Analytics
               </span>
-              <span className="ml-auto text-[11px] text-[#ededed]/30">Pro feature</span>
+              <span className="ml-auto text-[11px] text-[#ededed]/50">Pro feature</span>
             </div>
           </div>
         ) : null}
@@ -456,7 +456,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 <span className={`text-2xl font-bold ${significance >= significanceLevel ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
                   {Math.round(significance * 100)}%
                 </span>
-                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/30">Confidence</span>
+                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/50">Confidence</span>
               </div>
             </div>
             {/* Free tier: semi-transparent overlay */}
@@ -553,7 +553,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Raw Data
               </span>
-              <span className="ml-auto text-[11px] text-[#ededed]/20">
+              <span className="ml-auto text-[11px] text-[#ededed]/40">
                 {analytics.daily.length} days
               </span>
             </button>
@@ -561,7 +561,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-[#ededed]/30">
+                    <tr className="border-b border-white/10 text-[#ededed]/50">
                       <th className="pb-2 pr-3 font-medium">Date</th>
                       <th className="pb-2 pr-3 font-medium text-right">Vis A</th>
                       <th className="pb-2 pr-3 font-medium text-right">Vis B</th>
@@ -620,7 +620,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                   />
                   <button
                     onClick={() => { setDraftB(data.variantBHtml || ''); setEditingB(true) }}
-                    className="mt-2 flex cursor-pointer items-center gap-1 text-xs text-[#ededed]/30 transition-colors hover:text-[#ededed]/60"
+                    className="mt-2 flex cursor-pointer items-center gap-1 text-xs text-[#ededed]/50 transition-colors hover:text-[#ededed]/60"
                   >
                     <Pencil className="h-3 w-3" /> Edit HTML
                   </button>
@@ -630,7 +630,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                 <div className="flex items-center justify-center rounded-xl border border-dashed border-white/[0.10] p-6">
                   <button
                     onClick={() => { setDraftB('<div class="ab-v">\n  <style>\n    .ab-v { /* your styles */ }\n  </style>\n</div>'); setEditingB(true) }}
-                    className="cursor-pointer text-xs text-[#ededed]/30 transition-colors hover:text-[#ededed]/60"
+                    className="cursor-pointer text-xs text-[#ededed]/50 transition-colors hover:text-[#ededed]/60"
                   >
                     + Add Variant B HTML
                   </button>
@@ -730,7 +730,7 @@ export function ResultsClient({ initial, experimentId }: { initial: ExperimentDa
                       </button>
                     ))}
                   </div>
-                  <p className="mt-1 text-[10px] text-[#ededed]/30">
+                  <p className="mt-1 text-[10px] text-[#ededed]/50">
                     {significanceLevel === 0.9 ? 'Looser threshold, faster results' : significanceLevel === 0.99 ? 'Strictest threshold, most confident' : 'Balanced confidence (default)'}
                   </p>
                 </fieldset>

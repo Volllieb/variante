@@ -111,6 +111,8 @@ export default function HomePage() {
         </nav>
       </header>
 
+      <main>
+
       {/* ── Hero ── */}
       <section className="px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-32">
         <div className="mx-auto max-w-3xl">
@@ -148,13 +150,13 @@ export default function HomePage() {
                 className="rounded-[10px] border border-border bg-bg-1 p-6"
               >
                 <s.icon className="mb-4 h-8 w-8 text-white" />
-                <p className="mb-2 text-xs font-medium text-white/25">{s.step}</p>
+                <p className="mb-2 text-xs font-medium text-white/50">{s.step}</p>
                 <h3 className="mb-2 text-sm font-semibold text-white">{s.title}</h3>
                 <p className="text-sm text-white/50">{s.body}</p>
               </div>
             ))}
           </div>
-          <p className="mt-8 text-center text-sm text-white/35">
+          <p className="mt-8 text-center text-sm text-white/50">
             One snippet. Works with{' '}
             <span className="text-white/55">WordPress</span>,{' '}
             <span className="text-white/55">React</span>,{' '}
@@ -263,7 +265,7 @@ export default function HomePage() {
               >
                 <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-white/80 select-none">
                   {item.q}
-                  <span className="ml-4 shrink-0 text-white/25 transition-transform duration-200 group-open:rotate-180">
+                  <span className="ml-4 shrink-0 text-white/40 transition-transform duration-200 group-open:rotate-180">
                     ▾
                   </span>
                 </summary>
@@ -273,6 +275,8 @@ export default function HomePage() {
           </dl>
         </div>
       </section>
+
+      </main>
 
       {/* ── Badge Demo ── */}
       <Link

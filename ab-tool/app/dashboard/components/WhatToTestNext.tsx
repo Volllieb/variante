@@ -77,7 +77,7 @@ function FreeTeaser() {
                   Test <span className="font-medium text-[#ededed]/90">"{tip.original}"</span> vs{' '}
                   <span className="font-medium text-[#8b5cf6]">"{tip.variant}"</span>
                 </p>
-                <p className="mt-0.5 text-[10px] text-[#ededed]/30">{tip.why}</p>
+                <p className="mt-0.5 text-[10px] text-[#ededed]/50">{tip.why}</p>
               </div>
             </div>
           ))}
@@ -114,7 +114,7 @@ function NoUrlPrompt() {
         <span className="rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#f5a623]">PRO</span>
       </div>
       <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 text-center">
-        <Globe className="mx-auto h-4 w-4 text-[#ededed]/30" />
+        <Globe className="mx-auto h-4 w-4 text-[#ededed]/50" />
         <p className="mt-2 text-[12px] text-[#ededed]/50">
           Add a website and create a test first — then AI can analyze your page for specific suggestions.
         </p>
@@ -212,7 +212,7 @@ function ProSuggestions({ siteUrl }: { siteUrl: string }) {
                     {' '}vs{' '}
                     <span className="font-medium text-[#2fd76c]">"{s.variant}"</span>
                   </p>
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-[#ededed]/35">{s.why}</p>
+                  <p className="mt-0.5 text-[10px] leading-relaxed text-[#ededed]/50">{s.why}</p>
                 </div>
               </div>
             ))}

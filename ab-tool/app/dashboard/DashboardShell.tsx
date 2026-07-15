@@ -130,7 +130,7 @@ function NavLink({
         <span className="truncate">{label}</span>
       </span>
       {state === 'soon' && (
-        <span className="shrink-0 rounded-[5px] border border-white/10 px-1.5 py-px text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/30">
+        <span className="shrink-0 rounded-[5px] border border-white/10 px-1.5 py-px text-[11px] font-semibold uppercase tracking-wide text-[#ededed]/50">
           Soon
         </span>
       )}

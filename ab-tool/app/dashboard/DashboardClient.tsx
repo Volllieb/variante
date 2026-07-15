@@ -225,7 +225,7 @@ export function DashboardClient({
                 }}
                 title={hasVerifiedDomain && hasFigmaPlugin ? 'All set' : hasVerifiedDomain || hasFigmaPlugin ? 'Partially set up' : 'Setup needed'}
               />
-              <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/25" />
+              <ArrowRight className="h-3.5 w-3.5 text-[#ededed]/40" />
             </div>
             <Link
               href="/dashboard/setup"

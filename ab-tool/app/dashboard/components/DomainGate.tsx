@@ -254,7 +254,7 @@ export function DomainGate() {
                 placeholder="yoursite.com"
                 disabled={state !== 'input'}
                 autoFocus
-                className="flex-1 bg-transparent text-[15px] text-[#ededed] placeholder:text-[#ededed]/25 outline-none"
+                className="flex-1 bg-transparent text-[15px] text-[#ededed] placeholder:text-[#ededed]/40 outline-none"
               />
             </div>
 
@@ -283,7 +283,7 @@ export function DomainGate() {
             {/* Skip */}
             <button
               onClick={skip}
-              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/20 transition-colors hover:text-[#ededed]/35"
+              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/50"
             >
               Skip for now — I&apos;ll add the snippet later
             </button>
@@ -325,7 +325,7 @@ export function DomainGate() {
                 </>
               )}
             </button>
-            <p className="text-center text-[11px] text-[#ededed]/30">
+            <p className="text-center text-[11px] text-[#ededed]/50">
               Paste into Cursor, Copilot, ChatGPT or Claude — the AI installs the snippet for you.
             </p>
 
@@ -357,7 +357,7 @@ export function DomainGate() {
 
             <button
               onClick={retry}
-              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/25 transition-colors hover:text-[#ededed]/40"
+              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/50"
             >
               Change URL
             </button>
@@ -365,7 +365,7 @@ export function DomainGate() {
             {/* Skip */}
             <button
               onClick={skip}
-              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/20 transition-colors hover:text-[#ededed]/35"
+              className="mx-auto block cursor-pointer text-[12px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/50"
             >
               Skip for now — I&apos;ll add the snippet later
             </button>

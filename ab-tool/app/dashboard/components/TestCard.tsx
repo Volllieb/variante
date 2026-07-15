@@ -201,7 +201,7 @@ export function TestCard({
           />
         ) : (
           <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
-            <span className="text-[8px] text-[#ededed]/25">WWW</span>
+            <span className="text-[8px] text-[#ededed]/40">WWW</span>
           </div>
         )}
 

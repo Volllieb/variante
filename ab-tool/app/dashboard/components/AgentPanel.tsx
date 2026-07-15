@@ -225,7 +225,7 @@ function AssistantMessage({ message }: { message: UIMessage }) {
               ) : (
                 <Loader2 className="h-3 w-3 shrink-0 animate-spin text-[#8b5cf6]/70" />
               )}
-              <Icon className="h-3 w-3 shrink-0 text-[#ededed]/30" />
+              <Icon className="h-3 w-3 shrink-0 text-[#ededed]/50" />
               <span className={failed ? 'text-[#f5455c]/70' : undefined}>
                 {failed && 'errorText' in part && part.errorText ? String(part.errorText).slice(0, 120) : text}
               </span>

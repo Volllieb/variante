@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <p className="text-[12px] font-medium" style={{ color: T.err }}>
                   {this.props.label} failed to load
                 </p>
-                <p className="mt-0.5 text-[11px] text-[#ededed]/30">
+                <p className="mt-0.5 text-[11px] text-[#ededed]/50">
                   {this.state.error.message || 'An unexpected error occurred.'}
                 </p>
               </div>

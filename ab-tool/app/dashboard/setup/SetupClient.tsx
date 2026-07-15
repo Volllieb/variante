@@ -213,7 +213,7 @@ export function SetupClient({ data }: { data: SetupData }) {
   }
 
   const statusIcon = (status: StepState['status']) => {
-    if (status === 'loading') return <Loader2 className="h-4 w-4 animate-spin text-[#ededed]/30" />
+    if (status === 'loading') return <Loader2 className="h-4 w-4 animate-spin text-[#ededed]/50" />
     if (status === 'ok') return <Check className="h-4 w-4" style={{ color: T.ok }} />
     if (status === 'err') return <X className="h-4 w-4" style={{ color: T.err }} />
     return <div className="h-4 w-4 rounded-full border-2 border-[#ededed]/12" />
@@ -359,7 +359,7 @@ export function SetupClient({ data }: { data: SetupData }) {
                     </button>
                     <button
                       onClick={() => setWebsite({ phase: 'input' })}
-                      className="cursor-pointer text-[11px] text-[#ededed]/25 transition-colors hover:text-[#ededed]/40"
+                      className="cursor-pointer text-[11px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/50"
                     >
                       Change URL
                     </button>
@@ -384,7 +384,7 @@ export function SetupClient({ data }: { data: SetupData }) {
                       placeholder="yoursite.com"
                       disabled={website.phase === 'saving' || website.phase === 'checking'}
                       autoFocus
-                      className="flex-1 bg-transparent text-[15px] text-[#ededed] placeholder:text-[#ededed]/25 outline-none"
+                      className="flex-1 bg-transparent text-[15px] text-[#ededed] placeholder:text-[#ededed]/40 outline-none"
                     />
                   </div>
 
@@ -406,7 +406,7 @@ export function SetupClient({ data }: { data: SetupData }) {
                     )}
                   </button>
 
-                  <p className="text-center text-[11px] text-[#ededed]/30">
+                  <p className="text-center text-[11px] text-[#ededed]/50">
                     We check if the snippet is installed on your site. You can skip and add it later.
                   </p>
                 </>
@@ -513,7 +513,7 @@ function StepCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             {stepNumber && (
-              <span className="text-[10px] font-semibold text-[#ededed]/20">{stepNumber}</span>
+              <span className="text-[10px] font-semibold text-[#ededed]/40">{stepNumber}</span>
             )}
             <p className="truncate text-[13px] font-medium text-[#ededed]">{step.label}</p>
           </div>
@@ -528,7 +528,7 @@ function StepCard({
           </p>
         </div>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-[#ededed]/30 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-[#ededed]/50 transition-transform ${expanded ? 'rotate-180' : ''}`}
         />
       </button>
 
