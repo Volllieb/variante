@@ -117,7 +117,12 @@ export async function POST(req: Request) {
       title: html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim() ?? '',
     }).catch(err => safeError('suggestions-cache-write', err))
 
-    return Response.json({ suggestions, analyzed_url: url, cached: false }, { headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({
+      suggestions,
+      analyzed_url: url,
+      cached: false,
+      analyzed_at: new Date().toISOString(),
+    }, { headers: corsHeaders('POST, OPTIONS') })
   } catch (err) {
     safeError('suggestions-analyze', err)
     return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })

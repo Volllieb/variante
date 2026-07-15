@@ -140,9 +140,21 @@ function NoUrlPrompt({ domain }: { domain: string | null }) {
 
 type FetchState = 'idle' | 'loading' | 'done' | 'error'
 
+function formatTimeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  const hrs = Math.floor(diff / 3_600_000)
+  const days = Math.floor(diff / 86_400_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  if (hrs < 24) return `${hrs}h ago`
+  return `${days}d ago`
+}
+
 function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string | null }) {
   const [state, setState] = useState<FetchState>('idle')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [analyzedAt, setAnalyzedAt] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const fetchSuggestions = useCallback(async () => {
@@ -177,6 +189,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
       const data = await res.json()
       if (data.suggestions?.length > 0) {
         setSuggestions(data.suggestions)
+        setAnalyzedAt(data.analyzed_at || new Date().toISOString())
         setState('done')
       } else {
         setError('No suggestions generated')
@@ -188,10 +201,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
     }
   }, [siteUrl])
 
-  // Auto-fetch on mount
-  useEffect(() => {
-    fetchSuggestions()
-  }, [fetchSuggestions])
+  // Kein Auto-Fetch! Nur auf expliziten Klick.
 
   return (
     <div>
@@ -202,6 +212,29 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
       </div>
 
       <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+        {/* Idle: Noch nie generiert → CTA */}
+        {state === 'idle' && (
+          <div className="flex flex-col items-center gap-3 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8b5cf6]/10">
+              <Wand2 className="h-4 w-4 text-[#a78bfa]" />
+            </div>
+            <div className="text-center">
+              <p className="text-[12px] font-medium text-[#ededed]">AI-powered CRO suggestions</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/50">
+                Analyzes your page and suggests specific A/B tests — tailored to your site, not generic tips.
+              </p>
+            </div>
+            <button
+              onClick={fetchSuggestions}
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#8b5cf6] px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-85 cursor-pointer"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Analyze my page
+            </button>
+            <p className="text-[10px] text-[#ededed]/30">~$0.005 per generation · Results cached for 24h</p>
+          </div>
+        )}
+
         {/* Loading */}
         {state === 'loading' && (
           <div className="flex flex-col items-center gap-2 py-4">
@@ -229,13 +262,18 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
                 </div>
               </div>
             ))}
-            <button
-              onClick={fetchSuggestions}
-              className="flex w-full items-center justify-center gap-1.5 rounded-[6px] border border-white/[0.08] py-1.5 text-[11px] text-[#ededed]/60 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
-            >
-              <RefreshCw className="h-3 w-3" />
-              Regenerate
-            </button>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#ededed]/30">
+                {analyzedAt ? `Analyzed ${formatTimeAgo(analyzedAt)}` : ''}
+              </span>
+              <button
+                onClick={fetchSuggestions}
+                className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] px-2.5 py-1 text-[11px] text-[#ededed]/50 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
+              >
+                <RefreshCw className="h-3 w-3" />
+                Regenerate
+              </button>
+            </div>
           </div>
         )}
 
