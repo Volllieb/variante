@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
 import { safeError } from '@/lib/safeLog'
 import type { ApiUser } from '@/lib/auth'
-import { stripForCRO, extractStructure, analyzePage } from '@/lib/croAnalyze'
+import { stripForCRO, extractStructure, extractStyleContext, analyzePage } from '@/lib/croAnalyze'
 import { generateVariantText } from '@/lib/generateVariantText'
 
 export function makeAgentTools(user: ApiUser) {
@@ -17,7 +17,7 @@ export function makeAgentTools(user: ApiUser) {
 
   const fetchSite = tool({
     description:
-      'Fetched und parsed die HTML-Struktur einer Landingpage. Gibt bereinigtes HTML und extrahierte Struktur (Headlines, CTAs, Links) zurück.',
+      'Fetched und parsed die HTML-Struktur einer Landingpage. Gibt bereinigtes HTML, extrahierte Struktur (DOM-Baum) und Style-Kontext (Farben, CSS-Klassen) zurück.',
     inputSchema: z.object({
       url: z.string().describe('Die vollständige URL der Landingpage (mit https://)'),
     }),
@@ -59,11 +59,13 @@ export function makeAgentTools(user: ApiUser) {
         }
 
         const structure = extractStructure(html)
+        const styleContext = extractStyleContext(html)
 
         return {
           html: stripForCRO(html),
           structure,
-          title: structure.match(/Title: "([^"]+)"/)?.[1] ?? '',
+          styleContext,
+          title: html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim() ?? '',
           url,
           success: true,
         }
