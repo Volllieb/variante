@@ -14,6 +14,8 @@ export default function HeroAnimation() {
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
+    ;(window as any).__mounts = ((window as any).__mounts || 0) + 1
+    const mountId = (window as any).__mounts
 
     const $ = (name: string) => root.querySelector<HTMLElement>(`[data-el="${name}"]`)!
 
@@ -35,16 +37,22 @@ export default function HeroAnimation() {
     // because the observer only fires again on the next real size change.
     const fit = () => {
       const w = root.clientWidth
+      ;(window as any).__widths = (window as any).__widths || []
+      ;(window as any).__widths.push({ w, t: performance.now() })
       if (w > 0) scaler.style.transform = `scale(${w / 900})`
     }
     fit()
     const ro = new ResizeObserver(fit)
     ro.observe(root)
 
+    let ctx: gsap.Context | undefined
+    let widthRo: ResizeObserver | undefined
+
     // No prefers-reduced-motion branch on purpose: Windows sets it whenever OS
     // animation effects are off, which would freeze the hero's product demo for
     // a large chunk of desktop visitors.
-    const ctx = gsap.context(() => {
+    function buildTimeline() {
+      return gsap.context(() => {
       /* ---- initial states ---- */
       gsap.set([cardA, cardB, convCard], { xPercent: -50, yPercent: -50 })
       gsap.set(cardB, { autoAlpha: 0 })
@@ -69,6 +77,8 @@ export default function HeroAnimation() {
       const P_CTA = pt(ctaA)
       const P_INPUT = pt(inputB, -55, 0)
       const P_TEST = pt(testBtn)
+      ;(window as any).__heroDebugLog = (window as any).__heroDebugLog || []
+      ;(window as any).__heroDebugLog.push({ mountId, t: performance.now(), rootClientWidth: root!.clientWidth, scalerTransform: scaler.style.transform, stageWidth: stage.getBoundingClientRect().width, P_H1, P_CTA, P_INPUT, P_TEST })
 
       /* conversion card sits at the bottom edge of the cards: 50% overlap */
       const SC = stage.getBoundingClientRect().width / 900
@@ -276,11 +286,35 @@ export default function HeroAnimation() {
       // hold, then fade back to screen 1 — the process never ends
       tl.to({}, { duration: 2.2 })
       tl.to(stage, { autoAlpha: 0, duration: 0.55, ease: 'power1.in' })
-    }, root)
+      }, root!)
+    }
+
+    // The click-target math inside `buildTimeline` reads the stage's rendered
+    // (scaled) size to convert element positions into unscaled stage coordinates.
+    // If the container isn't laid out yet (width 0, same race `fit` guards above),
+    // the stage still renders at its native 900px and every target gets measured
+    // against the wrong scale — the cursor then lands off the actual buttons.
+    // Wait for a real width before measuring anything.
+    ;(window as any).__pathLog = (window as any).__pathLog || []
+    ;(window as any).__pathLog.push({ mountId, path: root.clientWidth > 0 ? 'immediate' : 'deferred', w: root.clientWidth, t: performance.now() })
+    if (root.clientWidth > 0) {
+      ctx = buildTimeline()
+    } else {
+      widthRo = new ResizeObserver(() => {
+        if (root.clientWidth > 0) {
+          widthRo!.disconnect()
+          fit()
+          ctx = buildTimeline()
+          ;(window as any).__pathLog.push({ mountId, path: 'deferred-fired', w: root.clientWidth, t: performance.now() })
+        }
+      })
+      widthRo.observe(root)
+    }
 
     return () => {
       ro.disconnect()
-      ctx.revert()
+      widthRo?.disconnect()
+      ctx?.revert()
     }
   }, [])
 
