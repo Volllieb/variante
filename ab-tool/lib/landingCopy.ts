@@ -1,8 +1,5 @@
 // Landingpage-Copy DE/EN — ICP: Designer, Indie Hacker, Gründer (solopreneurs & small teams)
-// Kernprodukt: klassisches A/B-Testing (Variante selbst bauen, Traffic splitten,
-// Conversions messen) — das einzige KI-Feature aktuell ist automatische Übersetzung
-// der Varianten. Autonome Agent-Funktionen (Analyse, Varianten-Generierung,
-// Auto-Rollout-Loop) sind bewusst kein Teil der aktuellen Positionierung — kommen später.
+// Agent-first: autonomer KI-Agent analysiert, generiert Varianten, misst & rolled aus
 // Deutsch = Default (DACH-ICP), Englisch = Fallback für internationale Reach
 //
 // STRUKTUR-REGEL: Es gibt genau *eine* Landingpage. DE und EN unterscheiden sich
@@ -20,13 +17,11 @@ export type Lang = 'de' | 'en'
 
 export type PlanId = 'free' | 'pro' | 'agency'
 
-export const CURRENCY = 'EUR'
-
 export interface PlanStructure {
   id: PlanId
-  /** Betrag ohne Währung — zugleich Anzeigewert und JSON-LD `price`. */
-  amount: string
-  /** Zeigt den „pro Monat"-Suffix (`plans.period`). Free ist dauerhaft. */
+  /** Preis inkl. Währung — Ziffern sind in beiden Sprachen gleich. */
+  price: string
+  /** Zeigt den „pro Monat"-Suffix (`plans.period`). Free ist einmalig/dauerhaft. */
   perMonth: boolean
   href: string
   /** Genau ein Plan pro Seite ist hervorgehoben (brandguidelines §2.2). */
@@ -34,15 +29,10 @@ export interface PlanStructure {
 }
 
 export const PLANS: readonly PlanStructure[] = [
-  { id: 'free', amount: '0', perMonth: false, href: '/signup', featured: false },
-  { id: 'pro', amount: '35', perMonth: true, href: '/signup?plan=pro', featured: true },
-  { id: 'agency', amount: '99', perMonth: true, href: '/signup?plan=agency', featured: false },
+  { id: 'free', price: '0 €', perMonth: false, href: '/signup', featured: false },
+  { id: 'pro', price: '35 €', perMonth: true, href: '/signup?plan=pro', featured: true },
+  { id: 'agency', price: '99 €', perMonth: true, href: '/signup?plan=agency', featured: false },
 ]
-
-/** Display price. Suffixed „€" in both languages — the digits never differ. */
-export function planPrice(plan: PlanStructure): string {
-  return `${plan.amount} €`
-}
 
 /* ── Typen: erzwingen gleiche Element-Anzahl in DE und EN ── */
 
@@ -84,17 +74,13 @@ export interface LandingCopy {
   sectionWorks: string
   worksLabel: string
 
-  // Figma Community / Agent social proof
-  figmaCommunityTitle: string
-  figmaCommunityText: string
-  figmaCommunityLinkText: string
-
-  // AI Translation
-  sectionTranslate: string
-  translateH: string
-  translateSub: string
-  translateItems: Tuple3<{ title: string; body: string }>
-  translateNote: string
+  // AI Agent Automation (+ Demo-Video)
+  sectionAgent: string
+  agentH: string
+  agentSub: string
+  agentLoop: Tuple4<{ title: string; body: string }>
+  agentLoopNote: string
+  agentVideoPending: string
 
   // Solo-dev transparency + implied usage
   soloDevTitle: string
@@ -104,14 +90,6 @@ export interface LandingCopy {
   // How it works
   sectionHow: string
   steps: Tuple3<{ title: string; body: string }>
-  step1Title: string
-  step1Body: string
-  step2Title: string
-  step2Body: string
-  step3Title: string
-  step3Body: string
-  /** Comma-separated platform names for inline prose display. */
-  platformItems: string
   /** `{platforms}` wird durch die Namen aus TechLogos ersetzt. */
   platformNote: string
 
@@ -122,24 +100,6 @@ export interface LandingCopy {
   period: string
   proBadge: string
   plans: Record<PlanId, PlanCopy>
-  // Flat pricing properties (for the current page template)
-  freeLabel: string
-  freePrice: string
-  freeSub: string
-  freeFeatures: readonly string[]
-  freeCta: string
-  proLabel: string
-  proPrice: string
-  proSub: string
-  proFeatures: readonly string[]
-  proFeatureExclusive: readonly boolean[]
-  proCta: string
-  agencyLabel: string
-  agencyPrice: string
-  agencySub: string
-  agencyFeatures: readonly string[]
-  agencyFeatureExclusive: readonly boolean[]
-  agencyCta: string
 
   // FAQ
   sectionFaq: string
@@ -179,9 +139,9 @@ const de: LandingCopy = {
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
-  heroH1: 'A/B-Tests, die jeder versteht — automatisch übersetzt mit KI.',
+  heroH1: 'Dein KI-Agent für A/B-Tests. Kein Dev. Kein Aufwand. Nur Ergebnisse.',
   heroSub:
-    'Baue eine Variante und teste sie gegen dein Original. Variante splittet den Traffic, trackt Conversions — und übersetzt deine Texte automatisch für Besucher in jeder Sprache. Kein Copy-Paste, kein Zusatzaufwand.',
+    'Sag dem Agenten, was du verbessern willst — Hero, Pricing, CTAs. Er analysiert deine Seite, schreibt Varianten, misst Conversions und rollt den Winner aus. Während du das nächste Feature baust.',
   heroCta: 'Kostenlos starten',
   heroFootnote: 'Keine Kreditkarte · 1 kostenloses Experiment · In 5 Minuten live',
 
@@ -189,36 +149,36 @@ const de: LandingCopy = {
     { label: 'Keine Kreditkarte', text: 'Jederzeit kündbar. Kein Lock-in.' },
     { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact.' },
     { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten.' },
-    { label: 'KI-Übersetzung', text: 'Automatisch in jede Sprache — ohne Mehraufwand.' },
+    { label: 'KI-Agent', text: 'Autonom. Kein Briefing. Kein Dev-Ticket.' },
   ],
 
   sectionWorks: 'Funktioniert mit deinem Stack',
   worksLabel: 'Ein Snippet — überall wo du ein Script-Tag einfügen kannst',
 
-  figmaCommunityTitle: 'Variante + Figma Plugin',
-  figmaCommunityText:
-    'Designer wählen ein Element aus, bauen die Variante in Figma, und der AI-Agent deployed sie automatisch. Kein Dev, kein Deployment — direkt aus deinem Design-Tool.',
-  figmaCommunityLinkText: 'So funktioniert\'s →',
-
-  sectionTranslate: 'KI-Übersetzung',
-  translateH: 'Eine Variante schreiben. In jeder Sprache live.',
-  translateSub:
-    'Du baust deine Variante einmal — Text, CTA, Pricing, was auch immer du testest. Variante übersetzt sie automatisch für jeden Besucher, ohne dass du selbst eine Zeile übersetzt.',
-  translateItems: [
+  sectionAgent: 'KI-Agent-Automatisierung',
+  agentH: 'Der Agent hört nicht auf, wenn der Test vorbei ist.',
+  agentSub:
+    'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden.',
+  agentLoop: [
     {
-      title: 'Sprache automatisch erkannt',
-      body: 'Variante erkennt die Sprache deines Besuchers und zeigt die passende Übersetzung — ganz ohne Konfiguration.',
+      title: 'Analysieren',
+      body: 'Der Agent liest deine Seite, findet die schwächsten Conversion-Punkte und priorisiert nach erwartetem Impact.',
     },
     {
-      title: 'KI-Übersetzung in Echtzeit',
-      body: 'Ton, Kontext und Absicht bleiben erhalten. Keine wörtliche Maschinenübersetzung, sondern Text, der sich richtig anfühlt.',
+      title: 'Generieren',
+      body: 'Er schreibt die Varianten selbst — Text, Hierarchie, CTAs. Du reviewst nur noch, was live gehen soll.',
     },
     {
-      title: 'Bleibt synchron',
-      body: 'Änderst du deine Variante, aktualisiert sich die Übersetzung automatisch mit. Kein manuelles Nachpflegen.',
+      title: 'Messen',
+      body: 'Traffic wird sauber gesplittet, Conversions getrackt, Signifikanz berechnet. Kein Tracking-Plan nötig.',
+    },
+    {
+      title: 'Ausrollen',
+      body: 'Der Winner geht automatisch live. Der Agent nimmt sich sofort die nächste Hypothese vor.',
     },
   ],
-  translateNote: 'Einmal schreiben, weltweit testen.',
+  agentLoopNote: 'Jede Runde macht deine Seite besser — auch die, bei der du nicht zusiehst.',
+  agentVideoPending: 'Demo-Video folgt in Kürze',
 
   soloDevTitle: 'Gebaut für Builder. Designer, Indie Hacker, Gründer.',
   soloDevBody:
@@ -229,27 +189,19 @@ const de: LandingCopy = {
   sectionHow: 'So funktioniert’s',
   steps: [
     {
-      title: 'Wähle, was du testen willst.',
-      body: 'Hero, Pricing, CTA-Text — du entscheidest, welchen Bereich deiner Seite du verbessern willst. Funktioniert mit WordPress, Next.js, Shopify oder jedem anderen Stack.',
+      title: 'Deine Seite. Deine Regeln. Dein Agent.',
+      body: 'Sag dem Agenten, welche Seite er optimieren soll. Er analysiert automatisch den Aufbau, die Conversion-Pfade und die UX — völlig egal ob WordPress, Next.js, Shopify oder Custom.',
     },
     {
-      title: 'Baue deine Variante.',
-      body: 'Schreib deine Variante im Editor — neuer Text, neue Hierarchie, neuer CTA. Variante übersetzt sie automatisch für Besucher in anderen Sprachen.',
+      title: 'Varianten entstehen von allein.',
+      body: 'Der Agent generiert Varianten basierend auf dem, was er gelernt hat — bessere CTAs, klarere Hierarchie, optimierte Texte. Du reviewst, was live gehen soll. Der Rest passiert automatisch.',
     },
     {
       title: 'Daten statt Bauchgefühl. In Tagen, nicht Wochen.',
-      body: 'Ein Snippet in deine Seite — fertig. Traffic wird gesplittet, Conversions getrackt, Signifikanz berechnet. Du entscheidest, wann der Sieger ausgerollt wird.',
+      body: 'Ein Snippet in deine Seite — fertig. Der Agent serviert Varianten, trackt Conversions, errechnet Signifikanz und rollt den Winner aus. Ohne dass du eine Pipeline anfassen musst.',
     },
   ],
   platformNote: 'Ein Snippet. Funktioniert mit {platforms} — überall wo du ein Script-Tag einfügen kannst.',
-  platformItems: techLogoNames.join(', '),
-
-  step1Title: 'Wähle, was du testen willst.',
-  step1Body: 'Hero, Pricing, CTA-Text — du entscheidest, welchen Bereich deiner Seite du verbessern willst. Funktioniert mit WordPress, Next.js, Shopify oder jedem anderen Stack.',
-  step2Title: 'Baue deine Variante.',
-  step2Body: 'Schreib deine Variante im Editor — neuer Text, neue Hierarchie, neuer CTA. Variante übersetzt sie automatisch für Besucher in anderen Sprachen.',
-  step3Title: 'Daten statt Bauchgefühl. In Tagen, nicht Wochen.',
-  step3Body: 'Ein Snippet in deine Seite — fertig. Traffic wird gesplittet, Conversions getrackt, Signifikanz berechnet. Du entscheidest, wann der Sieger ausgerollt wird.',
 
   sectionPricing: 'Preise',
   pricingSub: 'Starte kostenlos. Upgrade, wenn der erste Test sich bezahlt gemacht hat.',
@@ -262,8 +214,8 @@ const de: LandingCopy = {
       cta: 'Kostenlos starten',
       features: [
         { label: '1 aktives Experiment', exclusive: false },
-        { label: 'Variante selbst erstellen — im Editor, ganz ohne Code', exclusive: false },
-        { label: 'Automatische KI-Übersetzung in jede Sprache', exclusive: false },
+        { label: 'KI-Agent analysiert deine Seite', exclusive: false },
+        { label: 'Autonome Variantengenerierung', exclusive: false },
         { label: 'Ganze Sektionen testen — Hero, Pricing, CTAs', exclusive: false },
         { label: 'Conversion-Tracking, eingebaut', exclusive: false },
         { label: '„Powered by Variante"-Badge auf deiner Seite', exclusive: false },
@@ -299,49 +251,6 @@ const de: LandingCopy = {
     },
   },
 
-  freeLabel: 'Free',
-  freePrice: '0 €',
-  freeSub: 'Dauerhaft kostenlos. Keine Kreditkarte.',
-  freeFeatures: [
-    '1 aktives Experiment',
-    'Variante selbst erstellen — im Editor, ganz ohne Code',
-    'Automatische KI-Übersetzung in jede Sprache',
-    'Ganze Sektionen testen — Hero, Pricing, CTAs',
-    'Conversion-Tracking, eingebaut',
-    '„Powered by Variante"-Badge auf deiner Seite',
-  ],
-  freeCta: 'Kostenlos starten',
-
-  proLabel: 'Pro',
-  proPrice: '35 €',
-  proSub: 'Alles aus Free, plus:',
-  proFeatures: [
-    'Unbegrenzt Experimente',
-    'Statistische Signifikanz — weiß, wann du aufhören kannst',
-    'Auto-Winner — beste Variante geht automatisch live',
-    'Dynamic Content — eigene Inhalte je Traffic-Quelle',
-    'Preis-Testing — Pläne und Preispunkte experimentell',
-    'Kein Badge auf deiner Seite',
-    'Priority-Support',
-  ],
-  proFeatureExclusive: [true, true, true, true, true, true, false],
-  proCta: 'Pro starten',
-
-  agencyLabel: 'Agency',
-  agencyPrice: '99 €',
-  agencySub: 'Alles aus Pro, plus:',
-  agencyFeatures: [
-    'Bis zu 100 Domains — alle Kunden-Sites managen',
-    'White-Label — keine Variante-Erwähnung',
-    'Kunden-Reports — gebrandete PDFs',
-    'Team-Zugang — Tests agenturweit teilen',
-    'Dedizierter Support — Direktkontakt, kein Ticket',
-    'Priority-Feature-Requests',
-    'Frühzugang zu neuen Features',
-  ],
-  agencyFeatureExclusive: [true, true, true, true, true, false, false],
-  agencyCta: 'Agency starten',
-
   sectionFaq: 'Häufige Fragen',
   faqs: [
     {
@@ -349,8 +258,8 @@ const de: LandingCopy = {
       a: 'Nein. Unter 5 KB, lädt asynchron, blockiert nie das Rendering. Deine Core Web Vitals bleiben unberührt.',
     },
     {
-      q: 'Muss ich für jede Sprache eine eigene Variante schreiben?',
-      a: 'Nein. Du schreibst deine Variante einmal, Variante übersetzt sie automatisch für jeden Besucher — Ton und Kontext bleiben erhalten.',
+      q: 'Muss ich dem Agenten genau sagen, was er tun soll?',
+      a: 'Nur grob. „Optimier meine Pricing-Page" reicht. Der Agent analysiert eigenständig, schreibt Varianten, du reviewst — fertig. Kein Prompt-Engineering nötig.',
     },
     {
       q: 'Funktioniert das mit meinem Stack?',
@@ -358,16 +267,16 @@ const de: LandingCopy = {
     },
     {
       q: 'Wieso nicht einfach Optimizely oder VWO?',
-      a: 'Weil die für große Teams mit Entwickler und Tracking-Plan gebaut sind. Variante: Snippet einbauen, Variante im Editor bauen, Ergebnis abwarten. Ohne Dev. Ohne Enterprise-Sales-Call.',
+      a: 'Weil du dafür einen Entwickler und einen Tracking-Plan brauchst. Variante: Agent anschalten, Varianten reviewen, Winner ausrollen. Ohne Dev. Ohne Enterprise-Sales-Call.',
     },
     {
       q: 'Ich bin Solo-Founder — lohnt sich das?',
-      a: 'Gerade dann. Ein Snippet, ein Experiment — und die automatische Übersetzung erspart dir, jede Variante manuell in mehrere Sprachen zu übertragen.',
+      a: 'Gerade dann. Deine Zeit ist zu wertvoll für manuelles A/B-Testing. Der Agent arbeitet, während du baust, verkaufst oder schläfst. Ein Experiment kann dir sagen, ob deine Pricing-Page 20 % mehr converted — das ist der ROI eines Nachmittags.',
     },
   ],
 
   closingH: 'Deine Seite kann ab heute besser werden.',
-  closingSub: 'Ein Snippet, ein Experiment, kein Entwickler nötig.',
+  closingSub: 'Ein Snippet, ein Experiment, kein Entwickler. Den Rest übernimmt der Agent.',
   closingCta: 'Kostenlos starten',
 
   footerLine: '© 2026 Variante · Made in Bavaria',
@@ -378,18 +287,18 @@ const de: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'A/B-Testing für Designer, Indie Hacker & Gründer. Kein Entwickler, automatische KI-Übersetzung.',
+    'A/B-Tests per KI-Agent — für Designer, Indie Hacker & Gründer. Kein Entwickler, kein Deployment.',
   jsonldProDescription: 'Unbegrenzt Experimente, Signifikanz-Analyse, Auto-Winner',
 
-  metaTitle: 'A/B-Testing für Designer, Indie Hacker & Gründer | Variante',
+  metaTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
   metaDescription:
-    'A/B-Tests ohne Entwickler — Variante bauen, Traffic splitten, Conversions messen. Deine Varianten werden automatisch mit KI in jede Sprache übersetzt. Für WordPress, Next.js, Shopify.',
-  ogTitle: 'A/B-Testing für Designer, Indie Hacker & Gründer | Variante',
+    'Autonomer KI-Agent für A/B-Tests. Seite analysieren, Varianten generieren, Conversions messen — kein Entwickler nötig. Für WordPress, Next.js, Shopify.',
+  ogTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
   ogDescription:
-    'Baue deine Variante, Variante testet sie gegen dein Original — und übersetzt sie automatisch in jede Sprache.',
-  twitterTitle: 'A/B-Testing für Designer, Indie Hacker & Gründer | Variante',
-  twitterDescription: 'A/B-Testing ohne Entwickler. Automatisch übersetzt mit KI.',
-  ogImageAlt: 'Variante — A/B-Testing mit automatischer KI-Übersetzung',
+    'Dein KI-Agent optimiert deine Seite. Varianten generieren, testen, Winner ausrollen — autonom.',
+  twitterTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
+  twitterDescription: 'Autonomer KI-Agent für A/B-Tests. Kein Entwickler nötig.',
+  ogImageAlt: 'Variante — A/B-Testing per KI-Agent',
 }
 
 const en: LandingCopy = {
@@ -398,9 +307,9 @@ const en: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Start free',
 
-  heroH1: 'A/B testing anyone can run — automatically translated with AI.',
+  heroH1: 'Your AI agent for A/B testing. No dev. No busywork. Just results.',
   heroSub:
-    'Build a variant and test it against your original. Variante splits traffic, tracks conversions — and automatically translates your copy for visitors in any language. No copy-pasting, no extra work.',
+    'Tell the agent what to improve — hero, pricing, CTAs. It analyzes your site, writes variants, tracks conversions, and ships the winner. While you build the next feature.',
   heroCta: 'Start free',
   heroFootnote: 'No credit card · 1 free experiment · Live in 5 minutes',
 
@@ -408,36 +317,36 @@ const en: LandingCopy = {
     { label: 'No credit card', text: 'Cancel anytime. No lock-in.' },
     { label: '5 KB snippet', text: 'Loads async. Zero performance impact.' },
     { label: 'GDPR-compliant', text: 'EU hosting. No third-country data.' },
-    { label: 'AI translation', text: 'Automatic, in every language — no extra work.' },
+    { label: 'AI agent', text: 'Autonomous. No briefing. No dev ticket.' },
   ],
 
   sectionWorks: 'Works with your stack',
   worksLabel: 'One snippet — anywhere you can paste a script tag',
 
-  figmaCommunityTitle: 'Variante + Figma Plugin',
-  figmaCommunityText:
-    'Designers pick an element, build the variant in Figma, and the AI agent deploys it automatically. No dev, no deployment — straight from your design tool.',
-  figmaCommunityLinkText: 'How it works →',
-
-  sectionTranslate: 'AI translation',
-  translateH: 'Write one variant. It goes live in every language.',
-  translateSub:
-    "You build your variant once — copy, CTA, pricing, whatever you're testing. Variante translates it automatically for every visitor, without you translating a single word.",
-  translateItems: [
+  sectionAgent: 'AI agent automation',
+  agentH: 'The agent doesn’t stop when the test ends.',
+  agentSub:
+    'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps.',
+  agentLoop: [
     {
-      title: 'Language detected automatically',
-      body: "Variante detects your visitor's language and shows the right translation — zero configuration.",
+      title: 'Analyze',
+      body: 'The agent reads your page, finds the weakest conversion points, and ranks them by expected impact.',
     },
     {
-      title: 'Real-time AI translation',
-      body: 'Tone, context, and intent stay intact. Not literal machine translation — copy that actually reads right.',
+      title: 'Generate',
+      body: 'It writes the variants itself — copy, hierarchy, CTAs. All you do is review what ships.',
     },
     {
-      title: 'Always in sync',
-      body: 'Edit your variant and the translation updates automatically. Nothing to maintain by hand.',
+      title: 'Measure',
+      body: 'Traffic gets split cleanly, conversions tracked, significance computed. No tracking plan required.',
+    },
+    {
+      title: 'Ship',
+      body: 'The winner goes live automatically. The agent moves straight on to the next hypothesis.',
     },
   ],
-  translateNote: 'Write once, test everywhere.',
+  agentLoopNote: 'Every lap makes your site better — including the ones you never watch.',
+  agentVideoPending: 'Demo video coming soon',
 
   soloDevTitle: 'Built for builders. Designers, indie hackers, founders.',
   soloDevBody:
@@ -448,27 +357,19 @@ const en: LandingCopy = {
   sectionHow: 'How it works',
   steps: [
     {
-      title: 'Pick what to test.',
-      body: "Hero, pricing, CTA copy — you decide what to improve. Works with WordPress, Next.js, Shopify, or any other stack.",
+      title: 'Your site. Your rules. Your agent.',
+      body: 'Tell the agent which page to optimize. It automatically analyzes structure, conversion paths, and UX — WordPress, Next.js, Shopify, custom, doesn’t matter.',
     },
     {
-      title: 'Build your variant.',
-      body: 'Write your variant in the editor — new copy, new hierarchy, new CTA. Variante automatically translates it for visitors in other languages.',
+      title: 'Variants generate themselves.',
+      body: 'The agent writes variants based on what it learned — better CTAs, clearer hierarchy, optimized copy. You review what ships. Everything else is automatic.',
     },
     {
       title: 'Data over gut feel. Days, not weeks.',
-      body: 'One snippet on your site — done. Traffic gets split, conversions tracked, significance computed. You decide when to ship the winner.',
+      body: 'One snippet into your site — done. The agent serves variants, tracks conversions, computes significance, and rolls out the winner. Without touching a pipeline.',
     },
   ],
   platformNote: 'One snippet. Works with {platforms} — anywhere you can paste a script tag.',
-  platformItems: techLogoNames.join(', '),
-
-  step1Title: 'Pick what to test.',
-  step1Body: "Hero, pricing, CTA copy — you decide what to improve. Works with WordPress, Next.js, Shopify, or any other stack.",
-  step2Title: 'Build your variant.',
-  step2Body: 'Write your variant in the editor — new copy, new hierarchy, new CTA. Variante automatically translates it for visitors in other languages.',
-  step3Title: 'Data over gut feel. Days, not weeks.',
-  step3Body: 'One snippet on your site — done. Traffic gets split, conversions tracked, significance computed. You decide when to ship the winner.',
 
   sectionPricing: 'Pricing',
   pricingSub: 'Start free. Upgrade once your first test has paid for itself.',
@@ -481,8 +382,8 @@ const en: LandingCopy = {
       cta: 'Start free',
       features: [
         { label: '1 active experiment', exclusive: false },
-        { label: 'Build variants yourself — no-code editor', exclusive: false },
-        { label: 'Automatic AI translation into every language', exclusive: false },
+        { label: 'AI agent analyzes your site', exclusive: false },
+        { label: 'Autonomous variant generation', exclusive: false },
         { label: 'Test full sections — hero, pricing, CTAs', exclusive: false },
         { label: 'Conversion tracking, built in', exclusive: false },
         { label: '“Powered by Variante” badge on your site', exclusive: false },
@@ -518,49 +419,6 @@ const en: LandingCopy = {
     },
   },
 
-  freeLabel: 'Free',
-  freePrice: '0 €',
-  freeSub: 'Forever free. No credit card.',
-  freeFeatures: [
-    '1 active experiment',
-    'Build variants yourself — no-code editor',
-    'Automatic AI translation into every language',
-    'Test full sections — hero, pricing, CTAs',
-    'Conversion tracking, built in',
-    '“Powered by Variante” badge on your site',
-  ],
-  freeCta: 'Start free',
-
-  proLabel: 'Pro',
-  proPrice: '35 €',
-  proSub: 'Everything in Free, plus:',
-  proFeatures: [
-    'Unlimited experiments',
-    'Statistical significance — know when to stop',
-    'Auto-winner — the best variant ships itself',
-    'Dynamic content — tailored copy per traffic source',
-    'Price testing — experiment with plans and price points',
-    'No badge on your site',
-    'Priority support',
-  ],
-  proFeatureExclusive: [true, true, true, true, true, true, false],
-  proCta: 'Get Pro',
-
-  agencyLabel: 'Agency',
-  agencyPrice: '99 €',
-  agencySub: 'Everything in Pro, plus:',
-  agencyFeatures: [
-    'Up to 100 domains — manage every client site',
-    'White-label — no Variante mention anywhere',
-    'Client reports — branded PDFs',
-    'Team access — share tests across your agency',
-    'Dedicated support — direct line, not tickets',
-    'Priority feature requests',
-    'Early access to new features',
-  ],
-  agencyFeatureExclusive: [true, true, true, true, true, false, false],
-  agencyCta: 'Get Agency',
-
   sectionFaq: 'Frequently asked questions',
   faqs: [
     {
@@ -568,8 +426,8 @@ const en: LandingCopy = {
       a: 'No. Under 5 KB, loads async, never blocks rendering. Your Core Web Vitals stay untouched.',
     },
     {
-      q: 'Do I need to write a separate variant for every language?',
-      a: 'No. Write your variant once, Variante translates it automatically for every visitor — tone and context stay intact.',
+      q: 'Do I need to tell the agent exactly what to do?',
+      a: 'Just roughly. “Optimize my pricing page” is enough. The agent analyzes independently, writes variants, you review — done. No prompt engineering needed.',
     },
     {
       q: 'Does this work with my stack?',
@@ -577,16 +435,16 @@ const en: LandingCopy = {
     },
     {
       q: 'How is this different from Optimizely or VWO?',
-      a: 'Those are built for teams with a developer and a tracking plan. Variante: paste a snippet, build your variant in the editor, wait for results. No dev. No enterprise sales call.',
+      a: 'You’d need a developer and a tracking plan for those. Variante: turn on the agent, review variants, ship the winner. No dev. No enterprise sales call.',
     },
     {
       q: 'I’m a solo founder — is this worth it?',
-      a: 'Especially then. One snippet, one experiment — and automatic translation saves you the time of rewriting every variant by hand in multiple languages.',
+      a: 'Especially then. Your time is too valuable for manual A/B testing. The agent works while you build, sell, or sleep. One experiment can tell you if your pricing page converts 20% better — that’s an afternoon’s ROI.',
     },
   ],
 
   closingH: 'Your site can start getting better today.',
-  closingSub: 'One snippet, one experiment, no developer needed.',
+  closingSub: 'One snippet, one experiment, no developer. The agent takes it from there.',
   closingCta: 'Start free',
 
   footerLine: '© 2026 Variante · Made in Bavaria',
@@ -597,18 +455,18 @@ const en: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'A/B testing for designers, indie hackers & founders. No developer, automatic AI translation.',
+    'AI agent for A/B testing — for designers, indie hackers & founders. No developer, no pipeline.',
   jsonldProDescription: 'Unlimited experiments, significance analysis, auto-winner detection',
 
-  metaTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
+  metaTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
   metaDescription:
-    'A/B testing without a developer — build a variant, split traffic, track conversions. Your variants get automatically translated into every language with AI. Works with WordPress, Next.js, Shopify.',
-  ogTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
+    'Autonomous AI agent for A/B testing. Analyze your site, generate variants, track conversions — no developer needed. Works with WordPress, Next.js, Shopify.',
+  ogTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
   ogDescription:
-    'Build your variant, Variante tests it against your original — and translates it automatically into every language.',
-  twitterTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
-  twitterDescription: 'A/B testing without a developer. Automatically translated with AI.',
-  ogImageAlt: 'Variante — A/B testing with automatic AI translation',
+    'Your AI agent optimizes your site. Generate variants, run tests, ship winners — autonomously.',
+  twitterTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
+  twitterDescription: 'Autonomous AI agent for A/B testing. No developer needed.',
+  ogImageAlt: 'Variante — AI Agent for A/B Testing',
 }
 
 /** Helper: detect language from request headers. */

@@ -194,7 +194,6 @@ export function TestCard({
           <img
             src={`https://www.google.com/s2/favicons?domain=${domain}&sz=48`}
             alt=""
-            role="presentation"
             width={18}
             height={18}
             className="shrink-0 rounded-[4px]"
@@ -202,7 +201,7 @@ export function TestCard({
           />
         ) : (
           <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
-            <span className="text-[8px] text-[#ededed]/40">WWW</span>
+            <span className="text-[8px] text-[#ededed]/25">WWW</span>
           </div>
         )}
 
