@@ -100,3 +100,10 @@ html {
   0% { background-color: rgba(47, 215, 108, 0.12); }
   100% { background-color: transparent; }
 }
+
+/* ── Badge: only visible on sm+ (≥640px) ── */
+@media (max-width: 639px) {
+  .badge-desktop-only {
+    display: none !important;
+  }
+}

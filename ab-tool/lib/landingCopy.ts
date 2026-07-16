@@ -149,9 +149,9 @@ const de: LandingCopy = {
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
-  heroH1: 'Dein KI-Agent für A/B-Tests. Kein Dev. Kein Aufwand. Nur Ergebnisse.',
+  heroH1: 'Deine Seite converted. Ohne dass du einen Finger rührst.',
   heroSub:
-    'Sag dem Agenten, was du verbessern willst — Hero, Pricing, CTAs. Er analysiert deine Seite, schreibt Varianten, misst Conversions und rollt den Winner aus. Während du das nächste Feature baust.',
+    'Dein KI-Agent für A/B-Tests. Sag ihm, was du verbessern willst — Hero, Pricing, CTAs. Er analysiert, schreibt Varianten, misst Conversions und rollt den Winner aus. Während du das nächste Feature baust.',
   heroCta: 'Kostenlos starten',
   heroFootnote: 'Keine Kreditkarte · 1 kostenloses Experiment · In 5 Minuten live',
 
@@ -199,7 +199,7 @@ const de: LandingCopy = {
 
   soloDevTitle: 'Gebaut für Builder. Designer, Indie Hacker, Gründer.',
   soloDevBody:
-    'Kein VC, kein 20-Personen-Team. Ein Solo-Dev aus Bayern, der selbst Produkte launched und die „soll ich das testen oder shippen?"-Frage kennt. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
+    'Gebaut von jemandem, der die „soll ich das testen oder shippen?"-Frage selbst kennt. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
   impliedUsersText:
     'Schließ dich Designern, Indie Hackern und Gründern an, die shippen UND testen — ohne Dev-Team.',
 
@@ -223,7 +223,7 @@ const de: LandingCopy = {
   sectionPricing: 'Preise',
   pricingSub: 'Starte kostenlos. Upgrade, wenn der erste Test sich bezahlt gemacht hat.',
   period: '/Mon.',
-  proBadge: 'Am beliebtesten',
+  proBadge: 'Empfohlen',
   plans: {
     free: {
       label: 'Free',
@@ -324,9 +324,9 @@ const en: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Start free',
 
-  heroH1: 'Your AI agent for A/B testing. No dev. No busywork. Just results.',
+  heroH1: 'Your site converts. Without you lifting a finger.',
   heroSub:
-    'Tell the agent what to improve — hero, pricing, CTAs. It analyzes your site, writes variants, tracks conversions, and ships the winner. While you build the next feature.',
+    'Your AI agent for A/B testing. Tell it what to improve — hero, pricing, CTAs. It analyzes, writes variants, tracks conversions, and ships the winner. While you build the next feature.',
   heroCta: 'Start free',
   heroFootnote: 'No credit card · 1 free experiment · Live in 5 minutes',
 
@@ -374,7 +374,7 @@ const en: LandingCopy = {
 
   soloDevTitle: 'Built for builders. Designers, indie hackers, founders.',
   soloDevBody:
-    'No VC, no 20-person team. A solo dev from Bavaria who launches products himself and knows the “should I test this or just ship it?” dilemma. Every line of code is documented, every update public in the changelog.',
+    'Built by someone who knows the “should I test this or just ship it?” dilemma firsthand. Every line of code is documented, every update public in the changelog.',
   impliedUsersText:
     'Join designers, indie hackers, and founders who ship AND test — without a dev team.',
 
@@ -398,7 +398,7 @@ const en: LandingCopy = {
   sectionPricing: 'Pricing',
   pricingSub: 'Start free. Upgrade once your first test has paid for itself.',
   period: '/mo',
-  proBadge: 'Most popular',
+  proBadge: 'Recommended',
   plans: {
     free: {
       label: 'Free',

@@ -236,48 +236,11 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section className="px-4 py-12 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-xl font-semibold text-white">{cp.sectionHow}</h2>
-          <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {[
-              { icon: MousePointer2, ...cp.steps[0] },
-              { icon: Sparkles, ...cp.steps[1] },
-              { icon: Rocket, ...cp.steps[2] },
-            ].map((s, i) => (
-              <div
-                key={s.title}
-                className="rounded-[10px] border border-border bg-bg-1 p-6"
-              >
-                <s.icon className="mb-4 h-8 w-8 text-white" />
-                <p className="mb-2 text-xs font-medium text-white/50">{String(i + 1).padStart(2, '0')}</p>
-                <h3 className="mb-2 text-sm font-semibold text-white">{s.title}</h3>
-                <p className="text-sm text-white/50">{s.body}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-8 text-center text-sm text-white/50">
-            {cp.platformNote.split('{platforms}').map((part, i, arr) => (
-              <span key={i}>
-                {part}
-                {i < arr.length - 1 &&
-                  techLogoNames.map((item, j) => (
-                    <span key={item}>
-                      <span className="text-white/55">{item}</span>
-                      {j < techLogoNames.length - 1 ? ', ' : ''}
-                    </span>
-                  ))}
-              </span>
-            ))}
-          </p>
-        </div>
-      </section>
-
       {/* ── Pricing ── */}
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-xl font-semibold text-white">{cp.sectionPricing}</h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-white/50">{cp.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {/* Free */}
             <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
@@ -397,12 +360,28 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
+      {/* ── Closing CTA ── */}
+      <section className="px-4 py-16 sm:px-6 sm:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold text-white sm:text-3xl">{cp.closingH}</h2>
+          <p className="mt-4 text-base text-white/55 sm:text-lg">{cp.closingSub}</p>
+          <div className="mt-8">
+            <Link
+              href={signupUrl("/signup")}
+              className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
+            >
+              {cp.closingCta}
+            </Link>
+          </div>
+        </div>
+      </section>
+
       </main>
 
       {/* ── Badge Demo ── */}
       <Link
         href={signupUrl("/signup")}
-        className="fixed bottom-3 right-3 z-50 rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
+        className="fixed bottom-3 right-3 z-50 badge-desktop-only rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
         {cp.badgeText}
