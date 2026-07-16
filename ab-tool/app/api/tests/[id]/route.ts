@@ -12,6 +12,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, PATCH, DELETE, OPTIONS')
   const { id } = await params
+  const isTemp = user.plan === 'temp'
 
   let body: {
     name?: string
@@ -57,18 +58,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   // Besitz-Scope: nur eigene Tests aktualisierbar.
   // Vor dem Update den alten Status für Event-Logging sichern.
+  const ownerCol = isTemp ? 'temp_session_id' : 'user_id'
   const { data: oldTest } = await supabase
     .from('tests')
     .select('status, name')
     .eq('id', id)
-    .eq('user_id', user.userId)
+    .eq(ownerCol, user.userId)
     .single()
 
   const { data: updated, error } = await supabase
     .from('tests')
     .update(patch)
     .eq('id', id)
-    .eq('user_id', user.userId)
+    .eq(ownerCol, user.userId)
     .select('id')
   if (error) {
     safeError('tests:patch', error)
@@ -78,23 +80,25 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
   }
 
-  // Event-Logging bei Status-Änderungen
-  const oldStatus = oldTest?.status
-  const newStatus = patch.status
-  if (newStatus && newStatus !== oldStatus) {
-    const eventType =
-      newStatus === 'active' ? 'started' :
-      newStatus === 'paused' ? 'paused' :
-      newStatus === 'done' ? 'done' :
-      newStatus === 'draft' && oldStatus === 'paused' ? 'resumed' :
-      null
-    if (eventType) {
-      await supabase.rpc('log_event', {
-        p_test_id: id,
-        p_user_id: user.userId,
-        p_type: eventType,
-        p_message: `Test "${oldTest?.name || id}" ${oldStatus} → ${newStatus}`,
-      })
+  // Event-Logging bei Status-Änderungen (nur für echte User)
+  if (!isTemp) {
+    const oldStatus = oldTest?.status
+    const newStatus = patch.status
+    if (newStatus && newStatus !== oldStatus) {
+      const eventType =
+        newStatus === 'active' ? 'started' :
+        newStatus === 'paused' ? 'paused' :
+        newStatus === 'done' ? 'done' :
+        newStatus === 'draft' && oldStatus === 'paused' ? 'resumed' :
+        null
+      if (eventType) {
+        await supabase.rpc('log_event', {
+          p_test_id: id,
+          p_user_id: user.userId,
+          p_type: eventType,
+          p_message: `Test "${oldTest?.name || id}" ${oldStatus} → ${newStatus}`,
+        })
+      }
     }
   }
 
@@ -106,12 +110,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, PATCH, DELETE, OPTIONS')
   const { id } = await params
+  const isTemp = user.plan === 'temp'
+  const ownerCol = isTemp ? 'temp_session_id' : 'user_id'
 
   const { data, error } = await supabase
     .from('tests')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.userId)
+    .eq(ownerCol, user.userId)
     .single()
 
   if (error || !data) {
@@ -125,6 +131,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, PATCH, DELETE, OPTIONS')
   const { id } = await params
+  const isTemp = user.plan === 'temp'
+  const ownerCol = isTemp ? 'temp_session_id' : 'user_id'
   try {
     const url = new URL(req.url)
     const confirm = url.searchParams.get('confirm')
@@ -135,7 +143,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return Response.json({ error: 'invalid request' }, { status: 400, headers: corsHeaders('DELETE, OPTIONS') })
   }
 
-  const { error } = await supabase.from('tests').delete().eq('id', id).eq('user_id', user.userId)
+  const { error } = await supabase.from('tests').delete().eq('id', id).eq(ownerCol, user.userId)
   if (error) {
     safeError('tests:delete', error)
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('DELETE, OPTIONS') })

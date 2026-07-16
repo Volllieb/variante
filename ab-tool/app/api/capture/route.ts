@@ -35,19 +35,31 @@ export async function POST(req: Request) {
     )
   }
 
-  const { data: updated, error } = await supabase
-    .from('tests')
-    .update({
-      selector,
-      original_html,
-      site_css,
-      framework,
-      ...(goal_candidates !== undefined ? { goal_candidates } : {}),
-      ...(reorder_selector !== undefined ? { reorder_selector } : {}),
-    })
-    .eq('id', testId)
-    .eq('user_id', user.userId)
-    .select('id')
+  const isTemp = user.plan === 'temp'
+
+  const updatePayload = {
+    selector,
+    original_html,
+    site_css,
+    framework,
+    ...(goal_candidates !== undefined ? { goal_candidates } : {}),
+    ...(reorder_selector !== undefined ? { reorder_selector } : {}),
+  }
+
+  // Temp-User: per temp_session_id, regulärer User: per user_id
+  const { data: updated, error } = isTemp
+    ? await supabase
+        .from('tests')
+        .update(updatePayload)
+        .eq('id', testId)
+        .eq('temp_session_id', user.userId)
+        .select('id')
+    : await supabase
+        .from('tests')
+        .update(updatePayload)
+        .eq('id', testId)
+        .eq('user_id', user.userId)
+        .select('id')
 
   if (error) {
     safeError('capture', error)
@@ -58,12 +70,14 @@ export async function POST(req: Request) {
   }
 
   // Plugin-Sync-Timestamp + Flag aktualisieren (Integration-Status).
-  // Nur schreiben wenn das Flag noch false ist — vermeidet redundante Writes.
-  await supabase
-    .from('profiles')
-    .update({ last_plugin_sync_at: new Date().toISOString(), has_figma_plugin: true })
-    .eq('user_id', user.userId)
-    .eq('has_figma_plugin', false)
+  // Nur für echte User, nicht für Temp-Sessions.
+  if (!isTemp) {
+    await supabase
+      .from('profiles')
+      .update({ last_plugin_sync_at: new Date().toISOString(), has_figma_plugin: true })
+      .eq('user_id', user.userId)
+      .eq('has_figma_plugin', false)
+  }
 
   return Response.json({ ok: true }, { headers: corsHeaders('POST, OPTIONS') })
 }
