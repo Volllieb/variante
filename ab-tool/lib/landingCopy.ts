@@ -74,13 +74,23 @@ export interface LandingCopy {
   sectionWorks: string
   worksLabel: string
 
-  // AI Agent Automation (+ Demo-Video)
+  // AI Agent Automation (+ Demo-Animation)
   sectionAgent: string
   agentH: string
   agentSub: string
+  /** Kicker-Zeile über der Animation, z. B. "Total Control. Minimum Effort." */
+  agentMotto: string
+  /** Tagline direkt darunter, z. B. "Pick the one you want. AI does the rest." */
+  agentMottoSub: string
+  /** Pill-Text auf jeder der 4 Schritt-Karten — signalisiert manuell ODER automatisch. */
+  agentModePill: string
   agentLoop: Tuple4<{ title: string; body: string }>
   agentLoopNote: string
-  agentVideoPending: string
+
+  // Figma Community Plugin
+  figmaCommunityTitle: string
+  figmaCommunityText: string
+  figmaCommunityLinkText: string
 
   // Solo-dev transparency + implied usage
   soloDevTitle: string
@@ -159,26 +169,33 @@ const de: LandingCopy = {
   agentH: 'Der Agent hört nicht auf, wenn der Test vorbei ist.',
   agentSub:
     'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden.',
+  agentMotto: 'Volle Kontrolle. Minimaler Aufwand.',
+  agentMottoSub: 'Wähl aus, was du willst — den Rest erledigt die KI.',
+  agentModePill: 'Du oder KI',
   agentLoop: [
     {
-      title: 'Analysieren',
+      title: 'Seite analysieren',
       body: 'Der Agent liest deine Seite, findet die schwächsten Conversion-Punkte und priorisiert nach erwartetem Impact.',
     },
     {
-      title: 'Generieren',
-      body: 'Er schreibt die Varianten selbst — Text, Hierarchie, CTAs. Du reviewst nur noch, was live gehen soll.',
+      title: 'Hypothese erstellen',
+      body: 'Er leitet eine Variante ab und schreibt sie selbst — Text, Hierarchie, CTAs. Du reviewst nur noch, was live gehen soll.',
     },
     {
-      title: 'Messen',
+      title: 'Testen',
       body: 'Traffic wird sauber gesplittet, Conversions getrackt, Signifikanz berechnet. Kein Tracking-Plan nötig.',
     },
     {
-      title: 'Ausrollen',
-      body: 'Der Winner geht automatisch live. Der Agent nimmt sich sofort die nächste Hypothese vor.',
+      title: 'Gewinner wählen',
+      body: 'Der Sieger geht automatisch live. Der Agent nimmt sich sofort die nächste Hypothese vor.',
     },
   ],
   agentLoopNote: 'Jede Runde macht deine Seite besser — auch die, bei der du nicht zusiehst.',
-  agentVideoPending: 'Demo-Video folgt in Kürze',
+
+  figmaCommunityTitle: 'Figma Community Plugin',
+  figmaCommunityText:
+    'Teste und optimiere direkt aus Figma heraus — ohne den Browser zu wechseln. Wähle ein Element, generiere eine Variante, pushe sie live.',
+  figmaCommunityLinkText: 'Plugin in der Community ansehen →',
 
   soloDevTitle: 'Gebaut für Builder. Designer, Indie Hacker, Gründer.',
   soloDevBody:
@@ -327,26 +344,33 @@ const en: LandingCopy = {
   agentH: 'The agent doesn’t stop when the test ends.',
   agentSub:
     'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps.',
+  agentMotto: 'Total control. Minimum effort.',
+  agentMottoSub: 'Pick the one you want — AI does the rest.',
+  agentModePill: 'You or AI',
   agentLoop: [
     {
-      title: 'Analyze',
+      title: 'Analyze the page',
       body: 'The agent reads your page, finds the weakest conversion points, and ranks them by expected impact.',
     },
     {
-      title: 'Generate',
-      body: 'It writes the variants itself — copy, hierarchy, CTAs. All you do is review what ships.',
+      title: 'Create a hypothesis',
+      body: 'It drafts a variant and writes it itself — copy, hierarchy, CTAs. All you do is review what ships.',
     },
     {
-      title: 'Measure',
+      title: 'Test it',
       body: 'Traffic gets split cleanly, conversions tracked, significance computed. No tracking plan required.',
     },
     {
-      title: 'Ship',
+      title: 'Choose the winner',
       body: 'The winner goes live automatically. The agent moves straight on to the next hypothesis.',
     },
   ],
   agentLoopNote: 'Every lap makes your site better — including the ones you never watch.',
-  agentVideoPending: 'Demo video coming soon',
+
+  figmaCommunityTitle: 'Figma Community Plugin',
+  figmaCommunityText:
+    'Test and optimize right from Figma — no browser switch needed. Pick an element, generate a variant, push it live.',
+  figmaCommunityLinkText: 'View plugin in the Community →',
 
   soloDevTitle: 'Built for builders. Designers, indie hackers, founders.',
   soloDevBody:
