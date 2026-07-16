@@ -12,14 +12,33 @@ export async function GET(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, POST, OPTIONS')
 
-  const { data, error } = await supabase
+  const query = supabase
     .from('tests')
     .select(
       'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
     )
-    .eq('user_id', user.userId)
     .order('created_at', { ascending: false })
     .limit(50)
+
+  // Temp-User: Tests per temp_session_id holen, regulärer User per user_id
+  const isTemp = user.plan === 'temp'
+  const { data, error } = isTemp
+    ? await supabase
+        .from('tests')
+        .select(
+          'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
+        )
+        .eq('temp_session_id', user.userId)
+        .order('created_at', { ascending: false })
+        .limit(50)
+    : await supabase
+        .from('tests')
+        .select(
+          'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
+        )
+        .eq('user_id', user.userId)
+        .order('created_at', { ascending: false })
+        .limit(50)
 
   if (error) {
     safeError('tests', error)
@@ -61,8 +80,11 @@ export async function POST(req: Request) {
   if (selector && selector.length > 512) return Response.json({ error: 'selector too long (max 512)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   if (goal && goal.length > 256) return Response.json({ error: 'goal too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
 
+  const isTemp = user.plan === 'temp'
+
   // Gating: Free-Tier erlaubt nur 1 laufenden Test (status != 'done').
-  if (user.plan === 'free') {
+  // Temp-User: kein Limit (es gibt nur einen Test im Wizard).
+  if (!isTemp && user.plan === 'free') {
     const { count } = await supabase
       .from('tests')
       .select('id', { count: 'exact', head: true })
@@ -77,48 +99,50 @@ export async function POST(req: Request) {
   }
 
   // Domain-Gate: site_url muss zu einer verified Domain des Users passen.
-  // Holt ALLE verified Domains (Pro/Agency haben mehrere, Free nur eine).
-  const { data: verifiedDomains } = await supabase
-    .from('domains')
-    .select('url')
-    .eq('user_id', user.userId)
-    .eq('verified', true)
+  // Temp-User: keine Domain-Verifikation nötig (Site-Eingabe im Wizard).
+  let effectiveUrl = site_url || ''
 
-  const verifiedUrls = verifiedDomains?.map(d => d.url) ?? []
+  if (!isTemp) {
+    const { data: verifiedDomains } = await supabase
+      .from('domains')
+      .select('url')
+      .eq('user_id', user.userId)
+      .eq('verified', true)
 
-  function hostOf(u: string) {
-    return u.trim().toLowerCase()
-      .replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
-      .replace(/^www\./, '')
+    const verifiedUrls = verifiedDomains?.map(d => d.url) ?? []
+
+    function hostOf(u: string) {
+      return u.trim().toLowerCase()
+        .replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
+        .replace(/^www\./, '')
+    }
+
+    if (!site_url) {
+      if (verifiedUrls.length === 0) {
+        return Response.json(
+          { error: 'No verified website. Add your website in the dashboard first.' },
+          { status: 400, headers: corsHeaders('POST, OPTIONS') }
+        )
+      }
+      effectiveUrl = verifiedUrls[0]!
+    } else {
+      if (verifiedUrls.length === 0) {
+        return Response.json(
+          { error: 'No verified website. Add your website in the dashboard first.' },
+          { status: 400, headers: corsHeaders('POST, OPTIONS') }
+        )
+      }
+
+      const testHost = hostOf(site_url)
+      const allowedHosts = verifiedUrls.map(u => hostOf(u))
+      if (!allowedHosts.includes(testHost)) {
+        return Response.json(
+          { error: `site_url must match a verified website. Allowed: ${allowedHosts.join(', ')}. Got: ${testHost}` },
+          { status: 400, headers: corsHeaders('POST, OPTIONS') }
+        )
+      }
+    }
   }
-
-  if (!site_url) {
-    if (verifiedUrls.length === 0) {
-      return Response.json(
-        { error: 'No verified website. Add your website in the dashboard first.' },
-        { status: 400, headers: corsHeaders('POST, OPTIONS') }
-      )
-    }
-    // Auto-fill mit erster verified Domain
-  } else {
-    if (verifiedUrls.length === 0) {
-      return Response.json(
-        { error: 'No verified website. Add your website in the dashboard first.' },
-        { status: 400, headers: corsHeaders('POST, OPTIONS') }
-      )
-    }
-
-    const testHost = hostOf(site_url)
-    const allowedHosts = verifiedUrls.map(u => hostOf(u))
-    if (!allowedHosts.includes(testHost)) {
-      return Response.json(
-        { error: `site_url must match a verified website. Allowed: ${allowedHosts.join(', ')}. Got: ${testHost}` },
-        { status: 400, headers: corsHeaders('POST, OPTIONS') }
-      )
-    }
-  }
-
-  const effectiveUrl = site_url || verifiedUrls[0]!
 
   const insert: Record<string, unknown> = {
     name,
@@ -126,7 +150,11 @@ export async function POST(req: Request) {
     selector,
     goal,
     traffic_split,
-    user_id: user.userId,
+  }
+  if (isTemp) {
+    insert.temp_session_id = user.userId
+  } else {
+    insert.user_id = user.userId
   }
   if (typeof min_visitors === 'number') insert.min_visitors = min_visitors
   if (typeof min_uplift === 'number') insert.min_uplift = min_uplift
@@ -143,20 +171,22 @@ export async function POST(req: Request) {
     return Response.json({ error: 'failed to create test' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  // Event: Test erstellt
-  await supabase.rpc('log_event', {
-    p_test_id: data.id,
-    p_user_id: user.userId,
-    p_type: 'created',
-    p_message: `Test "${name}" created`,
-  })
+  // Event: Test erstellt (nur für echte User, Temp-User haben keine user_id)
+  if (!isTemp) {
+    await supabase.rpc('log_event', {
+      p_test_id: data.id,
+      p_user_id: user.userId,
+      p_type: 'created',
+      p_message: `Test "${name}" created`,
+    })
 
-  // Erstmaliger Figma-Plugin-Token-Austausch → Flag setzen
-  await supabase
-    .from('profiles')
-    .update({ has_figma_plugin: true })
-    .eq('user_id', user.userId)
-    .eq('has_figma_plugin', false)
+    // Erstmaliger Figma-Plugin-Token-Austausch → Flag setzen
+    await supabase
+      .from('profiles')
+      .update({ has_figma_plugin: true })
+      .eq('user_id', user.userId)
+      .eq('has_figma_plugin', false)
+  }
 
   revalidatePath('/dashboard')
   return Response.json(

@@ -40,9 +40,10 @@ export async function ensureProfile(
   }
 }
 
-// Auth für API-Routen — akzeptiert zwei Wege:
+// Auth für API-Routen — akzeptiert drei Wege:
 //   1. Plugin/Extension: Header `Authorization: Bearer <api_token>` (aus profiles).
 //   2. Dashboard (gleiche Origin): eingeloggte Supabase-Session via Cookie.
+//   3. Figma-Onboarding: Header `X-Temp-Token: <temp_token>` (aus temp_sessions).
 // So funktioniert z. B. das Speichern von Schwellen auf der Results-Seite für
 // den eingeloggten Besitzer, während fremde Betrachter abgewiesen werden.
 export async function getApiUser(req: Request): Promise<ApiUser | null> {
@@ -72,6 +73,17 @@ export async function getApiUser(req: Request): Promise<ApiUser | null> {
     }
   } catch {
     // cookies() außerhalb eines Request-Kontexts → ignorierbar
+  }
+
+  // 3. Temp-Token (Figma-Onboarding ohne Account)
+  const tempToken = req.headers.get('x-temp-token') || ''
+  if (tempToken) {
+    const { data } = await supabase
+      .from('temp_sessions')
+      .select('id')
+      .eq('token', tempToken)
+      .single()
+    if (data) return { userId: data.id, plan: 'temp' }
   }
 
   return null

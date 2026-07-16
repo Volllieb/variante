@@ -360,17 +360,31 @@ export async function POST(req: Request) {
 
   const user = await getApiUser(req)
   if (!user) return unauthorized('POST, OPTIONS')
+  const isTemp = user.plan === 'temp'
 
-  const selectColumns = 'original_html, site_css, framework, selector, reorder_selector'
+  const selectColumns = 'original_html, site_css, framework, selector, reorder_selector, variant_b_html'
+  const ownerCol = isTemp ? 'temp_session_id' : 'user_id'
   const { data: test, error: fetchErr } = await supabase
     .from('tests')
     .select(selectColumns)
     .eq('id', testId)
-    .eq('user_id', user.userId)
+    .eq(ownerCol, user.userId)
     .single()
 
   if (fetchErr || !test) {
     return Response.json({ error: 'test not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
+  }
+
+  // Temp-User: maximal 1 kostenlose Generation. Danach Signup-Prompt.
+  if (isTemp && test.variant_b_html) {
+    return Response.json(
+      {
+        error: 'free_gen_limit',
+        message: 'Sign up to generate more variants for this test.',
+        signup_url: '/signup?source=figma-plugin&temp_token=' + encodeURIComponent(user.userId),
+      },
+      { status: 402, headers: corsHeaders('POST, OPTIONS') }
+    )
   }
 
   // DSGVO: PII-Scan vor OpenAI-Sendung. original_html kann personenbezogene
@@ -397,17 +411,20 @@ export async function POST(req: Request) {
   // ponytail: increment_gen_cost replaced manual check+reset to fix TOCTOU race.
   // Cost wird VOR dem OpenAI-Call reserviert. Bei OpenAI-Fehlschlag ist der Betrag
   // ($0.005) verloren — bei diesem Volumen akzeptabel. Upgrade-Pfad: Refund-RPC.
-  const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
-    p_user_id: user.userId,
-    p_amount: ESTIMATED_COST_PER_GEN,
-    p_limit: MAX_MONTHLY_COST,
-  })
+  // Temp-User: überspringen (1-Free-Gen-Limit oben greift stattdessen).
+  if (!isTemp) {
+    const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
+      p_user_id: user.userId,
+      p_amount: ESTIMATED_COST_PER_GEN,
+      p_limit: MAX_MONTHLY_COST,
+    })
 
-  if (limitErr || withinLimit === false) {
-    return Response.json(
-      { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
-      { status: 429, headers: corsHeaders('POST, OPTIONS') }
-    )
+    if (limitErr || withinLimit === false) {
+      return Response.json(
+        { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
+        { status: 429, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
   }
 
   // Mit Feedback + vorigem Output → Verfeinerung, sonst Erstgenerierung.
@@ -498,7 +515,7 @@ export async function POST(req: Request) {
     .from('tests')
     .update(updatePayload)
     .eq('id', testId)
-    .eq('user_id', user.userId)
+    .eq(ownerCol, user.userId)
 
   if (updateErr) {
     safeError('generate', updateErr)
