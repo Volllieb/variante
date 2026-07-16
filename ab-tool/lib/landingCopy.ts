@@ -419,7 +419,7 @@ const en: LandingCopy = {
     pro: {
       label: 'Pro',
       sub: 'Everything in Free, plus:',
-      cta: 'Get Pro',
+      cta: 'Start Pro',
       features: [
         { label: 'Unlimited experiments', exclusive: true },
         { label: 'Statistical significance — know when to stop', exclusive: true },
@@ -433,7 +433,7 @@ const en: LandingCopy = {
     agency: {
       label: 'Agency',
       sub: 'Everything in Pro, plus:',
-      cta: 'Get Agency',
+      cta: 'Start Agency',
       features: [
         { label: 'Up to 100 domains — manage every client site', exclusive: true },
         { label: 'White-label — no Variante mention anywhere', exclusive: true },
