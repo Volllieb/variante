@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />
-        <style id="__ab_hide" dangerouslySetInnerHTML={{ __html: 'html.__ab_pending{opacity:0!important}' }} />
+        <style id="__ab_hide" dangerouslySetInnerHTML={{ __html: 'html.__ab_pending{opacity:0!important}' }} suppressHydrationWarning />
         {/* Plain script tags, not next/script: beforeInteractive doesn't support inline
             scripts and re-renders the tag through React on the client ("Encountered a
             script tag..."). A plain tag in the server-rendered <head> executes during

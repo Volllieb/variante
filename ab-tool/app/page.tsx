@@ -75,12 +75,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="#demo"
-              className="hidden rounded-full border border-border bg-bg-2 px-3.5 py-1.5 text-sm font-medium text-text-2 transition-all duration-200 hover:border-border-strong hover:bg-bg-1 hover:text-text sm:mr-2 sm:block"
-            >
-              {cp.navDemo}
-            </Link>
             <LangToggle current={lang} />
             <Link
               href="/login"

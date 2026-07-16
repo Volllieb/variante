@@ -149,9 +149,9 @@ const de: LandingCopy = {
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
-  heroH1: 'Deine Seite converted. Ohne dass du einen Finger rührst.',
+  heroH1: 'CRO-Best-Practice. In 5 Minuten. Von deiner KI.',
   heroSub:
-    'Dein KI-Agent für A/B-Tests. Sag ihm, was du verbessern willst — Hero, Pricing, CTAs. Er analysiert, schreibt Varianten, misst Conversions und rollt den Winner aus. Während du das nächste Feature baust.',
+    'Volle Kontrolle, minimaler Aufwand. Du bestimmst, was optimiert wird — Hero, Pricing, CTAs. Deine KI analysiert, schreibt Varianten, misst Conversions und schlägt den Winner vor. Du entscheidest, was live geht.',
   heroCta: 'Kostenlos starten',
   heroFootnote: 'Keine Kreditkarte · 1 kostenloses Experiment · In 5 Minuten live',
 
@@ -324,9 +324,9 @@ const en: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Start free',
 
-  heroH1: 'Your site converts. Without you lifting a finger.',
+  heroH1: 'CRO best practice. In 5 minutes. By your AI.',
   heroSub:
-    'Your AI agent for A/B testing. Tell it what to improve — hero, pricing, CTAs. It analyzes, writes variants, tracks conversions, and ships the winner. While you build the next feature.',
+    'Total control, minimum effort. You decide what to optimize — hero, pricing, CTAs. Your AI analyzes, writes variants, measures conversions, and suggests the winner. You choose what goes live.',
   heroCta: 'Start free',
   heroFootnote: 'No credit card · 1 free experiment · Live in 5 minutes',
 
