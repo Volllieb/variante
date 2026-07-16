@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A/B Test Hero Animation</title>
+<script src="/gsap.min.js"></script>
+<style>
+  :root{
+    --ink:#0a0a0a;
+    --bg:#000000;
+    --card:#ffffff;
+    --line:#e7e7ea;
+    --muted:#9a9aa1;
+    --gold:#eab308;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  #scaler{width:900px;height:560px;transform-origin:center center}
+  #stage{position:relative;width:900px;height:560px;visibility:hidden}
+
+  /* ---------- website cards ---------- */
+  .card{
+    position:absolute;left:50%;top:50%;
+    width:340px;
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 18px 50px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.05);
+  }
+  .chrome{
+    display:flex;align-items:center;gap:5px;
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:#dcdce0}
+  .url{
+    flex:1;margin-left:8px;
+    background:#f2f2f4;border-radius:6px;
+    font-size:11px;color:var(--muted);
+    text-align:center;padding:3px 10px;
+  }
+  .cardBody{padding:6px 20px 12px;text-align:center;position:relative}
+  .viewport{height:156px;overflow:hidden}
+  .sec{height:156px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .cardBody h1{
+    font-size:26px;font-weight:700;letter-spacing:-.02em;
+    display:inline-block;
+    padding:3px 10px;margin:-3px -10px;
+    border-radius:8px;
+    box-shadow:0 0 0 0 rgba(59,130,246,0);
+  }
+  .cta{
+    display:block;
+    margin:16px auto 0;
+    background:var(--ink);color:#fff;
+    border:none;border-radius:8px;
+    font-size:14px;font-weight:600;
+    padding:11px 24px;
+    font-family:inherit;
+    cursor:default;
+    box-shadow:0 0 0 0 rgba(59,130,246,0);
+  }
+  .badge{
+    position:absolute;top:-38px;left:50%;
+    transform:translateX(-50%);
+    width:27px;height:27px;border-radius:50%;
+    background:var(--ink);color:#fff;
+    font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---------- pricing section ---------- */
+  .secTitle{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:10px}
+  .plans{display:flex;gap:10px}
+  .plan{
+    width:120px;
+    border:1px solid var(--line);border-radius:10px;
+    padding:10px 10px 11px;text-align:center;
+    background:#fff;
+  }
+  .planName{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .planPrice{font-size:18px;font-weight:700;margin:2px 0 7px}
+  .bar{height:4px;border-radius:2px;background:#ececef;margin:0 auto 5px;width:74%}
+  .bar.short{width:52%}
+  .buyBtn{
+    width:100%;margin-top:6px;
+    background:var(--ink);color:#fff;
+    border:none;border-radius:6px;
+    font-size:11px;font-weight:600;padding:6px 0;
+    font-family:inherit;cursor:default;
+    box-shadow:0 0 0 0 rgba(59,130,246,0);
+  }
+
+  /* ---------- color picker ---------- */
+  .swatches{display:flex;gap:9px;padding:2px 0 4px;justify-content:center}
+  .sw{
+    width:18px;height:18px;border-radius:50%;display:inline-block;
+    box-shadow:0 0 0 0 rgba(10,10,10,0);
+  }
+
+  /* ---------- settings dropdown ---------- */
+  .panel{
+    position:absolute;left:50%;top:calc(100% - 16px);
+    width:252px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:0 20px 45px rgba(0,0,0,.14);
+    padding:14px;
+    text-align:left;
+    z-index:6;
+  }
+  .field{margin-bottom:10px}
+  .field label{
+    display:block;font-size:9.5px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:4px;
+  }
+  .input{
+    border:1px solid var(--line);border-radius:6px;
+    padding:7px 10px;font-size:13px;min-height:32px;
+    background:#fff;
+  }
+  .input.focusable{color:var(--ink)}
+  .caret{
+    display:none;
+    width:1.5px;height:14px;background:var(--ink);
+    vertical-align:-2px;margin-left:1px;
+    animation:blink .85s steps(1) infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
+  .testBtn{
+    width:100%;
+    background:var(--ink);color:#fff;
+    border:none;border-radius:7px;
+    font-size:13px;font-weight:600;
+    padding:9px 0;margin-top:2px;
+    font-family:inherit;
+  }
+
+  /* ---------- conversion card ---------- */
+  #convCard{
+    position:absolute;left:50%;top:50%;
+    width:520px;
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 24px 60px rgba(0,0,0,.16),0 3px 10px rgba(0,0,0,.06);
+    padding:11px 0 13px;
+    z-index:10;
+  }
+  #convCard .convTitle{
+    text-align:center;
+    font-size:10px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+  .convGrid{display:flex;position:relative}
+  .convGrid .divider{
+    position:absolute;left:50%;top:2px;bottom:2px;
+    width:1px;background:var(--line);
+  }
+  .convSide{flex:1;text-align:center;padding:0 10px}
+  .convSide .num{
+    font-size:32px;font-weight:700;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+    line-height:1.1;
+  }
+  #crown{
+    position:absolute;
+    top:-24px;left:calc(75% - 14px);
+    width:28px;height:28px;
+    z-index:11;
+  }
+
+  /* ---------- cursor ---------- */
+  #cursor{position:absolute;left:0;top:0;z-index:50;pointer-events:none}
+  #cursor svg{display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+  #ripple{
+    position:absolute;left:-13px;top:-13px;
+    width:26px;height:26px;border-radius:50%;
+    border:2.5px solid var(--ink);
+    opacity:0;
+  }
+</style>
+</head>
+<body>
+<div id="scaler">
+  <div id="stage">
+
+    <!-- Card A -->
+    <div class="card" id="cardA">
+      <div class="badge" id="badgeA">A</div>
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <div class="url">yoursite.com</div>
+      </div>
+      <div class="cardBody">
+        <div class="viewport">
+          <div class="scroll" id="scrollA">
+            <section class="sec">
+              <h1 id="h1A">Your Live Site</h1>
+              <button class="cta" id="ctaA">Get Started</button>
+            </section>
+            <section class="sec">
+              <div class="secTitle">Compare Plans</div>
+              <div class="plans">
+                <div class="plan">
+                  <div class="planName">Basic</div>
+                  <div class="planPrice">$9</div>
+                  <div class="bar"></div><div class="bar short"></div>
+                  <button class="buyBtn">Buy</button>
+                </div>
+                <div class="plan">
+                  <div class="planName">Pro</div>
+                  <div class="planPrice">$29</div>
+                  <div class="bar"></div><div class="bar short"></div>
+                  <button class="buyBtn" id="buyA">Buy</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="panel" id="panel">
+          <div class="field">
+            <label>Variante A</label>
+            <div class="input">Get Started</div>
+          </div>
+          <div class="field">
+            <label>Variante B</label>
+            <div class="input focusable" id="inputB"><span id="typed"></span><span class="caret" id="caret"></span></div>
+          </div>
+          <button class="testBtn" id="testBtn">Test it</button>
+        </div>
+
+        <div class="panel" id="picker">
+          <div class="field">
+            <label>Button Color</label>
+            <div class="swatches">
+              <span class="sw" style="background:#0a0a0a"></span>
+              <span class="sw" id="swGreen" style="background:#22c55e"></span>
+              <span class="sw" style="background:#eab308"></span>
+              <span class="sw" style="background:#8b5cf6"></span>
+              <span class="sw" style="background:#ec4899"></span>
+            </div>
+          </div>
+          <button class="testBtn" id="testBtn2">Test it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card B -->
+    <div class="card" id="cardB">
+      <div class="badge" id="badgeB">B</div>
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <div class="url">yoursite.com</div>
+      </div>
+      <div class="cardBody">
+        <div class="viewport">
+          <div class="scroll" id="scrollB">
+            <section class="sec">
+              <h1>Your Live Site</h1>
+              <button class="cta" id="ctaB">Try for free</button>
+            </section>
+            <section class="sec">
+              <div class="secTitle">Compare Plans</div>
+              <div class="plans">
+                <div class="plan">
+                  <div class="planName">Basic</div>
+                  <div class="planPrice">$9</div>
+                  <div class="bar"></div><div class="bar short"></div>
+                  <button class="buyBtn">Buy</button>
+                </div>
+                <div class="plan">
+                  <div class="planName">Pro</div>
+                  <div class="planPrice">$29</div>
+                  <div class="bar"></div><div class="bar short"></div>
+                  <button class="buyBtn" id="buyB">Buy</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion card -->
+    <div id="convCard">
+      <svg id="crown" viewBox="0 0 24 24">
+        <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.735H5.81a1 1 0 0 1-.957-.735L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"
+              fill="var(--gold)"/>
+        <path d="M5.5 20.5h13" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="convTitle">Conversions</div>
+      <div class="convGrid">
+        <div class="convSide" id="sideA">
+          <div class="num" id="numA">0</div>
+        </div>
+        <div class="divider"></div>
+        <div class="convSide" id="sideB">
+          <div class="num" id="numB">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cursor -->
+    <div id="cursor">
+      <div id="ripple"></div>
+      <svg width="20" height="22" viewBox="0 0 13 20">
+        <polygon points="0,0 0,16.5 4.4,12.6 7.2,19 10,17.8 7.2,11.5 12.6,11"
+                 fill="#0a0a0a" stroke="#ffffff" stroke-width="1"/>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const stage = $("stage"), scaler = $("scaler");
+  const cardA = $("cardA"), cardB = $("cardB");
+  const ctaA = $("ctaA"), ctaB = $("ctaB"), h1A = $("h1A");
+  const panel = $("panel"), inputB = $("inputB"), typed = $("typed"),
+        caret = $("caret"), testBtn = $("testBtn");
+  const scrollA = $("scrollA"), scrollB = $("scrollB");
+  const buyA = $("buyA"), buyB = $("buyB");
+  const picker = $("picker"), swGreen = $("swGreen"), testBtn2 = $("testBtn2");
+  const convCard = $("convCard"), crown = $("crown");
+  const numA = $("numA"), numB = $("numB"), sideA = $("sideA");
+  const badgeA = $("badgeA"), badgeB = $("badgeB");
+  const cursor = $("cursor"), ripple = $("ripple");
+
+  /* ---- fit stage into viewport ---- */
+  function fit(){
+    const s = Math.min(1,(innerWidth-32)/900,(innerHeight-32)/560);
+    scaler.style.transform = `scale(${s})`;
+  }
+  fit();
+  addEventListener("resize", fit);
+
+  /* ---- initial states ---- */
+  gsap.set([cardA, cardB, convCard], {xPercent:-50, yPercent:-50});
+  gsap.set(cardB, {autoAlpha:0});
+  gsap.set(convCard, {autoAlpha:0});
+  /* no scaleY here — panels must be measured unscaled, the open-tweens set their own start values */
+  gsap.set([panel, picker], {xPercent:-50, autoAlpha:0, transformOrigin:"top center"});
+  gsap.set(crown, {scale:0, rotation:-18, transformOrigin:"bottom center"});
+  gsap.set([badgeA, badgeB], {autoAlpha:0});
+  gsap.set(cursor, {x:840, y:565});
+
+  /* ---- measure click targets (stage-space coordinates) ---- */
+  function pt(el, dx=0, dy=0){
+    const s = stage.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const sc = s.width / 900;
+    return {
+      x:(r.left + r.width/2 - s.left)/sc + dx,
+      y:(r.top  + r.height/2 - s.top )/sc + dy
+    };
+  }
+  const P_H1    = pt(h1A, 20, 4);
+  const P_CTA   = pt(ctaA);
+  const P_INPUT = pt(inputB, -55, 0);
+  const P_TEST  = pt(testBtn);
+
+  /* conversion card sits at the bottom edge of the cards: 50% overlap */
+  const SC     = stage.getBoundingClientRect().width / 900;
+  const CARD_H = cardA.getBoundingClientRect().height / SC;
+  const CONV_Y = CARD_H / 2;
+  gsap.set(convCard, {y: CONV_Y});
+
+  /* phase 2 targets: buy button lives one viewport lower at measure time */
+  const VH      = cardA.querySelector(".viewport").getBoundingClientRect().height / SC;
+  const P_BUY   = pt(buyA, 0, -VH);
+  const P_SW    = pt(swGreen);
+  const P_TEST2 = pt(testBtn2);
+
+  /* ---- helpers ---- */
+  const TYPE_TEXT = "Try for free";
+  const HOVER_ON  = "0 0 0 3px rgba(59,130,246,.9)";
+  const HOVER_OFF = "0 0 0 0px rgba(59,130,246,0)";
+  const GREEN     = "#22c55e";
+
+  function resetState(){
+    typed.textContent = "";
+    ctaA.textContent  = "Get Started";
+    numA.textContent  = "0";
+    numB.textContent  = "0";
+    gsap.set(caret, {display:"none"});
+    gsap.set(cardB, {autoAlpha:0, x:0, scale:1});
+    gsap.set(crown, {scale:0, rotation:-18});
+    gsap.set(sideA, {opacity:1});
+    gsap.set(numB,  {scale:1});
+    gsap.set([scrollA, scrollB], {y:0});
+    gsap.set([buyA, buyB], {clearProps:"backgroundColor"});
+    gsap.set(swGreen, {clearProps:"boxShadow"});
+  }
+
+  const tl = gsap.timeline({
+    repeat:-1,
+    defaults:{ease:"power2.inOut"},
+    onRepeat: resetState
+  });
+  resetState();
+
+  function click(t, pressTarget){
+    tl.fromTo(ripple, {scale:.2, opacity:.5}, {scale:1, opacity:0, duration:.45, ease:"power1.out"}, t);
+    if(pressTarget){
+      tl.to(pressTarget, {scale:.94, duration:.09, yoyo:true, repeat:1, ease:"power1.inOut"}, t);
+    }
+  }
+
+  /* ================= SCREEN 1 ================= */
+  tl.fromTo(stage, {autoAlpha:0}, {autoAlpha:1, duration:.45, ease:"power1.out"}, 0);
+
+  // cursor -> headline first: hover highlight signals "everything is testable"
+  tl.to(cursor, {x:P_H1.x, y:P_H1.y, duration:.95}, .55);
+  tl.to(h1A, {boxShadow:HOVER_ON, duration:.18, ease:"power1.out"}, 1.35);
+  tl.to(h1A, {boxShadow:HOVER_OFF, duration:.3, ease:"power1.out"}, 2.1);
+
+  // cursor -> CTA, hover highlight, click
+  tl.to(cursor, {x:P_CTA.x, y:P_CTA.y, duration:.55}, 2.05);
+  tl.to(ctaA, {boxShadow:HOVER_ON, duration:.18, ease:"power1.out"}, 2.45);
+  click(2.72, ctaA);
+  tl.to(ctaA, {boxShadow:HOVER_OFF, duration:.3, ease:"power1.out"}, 3.05);
+
+  // dropdown opens
+  tl.fromTo(panel, {autoAlpha:0, scaleY:.85},
+            {autoAlpha:1, scaleY:1, duration:.38, ease:"back.out(1.6)"}, 3.02);
+
+  // cursor -> input B, click, caret
+  tl.to(cursor, {x:P_INPUT.x, y:P_INPUT.y, duration:.55}, 3.55);
+  click(4.2);
+  tl.set(caret, {display:"inline-block"}, 4.35);
+
+  // typing
+  const typer = {i:0};
+  tl.fromTo(typer, {i:0}, {
+    i: TYPE_TEXT.length, duration:1.15, ease:"none",
+    snap:{i:1},
+    onUpdate(){ typed.textContent = TYPE_TEXT.slice(0, Math.round(typer.i)); }
+  }, 4.55);
+
+  // cursor -> "Test it", click
+  tl.to(cursor, {x:P_TEST.x, y:P_TEST.y, duration:.5}, 5.95);
+  tl.set(caret, {display:"none"}, 6.0);
+  click(6.55, testBtn);
+
+  // dropdown closes
+  tl.to(panel, {autoAlpha:0, scaleY:.9, duration:.28}, 6.85);
+
+  /* ================= SCREEN 2 — split ================= */
+  tl.addLabel("split", 7.2);
+  tl.set(cardB, {autoAlpha:1, x:0}, "split");
+  tl.to(cardA, {x:-192, duration:.85, ease:"power3.inOut"}, "split");
+  tl.to(cardB, {x: 192, duration:.85, ease:"power3.inOut"}, "split");
+  tl.fromTo([badgeA, badgeB], {autoAlpha:0}, {autoAlpha:1, duration:.35, stagger:.08}, "split+=.55");
+  tl.to(cursor, {autoAlpha:0, x:"+=70", y:"+=90", duration:.5, ease:"power1.in"}, "split");
+
+  /* ================= SCREEN 3 — conversions ================= */
+  tl.fromTo(convCard, {autoAlpha:0, y:CONV_Y+26, scale:.92},
+            {autoAlpha:1, y:CONV_Y, scale:1, duration:.5, ease:"back.out(1.5)"}, "split+=1.05");
+
+  tl.addLabel("count", "split+=1.7");
+  const cA = {v:0}, cB = {v:0};
+  tl.fromTo(cA, {v:0}, {v:118, duration:3, ease:"power1.inOut", snap:{v:1},
+    onUpdate(){ numA.textContent = Math.round(cA.v); }}, "count");
+  tl.fromTo(cB, {v:0}, {v:197, duration:3, ease:"power2.inOut", snap:{v:1},
+    onUpdate(){ numB.textContent = Math.round(cB.v); }}, "count");
+
+  // B wins: crown + highlight
+  tl.addLabel("win", "count+=3.15");
+  tl.fromTo(crown, {scale:0, rotation:-18},
+            {scale:1, rotation:0, duration:.55, ease:"back.out(2.5)"}, "win");
+  tl.fromTo(numB, {scale:1}, {scale:1.12, duration:.4, ease:"back.out(3)"}, "win");
+  tl.to(sideA, {opacity:.4, duration:.4}, "win");
+
+  /* ================= SCREEN 4 — winner applied ================= */
+  tl.addLabel("final", "win+=1.35");
+  tl.to(convCard, {autoAlpha:0, y:CONV_Y+14, duration:.45}, "final");
+  // variant A disappears, winner B moves into focus
+  tl.to(cardA, {autoAlpha:0, scale:.94, duration:.45}, "final");
+  tl.to(badgeA, {autoAlpha:0, duration:.25}, "final");
+  tl.to(cardB, {x:0, duration:.8, ease:"power3.inOut"}, "final+=.15");
+  tl.to(badgeB, {autoAlpha:0, duration:.35}, "final+=.6");
+  // seamless handover back to card A (pixel-identical at this moment)
+  tl.call(()=>{ ctaA.textContent = "Try for free"; }, null, "final+=1.0");
+  tl.set(cardA, {autoAlpha:1, x:0, scale:1}, "final+=1.02");
+  tl.set(cardB, {autoAlpha:0}, "final+=1.02");
+
+  /* ================= PHASE 2 — optimization never stops ================= */
+  tl.addLabel("p2", "final+=2.1");
+
+  // cursor returns and scrolls the page down
+  tl.set(cursor, {x:660, y:470, autoAlpha:0}, "p2");
+  tl.to(cursor, {autoAlpha:1, x:462, y:300, duration:.7, ease:"power2.out"}, "p2");
+  tl.to(scrollA, {y:-VH, duration:.9}, "p2+=.85");
+  tl.to(cursor, {y:"+=16", duration:.9}, "p2+=.85");
+
+  // select the buy button (Pro plan)
+  tl.to(cursor, {x:P_BUY.x, y:P_BUY.y, duration:.5}, "p2+=1.95");
+  tl.to(buyA, {boxShadow:HOVER_ON, duration:.18, ease:"power1.out"}, "p2+=2.35");
+  click("p2+=2.62", buyA);
+  tl.to(buyA, {boxShadow:HOVER_OFF, duration:.3, ease:"power1.out"}, "p2+=2.95");
+
+  // color picker opens
+  tl.fromTo(picker, {autoAlpha:0, scaleY:.85},
+            {autoAlpha:1, scaleY:1, duration:.35, ease:"back.out(1.6)"}, "p2+=2.95");
+
+  // pick green
+  tl.to(cursor, {x:P_SW.x, y:P_SW.y, duration:.45}, "p2+=3.4");
+  click("p2+=3.95");
+  tl.to(swGreen, {boxShadow:"0 0 0 2px #fff, 0 0 0 3.5px #0a0a0a", duration:.15}, "p2+=3.98");
+
+  // test it
+  tl.to(cursor, {x:P_TEST2.x, y:P_TEST2.y, duration:.4}, "p2+=4.4");
+  click("p2+=4.9", testBtn2);
+  tl.to(picker, {autoAlpha:0, scaleY:.9, duration:.25}, "p2+=5.15");
+
+  /* --- split 2 --- */
+  tl.addLabel("split2", "p2+=5.45");
+  tl.set(scrollB, {y:-VH}, "split2");
+  tl.set(buyB, {backgroundColor:GREEN}, "split2");
+  tl.set(cardB, {autoAlpha:1, x:0, scale:1}, "split2");
+  tl.to(cardA, {x:-192, duration:.8, ease:"power3.inOut"}, "split2");
+  tl.to(cardB, {x: 192, duration:.8, ease:"power3.inOut"}, "split2");
+  tl.fromTo([badgeA, badgeB], {autoAlpha:0}, {autoAlpha:1, duration:.3, stagger:.08}, "split2+=.5");
+  tl.to(cursor, {autoAlpha:0, x:"+=60", y:"+=80", duration:.45, ease:"power1.in"}, "split2");
+
+  /* --- conversions 2 (shortened) --- */
+  tl.call(()=>{ numA.textContent = "0"; numB.textContent = "0"; }, null, "split2+=.6");
+  tl.set(crown, {scale:0, rotation:-18}, "split2+=.6");
+  tl.set(sideA, {opacity:1}, "split2+=.6");
+  tl.set(numB, {scale:1}, "split2+=.6");
+  tl.fromTo(convCard, {autoAlpha:0, y:CONV_Y+26, scale:.92},
+            {autoAlpha:1, y:CONV_Y, scale:1, duration:.45, ease:"back.out(1.5)"}, "split2+=.9");
+
+  tl.addLabel("count2", "split2+=1.4");
+  const cA2 = {v:0}, cB2 = {v:0};
+  tl.fromTo(cA2, {v:0}, {v:74, duration:2, ease:"power1.inOut", snap:{v:1},
+    onUpdate(){ numA.textContent = Math.round(cA2.v); }}, "count2");
+  tl.fromTo(cB2, {v:0}, {v:132, duration:2, ease:"power2.inOut", snap:{v:1},
+    onUpdate(){ numB.textContent = Math.round(cB2.v); }}, "count2");
+
+  tl.addLabel("win2", "count2+=2.15");
+  tl.fromTo(crown, {scale:0, rotation:-18},
+            {scale:1, rotation:0, duration:.5, ease:"back.out(2.5)"}, "win2");
+  tl.fromTo(numB, {scale:1}, {scale:1.12, duration:.35, ease:"back.out(3)"}, "win2");
+  tl.to(sideA, {opacity:.4, duration:.35}, "win2");
+
+  /* --- winner applied: buy button turns green --- */
+  tl.addLabel("final2", "win2+=1.15");
+  tl.to(convCard, {autoAlpha:0, y:CONV_Y+14, duration:.4}, "final2");
+  // variant A disappears, winner B moves into focus
+  tl.to(cardA, {autoAlpha:0, scale:.94, duration:.4}, "final2");
+  tl.to(badgeA, {autoAlpha:0, duration:.25}, "final2");
+  tl.to(cardB, {x:0, duration:.7, ease:"power3.inOut"}, "final2+=.1");
+  tl.to(badgeB, {autoAlpha:0, duration:.3}, "final2+=.5");
+  // seamless handover back to card A (buy button already green)
+  tl.set(buyA, {backgroundColor:GREEN}, "final2+=.85");
+  tl.set(cardA, {autoAlpha:1, x:0, scale:1}, "final2+=.87");
+  tl.set(cardB, {autoAlpha:0}, "final2+=.87");
+
+  // hold, then fade back to screen 1 — the process never ends
+  tl.to({}, {duration:2.2});
+  tl.to(stage, {autoAlpha:0, duration:.55, ease:"power1.in"});
+})();
+</script>
+</body>
+</html>
