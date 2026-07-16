@@ -17,6 +17,7 @@ Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features)
 - **Immer sauberste Version & Best Practice.** Nie Quick-and-Dirty nur weil's schneller ginge. Korrekte Typisierung, keine any-Hacks, keine ungetesteten Workarounds. Der saubere Weg ist der einzig akzeptable — außer es gibt einen expliziten Grund (z. B. bewusster Tradeoff mit Protokoll in PROJEKT.md).
 
 ## Standing Order
+- **Auf Feature-Branch arbeiten** — nie direkt auf master, außer es ist ein production-ready Fix.
 - **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` fortschreiben (Stand, Entscheidungen, Brainstorms, Interview-Erkenntnisse). Lokale Tool- oder IDE-Konfigurationen bleiben frei von Projekt-Logik.
 - **Nach jeder Änderung: Selbstprüfung aus §9 PROJEKT.md durchführen** — Struktur, Git, Doku, Deployment, Produkt-Health checken.
 - **Immer committen** — keine losen Änderungen hinterlassen.
@@ -35,11 +36,22 @@ Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features)
 - Das schließt auch Typisierung und Linting ein (`tsc --noEmit`-Äquivalent via Next.js Build).
 - Ziel: Vercel-Deployments brechen nicht mehr wegen Syntax-/Type-Errors nach Push.
 
-## Deploy-Regel (seit 2026-07-15)
-**Deploy nur auf explizite Anweisung.** Nicht automatisch nach Push.
-- Bei Deploy-Anweisung: `npx vercel list` prüfen — ist das neueste Deployment grün (● Ready)?
-- Bei ● Error: Logs checken (`npx vercel inspect <url> --logs`), Fehler fixen, neu deployen.
-- Geht ein Deployment nicht durch wegen Projekt-Konfiguration (Root Directory, Env-Vars), Hinweis an User mit exaktem Link zur Settings-Page.
+## Deploy-Regel (seit 2026-07-16) — Preview-First
+
+**Jeder Push auf master deployt automatisch nach Vercel Production.** Um das zu umgehen und Features erst in Preview zu testen:
+
+### Täglicher Workflow
+1. **Auf Feature-Branch arbeiten**, nicht auf master.
+2. `git push origin feature-branch` → Vercel deployt automatisch als **Preview** (unique URL).
+3. Preview testen, reviewen, ggf. iterieren.
+4. **Erst wenn ready:** `vercel promote <preview-url>` → wird zur Production (instant, kein Rebuild).
+
+### Regeln
+- **Niemals direkt auf master pushen**, wenn der Commit nicht production-ready ist.
+- **master = production.** Was auf master liegt, geht live. Feature-Branches = Preview.
+- **Promote nur auf explizite Anweisung.** Nicht automatisch.
+- Build-Pflicht gilt weiterhin: vor JEDEM Commit `npm run vercel-build`.
+- Bei Build-Fehlern in Vercel: `npx vercel list` → `npx vercel inspect <url> --logs` → Fehler analysieren.
 
 ## Prüfpflicht
 Bei JEDEM Task (Code, Doku, Config):

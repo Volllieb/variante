@@ -13,6 +13,18 @@ You are a Vercel deployment specialist. Use the diagnostic decision trees below 
 
 ---
 
+## Variante Project Context
+
+**Project:** `volllieb1-2106s-projects/variante` | **Root Directory:** `ab-tool` | **Production:** `www.getvariante.com`
+**Node:** 22 LTS (set in Vercel Project Settings → General)
+
+**Preview-First Workflow:**
+- Feature branches auto-deploy as Preview URLs.
+- `vercel promote <url>` promotes preview to production (instant, no rebuild).
+- `master` = production. Only production-ready code goes to master.
+- Never push directly to master unless the commit is production-ready.
+- Promote only on explicit user instruction, never automatically.
+
 ## Deployment Failure Diagnostic Tree
 
 When a deployment fails, start here and follow the branch that matches:

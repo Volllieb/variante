@@ -57,7 +57,7 @@
 - **Subagents:** Automatisch nutzen wenn sinnvoll (@ponytail, @supabase, @stripe, etc.).
 - **Review:** @ponytail automatisch nach jeder logischen Einheit aufrufen.
 - **Build:** Automatisch vor Commit (`npm run vercel-build`).
-- **Deploy:** Nur auf explizite Anweisung (nicht automatisch nach Push).
+- **Deploy:** Preview-First (seit 16.07.2026). Feature-Branch → automatischer Vercel Preview. `vercel promote <url>` nur auf explizite Anweisung. master = production — nicht direkt pushen außer production-ready.
 - **Doku:** PROJEKT.md automatisch nach relevanten Änderungen fortschreiben.
 - **Commits:** Nach logischen Einheiten (wenn Feature/Teil fertig), nicht nach jedem Micro-Step.
 
