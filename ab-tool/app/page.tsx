@@ -3,10 +3,9 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, MousePointer2, Sparkles, Rocket, Zap, Shield, Gauge, Globe, Palette } from '@/components/LandingIcons'
+import { Check, Rocket, Zap, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
 import LangToggle from './components/LangToggle'
-import HeroAnimation from './components/HeroAnimation'
 import AIWorkflowAnimation from './components/AIWorkflowAnimation'
 import { getLang, getCopy, PLANS } from '@/lib/landingCopy'
 import type { Lang, PlanId } from '@/lib/landingCopy'
@@ -99,8 +98,11 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
           {/* Left: Text */}
           <div>
+            <span className="inline-block rounded-full border border-border-strong bg-bg-2 px-3.5 py-1 text-[11px] font-medium text-pro mb-4">
+              {cp.heroPill}
+            </span>
             <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl text-left">
-              {cp.heroH1}
+              {cp.heroH1.split('. ')[0]}.<br />{cp.heroH1.split('. ').slice(1).join('. ')}
             </h1>
             <p className="mt-4 max-w-xl text-base text-white/55 sm:text-lg text-left">
               {cp.heroSub}
@@ -113,14 +115,17 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 {cp.heroCta}
               </Link>
             </div>
-            <p className="mt-4 text-xs text-text-3">
-              {cp.heroFootnote}
-            </p>
           </div>
 
           {/* Right: Hero Animation */}
           <div id="demo" className="w-full">
-            <HeroAnimation />
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '900/560' }} aria-hidden="true">
+              <iframe
+                src="/ab-test-hero-animation.html"
+                className="absolute inset-0 w-full h-full border-0"
+                title="A/B Test Demo"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -130,7 +135,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { icon: Shield, ...cp.trustItems[0] },
+              { icon: Rocket, ...cp.trustItems[0] },
               { icon: Gauge, ...cp.trustItems[1] },
               { icon: Globe, ...cp.trustItems[2] },
               { icon: Palette, ...cp.trustItems[3] },
@@ -181,39 +186,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             {cp.agentSub}
           </p>
 
-          <div className="mx-auto mt-8 max-w-lg text-center">
-            <p className="text-base font-semibold text-white sm:text-lg">{cp.agentMotto}</p>
-            <p className="mt-1 text-sm text-white/50">{cp.agentMottoSub}</p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Gauge, ...cp.agentLoop[0] },
-              { icon: Sparkles, ...cp.agentLoop[1] },
-              { icon: MousePointer2, ...cp.agentLoop[2] },
-              { icon: Rocket, ...cp.agentLoop[3] },
-            ].map((item, i) => (
-              <div
-                key={item.title}
-                className="rounded-[10px] border border-border bg-bg-1 p-5"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <item.icon className="mb-3 h-6 w-6 text-white/70" />
-                  <span className="rounded-full border border-border-strong px-2 py-0.5 text-[10px] font-medium text-text-2">
-                    {cp.agentModePill}
-                  </span>
-                </div>
-                <p className="mb-1.5 text-xs font-medium text-white/40">{String(i + 1).padStart(2, '0')}</p>
-                <h3 className="mb-1.5 text-sm font-semibold text-white">{item.title}</h3>
-                <p className="text-sm text-white/50">{item.body}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
-
-          <div className="mx-auto mt-10 max-w-5xl">
+          <div className="mx-auto mt-8 max-w-5xl">
             <AIWorkflowAnimation />
           </div>
+          <p className="mt-6 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
         </div>
       </section>
 

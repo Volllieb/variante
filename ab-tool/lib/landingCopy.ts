@@ -62,6 +62,7 @@ export interface LandingCopy {
   navSignup: string
 
   // Hero
+  heroPill: string
   heroH1: string
   heroSub: string
   heroCta: string
@@ -149,14 +150,15 @@ const de: LandingCopy = {
   navLogin: 'Login',
   navSignup: 'Kostenlos testen',
 
-  heroH1: 'CRO-Best-Practice. In 5 Minuten. Von deiner KI.',
+  heroPill: 'KI-Agenten verbessern deine Conversion autonom',
+  heroH1: 'CRO-Best-Practice. In 5 Minuten.',
   heroSub:
     'Volle Kontrolle, minimaler Aufwand. Du bestimmst, was optimiert wird — Hero, Pricing, CTAs. Deine KI analysiert, schreibt Varianten, misst Conversions und schlägt den Winner vor. Du entscheidest, was live geht.',
   heroCta: 'Kostenlos starten',
-  heroFootnote: 'Keine Kreditkarte · 1 kostenloses Experiment · In 5 Minuten live',
+  heroFootnote: '',
 
   trustItems: [
-    { label: 'Keine Kreditkarte', text: 'Jederzeit kündbar. Kein Lock-in.' },
+    { label: 'In 5 Minuten live', text: 'Snippet einbauen, Agent startet. Kein Setup, kein Dev.' },
     { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact.' },
     { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten.' },
     { label: 'KI-Agent', text: 'Autonom. Kein Briefing. Kein Dev-Ticket.' },
@@ -166,9 +168,9 @@ const de: LandingCopy = {
   worksLabel: 'Ein Snippet — überall wo du ein Script-Tag einfügen kannst',
 
   sectionAgent: 'KI-Agent-Automatisierung',
-  agentH: 'Der Agent hört nicht auf, wenn der Test vorbei ist.',
+  agentH: 'Volle Kontrolle. Minimaler Aufwand. Probier den neuen Agenten.',
   agentSub:
-    'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden.',
+    'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden. Testerstellung funktioniert vollautomatisch, hilft dir semi-automatisch oder manuell.',
   agentMotto: 'Volle Kontrolle. Minimaler Aufwand.',
   agentMottoSub: 'Wähl aus, was du willst — den Rest erledigt die KI.',
   agentModePill: 'Du oder KI',
@@ -190,7 +192,7 @@ const de: LandingCopy = {
       body: 'Der Sieger geht automatisch live. Der Agent nimmt sich sofort die nächste Hypothese vor.',
     },
   ],
-  agentLoopNote: 'Jede Runde macht deine Seite besser — auch die, bei der du nicht zusiehst.',
+  agentLoopNote: 'Jede Runde verbessert die Conversion deiner Seite.',
 
   figmaCommunityTitle: 'Figma Community Plugin',
   figmaCommunityText:
@@ -324,14 +326,15 @@ const en: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Start free',
 
-  heroH1: 'CRO best practice. In 5 minutes. By your AI.',
+  heroPill: 'AI Agents improve your conversion autonomously',
+  heroH1: 'CRO best practice. In 5 minutes.',
   heroSub:
     'Total control, minimum effort. You decide what to optimize — hero, pricing, CTAs. Your AI analyzes, writes variants, measures conversions, and suggests the winner. You choose what goes live.',
   heroCta: 'Start free',
-  heroFootnote: 'No credit card · 1 free experiment · Live in 5 minutes',
+  heroFootnote: '',
 
   trustItems: [
-    { label: 'No credit card', text: 'Cancel anytime. No lock-in.' },
+    { label: 'Live in 5 minutes', text: 'Paste the snippet, the agent starts. No setup, no dev.' },
     { label: '5 KB snippet', text: 'Loads async. Zero performance impact.' },
     { label: 'GDPR-compliant', text: 'EU hosting. No third-country data.' },
     { label: 'AI agent', text: 'Autonomous. No briefing. No dev ticket.' },
@@ -341,9 +344,9 @@ const en: LandingCopy = {
   worksLabel: 'One snippet — anywhere you can paste a script tag',
 
   sectionAgent: 'AI agent automation',
-  agentH: 'The agent doesn’t stop when the test ends.',
+  agentH: 'Total control. Minimum effort. Try the new Agent.',
   agentSub:
-    'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps.',
+    'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps. Test creation works fully automatic, helps you semi-automatic, or manual.',
   agentMotto: 'Total control. Minimum effort.',
   agentMottoSub: 'Pick the one you want — AI does the rest.',
   agentModePill: 'You or AI',
@@ -365,7 +368,7 @@ const en: LandingCopy = {
       body: 'The winner goes live automatically. The agent moves straight on to the next hypothesis.',
     },
   ],
-  agentLoopNote: 'Every lap makes your site better — including the ones you never watch.',
+  agentLoopNote: 'Every loop improves your site\'s conversion.',
 
   figmaCommunityTitle: 'Figma Community Plugin',
   figmaCommunityText:
@@ -467,7 +470,7 @@ const en: LandingCopy = {
     },
   ],
 
-  closingH: 'Your site can start getting better today.',
+  closingH: 'Your site can start improving today.',
   closingSub: 'One snippet, one experiment, no developer. The agent takes it from there.',
   closingCta: 'Start free',
 
