@@ -109,6 +109,28 @@ html {
 }
 
 /* ── Unified section styles ── */
+
+.container {
+  width: 100%;
+  max-width: 72rem;       /* max-w-6xl */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-narrow {
+  width: 100%;
+  max-width: 42rem;       /* max-w-2xl */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-wide {
+  width: 100%;
+  max-width: 56rem;       /* max-w-4xl */
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .section {
   padding: 4rem 1rem;
 }

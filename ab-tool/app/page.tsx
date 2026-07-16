@@ -59,8 +59,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3">
+      <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95 px-4 sm:px-6">
+        <nav className="container flex items-center justify-between py-2.5 sm:py-3">
           <Link
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
@@ -89,7 +89,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Hero ── */}
       <section className="px-4 pt-10 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:pt-14 lg:pb-32">
-        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
           {/* Left: Text */}
           <div>
             <span className="inline-block rounded-full border border-border-strong bg-bg-2 px-3.5 py-1 text-[11px] font-medium text-pro mb-4">
@@ -126,7 +126,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Micro-Trust Bar ── */}
       <section className="section !pt-4 !pb-10 sm:!pt-6 sm:!pb-14">
-        <div className="mx-auto max-w-4xl">
+        <div className="container-wide">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { icon: Rocket, ...cp.trustItems[0] },
@@ -149,7 +149,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Works-With Logo Bar ── */}
       <section className="section !py-10 sm:!py-14">
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="container-wide text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
             {cp.sectionWorks}
           </p>
@@ -169,7 +169,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── AI Agent Automation ── */}
       <section className="section">
-        <div className="mx-auto max-w-6xl">
+        <div className="container">
           <h2 className="section-heading">{cp.agentH}</h2>
           <p className="section-sub">{cp.agentSub}</p>
 
@@ -182,7 +182,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Solo Dev Transparency ── */}
       <section className="section !py-10 sm:!py-14">
-        <div className="mx-auto max-w-2xl rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
+        <div className="container-narrow rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-white">{cp.soloDevTitle}</h3>
           <p className="mt-2 text-sm text-white/50 leading-relaxed">
             {cp.soloDevBody}
@@ -193,7 +193,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Pricing ── */}
       <section className="section">
-        <div className="mx-auto max-w-6xl">
+        <div className="container">
           <h2 className="section-heading">{cp.sectionPricing}</h2>
           <p className="section-sub">{cp.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
@@ -295,7 +295,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── FAQ ── */}
       <section className="section">
-        <div className="mx-auto max-w-2xl">
+        <div className="container-narrow">
           <h2 className="section-heading">{cp.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
             {cp.faqs.map((item) => (
@@ -318,7 +318,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Closing CTA ── */}
       <section className="section">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="container-narrow text-center">
           <h2 className="section-heading">{cp.closingH}</h2>
           <p className="section-sub">{cp.closingSub}</p>
           <div className="mt-8">
@@ -345,7 +345,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Footer ── */}
       <footer className="border-t border-border px-4 py-5 sm:px-6 sm:py-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 sm:flex-row sm:justify-between">
+        <div className="container flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <p className="text-xs text-text-3">
             {cp.footerLine}
           </p>
