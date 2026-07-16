@@ -89,15 +89,15 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Hero ── */}
       <section className="px-4 pt-10 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:pt-14 lg:pb-32">
         <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
-          {/* Left: Text */}
-          <div>
+          {/* Left: Text — second on mobile */}
+          <div className="order-2 lg:order-1 text-center sm:text-left">
             <span className="inline-block rounded-full border border-border-strong bg-bg-2 px-3.5 py-1 text-[11px] font-medium text-pro mb-4">
               {cp.heroPill}
             </span>
-            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl text-left">
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
               {cp.heroH1.split('. ')[0]}.<br />{cp.heroH1.split('. ').slice(1).join('. ')}
             </h1>
-            <p className="mt-4 max-w-xl text-base text-white/55 sm:text-lg text-left">
+            <p className="mt-4 max-w-xl text-base text-white/55 sm:text-lg">
               {cp.heroSub}
             </p>
             <div className="mt-8 sm:mt-9">
@@ -110,8 +110,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </div>
           </div>
 
-          {/* Right: Hero Animation */}
-          <div id="demo" className="w-full">
+          {/* Right: Hero Animation — first on mobile */}
+          <div id="demo" className="order-1 lg:order-2">
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '900/560' }} aria-hidden="true">
               <iframe
                 src="/ab-test-hero-animation.html"
@@ -200,7 +200,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 {cp.plans.free.features.map((f) => (
                   <li key={f.label} className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 shrink-0 text-ok" />
-                    <span className="text-white/60">{f.label}</span>
+                    <span className="text-white/60 break-words">{f.label}</span>
                   </li>
                 ))}
               </ul>
@@ -233,7 +233,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                     ) : (
                       <Check className="h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.exclusive ? 'text-white/80' : 'text-white/60'}>
+                    <span className={f.exclusive ? 'text-white/80 break-words' : 'text-white/60 break-words'}>
                       {f.label}
                     </span>
                   </li>
@@ -265,7 +265,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                     ) : (
                       <Check className="h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.exclusive ? 'text-white/80' : 'text-white/60'}>
+                    <span className={f.exclusive ? 'text-white/80 break-words' : 'text-white/60 break-words'}>
                       {f.label}
                     </span>
                   </li>
