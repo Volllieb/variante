@@ -1,6 +1,6 @@
 # Variante — KI-Coding-Infrastruktur
 
-> **Hauptanweisung:** [`AGENTS.md`](../AGENTS.md) — Arbeitsweise, Sprache, Standing Orders, Prüfpflicht, **Build-Pflicht, Deploy-Pflicht**, **Schätzungen & Qualität** (keine Zeitschätzungen, nur Aufwand; immer sauberste Version & Best Practice).
+> **Hauptanweisung:** [`AGENTS.md`](../AGENTS.md) — Arbeitsweise, Sprache, Standing Orders, Prüfpflicht, **Build-Pflicht, Deploy-Regel**, **Schätzungen & Qualität** (keine Zeitschätzungen, nur Aufwand; immer sauberste Version & Best Practice).
 > **Wissensquelle:** [`PROJEKT.md`](../PROJEKT.md) — Projektidentität, Stack, Struktur, Deployment, Pricing, Historie.
 > **Vercel-Ökosystem:** [`vercel-ecosystem.md`](../.agents/vercel-ecosystem.md) — Produkte, Decision-Matrizen, Cross-Product-Workflows.
 
@@ -34,4 +34,30 @@
 | `vercel-cli` | Vercel CLI (deploy, env, domains, dev) |
 | `vercel-functions` | Serverless, Edge, Fluid Compute, Cron Jobs |
 | `react-best-practices` | React/Next.js Performance (64 Regeln) |
+
+## Persönliche Präferenzen (Valentin)
+
+> Erfasst per Fragebogen am 16.07.2026. Diese Präferenzen überschreiben ggf. allgemeine Regeln aus AGENTS.md.
+
+### Kommunikation & Planung
+- **Sprache:** Code & Commits Englisch, Doku & Diskussion Deutsch.
+- **Planung:** Vor größeren Tasks ausführlichen Plan skizzieren (Schritte, Risiken, Alternativen).
+- **Rückfragen:** Bei Unklarheiten Annahme treffen, aber transparent machen ("Annahme: X"). Nur bei großen Entscheidungen nachfragen.
+- **Todo-Listen:** Immer via `manage_todo_list` tracken.
+- **Fokus:** Kurz & direkt. Kein Intro/Outro/Padding.
+
+### Coding-Präferenzen
+- **TypeScript:** Best Practice. Strict, korrekte Typen, keine any-Hacks.
+- **React/Next.js:** Best Practice. Server Components first, Client nur wo nötig.
+- **DRY:** Pragmatisch. Erst ab 3× Wiederholung abstrahieren — davor Kopieren ok.
+- **Testing:** Nur kritische Pfade (Auth, Billing, Core-Logik). Nicht für jeden Component.
+- **Error-Handling:** Ausgewogen. Kritische Pfade defensiv, Rest pragmatisch.
+
+### Workflow
+- **Subagents:** Automatisch nutzen wenn sinnvoll (@ponytail, @supabase, @stripe, etc.).
+- **Review:** @ponytail automatisch nach jeder logischen Einheit aufrufen.
+- **Build:** Automatisch vor Commit (`npm run vercel-build`).
+- **Deploy:** Nur auf explizite Anweisung (nicht automatisch nach Push).
+- **Doku:** PROJEKT.md automatisch nach relevanten Änderungen fortschreiben.
+- **Commits:** Nach logischen Einheiten (wenn Feature/Teil fertig), nicht nach jedem Micro-Step.
 
