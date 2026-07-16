@@ -148,7 +148,7 @@ const de: LandingCopy = {
   navDemo: 'Demo',
   navPricing: 'Preise',
   navLogin: 'Login',
-  navSignup: 'Kostenlos testen',
+  navSignup: 'Kostenlos starten',
 
   heroPill: 'KI-Agenten verbessern deine Conversion autonom',
   heroH1: 'CRO-Best-Practice. In 5 Minuten.',
