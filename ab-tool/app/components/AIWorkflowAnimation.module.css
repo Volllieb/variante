@@ -1,0 +1,361 @@
+/* Scoped styles for the "AI runs your A/B test" demo animation.
+   Monochrome per brandguidelines v2 — no accent color, only ink/white + gold (crown) + green (found). */
+
+.root {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1040 / 600;
+  overflow: hidden;
+
+  --ink: #0a0a0a;
+  --card: #ffffff;
+  --line: #e7e7ea;
+  --muted: #9a9aa1;
+  --gold: #eab308;
+  --found: #22c55e;
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+}
+
+.root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.scaler {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1040px;
+  height: 600px;
+  transform-origin: top left;
+}
+
+.stage {
+  position: relative;
+  width: 1040px;
+  height: 600px;
+  visibility: hidden;
+}
+
+/* ---------- stepper: segmented progress bar ---------- */
+.stepper {
+  position: absolute;
+  top: 22px;
+  left: 70px;
+  right: 70px;
+}
+
+.track {
+  display: flex;
+  gap: 8px;
+  height: 5px;
+}
+
+.segment {
+  position: relative;
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.segmentFill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.labels {
+  display: flex;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.stepLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+
+/* ---------- website cards ---------- */
+.card {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 420px;
+}
+
+.badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.clip {
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dcdce0;
+}
+
+.url {
+  flex: 1;
+  margin-left: 8px;
+  background: #f2f2f4;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  padding: 3px 10px;
+}
+
+.cardBody {
+  padding: 30px 30px 34px;
+  text-align: center;
+}
+
+.h1 {
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: inline-block;
+  padding: 3px 12px;
+  margin: -3px -12px 12px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 0 rgba(10, 10, 10, 0);
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.45;
+  padding: 2px 8px;
+  margin: -2px -8px 22px;
+  border-radius: 7px;
+  box-shadow: 0 0 0 0 rgba(10, 10, 10, 0);
+}
+
+.btnRow {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 9px;
+  padding: 11px 20px;
+  border: none;
+  cursor: default;
+  box-shadow: 0 0 0 0 rgba(10, 10, 10, 0);
+}
+
+.btnPrimary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.btnSecondary {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+/* ---------- AI scan line ---------- */
+.scanLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 70px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0) 0%,
+    rgba(10, 10, 10, 0.05) 35%,
+    rgba(10, 10, 10, 0.1) 50%,
+    rgba(10, 10, 10, 0.05) 65%,
+    rgba(10, 10, 10, 0) 100%
+  );
+}
+
+.scanCore {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34px;
+  height: 2px;
+  background: var(--ink);
+  opacity: 0.5;
+  box-shadow: 0 0 14px rgba(10, 10, 10, 0.35);
+}
+
+/* ---------- identified markers ---------- */
+.marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.markerDot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--found);
+  box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.18);
+}
+
+.markerTag {
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* ---------- AI character (Panda avatar) ---------- */
+.aiChar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.aiRing {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(10, 10, 10, 0.28);
+  animation: aiPulse 1.8s ease-out infinite;
+}
+
+@keyframes aiPulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+/* ---------- conversion card ---------- */
+.convCard {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 560px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.06);
+  padding: 13px 0 15px;
+  z-index: 10;
+}
+
+.convTitle {
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.convGrid {
+  display: flex;
+  position: relative;
+}
+
+.divider {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--line);
+}
+
+.convSide {
+  flex: 1;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.num {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.crown {
+  position: absolute;
+  top: -25px;
+  left: calc(75% - 14px);
+  width: 28px;
+  height: 28px;
+  z-index: 11;
+}
