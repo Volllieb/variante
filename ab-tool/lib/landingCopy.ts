@@ -168,7 +168,7 @@ const de: LandingCopy = {
   worksLabel: 'Ein Snippet — überall wo du ein Script-Tag einfügen kannst',
 
   sectionAgent: 'KI-Agent-Automatisierung',
-  agentH: 'Volle Kontrolle. Minimaler Aufwand. Probier den neuen Agenten.',
+  agentH: 'Volle Kontrolle. Minimaler Aufwand.',
   agentSub:
     'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden.',
   agentMotto: 'Volle Kontrolle. Minimaler Aufwand.',
@@ -344,7 +344,7 @@ const en: LandingCopy = {
   worksLabel: 'One snippet — anywhere you can paste a script tag',
 
   sectionAgent: 'AI agent automation',
-  agentH: 'Total control. Minimum effort. Try the new Agent.',
+  agentH: 'Total control. Minimum effort.',
   agentSub:
     'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps.',
   agentMotto: 'Total control. Minimum effort.',

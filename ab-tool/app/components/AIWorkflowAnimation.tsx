@@ -35,14 +35,18 @@ export default function AIWorkflowAnimation() {
 
     /* ---- scale the 1040x600 stage down to the container ---- */
     const fit = () => {
-      const w = root.clientWidth
+      const w = root?.clientWidth ?? 0
       if (w > 0) scaler.style.transform = `scale(${w / 1040})`
     }
     fit()
     const ro = new ResizeObserver(fit)
-    ro.observe(root)
+    ro.observe(root!)
 
-    const ctx = gsap.context(() => {
+    let ctx: gsap.Context | undefined
+    let widthRo: ResizeObserver | undefined
+
+    function buildTimeline() {
+      return gsap.context(() => {
       /* ---- initial states ---- */
       gsap.set([cardA, cardB, convCard], { xPercent: -50, yPercent: -50 })
       gsap.set(cardB, { autoAlpha: 0 })
@@ -204,11 +208,33 @@ export default function AIWorkflowAnimation() {
       /* hold, then fade to black and loop — the agent starts the next test */
       tl.to({}, { duration: 2.0 })
       tl.to(stage, { autoAlpha: 0, duration: 0.55, ease: 'power1.in' })
-    }, root)
+      }, root!)
+    }
+
+    // Defer until fonts are loaded + first paint done. Without this, pt()
+    // measures against fallback fonts and the AI char lands ~470px off.
+    function startTimeline() {
+      if ((root?.clientWidth ?? 0) > 0) {
+        fit()
+        ctx = buildTimeline()
+      } else {
+        widthRo = new ResizeObserver(() => {
+          if ((root?.clientWidth ?? 0) > 0) {
+            widthRo!.disconnect()
+            fit()
+            ctx = buildTimeline()
+          }
+        })
+        widthRo.observe(root!)
+      }
+    }
+
+    setTimeout(() => startTimeline(), 100)
 
     return () => {
       ro.disconnect()
-      ctx.revert()
+      widthRo?.disconnect()
+      ctx?.revert()
     }
   }, [])
 

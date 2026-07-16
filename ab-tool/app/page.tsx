@@ -122,11 +122,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </div>
           </div>
         </div>
-      </section>
 
-      {/* ── Micro-Trust Bar ── */}
-      <section className="section !pt-4 !pb-10 sm:!pt-6 sm:!pb-14">
-        <div className="container-wide">
+        {/* Trust Boxes — part of Hero */}
+        <div className="container-wide mt-14 sm:mt-20">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { icon: Rocket, ...cp.trustItems[0] },
@@ -150,9 +148,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Works-With Logo Bar ── */}
       <section className="section !py-10 sm:!py-14">
         <div className="container-wide text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-            {cp.sectionWorks}
-          </p>
+          <h2 className="section-heading">{cp.sectionWorks}</h2>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
             {techLogos.map((logo) => (
               <div key={logo.name} className="flex flex-col items-center gap-2">
@@ -177,17 +173,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             <AIWorkflowAnimation />
           </div>
           <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
-        </div>
-      </section>
-
-      {/* ── Solo Dev Transparency ── */}
-      <section className="section !py-10 sm:!py-14">
-        <div className="container-narrow rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
-          <h3 className="text-sm font-semibold text-white">{cp.soloDevTitle}</h3>
-          <p className="mt-2 text-sm text-white/50 leading-relaxed">
-            {cp.soloDevBody}
-          </p>
-
         </div>
       </section>
 
@@ -289,7 +274,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </Link>
             </div>
           </div>
-          <p className="mt-6 text-center text-sm text-white/50">{cp.impliedUsersText}</p>
+          <p className="section-text">{cp.impliedUsersText}</p>
         </div>
       </section>
 

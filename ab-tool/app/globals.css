@@ -178,3 +178,15 @@ html {
     font-size: 1.125rem;
   }
 }
+
+.section-text {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.50);
+  text-align: center;
+}
+@media (min-width: 640px) {
+  .section-text {
+    font-size: 0.9375rem;
+  }
+}
