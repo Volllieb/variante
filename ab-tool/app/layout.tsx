@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import { ToastProvider } from '@/app/components/Toast'
 import { headers } from 'next/headers'
-import { cookies } from 'next/headers'
 import { getLang } from '@/lib/landingCopy'
 
 const inter = Inter({
@@ -52,10 +51,8 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const headersList = await headers()
-  const cookieStore = await cookies()
   const acceptLang = headersList.get('accept-language')
-  const cookieLang = cookieStore.get('lang')?.value ?? null
-  const lang = getLang(acceptLang, cookieLang)
+  const lang = getLang(acceptLang, null)
 
   return (
     <html lang={lang} className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>

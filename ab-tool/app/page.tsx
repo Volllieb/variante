@@ -1,23 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { cookies } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Rocket, Zap, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
-import LangToggle from './components/LangToggle'
 import AIWorkflowAnimation from './components/AIWorkflowAnimation'
 import { getLang, getCopy, PLANS } from '@/lib/landingCopy'
 import type { Lang, PlanId } from '@/lib/landingCopy'
 
-/* ── Language detection (server-side) ── */
+/* ── Language detection (browser Accept-Language only) ── */
 
 async function detectLang(): Promise<Lang> {
   const headersList = await headers()
-  const cookieStore = await cookies()
-  const acceptLang = headersList.get('accept-language')
-  const cookieLang = cookieStore.get('lang')?.value ?? null
-  return getLang(acceptLang, cookieLang)
+  return getLang(headersList.get('accept-language'), null)
 }
 
 /* ── Metadata (dynamic by language) ── */
@@ -74,7 +69,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <LangToggle current={lang} />
             <Link
               href="/login"
               className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
@@ -131,7 +125,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Micro-Trust Bar ── */}
-      <section className="px-4 py-8 sm:px-6 sm:py-12">
+      <section className="section !py-10 sm:!py-14">
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
@@ -154,7 +148,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Works-With Logo Bar ── */}
-      <section className="px-4 py-10 sm:px-6 sm:py-14">
+      <section className="section !py-10 sm:!py-14">
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
             {cp.sectionWorks}
@@ -174,19 +168,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── AI Agent Automation ── */}
-      <section className="px-4 py-12 sm:px-6 sm:py-20">
+      <section className="section">
         <div className="mx-auto max-w-6xl">
-          <p className="text-center text-xs font-semibold uppercase tracking-wider text-text-3">
-            {cp.sectionAgent}
-          </p>
-          <h2 className="mt-2 text-center text-xl font-semibold text-white sm:text-2xl">
-            {cp.agentH}
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-white/55">
-            {cp.agentSub}
-          </p>
+          <span className="section-label">{cp.sectionAgent}</span>
+          <h2 className="section-heading">{cp.agentH}</h2>
+          <p className="section-sub">{cp.agentSub}</p>
 
-          <div className="mx-auto mt-8 max-w-5xl">
+          <div className="mx-auto mt-10 max-w-5xl">
             <AIWorkflowAnimation />
           </div>
           <p className="mt-6 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
@@ -194,7 +182,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Solo Dev Transparency ── */}
-      <section className="px-4 py-10 sm:px-6 sm:py-14">
+      <section className="section !py-10 sm:!py-14">
         <div className="mx-auto max-w-2xl rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-white">{cp.soloDevTitle}</h3>
           <p className="mt-2 text-sm text-white/50 leading-relaxed">
@@ -207,10 +195,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Pricing ── */}
-      <section className="px-4 py-12 sm:px-6 sm:py-20">
+      <section className="section">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-xl font-semibold text-white">{cp.sectionPricing}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-white/50">{cp.pricingSub}</p>
+          <h2 className="section-heading">{cp.sectionPricing}</h2>
+          <p className="section-sub">{cp.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {/* Free */}
             <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
@@ -308,9 +296,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── FAQ ── */}
-      <section className="px-4 py-12 sm:px-6 sm:py-20">
+      <section className="section">
         <div className="mx-auto max-w-2xl">
-          <h2 className="text-center text-xl font-semibold text-white">{cp.sectionFaq}</h2>
+          <h2 className="section-heading">{cp.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
             {cp.faqs.map((item) => (
               <details
@@ -331,10 +319,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Closing CTA ── */}
-      <section className="px-4 py-16 sm:px-6 sm:py-24">
+      <section className="section">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-semibold text-white sm:text-3xl">{cp.closingH}</h2>
-          <p className="mt-4 text-base text-white/55 sm:text-lg">{cp.closingSub}</p>
+          <h2 className="section-heading">{cp.closingH}</h2>
+          <p className="section-sub">{cp.closingSub}</p>
           <div className="mt-8">
             <Link
               href={signupUrl("/signup")}

@@ -107,3 +107,52 @@ html {
     display: none !important;
   }
 }
+
+/* ── Unified section styles ── */
+.section {
+  padding: 4rem 1rem;
+}
+@media (min-width: 640px) {
+  .section {
+    padding: 6rem 1.5rem;
+  }
+}
+
+.section-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-3);
+  text-align: center;
+}
+
+.section-heading {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+}
+@media (min-width: 640px) {
+  .section-heading {
+    font-size: 1.875rem;
+  }
+}
+
+.section-sub {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  line-height: 1.625;
+}
+@media (min-width: 640px) {
+  .section-sub {
+    font-size: 1.125rem;
+  }
+}
