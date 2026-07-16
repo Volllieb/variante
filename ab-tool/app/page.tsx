@@ -65,7 +65,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
-            <PandaLogo className="h-7 w-7 rounded-lg p-1" />
+            <PandaLogo className="h-7 w-7 rounded-full p-1.5" />
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -88,7 +88,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <main>
 
       {/* ── Hero ── */}
-      <section className="px-4 py-16 sm:px-6 sm:py-24 lg:py-32">
+      <section className="px-4 pt-10 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:pt-14 lg:pb-32">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
           {/* Left: Text */}
           <div>
@@ -125,7 +125,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Micro-Trust Bar ── */}
-      <section className="section !py-10 sm:!py-14">
+      <section className="section !pt-4 !pb-10 sm:!pt-6 sm:!pb-14">
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
@@ -170,14 +170,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── AI Agent Automation ── */}
       <section className="section">
         <div className="mx-auto max-w-6xl">
-          <span className="section-label">{cp.sectionAgent}</span>
           <h2 className="section-heading">{cp.agentH}</h2>
           <p className="section-sub">{cp.agentSub}</p>
 
           <div className="mx-auto mt-10 max-w-5xl">
             <AIWorkflowAnimation />
           </div>
-          <p className="mt-6 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
+          <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
         </div>
       </section>
 
@@ -188,9 +187,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <p className="mt-2 text-sm text-white/50 leading-relaxed">
             {cp.soloDevBody}
           </p>
-          <p className="mt-4 text-xs text-text-3 italic">
-            {cp.impliedUsersText}
-          </p>
+
         </div>
       </section>
 
@@ -292,6 +289,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </Link>
             </div>
           </div>
+          <p className="mt-6 text-center text-sm text-white/50">{cp.impliedUsersText}</p>
         </div>
       </section>
 

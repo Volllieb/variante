@@ -170,7 +170,7 @@ const de: LandingCopy = {
   sectionAgent: 'KI-Agent-Automatisierung',
   agentH: 'Volle Kontrolle. Minimaler Aufwand. Probier den neuen Agenten.',
   agentSub:
-    'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden. Testerstellung funktioniert vollautomatisch, hilft dir semi-automatisch oder manuell.',
+    'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden.',
   agentMotto: 'Volle Kontrolle. Minimaler Aufwand.',
   agentMottoSub: 'Wähl aus, was du willst — den Rest erledigt die KI.',
   agentModePill: 'Du oder KI',
@@ -346,7 +346,7 @@ const en: LandingCopy = {
   sectionAgent: 'AI agent automation',
   agentH: 'Total control. Minimum effort. Try the new Agent.',
   agentSub:
-    'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps. Test creation works fully automatic, helps you semi-automatic, or manual.',
+    'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps.',
   agentMotto: 'Total control. Minimum effort.',
   agentMottoSub: 'Pick the one you want — AI does the rest.',
   agentModePill: 'You or AI',
