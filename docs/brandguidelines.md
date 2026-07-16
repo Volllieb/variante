@@ -154,28 +154,28 @@ mit mehr Zeilenhöhe (`line-height: 1.5–1.6` statt 1.3–1.4 im Dashboard).
 
 ## 4. Layout & Spacing
 
-### 4.1 App-Shell (Dashboard, künftig auch Login-Rahmen)
+### 4.1 App-Shell (Dashboard)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ Topbar: [Panda] Workspace · Plan-Pill │ All tests ⌄ │ Overview │
-├───────────┬───────────────────────────────────────────────┤
-│ Sidebar   │ Toolbar: Suche (volle Breite) │ Sortieren │ Grid │ List │ CTA │
-│ 200px     ├───────────────────────────────────────────────┤
-│ fixed     │ Content (zweispaltig: 38% Übersicht / 62% Liste) │
-└───────────┴───────────────────────────────────────────────┘
+┌──────────┬──────────────────────────────────────────────────┐
+│ Sidebar  │ Main Content (card-based, einspaltig)            │
+│ 220px    │                                                  │
+│ fixed    │ [Scope-Selector Header]                          │
+│          │ [KPI-Card-Grid (5 Cards, nur wenn Tests > 0)]     │
+│ [Panda]  │ [Tests-Card: Toolbar + TestCard-Grid]            │
+│ Nav      │                                                  │
+│ Settings │                                                  │
+│ Avatar   │                                                  │
+└──────────┴──────────────────────────────────────────────────┘
 ```
 
-- **Sidebar:** 200px fest, `border-right: 1px solid var(--border)`, Nav-Items 7px/9px Padding, 6px Radius
-- **Topbar:** volle Breite, `border-bottom: 1px solid var(--border)`, 12px/20px Padding
-- **Toolbar:** eine Ebene **über** dem zweispaltigen Content, spannt die **gesamte Content-Breite**
-  (nicht nur über der Tests-Spalte) — Suche nimmt den verfügbaren Platz (`flex: 1`), danach feste
-  Icon-Buttons, danach der Primär-CTA. Siehe 5.2.
-- **Content:** zwei Spalten mit `gap: 20px` — linke Spalte (Usage/Alerts/Activity) schmaler & gestapelt,
-  rechte Spalte (Tests-Grid) breiter, `grid-template-columns: 1fr 1fr` für Karten
-- **Navigation:** Single-Page mit Anker-Sektionen. Overview (Stats-Bar + Test-Liste) immer oberhalb
-  der Scroll-Fold sichtbar. Sidebar-Links scrollen per `href="#..."` zu Plugin, Snippet, Billing,
-  Account. Kein client-seitiges Routing für Sections — alles eine Seite, Sidebar als Sprungnavigation.
+- **Sidebar:** 220px fixed left, `border-right: 1px solid var(--border)`, Logo oben, Nav (Overview, Tests)
+  mit 13px Text/7px 9px Padding/6px Radius, collapsible Settings (Billing, Account, ChevronDown-Rotation),
+  Avatar am unteren Rand (Gravatar + JS-Fallback colored initials, Email, Plan-Badge)
+- **Keine Topbar.** Navigation nur via Sidebar.
+- **Main Content:** `<main className="pl-[220px]">`, einspaltig, max-width 1200px, Padding 24px.
+- **Toolbar:** In der Tests-Card — Search (flex: 1), Sort/Filter-Icon-Buttons, "New test"-CTA.
+- **Cards:** `--bg-1`, `--r-card` (6px), Hairline-Border. Health-Warning-Banner (wenn Issues) vor den KPIs.
 
 ### 4.2 Landingpage-Shell ("gleiches System, mehr Luft")
 
@@ -359,9 +359,24 @@ Das Produkt muss immer zeigen: „du hast Kontrolle, aber manche Bereiche sind e
 
 ### 7.1 Web-Dashboard
 
-Sidebar (Tests, Results, Activity log, Analytics🔒, Domains · Plugin token, Integrations, Team🔒 ·
-Usage) + Topbar (Workspace-Switcher, All tests, Overview) + zweispaltiger Content
-(Usage/Alerts/Recent activity ↔ Tests-Grid mit Toolbar). Details: Abschnitt 4.1, 5.1–5.7.
+**Layout (Vercel-Style):** 220px fixed Sidebar (left) + `<main>`-Content rechts. Keine Topbar.
+Sidebar-Logo oben, Nav in der Mitte (Overview, Tests), collapsible Settings (Billing, Account),
+Avatar mit Gravatar + JS-Fallback am unteren Rand.
+
+**Content:** Card-basiert, einspaltig. Scope-Selector im Header (Dropdown: "All sites" oder Domain-Name
++ Test-Count + "New test"-CTA). KPI-Card-Grid (5 Cards: Active Tests, Visitors, Winning Tests,
+Avg Conv Rate, Avg Uplift) — nur sichtbar wenn Tests > 0. Test-Liste als Card mit Toolbar
+(Search/Sort/Filter) + Grid von TestCards.
+
+**Wizard-Pattern (Test-Erstellung):** 5-Step-Wizard im Dashboard (nicht Figma-Plugin):
+1. URL → 2. Goal (Conversion-Event) → 3. Design (AI-Vorschlag + Edit) → 4. Variant → 5. Review/Launch.
+3 Intervention-Points mit "Take control"-Pattern: User sieht KI-Vorschlag, kann akzeptieren
+oder manuell eingreifen. Figma-Plugin dient als optionale Design-Inspiration, nicht als Pflicht.
+Wizard speichert Drafts.
+
+**State-Management:** Leerzustand (EmptyDashboard: Icon + Title + "Create your first test"-CTA),
+Partial-Data-Zustände, Error-Zustände. Gating: Free-Badge + Lock-Icon für Pro-Features,
+nie verstecken (Abschnitt 6).
 
 ### 7.2 Landingpage
 

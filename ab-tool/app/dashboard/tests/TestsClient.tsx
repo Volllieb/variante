@@ -58,7 +58,7 @@ export function TestsClient({
   useEffect(() => { setTestList(tests) }, [tests])
 
   return (
-    <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
+    <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       {/* Toolbar */}
       <div className="mb-3 flex items-center gap-2">
         <div className="relative flex-1">
@@ -144,6 +144,6 @@ export function TestsClient({
           ))}
         </div>
       )}
-    </main>
+    </div>
   )
 }

@@ -240,7 +240,7 @@ export function SetupClient({ data }: { data: SetupData }) {
   }
 
   return (
-    <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
+    <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-xl space-y-6">
         {/* Header */}
         <div>
@@ -469,7 +469,7 @@ export function SetupClient({ data }: { data: SetupData }) {
           </StepCard>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 

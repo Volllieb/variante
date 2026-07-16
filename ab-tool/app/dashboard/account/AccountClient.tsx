@@ -151,7 +151,7 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
   const dangerConfirm = `delete ${email}`
 
   return (
-    <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
+    <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-[18px] font-semibold text-[#ededed]">Account</h1>
 
@@ -382,6 +382,6 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
           </button>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

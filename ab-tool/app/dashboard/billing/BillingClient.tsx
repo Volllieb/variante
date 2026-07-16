@@ -40,7 +40,7 @@ export function BillingClient({ data }: { data: BillingData }) {
   }
 
   return (
-    <main className="min-w-0 flex-1 px-5 py-6 sm:px-8">
+    <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-[18px] font-semibold text-[#ededed]">Billing</h1>
 
@@ -137,7 +137,7 @@ export function BillingClient({ data }: { data: BillingData }) {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 
