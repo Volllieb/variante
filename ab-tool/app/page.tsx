@@ -4,7 +4,6 @@ import { headers } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Rocket, Zap, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
-import AIWorkflowAnimation from './components/AIWorkflowAnimation'
 import { getLang, getCopy, PLANS } from '@/lib/landingCopy'
 import type { Lang, PlanId } from '@/lib/landingCopy'
 
@@ -152,8 +151,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
             {techLogos.map((logo) => (
               <div key={logo.name} className="flex flex-col items-center gap-2">
-                <TechLogoMark logo={logo} className="h-7 w-7 text-white/25" />
-                <span className="text-[10px] text-text-3">{logo.name}</span>
+                <TechLogoMark logo={logo} className="h-8 w-8 text-white/25" />
+                <span className="text-[11px] text-text-3">{logo.name}</span>
               </div>
             ))}
           </div>
@@ -170,7 +169,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <p className="section-sub">{cp.agentSub}</p>
 
           <div className="mx-auto mt-10 max-w-5xl">
-            <AIWorkflowAnimation />
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '1040/600' }} aria-hidden="true">
+              <iframe
+                src="/ai-workflow-animation.html"
+                className="absolute inset-0 w-full h-full border-0"
+                title="AI Workflow Demo"
+              />
+            </div>
           </div>
           <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
         </div>
