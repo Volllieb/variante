@@ -11,10 +11,10 @@
 |---|---|
 | **Produkt** | variante — autonomer KI-Agent für A/B-Testing, kein Dev nötig. "Total Control, Minimum Effort": KI macht alles, User greift nur ein wenn er will. |
 | **ICP** | Designer, Indie Hacker & Gründer (Solopreneure & kleine Teams) auf beliebigen Plattformen (Custom HTML, WordPress, Next/React, Shopify) |
-| **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Wizard-basierte Test-Erstellung im Dashboard (nicht Figma-Plugin). Figma-Plugin = Design-Inspiration, nicht Pflicht. |
+| **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via Wizard im Figma-Plugin (`figmaWizard`, 6 Steps: Test Details → Snippet → Element → Design → Generate → Goal). Dashboard-Wizard (`webWizard`) folgt später. Figma-Plugin = Creation + Design-Inspiration. |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 17.07.2026 — 🖼️ **Avatar-Upload** — Profilbild-Upload in AccountClient (64px Circle, Camera-Overlay, Drag/Click). POST/DELETE `/api/profile/avatar` via Supabase Storage (`avatars` bucket, 2MB, png/jpeg/webp/gif). Migration 022: `profiles.avatar_url`. Sidebar zeigt DB-Avatar via `next/image`, fällt auf farbige Initialen zurück. 🐼 **PandaLogo vollrund** — `rounded-full` statt `rounded-[5px]`, alle Instanzen. 📋 **Dashboard-Launch-Plan** — 20 Items, 5 Phasen (Critical→Low), ~1 Woche Aufwand. 📐 **Hybrid-Onboarding-Plan** — Screenshot-in, Value-out, Snippet später. Entkoppelt Snippet-Einbau vom Aha-Moment. Plan in `docs/future-features/hybrid-onboarding-plan.md`. ✅ **Build grün auf feature/dashboard-launch**, Vercel Preview pending. |
+| **Stand** | 17.07.2026 — 🏷️ **Naming-Cleanup** — Route `/dashboard/setup` → `/dashboard/health`, Sidebar-Link »Setup« → »Health«, UI-Begriffe vereinheitlicht. Totes Onboarding-Gate endgültig entfernt. Glossar in §12.7. 🖼️ **Avatar-Upload** — Profilbild-Upload, Migration 022. 📐 **Hybrid-Onboarding-Plan v4** — Option A (Server-seitige HTML/CSS-Extraktion), 99% Selektor-Genauigkeit, SPA-Fallback via Snippet-zu-erst. ✅ **Build grün auf feature/terminology-rename.** |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -97,7 +97,8 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 
 | Datum | Eintrag |
 |---|---|
-| 17.07.2026 | **Hybrid-Onboarding-Plan (Screenshot-in, Value-out).** Plan für Website + Figma Plugin in `docs/future-features/hybrid-onboarding-plan.md`. Kernidee: User gibt URL ein → Screenshot + AI-Variante sofort → Aha-Moment vor Sign-up/Snippet. Snippet wandert hinter Sign-up-Gate. Neue API: `/api/preview`, `/api/preview/refine`. Neue DB-Migration: 023 (preview-Felder). Screenshot-Provider: urlbox.io für MVP. 3 Phasen: Website Demo → Figma Plugin → Refine & Polish. |
+| 17.07.2026 | **Naming-Cleanup: Route-Rename + Glossar.** `/dashboard/setup` → `/dashboard/health` (Route, Verzeichnis, 12 Dateien). Sidebar: »Setup« → »Health«. UI-Labels: »Run setup« → »Run health check«. `proxy.ts`, `domains/route.ts`, Figma-Plugin-URLs aktualisiert. Begriffs-Glossar in §12.7: Onboarding (Hybrid-Onboarding = `webOnboarding`/`figmaOnboarding`), Health Check (`/dashboard/health`), Wizard (`figmaWizard`/`webWizard`), New test (UI-Name für Wizard-Einstieg). `onboarding/`-Referenz aus seo.agent.md entfernt. Build grün. |
+| 17.07.2026 | **Hybrid-Onboarding-Plan v4 — Option A (Code-Analyse).** Plan in `docs/future-features/hybrid-onboarding-plan.md`. Kernidee: User gibt URL ein → Server-seitiges `fetch(url)` + cheerio extrahiert HTML/CSS (Option A) → GPT-4o bekommt echten Code + Screenshot → schreibt CSS mit DOM-verifizierten Selektoren (99% Genauigkeit für SSR-Seiten) → Dual-Screenshot via urlbox.io (Original + CSS-Injection) → A/B-Toggle → Aha-Moment in ~40s. Sign-up + Snippet erst am Gate. **SPA-Fallback:** SPA-Erkennung (5 Indikatoren) → User installiert Snippet zuerst → Client-seitiges DOM-Scraping → Preview → Sign-up → direkt live. Neue Libs: `lib/extractPageCode.ts`, `lib/screenshot.ts`. Neue API: `/api/preview`, `/api/preview/refine`. DB-Migration: 023 (preview-Felder). 3 Phasen: Website Demo → Figma Plugin → Refine & Polish. |
 | 17.07.2026 | **Responsive Landing + Dashboard-Redesign live (integration/figma-responsive-landing).** Landingpage responsive: Hero Animation-First auf Mobile (GSAP), zentrierter Text, Break-Words in Pricing-Tabelle. Dashboard: Neue `Sidebar.tsx` (212 Zeilen) mit Logo, Nav, Settings, Avatar. `DashboardClient.tsx` massiv reduziert (628 Zeilen → entrümpelt). Card-basiertes Layout, KPI-Grid nur bei Tests > 0. Figma-Onboarding: Temp-Session-Backend (`POST /api/temp-session`, Migration 012), AI-Workflow-Animation responsive überarbeitet, Plugin-UI ausgebaut. Auth-Fix: Supabase Captcha/Email-Error-Handling bei leeren Error-Objekten. Testing: `mobile.spec.ts` (147 Zeilen E2E), `lib-unit.mjs` (202 Zeilen Unit). Neue API: `POST /api/claim-tests` für Temp-Session-User. Dynamische `robots.ts`. Screenshots für Social/OG (`screenshot-desktop.png`, `screenshot-live.png`). Build grün, deployed. | DomainGate war toter Code (nie importiert, nie genutzt). Ersetzt durch `ConnectWebsite.tsx`-Komponente: 5-State-Upload-Maschine (input → saving → checking → not-found → verified) mit 4 Inline-SVG-Illustrationen (`OnboardingIllustrations.tsx`), animiertem ConnectChecking-Spinner, und Copy-Prompt für ab.js-Installation. EmptyDashboard zeigt Demo-Card + ConnectWebsite (ohne verified domain) oder Quick-Start-Guide. `recharts`-Dependency zu `package.json` hinzugefügt (wurde bereits in `ResultsClient.tsx` verwendet, fehlte im Lockfile → Vercel-Build brach ab). `ab-tool/vercel.json` gelöscht (Cron-Jobs jetzt im Root-`vercel.json`). | NewTestFlow umgebaut: Statt nur Figma-Plugin-Instruktionen jetzt Choice-Screen mit zwei klaren Pfaden — "Start with Figma" (Plugin, bestehender Flow) und "Start with Auto-Optimize" (AI-Agent, kein Plugin nötig). AgentPanel: Free-Gating entfernt — Auto-Optimize jetzt für alle Tiers verfügbar (Aha-Moment > API-Kosten). PROJEKT.md §10: Vision "ab.js → Auto-Scan → 1-Klick" dokumentiert. | Neue `lib/planLimits.ts` als Single Source of Truth. `POST /api/domains`: prüft `count(*)` gegen `getDomainLimit(plan)` statt `limit(2).length >= 1`. `POST /api/tests` + `lib/agentTools.ts`: Domain-Gate matched `site_url`-Host jetzt gegen ALLE verified Domains (nicht nur `.limit(1)` primary). `DomainGate.tsx`: 402-Error parst API-Nachricht dynamisch. `/api/resolve` + `ab.js`: keine Änderung nötig — Host-basiertes Matching funktioniert out-of-the-box für Multi-Domain. |
 | 14.07.2026 | **Autonomer CRO-Agent live (Ansatz B, Vercel AI SDK).** `POST /api/agent` — `streamText()` (AI SDK v7, gpt-4o-mini) mit 4 Tools: `fetchSite` (SSRF-geschützt, 10s Timeout), `analyzeCRO` (nutzt `lib/croAnalyze.ts`), `generateVariant` (`lib/generateVariantText.ts`, text/color/css/layout), `createTest` (Domain-Gate + Free-Gating, Insert mit `variant_b_html`/`variant_b_css`). Tools als Factory `makeAgentTools(user)` — user_id ist kein LLM-Parameter (Injection-sicher). Kostenkontrolle: $0.03 upfront via `increment_gen_cost`-RPC, max 10 Steps (`stepCountIs`). CRO-Logik aus `/api/suggestions` nach `lib/croAnalyze.ts` extrahiert (Route refactored, +`type`/`selector` im Schema). UI: `AgentPanel.tsx` mit `useChat` — Live-Tool-Status-Zeilen, Free-Paywall analog WhatToTestNext, `router.refresh()` nach Run. Migration 019: `agent_runs` (Audit) + `site_insights` (Learning-Loop-v2-Schema) ausgeführt + deployt. Neue Packages: `ai@7`, `@ai-sdk/openai`, `@ai-sdk/react`, `zod`. Build grün. Konzept: `docs/future-features/autonomous-ab-agent.md`. |
 | 14.07.2026 | **🎉 Erster organischer User!** unnoorain Masroor (css.edu.apps@gmail.com) — Google OAuth Signup am 13.07.2026 08:42 UTC. Kein Outreach, kein Design-Partner — jemand hat variante von selbst gefunden und sich registriert. Validierung dass die Landingpage funktioniert. |
@@ -239,7 +240,7 @@ Der Happy Path für neue User:
 
 | Ebene | Ort | Zweck |
 |---|---|---|
-| **Setup** | `/dashboard/setup` | Health-Check: Snippet, Figma Plugin — permanenter Check, kein One-Time-Gate. |
+| **Health** | `/dashboard/health` | Health-Check: Snippet, Figma Plugin — permanenter Check, kein One-Time-Gate. |
 | **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. Kein Setup-Cruft. |
 | **Creation** | Figma Plugin | Wizard zum Erstellen von Varianten. Browser wartet per Polling auf neue Tests. |
 
@@ -254,7 +255,7 @@ User klickt [+ New test]
          │    → "Open Figma" → Polling startet
          │
          └─ has_figma_plugin === false
-              → "Install Figma Plugin first" → Link zu `/dashboard/setup` (Health-Check)
+              → "Install Figma Plugin first" → Link zu `/dashboard/health` (Health-Check)
 ```
 
 **Polling-Zustandsmaschine:** `idle → awaiting_figma → test_received | timeout | cancelled`
@@ -268,12 +269,12 @@ User klickt [+ New test]
 
 ### 12.3 Dashboard-Layout
 
-- **Sidebar:** Overview, Tests (separate Page), Setup (Health Check), Billing, Account
+- **Sidebar:** Overview, Tests (separate Page), Health (Health Check), Billing, Account
 - **Overview (`/dashboard`):** Zweispaltig — 30% Metric-Cards + 70% Test-Grid.
-  - Linke Spalte (30%): **Overview-Card** (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon/Name/Wert-Zeilen mit Trennlinien) + **Health/Setup-Card** (Snippet/Plugin-Status, verlinkt auf `/dashboard/setup`).
+  - Linke Spalte (30%): **Overview-Card** (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon/Name/Wert-Zeilen mit Trennlinien) + **Health-Card** (Snippet/Plugin-Status, verlinkt auf `/dashboard/health`).
   - Rechte Spalte (70%): **Tests-Überschrift** + Toolbar (Suchleiste breit, Sort-Icon, Filter-Dropdown für Status/Zeitraum/Winner, New-Test-Button) + **TestCard-Grid** (3 pro Zeile).
 - **TestCard (neu):** Row 1: Favicon | Name+URL | Significance-Pie-Chart (Visitor-Count im Zentrum, Arc-Füllung = Signifikanz-Fortschritt). Row 2: Status-Dot (grün/orange/grau) | Dauer (d/h/m/s granular) | Variant-Leader (A/B-Pill).
-- **Setup:** `/dashboard/setup` — Health-Check-Seite mit 2 expandable CheckCards (Snippet auto-check via API, Plugin via Server-Flag).
+- **Health:** `/dashboard/health` — Health-Check-Seite mit 2 expandable CheckCards (Snippet auto-check via API, Plugin via Server-Flag).
 - **Tests:** `/dashboard/tests` — Grid mit Search, Filter-Dropdown (Status/Zeitraum/Winner), NewTestFlow-Trigger.
 
 ### 12.4 Gateway-Architektur
@@ -282,7 +283,7 @@ User klickt [+ New test]
 |---|---|---|
 | Landingpage → Signup | CTA | `/signup` |
 | Signup → Dashboard | Registrierung | `/dashboard` (direkt, kein Onboarding-Gate) |
-| Dashboard → Setup | Health-Check-Card | `/dashboard/setup` (Snippet/Plugin-Status) |
+| Dashboard → Health | Health-Check-Card | `/dashboard/health` (Snippet/Plugin-Status) |
 | Dashboard → Figma | „+ New test" | Figma Plugin (später: `figma://` Deep Link) |
 | Figma → Dashboard | Plugin pusht Test via API | Dashboard erkennt neuen Test per Polling |
 
@@ -291,7 +292,7 @@ User klickt [+ New test]
 - **Free/Pro sichtbar, nie versteckt.** Eingeschränkte Features bleiben ausgegraut mit Upgrade-Pfad.
 - **Empty States als Guide.** Kein leeres Dashboard — immer eine Handlungsaufforderung.
 - **Polling statt WebSockets.** Kein SSE/WS nötig für Plugin↔Dashboard-Sync. 3s-Poll reicht.
-- **Setup-Tools persistent sichtbar.** Plugin-Token und Extension-Link bleiben im Dashboard (Sidebar/Footer), auch nach Onboarding — für Teammates oder Gerätewechsel.
+- **Health-Tools persistent sichtbar.** Plugin-Token und Snippet-Code bleiben im Dashboard (Health-Check), auch nach dem Onboarding — für Teammates oder Gerätewechsel.
 
 ### 12.6 Dashboard-Roadmap (Brainstorming 07.07.2026)
 
@@ -310,8 +311,27 @@ User klickt [+ New test]
 
 **Key-Design-Entscheidungen:**
 - Layout: Quick-Actions im Content-Bereich, Sidebar = reine Navigation
-- Overview = Stats + Tests + Setup-Checkliste + CRO-Snapshot. `/dashboard/tests` = dedizierte Test-Seite (Redundanz ok)
+- Overview = Stats + Tests + Health-Check-Card + CRO-Snapshot. `/dashboard/tests` = dedizierte Test-Seite (Redundanz ok)
 - Charts nur auf Detailseite, keine Avg-Lift-Stat in Overview
-- Snippet-Check proaktiv: Badge-Klick führt durch alle Setup-Schritte
+- Snippet-Check proaktiv: Badge-Klick führt durch alle Health-Check-Schritte
 - Signifikanz für Free-User sichtbar (Platzhalter-Card mit Upgrade-Pfad)
 - Free-Gate via Best-Practice (402-UI / Locked-Card, kein harter Block)
+
+### 12.7 Begriffs-Glossar (UI & Technisch)
+
+> Stand: 17.07.2026. UI-Namen = was der User sieht. Technische Namen = was im Code steht.
+
+| UI-Name | Tech-Name | Beschreibung |
+|---|---|---|
+| **Onboarding** | `webOnboarding` / `figmaOnboarding` | Hybrid-Onboarding v4: User gibt URL ein → Server extrahiert HTML/CSS (Option A) → GPT-4o analysiert echten Code → Dual-Screenshot (Original + CSS-Injection via urlbox.io) → A/B-Toggle → Aha-Moment in ~40s. Sign-up + Snippet erst am Gate. SSR-Seiten: 99% Selektor-Genauigkeit. SPAs: Snippet-zu-erst-Fallback (§0b). Web auf Landingpage, Figma im Plugin. |
+| **Health Check** | `/dashboard/health` | Permanente Status-Seite: Lebt das Snippet? Plugin verbunden? Domain verifiziert? Kein One-Time-Gate. |
+| **New test** | `figmaWizard` / `webWizard` | Wizard zum Erstellen eines A/B-Tests. 6 Steps: Test Details → Snippet → Element → Design → Generate → Goal. Aktuell nur im Figma-Plugin (`figmaWizard`), Dashboard (`webWizard`) folgt. |
+| **Test Details** | `s-setup` (Figma), Step 1 | Erster Wizard-Step: Test-Name + URL. Heißt im Figma-Code noch `s-setup` (Legacy). |
+| **Connect Website** | `ConnectWebsite`-Komponente | Domain-Verifikation: URL eingeben → Snippet prüfen → verifizieren. Teil des Health Checks. |
+| **Temp Session** | `tempToken` | Anonymer User ohne Account (vor Sign-up). Erlaubt Test-Erstellung ohne Login. |
+| **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. |
+
+**Abgrenzung zu alten Begriffen:**
+- ❌ **Onboarding-Gate** (entfernt 28.03.2026): War eine separate Page zwischen Sign-up und Dashboard. Existiert nicht mehr.
+- ❌ **Setup** (umbenannt 17.07.2026): War der Sidebar-Link für den Health Check. Jetzt »Health«.
+- ❌ **DomainGate** (deprecated): Wurde durch `ConnectWebsite` ersetzt.
