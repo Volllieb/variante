@@ -1,6 +1,12 @@
 # Hybrid-Onboarding-Plan — Dual-Screenshot + CSS-Injection, Value vor Snippet
 
-> Stand: 17.07.2026 · Status: Planung · Aufwand: Mittel (ca. 3-4 Tage Fullstack)
+> Stand: 17.07.2026 · Status: **Umgesetzt** (Phase 1 Website live seit 17.07.2026, Phase 2 Figma-Plugin gebaut, Phase 3 Refine live) · Aufwand war: 1 Tag
+>
+> Umsetzungsnotizen (Abweichungen vom Plan):
+> - **Live-CSS und Highlight-Outlines sind getrennt** (nicht wie §3.1 ein kombiniertes injectedCss): Das gespeicherte `preview_data.injectedCss` ist sauber und geht nach Claim als `variant_b_css` live; die Outlines baut der Server nur für den Variant-Screenshot (lib/previewAnalyze.ts::buildHighlightCss). Sonst sähen echte Besucher gelb umrandete Buttons.
+> - **Temp-Session schon bei der Preview** (nicht wie §7 Punkt 6 erst am Gate): Der Claim-Pfad existierte bereits über temp_token — die Session bei /api/preview anzulegen war billiger als ein neuer Attach-Endpoint. Begründung in app/api/preview/route.ts.
+> - **Selektor-Verifikation serverseitig erzwungen**: Kandidaten-Selektoren werden vor dem Prompt gegen den echten DOM gematcht (lib/extractPageCode.ts::buildSelector), die Modell-Antwort wird dagegen validiert (lib/previewAnalyze.ts). §7 Punkt 7 (Prompt-Iterationszyklus mit 10 URLs, Match-Rate messen) bleibt als Feintuning offen.
+> - Kostenschutz: Tages-Limits pro IP + global auf /api/preview und /api/preview/refine (env-konfigurierbar, siehe .env.example).
 
 ## Kernidee
 

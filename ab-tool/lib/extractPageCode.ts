@@ -14,6 +14,7 @@ import * as cheerio from 'cheerio'
 import type { AnyNode } from 'domhandler'
 import { redactPII } from '@/lib/pii'
 import { safeError } from '@/lib/safeLog'
+import { assertSafeUrl, isBlockedHost } from '@/lib/ssrf'
 
 const FETCH_TIMEOUT_MS = 8000
 
@@ -64,6 +65,10 @@ export async function extractPageCode(url: string): Promise<ExtractedPage> {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) throw new Error(`Failed to fetch ${res.status}`)
+  // SSRF: die Route prüft die EINGABE-URL, aber redirect:'follow' kann danach
+  // auf interne Hosts umleiten (public URL → 302 → 169.254.169.254). res.url ist
+  // das finale Ziel — wenn das geblockt ist, verwerfen wir die Antwort.
+  if (res.url) assertSafeUrl(res.url)
 
   const html = await res.text()
   const $ = cheerio.load(html)
@@ -293,12 +298,16 @@ async function extractCss($: cheerio.CheerioAPI, pageUrl: string): Promise<strin
 
   for (const href of hrefs.slice(0, MAX_STYLESHEETS)) {
     try {
-      const abs = new URL(href, pageUrl).toString()
-      const res = await fetch(abs, {
+      const abs = new URL(href, pageUrl)
+      // SSRF: <link href> ist Angreifer-kontrolliert (die analysierte Seite
+      // bestimmt ihn) — interne Ziele weder direkt noch via Redirect abholen.
+      if (isBlockedHost(abs.hostname)) continue
+      const res = await fetch(abs.toString(), {
         headers: { 'User-Agent': 'variante-preview-bot/1.0' },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       })
       if (!res.ok) continue
+      if (res.url && isBlockedHost(new URL(res.url).hostname)) continue
       const text = await res.text()
       parts.push(text.slice(0, MAX_STYLESHEET_BYTES))
     } catch (err) {

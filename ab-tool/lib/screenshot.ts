@@ -21,8 +21,9 @@ export const SHOT_WIDTH = 1440
 export const SHOT_HEIGHT = 900
 
 // urlbox rendert selbst mit Headless-Chrome und braucht bei langsamen Seiten
-// Zeit. 30s ist großzügig, liegt aber unter maxDuration der Route (60s).
-const RENDER_TIMEOUT_MS = 30_000
+// Zeit — plus unser 2.5s Settle-Delay pro Render. Die Preview-Route hat 120s
+// maxDuration; 2 Renders à 40s + AI-Call passen da mit Reserve rein.
+const RENDER_TIMEOUT_MS = 40_000
 
 export interface ShotOptions {
   /** CSS das urlbox vor dem Render in die Seite injiziert. */

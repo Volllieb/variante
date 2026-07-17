@@ -17,19 +17,38 @@ import { extractPageCode, type ExtractedPage } from '@/lib/extractPageCode'
 import { analyzePreview, buildHighlightCss } from '@/lib/previewAnalyze'
 import { captureToStorage, renderScreenshot, uploadShot, SHOT_WIDTH, SHOT_HEIGHT } from '@/lib/screenshot'
 
-// Zwei Screenshots + Vision-Call. Realistisch ~8-15s (Plan §0).
-export const maxDuration = 60
+// Zwei Screenshots (je bis 40s Render-Timeout + 2.5s Settle-Delay) + Vision-Call.
+// Realistisch ~15-30s; 120s Headroom, damit langsame Kundenseiten nicht die
+// Function killen statt sauber im Render-Timeout zu scheitern.
+export const maxDuration = 120
+
+// Kostenschutz: der Endpoint ist unauthentifiziert und gibt pro Call ~$0.02
+// aus (2x urlbox + GPT-4o). Das Minuten-Limit bremst Bursts, die Tages-Limits
+// deckeln den Schaden durch Bots/Scripted Abuse (Plan §5: Free-Tier ~10/Tag).
+const DAILY_IP_LIMIT = Number(process.env.PREVIEW_DAILY_IP_LIMIT) || 10
+const DAILY_GLOBAL_LIMIT = Number(process.env.PREVIEW_DAILY_GLOBAL_LIMIT) || 300
+const DAY_MS = 86_400_000
 
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
 }
 
 export async function POST(req: Request) {
-  // Plan §7 Punkt 6: Preview ist stateless bis zum Gate — keine Temp-Session
-  // nötig, kein DB-Müll für Leute die nur gucken. Rate-Limit deshalb per IP.
   const ip = getClientIp(req)
   if (!(await checkRateLimit(`preview:${ip}`, 5, 60_000))) {
     return json({ error: 'too many requests', message: 'Give it a minute — you can run 5 previews per minute.' }, 429)
+  }
+  if (!(await checkRateLimit(`preview:day:${ip}`, DAILY_IP_LIMIT, DAY_MS))) {
+    return json({
+      error: 'daily limit',
+      message: `That's ${DAILY_IP_LIMIT} previews today — sign up to keep testing.`,
+      signup_url: '/signup?source=demo-limit',
+    }, 429)
+  }
+  if (!(await checkRateLimit('preview:day:global', DAILY_GLOBAL_LIMIT, DAY_MS))) {
+    // Globale Notbremse gegen verteilte IPs. Bewusst generische Meldung —
+    // ein Angreifer muss nicht wissen, dass er das globale Budget getroffen hat.
+    return json({ error: 'too many requests', message: 'The demo is very busy right now. Try again later.' }, 429)
   }
 
   let body: { url?: string; testName?: string; temp_token?: string }

@@ -59,6 +59,10 @@ export function HybridDemo({ cp, source }: { cp: LandingCopy; source?: string })
   const [feedback, setFeedback] = useState('')
   const [refining, setRefining] = useState(false)
   const resultRef = useRef<HTMLDivElement>(null)
+  // Temp-Session-Token über mehrere Previews hinweg wiederverwenden: alle Tests
+  // dieses Besuchers hängen dann an EINER Session — der Claim beim Sign-up holt
+  // sie alle, statt nur den letzten (frühere blieben sonst verwaist bis zum Cron).
+  const tempTokenRef = useRef<string>('')
 
   // Loading-Schritte durchlaufen lassen; beim letzten stehen bleiben.
   useEffect(() => {
@@ -95,7 +99,7 @@ export function HybridDemo({ cp, source }: { cp: LandingCopy; source?: string })
       const res = await fetch('/api/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: trimmed }),
+        body: JSON.stringify({ url: trimmed, temp_token: tempTokenRef.current || undefined }),
       })
       const json = await res.json()
 
@@ -111,6 +115,7 @@ export function HybridDemo({ cp, source }: { cp: LandingCopy; source?: string })
         return
       }
 
+      if (json.tempToken) tempTokenRef.current = json.tempToken
       setData(json as PreviewResponse)
       setState('preview')
       // Direkt auf die Variante schalten: der Vergleich ist der Punkt, und die

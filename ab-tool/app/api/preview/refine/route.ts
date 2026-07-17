@@ -12,7 +12,14 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import { refinePreview, buildHighlightCss, type PreviewChange } from '@/lib/previewAnalyze'
 import { renderScreenshot, uploadShot } from '@/lib/screenshot'
 
-export const maxDuration = 60
+// Ein Render (bis 40s Timeout + Settle-Delay) + gpt-4o-mini.
+export const maxDuration = 90
+
+// Refine ist billiger als Preview (~$0.007: 1 Render + mini-Call), aber ebenso
+// unauthentifiziert — gleiche Deckel-Logik, großzügigere Werte.
+const DAILY_IP_LIMIT = Number(process.env.REFINE_DAILY_IP_LIMIT) || 30
+const DAILY_GLOBAL_LIMIT = Number(process.env.REFINE_DAILY_GLOBAL_LIMIT) || 600
+const DAY_MS = 86_400_000
 
 export async function OPTIONS() {
   return preflight('POST, OPTIONS')
@@ -31,6 +38,16 @@ export async function POST(req: Request) {
   const ip = getClientIp(req)
   if (!(await checkRateLimit(`preview-refine:${ip}`, 10, 60_000))) {
     return json({ error: 'too many requests', message: 'Give it a minute — 10 refinements per minute.' }, 429)
+  }
+  if (!(await checkRateLimit(`preview-refine:day:${ip}`, DAILY_IP_LIMIT, DAY_MS))) {
+    return json({
+      error: 'daily limit',
+      message: `That's ${DAILY_IP_LIMIT} refinements today — sign up to keep going.`,
+      signup_url: '/signup?source=demo-limit',
+    }, 429)
+  }
+  if (!(await checkRateLimit('preview-refine:day:global', DAILY_GLOBAL_LIMIT, DAY_MS))) {
+    return json({ error: 'too many requests', message: 'The demo is very busy right now. Try again later.' }, 429)
   }
 
   let body: { previewId?: string; testId?: string; feedback?: string; changeId?: string }
