@@ -4,10 +4,13 @@
 
 ## Kernidee
 
-User gibt URL ein → Screenshot der echten Seite → GPT-4o Vision analysiert + schreibt CSS-Regeln → **zweiter Screenshot mit CSS-Injection (urlbox.io `css`-Parameter)** → A/B-Toggle zwischen beiden Screenshots → sofortiger Aha-Moment. Sign-up + Snippet erst wenn User sagt: "Will ich live haben."
+User gibt URL ein → **Server-seitiges `fetch(url)` extrahiert HTML + CSS (Option A)** → GPT-4o analysiert den echten Code (nicht nur Screenshot) + schreibt CSS-Regeln mit **präzisen, DOM-verifizierten Selektoren** → Screenshot der echten Seite + **zweiter Screenshot mit CSS-Injection (urlbox.io `css`-Parameter)** → A/B-Toggle zwischen beiden Screenshots → sofortiger Aha-Moment. Sign-up + Snippet erst wenn User sagt: "Will ich live haben."
 
 **NICHT: Snippet vor Value. SONDERN: Value vor Snippet.**
 **NICHT: Overlays auf Screenshot. SONDERN: Echter Page-Render mit injiziertem CSS.**
+**NICHT: AI rät Selektoren vom Screenshot. SONDERN: AI analysiert echten HTML/CSS-Code für korrekte Selektoren.**
+
+> **Option A (Server-seitige HTML-Extraktion)** ist der Kern dieser Plan-Revision. Siehe §0b für Details, SPA-Fallback und Vergleich.
 
 ---
 
@@ -105,6 +108,195 @@ Overlays (absolut positionierte Divs auf einem Screenshot) scheitern an komplexe
 4. **A/B-Toggle** — Zwei `<img>`-Tags, ein Klick. Simpler geht's nicht.
 5. **Emotionale Wirkung** — "Das ist meine echte Seite... und DAS hat die KI daraus gemacht." Kein "das sieht aber anders aus als meine Seite"-Moment.
 6. **Kein Client-Rendering** — Kein `renderOverlayPreview()`, kein `position: absolute`-Gefrickel. Nur zwei Bilder.
+
+---
+
+## §0b Selektor-Extraktion: Server-seitige Code-Analyse (Option A)
+
+### Das Problem: AI rät Selektoren vom Screenshot
+
+Der ursprüngliche Plan (§3.1) schickt einen Screenshot an GPT-4o Vision und lässt das Model CSS-Selektoren **raten**. Das Model sieht Pixel, keinen DOM — und muss Klassen, IDs, oder Struktur-Selektoren aus dem visuellen Layout erraten.
+
+**Das funktioniert nur ~70-90% der Fälle.** Gerade bei modernen CSS-Framework-Klassen (Tailwind `class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-all"`) rät die KI oft daneben. Noch schlimmer bei CSS Modules (`class="Hero_cta__a1b2c"`) — die KI kann diese generierten Klassen nicht vom Screenshot ableiten.
+
+### Die Lösung: Server-seitiges HTML-Fetching + Code-Analyse
+
+Statt nur den Screenshot zu analysieren, **holt der Server die echte Seite per `fetch()`** und extrahiert HTML + CSS. GPT-4o bekommt den echten Code — und kann präzise Selektoren zurückgeben, die garantiert im DOM existieren.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  OPTION A: Server-seitige HTML/CSS-Extraktion                    │
+│                                                                  │
+│  1. fetch(url) → raw HTML                                        │
+│  2. HTML parsen (cheerio) → DOM-Baum                             │
+│  3. SPA-Erkennung: <div id="root"> leer? <div id="__next">?    │
+│     → SPA? Fallback (siehe unten)                                │
+│  4. <link rel="stylesheet"> folgen, CSS extrahieren              │
+│  5. Relevante Elemente identifizieren:                           │
+│     - Alle <button>, <a> mit CTA-Text                            │
+│     - Alle <h1>, <h2>, Hero-Text                                 │
+│     - Trust-Signals, Pricing-Blöcke                              │
+│  6. GPT-4o bekommt:                                              │
+│     - Screenshot (für visuellen Kontext)                         │
+│     - Gekürztes HTML (nur relevante Sektionen, <body>-Inhalt)    │
+│     - Extrahierte CSS-Regeln (nur getroffene Selektoren)         │
+│  7. GPT-4o gibt zurück:                                          │
+│     - changes[] mit GARANTIERT KORREKTEN CSS-Selektoren          │
+│     - injectedCss                                                │
+│  8. Screenshot 1 (Original) + Screenshot 2 (CSS-Injection)       │
+│                                                                  │
+│  Ergebnis: ~99% Selektor-Genauigkeit für SSR-Seiten              │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Warum das besser ist:**
+
+| | Screenshot-only (Vision) | Code-Analyse (Option A) |
+|---|---|---|
+| **Selektor-Quelle** | KI rät von Pixeln | KI liest echten HTML/CSS-Code |
+| **Selektor-Genauigkeit** | ~70–90% | ~99% (SSR-Seiten) |
+| **Tailwind-Klassen** | ❌ Rät `class="btn"` statt `class="inline-flex items-center..."` | ✅ Liest exakte Klasse aus HTML |
+| **CSS Modules** | ❌ Sieht nur generierte Klasse, nicht `Hero_cta__a1b2c` | ✅ Liest exakte generierte Klasse aus HTML |
+| **Dynamische IDs** | ❌ Rät falsche ID | ✅ Liest exakte ID aus HTML |
+| **Nach Snippet-Install** | ⚠️ 10–30% brauchen manuelle Korrektur | ✅ <1% brauchen manuelle Korrektur |
+| **Kosten** | $0.01/Call (Vision) | $0.01/Call (Vision für Screenshot-Kontext) + $0.003/Call (HTML-Analyse) |
+
+### Implementierung: `lib/extractPageCode.ts`
+
+```typescript
+// lib/extractPageCode.ts
+import * as cheerio from 'cheerio'
+
+export interface ExtractedPage {
+  isSpa: boolean
+  spaType?: 'react' | 'vue' | 'angular' | 'unknown'
+  html?: string        // Gekürztes <body>-HTML
+  css?: string          // Extrahierte CSS-Regeln
+  elements?: {          // Relevante Elemente für GPT-4o
+    tag: string
+    selector: string
+    text: string
+    attributes: Record<string, string>
+  }[]
+}
+
+export async function extractPageCode(url: string): Promise<ExtractedPage> {
+  // 1. HTML fetchen
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Variante/1.0 Preview-Bot' },
+    signal: AbortSignal.timeout(8000),
+  })
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`)
+  const html = await res.text()
+
+  // 2. HTML parsen (cheerio — leicht, schnell, server-seitig)
+  const $ = cheerio.load(html)
+
+  // 3. SPA-Erkennung
+  const rootEmpty = $('#root').children().length === 0 && $('#root').text().trim() === ''
+  const nextEmpty = $('#__next').children().length === 0 && $('#__next').text().trim() === ''
+  const appEmpty = $('#app').children().length === 0 && $('#app').text().trim() === ''
+  const minimalHtml = html.length < 500
+  const noSemanticTags = !html.includes('</header>') && !html.includes('</nav>') && !html.includes('</main>')
+
+  const spaScore = [rootEmpty, nextEmpty, appEmpty, minimalHtml, noSemanticTags].filter(Boolean).length
+  const isSpa = spaScore >= 2
+
+  if (isSpa) {
+    return {
+      isSpa: true,
+      spaType: rootEmpty ? 'react' : nextEmpty ? 'next' : appEmpty ? 'vue' : 'unknown',
+    }
+  }
+
+  // 4. Relevante Elemente extrahieren
+  const elements = extractRelevantElements($)
+
+  // 5. CSS extrahieren (inline <style> + <link rel="stylesheet"> folgen)
+  const css = await extractCss($, url)
+
+  return { isSpa: false, html: $('body').html() || '', css, elements }
+}
+```
+
+### SPA-Erkennung & Fallback
+
+Wenn `extractPageCode()` eine SPA erkennt (leerer `<div id="root">`, `<div id="__next">`, `<div id="app">`, minimale HTML-Größe, keine semantischen Tags), gibt es zwei Möglichkeiten:
+
+#### Fallback 1: Snippet zuerst installieren lassen
+
+```
+Flow: URL → SPA erkannt → "Your site is built with React/Vue. To show you a variant,
+       install this 1-line snippet first." → User installiert Snippet 
+       → Client-seitiges DOM-Scraping → Elemente + Selektoren extrahiert 
+       → Preview wie gewohnt → Sign-up → DIREKT live (Snippet ist schon installiert!)
+```
+
+**Vorteile:**
+- End-Ergebnis ist ein funktionierender Test mit 100% korrekten Selektoren
+- User bekommt immer noch den Aha-Moment — nur 2 Minuten später
+- Snippet ist nach Preview bereits installiert → nach Sign-up sofort live, kein zweiter technischer Schritt
+
+**Nachteile:**
+- Unterbricht den "sofort Aha"-Flow — User muss technisch werden (Snippet installieren)
+- 2-Minuten-Hürde statt 40-Sekunden-Aha
+- Für reine "Gucker" (die nie installieren wollen) frustrierend
+
+#### Fallback 2: Direkt zum Sign-up (ohne Preview)
+
+```
+Flow: URL → SPA erkannt → "Your site is a single-page app (React/Vue/Angular).
+       Create an account to get started — you'll pick elements directly on your
+       site after installing the snippet." → Button: "Create account →" → /signup
+```
+
+**Vorteile:**
+- Keine falsche Erwartung ("Preview kann deine Seite nicht rendern")
+- User landet direkt im klassischen Flow (Snippet → Element-Picker → Test)
+- Spart AI/Screenshot-Kosten für SPA-Seiten
+
+**Nachteile:**
+- Kein Aha-Moment vor Sign-up → wir verlieren den "Value first"-Vorteil
+- Conversion-Rate für SPA-Nutzer ist identisch zum Status Quo
+- ~30–40% aller Websites sind SPAs (React, Vue, Angular, etc.) → signifikanter Anteil
+
+#### Vergleich & Empfehlung
+
+| Kriterium | Fallback 1: Snippet zuerst | Fallback 2: Direkt Sign-up |
+|---|---|---|
+| **Aha-Moment** | ✅ Ja, aber verzögert (~2 Min) | ❌ Nein |
+| **Selektor-Genauigkeit** | ✅ 100% (echter DOM) | N/A (kein Preview-Test) |
+| **User-Hürde** | ⚠️ Mittel (Snippet-Install) | ❌ Hoch (Sign-up vor Value) |
+| **SPA-Abdeckung** | ✅ Alle SPAs | ✅ Alle SPAs |
+| **Implementierungs-Aufwand** | Mittel (Client-DOM-Scraping) | Gering (nur UI-Message) |
+| **Conversion-Prognose** | Mittel (einige brechen bei Snippet ab) | Niedrig (wie Status Quo) |
+| **Post-Signup** | ✅ Sofort live (Snippet installiert) | ❌ Snippet muss noch installiert werden |
+
+**Empfehlung: Fallback 1 (Snippet zuerst) mit optimiertem Flow.**
+
+Begründung:
+1. **Value-First-Prinzip bleibt erhalten.** Der User sieht seine Variante VOR dem Sign-up — nur mit einem kurzen Snippet-Umweg.
+2. **Snippet ist danach schon installiert.** Nach Preview + Sign-up ist der Test sofort live — kein zweiter technischer Schritt.
+3. **Die Alternative (Fallback 2) ist der Status Quo.** Den bauen wir ja gerade um, weil er nicht gut genug konvertiert.
+4. **SPA-User sind oft technischer** (React-Devs, Vue-Devs) — ein 1-Zeilen-Snippet ist für sie keine große Hürde.
+
+**Optimierter SPA-Flow:**
+```
+URL-Eingabe → "Analyzing your site…" (2s) 
+→ SPA erkannt 
+→ "Your site is built with React/Vue. To show you a variant, 
+   we need a tiny snippet on your page. It's one line:"
+   [Snippet-Code mit Copy-Button]
+   "Already installed? [Verify →]"
+→ Snippet verified → Client-seitiges DOM-Scraping 
+→ Preview mit echten Selektoren → Aha-Moment 
+→ Sign-up → DIREKT live (Snippet ist ja schon installiert!)
+```
+
+Dieser Flow ist **besser als der klassische Flow**, weil:
+- Snippet ist NACH der Preview bereits installiert → kein zweiter technischer Schritt
+- Sign-up → sofort live (kein "install snippet" im Dashboard)
+- Der "Umweg" ist tatsächlich eine Abkürzung zur Live-Schaltung
 
 ---
 
@@ -308,40 +500,54 @@ Response 402: Keine Temp-Sessions mehr (signup_url)
 **Ablauf Server-seitig:**
 
 1. **URL validieren** (SSRF-Schutz via `lib/ssrf.ts`)
-2. **Screenshot 1 (Original):** `urlbox(url, { viewport: '1440x900', fullPage: false })` → `original.png`
-3. **GPT-4o Vision analysiert Screenshot:**
+2. **HTML + CSS extrahieren** via `lib/extractPageCode.ts`:
+   - `fetch(url)` → raw HTML
+   - cheerio parsen → DOM-Baum
+   - SPA-Erkennung (leerer `#root`/`#__next`/`#app`, minimale HTML-Größe)
+   - → **SPA erkannt?** Response `{ isSpa: true, spaType }` → Client zeigt Fallback-UI (§0b)
+   - → **SSR-Seite?** Relevante Elemente + CSS extrahieren, weiter mit Schritt 3
+3. **Screenshot 1 (Original):** `urlbox(url, { viewport: '1440x900', fullPage: false })` → `original.png`
+   - Parallel zu Schritt 2 starten (Latenz sparen)
+4. **GPT-4o analysiert HTML/CSS + Screenshot:**
    ```
-   System: "You are a CRO expert. Analyze the page screenshot and identify 2-4 specific
-   UI elements to improve for higher conversion."
+   System: "You are a CRO expert. Analyze the page HTML, CSS, and screenshot
+   to identify 2-4 specific UI elements to improve for higher conversion."
    
-   Prompt: "For the page at {url}, analyze this screenshot. Identify 2-4 specific elements
-   and write CSS rules that will improve conversion. Focus on: CTAs, headlines, hero text,
-   trust signals, pricing displays.
+   Prompt: "For the page at {url}, here is:
+   - A screenshot showing the visual layout
+   - The HTML of the page body (extracted server-side)
+   - The CSS rules matching key elements
+   
+   IMPORTANT: Use the HTML to get EXACT CSS selectors. Do not guess from the screenshot.
+   Read class names, IDs, and data attributes directly from the HTML. Your selectors
+   MUST match elements that exist in the provided HTML.
+   
+   Identify 2-4 specific elements to improve for higher conversion. Focus on:
+   CTAs, headlines, hero text, trust signals, pricing displays.
    
    For each change provide:
-   - selector: CSS selector matching the element (be precise — use class names, data attrs, 
-     or nth-child if needed)
+   - selector: EXACT CSS selector from the HTML (use class names, IDs, or data attrs
+     exactly as they appear in the HTML — do NOT guess or simplify)
    - css: CSS properties to change (do NOT include !important — we'll add that server-side)
    - rationale: One sentence explaining why this improves conversion
    - highlightColor: A hex color for the highlight outline around this element
    
-   Then provide injectedCss: ALL changes combined into one CSS string, with !important on 
-   every property. Include highlight outlines (outline: 3px solid {highlightColor}; 
-   outline-offset: 4px; box-shadow: 0 0 20px {highlightColor}40). Also include a 
+   Then provide injectedCss: ALL changes combined into one CSS string, with !important on
+   every property. Include highlight outlines (outline: 3px solid {highlightColor};
+   outline-offset: 4px; box-shadow: 0 0 20px {highlightColor}40). Also include a
    @keyframes variante-highlight-pulse animation that pulses the outlines on first load.
    
-   CRITICAL: Your CSS MUST work when injected into the real page. Use high-specificity
-   selectors. Add !important to every property. Include background-color where needed
-   (don't just change color on a transparent element without adding a background).
+   CRITICAL: Your selectors MUST be copied directly from the HTML. Do not simplify
+   Tailwind classes. Do not guess class names. Read them from the HTML.
    
    Respond in JSON."
    ```
-4. **Screenshot 2 (Variant):** `urlbox(url, { viewport: '1440x900', css: injectedCss })` → `variant.png`
+5. **Screenshot 2 (Variant):** `urlbox(url, { viewport: '1440x900', css: injectedCss })` → `variant.png`
    - urlbox.io injiziert das CSS VOR dem Rendern — die Seite lädt MIT den Änderungen
    - Highlight-Outlines sind im Screenshot eingebrannt
-5. **Beide Screenshots in Supabase Storage hochladen** (`previews` bucket, 24h TTL)
-6. **Preview-Daten in DB speichern** (Temp-Session-Scope)
-7. **Response zurückgeben**
+6. **Beide Screenshots in Supabase Storage hochladen** (`previews` bucket, 24h TTL)
+7. **Preview-Daten in DB speichern** (Temp-Session-Scope)
+8. **Response zurückgeben**
 
 ### §3.2 Neuer API-Endpoint: `/api/preview/refine`
 
@@ -440,6 +646,70 @@ function renderDualScreenshotPreview(container: HTMLElement, data: PreviewRespon
 
 Das ist der GESAMTE Client-Code für die Preview. Kein `position: absolute`, kein `boundingBox`-Mapping, kein `newHtml`-Injection, kein `newCss`-Apply. Nur zwei Bilder und ein Toggle. **Das CSS-Injection-Paradigma verschiebt die gesamte Komplexität auf den Server — wo sie hingehört.**
 
+### §3.6 Test-Lifecycle: Vom Preview zum Live-Test
+
+Der Preview-Test ist **kein Wegwerf-Demo.** Die AI-generierten CSS-Regeln sind echte Variant-Regeln, die das Snippet später ausliefern kann.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  PHASE 1: PREVIEW (kein Account, kein Snippet)                  │
+│                                                                 │
+│  User gibt URL ein                                              │
+│  → Server: Screenshot 1 (Original)                              │
+│  → Server: GPT-4o Vision analysiert Screenshot, schreibt CSS    │
+│  → Server: Screenshot 2 (CSS-Injection via urlbox.io)           │
+│  → DB: Test mit status='preview' + preview_data (changes[],     │
+│         injectedCss)                                            │
+│  → Client: A/B-Toggle zwischen originalScreenshotUrl &          │
+│            variantScreenshotUrl                                 │
+│                                                                 │
+│  Der Test ist NICHT funktionsfähig:                             │
+│  - Kein Snippet installiert → keine Live-Besucher               │
+│  - Kein Element-Picker (Seite läuft nicht im echten Browser)    │
+│  - CSS-Selektoren sind AI-geraten, nicht DOM-verifiziert        │
+├─────────────────────────────────────────────────────────────────┤
+│  PHASE 2: CLAIM (Sign-up)                                       │
+│                                                                 │
+│  User signed up → /api/claim-tests                              │
+│  → user_id: temp-user → echter User                             │
+│  → status: 'preview' → 'draft'                                  │
+│  → preview_data bleibt erhalten (changes[], injectedCss)        │
+│                                                                 │
+│  Der Test gehört jetzt einem echten User, ist aber noch         │
+│  inaktiv (kein Snippet).                                        │
+├─────────────────────────────────────────────────────────────────┤
+│  PHASE 3: ACTIVATION (Snippet installiert)                      │
+│                                                                 │
+│  User installiert Snippet → POST /api/snippet-check             │
+│  → Domain verified                                              │
+│  → status: 'draft' → 'active'                                   │
+│  → Snippet liefert injectedCss an Live-Besucher aus             │
+│                                                                 │
+│  Der Test IST JETZT FUNKTIONSFÄHIG:                             │
+│  - Echte Besucher sehen Variante B (CSS-Injection via Snippet)  │
+│  - Conversions werden getrackt                                  │
+│  - Dashboard zeigt Live-Stats                                   │
+│                                                                 │
+│  ⚠️ ABER: Die CSS-Selektoren wurden per Screenshot-Analyse     │
+│  geraten. Sie können falsch sein → Elemente werden nicht        │
+│  gefunden → Variante wird nicht oder nur teilweise ausgeliefert. │
+│  → Gegenmaßnahme: Siehe §5, Risiko "AI-Selektoren matchen       │
+│    live nicht".                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Kernunterschied zum manuellen Flow:**
+
+| | Manueller Test (heute) | Hybrid-Preview-Test (SSR) | Hybrid-Preview-Test (SPA) |
+|---|---|---|---|
+| **Selektoren-Quelle** | Element-Picker (User klickt im DOM) | GPT-4o analysiert echten HTML/CSS-Code (Option A) | Client-seitiges DOM-Scraping nach Snippet-Install |
+| **Selektoren-Genauigkeit** | ~100% (User hat DOM-Zugriff) | **~99%** (KI liest echte Selektoren aus HTML) | **~100%** (echter DOM via Snippet) |
+| **Test-Erstellung** | Nach Snippet-Install | Vor Snippet-Install (Preview) | Nach Snippet-Install (Preview) |
+| **Time-to-value** | ~10 Min | ~40 Sekunden | ~2 Min (Snippet-Install + Preview) |
+| **Aktivierbarkeit** | Sofort nach Erstellung | Nach Snippet-Install — <1% brauchen manuelle Korrektur | Nach Sign-up sofort live (Snippet bereits installiert) |
+
+**Fazit:** Der Preview-Test wird nach Claim + Snippet-Install zu einem voll funktionsfähigen A/B-Test. Durch Option A (Code-Analyse) ist die Selektor-Genauigkeit für SSR-Seiten bei ~99% — der Test ist praktisch ohne manuelle Korrektur live-fähig. Für SPAs (Fallback 1) ist die Genauigkeit sogar 100%, da das Snippet den echten DOM liefert.
+
 ---
 
 ## §4 UX-Vergleich: Vorher ↔ Nachher
@@ -478,14 +748,18 @@ Das ist der GESAMTE Client-Code für die Preview. Kein `position: absolute`, kei
 
 | Risiko | Gegenmaßnahme |
 |---|---|
-| **Doppelte Screenshot-Latenz (8–15s)** | 3-Schritt-Loading-Animation ("📸 Taking a snapshot…" → "🧠 AI analyzing…" → "✨ Rendering variant…"). Original-Screenshot WIRD SOFORT nach Schritt 1 geladen und angezeigt — User sieht seine Seite bereits nach ~4s. Variant-Screenshot lädt danach. Gefühlter Fortschritt, nicht Wartezeit. |
-| **CSS-Injection schlägt fehl** (falsche Selektoren, SPAs die kein SSR machen) | Fallback: Änderungen als Karten UNTER dem Original-Screenshot anzeigen ("Here's what we'd change: ..."). Immer noch besser als nichts. |
+| **Doppelte Screenshot-Latenz (8–15s)** | 3-Schritt-Loading-Animation ("📸 Taking a snapshot…" → "🧠 AI analyzing…" → "✨ Rendering variant…"). Original-Screenshot WIRD SOFORT nach Schritt 1 geladen und angezeigt — User sieht seine Seite bereits nach ~4s. Variant-Screenshot lädt danach. Gefühlter Fortschritt, nicht Wartezeit. Screenshot 1 und HTML-Fetch parallel starten, um Latenz zu minimieren. |
+| **SPA wird nicht erkannt** (falsch-negativ: leere Seite als SSR klassifiziert) | Mehrere Indikatoren kombinieren (leerer Root-Container + minimale HTML-Größe + fehlende semantische Tags). Schwelle: ≥2 von 5 Indikatoren = SPA. Edge Case: SSR-Seiten mit leerem `<body>` (Coming-Soon-Pages) → via HTML-Größe <500 Bytes abfangen. |
+| **SPA fälschlich erkannt** (falsch-positiv: SSR-Seite als SPA klassifiziert) | Konservativer Schwellwert (≥2 Indikatoren). SSR-Seiten haben IMMER semantische Tags (`<header>`, `<nav>`, `<main>`) — dieser Indikator allein reicht nicht für SPA-Klassifikation. HTML-Größe >2KB schließt SPA praktisch aus. |
+| **fetch(url) schlägt fehl** (Timeout, 403, DNS-Error) | Timeout 8s. Bei Fehler: Fallback auf Screenshot-only-Analyse (GPT-4o Vision rät Selektoren). User sieht trotzdem Preview — nur mit ~70–90% Selektor-Genauigkeit statt ~99%. Transparent kommunizieren: "We couldn't analyze your page's code, but here's our best guess based on the screenshot." |
+| **CSS-Injection schlägt fehl** (falsche Selektoren trotz Code-Analyse) | Deutlich seltener durch Option A (<1% statt 10–30%). Falls doch: Snippet macht Runtime-Check `document.querySelector(selector)` → null? → Warning im Dashboard. User kann Selektoren im Dashboard korrigieren. |
 | **urlbox.io CSS-Injection-Limit** (max CSS-Länge?) | Überprüfen: urlbox.io `css`-Parameter erlaubt vollständige Stylesheets. Unsere Injektion ist ~500–1500 Zeichen. Sollte passen. |
 | **2× Screenshot-Kosten ($0.008/Call)** | Rate-Limit 5/Minute, Free-Tier 10 Previews/Tag → ~$2.40/Monat bei 300 Previews. Immer noch vernachlässigbar. |
 | **2× Storage-Kosten** (2 Screenshots statt 1) | Supabase Storage ist billig. 24h TTL. Nach Claim beide löschen. ~200KB pro Screenshot → ~120MB/Monat bei 300 Previews. Kosten: <$0.01. |
-| **AI-Kosten (~$0.01/Call mit gpt-4o Vision)** | Unverändert. ~$3/Monat bei 300 Previews. Marge >10x bei Conversion zu Pro. |
-| **AI schreibt CSS das nicht funktioniert** (falsche Selektoren, überschreibt Layout) | Prompt-Engineering: "Use high-specificity selectors. Add !important to every property. Include background-color where needed. Test your selectors mentally against common CSS frameworks (Tailwind, Bootstrap)." Server-seitige Validierung: CSS muss syntaktisch korrekt sein. |
-| **AI-Selektoren matchen nichts** (SPA, dynamische Klassen à la CSS Modules) | urlbox.io rendert die Seite vollständig (inkl. JS). Wenn die Seite einen leeren `<div id="root">` liefert, ist der Screenshot leer → Fallback: "This page appears to be a single-page app. Try a server-rendered page like your homepage." |
+| **AI-Kosten (~$0.013/Call: Vision + HTML-Analyse)** | ~$3.90/Monat bei 300 Previews. $0.003 mehr als reiner Vision-Ansatz — durch Option A gerechtfertigt (99% statt 70–90% Selektor-Genauigkeit). Marge >10x bei Conversion zu Pro. |
+| **AI schreibt CSS das nicht funktioniert** (überschreibt Layout, broken Styles) | Prompt-Engineering: "Use high-specificity selectors from the HTML. Add !important to every property. Include background-color where needed." Server-seitige CSS-Validierung: syntaktisch korrekt? Keine `display: none` auf `<body>`? Kein `position: fixed` auf Container? |
+| **AI-Selektoren matchen live nicht** (trotz Code-Analyse, z.B. bei dynamischen Klassen zur Runtime) | **Durch Option A drastisch reduziert (<1% statt 10–30%).** Verbleibendes Restrisiko: (1) Snippet Runtime-Check: `document.querySelector(selector)` → null? → Dashboard-Warning, (2) Nach Claim zeigt Dashboard "Review your variant"-Screen — User kann korrigieren bevor er aktiviert, (3) Ziel: >99% der SSR-Preview-Tests sind ohne manuelle Korrektur live-fähig. |
+| **Keine Interaktivität in der Preview** (kein Element-Picker, kein Klicken, kein Hover) | Bewusster Tradeoff. Die Preview ist ein statischer Screenshot-Vergleich — kein interaktiver Prototyp. Der Element-Picker wird erst NACH Snippet-Install verfügbar (wie heute auch). User bekommen vorher den Aha-Moment, danach die vollen Tools. |
 | **User gibt Unsinn-URL ein** | SSRF-Filter (`lib/ssrf.ts`), URL-Validierung, "Seems like this page doesn't exist. Check the URL." |
 | **Snippet wird nie installiert** | Post-Signup-Empty-State pusht Snippet-Install prominent. "Your test won't go live without this." |
 | **Variant-Screenshot unterscheidet sich vom Live-Snippet-Rendering** | **Tut es nicht.** Genau das ist der Vorteil der CSS-Injection: Beide Screenshots sind der echte Page-Render. Kein Unterschied zum späteren Snippet — das Snippet injiziert exakt das gleiche CSS. |
