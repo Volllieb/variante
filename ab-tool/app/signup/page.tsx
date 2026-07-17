@@ -22,15 +22,20 @@ function classify(error: any): ErrKind {
   return 'generic'
 }
 
-function signupParams(): { source: string; plan: string } {
-  if (typeof window === 'undefined') return { source: '', plan: '' }
+function signupParams(): { source: string; plan: string; tempToken: string; testId: string } {
+  if (typeof window === 'undefined') return { source: '', plan: '', tempToken: '', testId: '' }
   const p = new URLSearchParams(window.location.search)
-  return { source: p.get('source') || '', plan: p.get('plan') || '' }
+  return {
+    source: p.get('source') || '',
+    plan: p.get('plan') || '',
+    tempToken: p.get('temp_token') || '',
+    testId: p.get('test_id') || '',
+  }
 }
 
 export default function SignupPage() {
   const router = useRouter()
-  const { source, plan: signupPlan } = signupParams()
+  const { source, plan: signupPlan, tempToken, testId } = signupParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -42,6 +47,28 @@ export default function SignupPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
+
+  // Helper: baut die Query-Parameter für den Redirect
+  function onboardingQS(): string {
+    const parts: string[] = []
+    if (source) parts.push(`source=${encodeURIComponent(source)}`)
+    if (signupPlan) parts.push(`plan=${encodeURIComponent(signupPlan)}`)
+    if (tempToken) parts.push(`temp_token=${encodeURIComponent(tempToken)}`)
+    if (testId) parts.push(`test_id=${encodeURIComponent(testId)}`)
+    return parts.length > 0 ? '?' + parts.join('&') : ''
+  }
+
+  // Helper: claimt Temp-Tests nach erfolgreichem Signup
+  async function claimTempTests() {
+    if (!tempToken) return
+    try {
+      await fetch('/api/claim-tests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_token: tempToken }),
+      })
+    } catch { /* best-effort */ }
+  }
 
   // UX: Bereits eingeloggt → direkt zum Dashboard
   useEffect(() => {
@@ -67,11 +94,12 @@ export default function SignupPage() {
       const supabase = getBrowserSupabase()
       const nextPath = '/dashboard'
       const normalEmail = norm(email)
+      const qs = onboardingQS()
       const { data, error } = await supabase.auth.signUp({
         email: normalEmail,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath + qs)}`,
         },
       })
       setLoading(false)
@@ -107,6 +135,7 @@ export default function SignupPage() {
         return
       }
       if (data.session) {
+        await claimTempTests()
         router.push('/dashboard')
         router.refresh()
       } else {
@@ -125,15 +154,12 @@ export default function SignupPage() {
     setLoading(true)
     try {
       const supabase = getBrowserSupabase()
-      const qsPartsR: string[] = []
-      if (source) qsPartsR.push(`source=${encodeURIComponent(source)}`)
-      if (signupPlan) qsPartsR.push(`plan=${encodeURIComponent(signupPlan)}`)
-      const qsR = qsPartsR.length > 0 ? '?' + qsPartsR.join('&') : ''
+      const qs = onboardingQS()
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: norm(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qsR)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qs)}`,
         },
       })
       if (error) { setErr(error.message); setLoading(false); return }
@@ -151,14 +177,11 @@ export default function SignupPage() {
     setGoogleLoading(true)
     try {
       const supabase = getBrowserSupabase()
-      const qsPartsG: string[] = []
-      if (source) qsPartsG.push(`source=${encodeURIComponent(source)}`)
-      if (signupPlan) qsPartsG.push(`plan=${encodeURIComponent(signupPlan)}`)
-      const qsG = qsPartsG.length > 0 ? '?' + qsPartsG.join('&') : ''
+      const qs = onboardingQS()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qsG)}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qs)}`,
         },
       })
       if (error) {

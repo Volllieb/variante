@@ -41,6 +41,7 @@
       return {
         testId: tid,
         token: p.get('ab_token') || '',
+        tempToken: p.get('ab_temp_token') || '',
         apiBase: (p.get('ab_api') || origin || 'https://www.getvariante.com').replace(/\/+$/, ''),
         mode: p.get('ab_goal') ? 'goal' : (p.get('ab_reorder') === '1' ? 'reorder' : 'element'),
       }
@@ -246,6 +247,7 @@
         function doCaptureRequest(el, sel, extraBody) {
           var headers = { 'Content-Type': 'application/json' }
           if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
+          else if (cfg.tempToken) headers['X-Temp-Token'] = cfg.tempToken
 
           if (cfg.mode === 'goal') {
             var goalBody = JSON.stringify({ goal: sel })
@@ -299,6 +301,7 @@
 
             var headers = { 'Content-Type': 'application/json' }
             if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
+            else if (cfg.tempToken) headers['X-Temp-Token'] = cfg.tempToken
             var body = JSON.stringify({
               testId: cfg.testId,
               selector: s1,

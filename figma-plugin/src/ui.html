@@ -1549,7 +1549,6 @@ async function restoreDraft(draft) {
     showDashboard()
   }
 }
-function goToTokenMode() { go('connect'); populateDatalist('dl-token', 'token'); if (API_TOKEN) $('connect-token').value = API_TOKEN }
 async function saveToken() {
   const v = ($('connect-token').value || '').trim()
   if (!v) { err('connect', 'Please paste your token.'); return }
