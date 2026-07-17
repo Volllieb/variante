@@ -12,16 +12,11 @@ Das Dashboard soll nicht mehr „funktionaler MVP" sein, sondern **Lauch-ready**
 
 ## 🔴 Critical (vor Launch zwingend)
 
-### C1 — PandaLogo: voll rund, kein weißer Hintergrund
+### C1 — PandaLogo: voll rund, kein weißer Hintergrund ✅
 
-**Problem:** `PandaLogo` wird an 9 Stellen mit 5 verschiedenen Border-Radius-Werten verwendet (`rounded-[5px]`, `rounded-lg`, `rounded-md`, `rounded-full`). Dazu hardcoded `bg-white` → weißes Quadrat auf dunklem Hintergrund.
+**Status:** ✅ Done (18.07.2026). `PandaLogo.tsx`: size-prop (`'sm' | 'md' | 'lg'`), className optional. SVG: weiße Pfade auf transparentem Hintergrund. Alle 9 Call-Sites vereinheitlicht. `icon.svg` synchron. `rounded-full` entfernt (Panda-Kopf ist von Natur aus rund).
 
-**Fix:**
-1. `PandaLogo.tsx`: `bg-white` entfernen → `bg-transparent` (oder via Prop steuerbar). `rounded-full` direkt im Component setzen.
-2. Alle 9 Aufrufstellen: individuelle `rounded-*`-Klassen entfernen. Nur noch Größe und ggf. Padding übergeben.
-3. `icon.svg` prüfen: muss das Icon selbst rund sein oder reicht ein runder Container mit Background? → **Ziel: Icon ist ein runder Panda-Kopf, kein Quadrat.**
-
-**Aufwand:** Klein | **Dateien:** `PandaLogo.tsx` + 9 Call-Sites
+**Aufwand:** Klein | **Dateien:** `PandaLogo.tsx` + 9 Call-Sites + `icon.svg`
 
 ---
 
@@ -39,16 +34,11 @@ Das Dashboard soll nicht mehr „funktionaler MVP" sein, sondern **Lauch-ready**
 
 ---
 
-### C3 — Theme-Toggle wieder einbauen
+### C3 — Theme-Toggle wieder einbauen ❌ (Won't Fix)
 
-**Problem:** `DashboardShell.tsx` (dead code) hatte `ThemeToggle`, `Sidebar.tsx` nicht. Light-Mode ist unerreichbar. Nach C2 müssen wir ihn auch testen können.
+**Status:** ❌ Won't Fix (18.07.2026). Design-Entscheidung: Dark-only. `ThemeToggle.tsx` + `DashboardShell.tsx` gelöscht. Kein Light-Mode-Support geplant.
 
-**Fix:**
-1. `ThemeToggle` aus `DashboardShell.tsx` extrahieren oder direkt in `Sidebar.tsx` einbauen (z. B. als kleiner Button in der Sidebar-Footer-Zeile neben dem Avatar)
-2. `DashboardShell.tsx` + alle Imports die nur von ihm genutzt werden, löschen
-3. `ThemeToggle.tsx`-Component prüfen: falls er nur von DashboardShell importiert wurde, Pfad prüfen (liegt in `app/components/`)
-
-**Aufwand:** Klein | **Dateien:** `Sidebar.tsx`, `ThemeToggle.tsx`, `DashboardShell.tsx` (löschen)
+**Begründung:** Das Produkt ist ein Entwickler/Designer-Tool, keine Consumer-App. Dark-only unterstreicht die technische Positionierung und reduziert Maintenance. Alle Design-Tokens (`bg-0`, `bg-1`, `text`, etc.) sind auf Dark ausgelegt.
 
 ---
 
@@ -229,12 +219,16 @@ Das Dashboard soll nicht mehr „funktionaler MVP" sein, sondern **Lauch-ready**
 
 ---
 
-## ❌ Dead Code (aufräumen)
+## ❌ Dead Code (aufgeräumt)
 
 | Datei | Status | Aktion |
 |---|---|---|
-| `DashboardShell.tsx` | Alte Shell, nicht mehr importiert | **Löschen** (nach C3: ThemeToggle extrahiert) |
-| `ab-tool/app/components/ThemeToggle.tsx` | Nur von DashboardShell genutzt | In `app/dashboard/` verschieben oder in Sidebar integrieren |
+| `DashboardShell.tsx` | Gelöscht (17.07.) | ✅ |
+| `ThemeToggle.tsx` | Gelöscht (18.07.) | ✅ Dark-only |
+| `LangToggle.tsx` | Gelöscht (18.07.) | ✅ Sprache automatisch via detectLang |
+| `HeroAnimation.tsx` + `.module.css` | Gelöscht (18.07.) | ✅ Landingpage nutzt iframe, kein TSX-Import |
+| `AIWorkflowAnimation.tsx` + `.module.css` | Gelöscht (18.07.) | ✅ Gleicher Grund |
+| `NewTestFlow.tsx` | Gelöscht (18.07.) | ✅ Ersetzt durch TestCreationPanel (FigmaHelper + SnippetHelper) |
 | `ab-tool/app/dashboard/DashboardClient.tsx` — `billing()` Funktion | Definiert, aber nie aufgerufen | **Löschen** |
 | `ab-tool/app/dashboard/DashboardClient.tsx` — `userId` Prop | Akzeptiert, aber ungenutzt | Entweder nutzen oder aus Props entfernen |
 

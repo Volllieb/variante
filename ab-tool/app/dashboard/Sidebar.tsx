@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PandaLogo } from '@/components/PandaLogo'
+import { NotificationCenter } from '@/app/components/NotificationCenter'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
@@ -73,7 +74,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         href="/dashboard"
         className="flex items-center gap-2.5 px-3 py-4"
       >
-        <PandaLogo className="h-5 w-5 shrink-0" />
+        <PandaLogo size="sm" />
         <span className="text-[14px] font-semibold text-text">variante</span>
       </Link>
 
@@ -116,8 +117,11 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
       {/* Spacer pushes avatar to bottom */}
       <div className="flex-1" />
 
-      {/* Avatar at bottom */}
+      {/* Bottom bar: notifications + avatar */}
       <div className="relative border-t border-border p-3" ref={popoverRef}>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <NotificationCenter />
+        </div>
         <button
           onClick={() => setPopoverOpen((v) => !v)}
           className="flex w-full items-center gap-2.5 rounded-[6px] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer"

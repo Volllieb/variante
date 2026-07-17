@@ -1,19 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { headers } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Rocket, Zap, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
 import { HybridDemo } from '@/app/components/HybridDemo'
-import { getLang, getCopy, PLANS } from '@/lib/landingCopy'
+import { detectLang } from '@/lib/detectLang'
+import { getCopy, PLANS } from '@/lib/landingCopy'
 import type { Lang, PlanId } from '@/lib/landingCopy'
-
-/* ── Language detection (browser Accept-Language only) ── */
-
-async function detectLang(): Promise<Lang> {
-  const headersList = await headers()
-  return getLang(headersList.get('accept-language'), null)
-}
 
 /* ── Metadata (dynamic by language) ── */
 
@@ -65,7 +58,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
-            <PandaLogo className="h-7 w-7 p-1.5" />
+            <PandaLogo size="md" />
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">

@@ -25,7 +25,7 @@ export default function ImprintPage() {
               href="/"
               className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-text-2 transition-colors duration-200 hover:text-text"
             >
-              <PandaLogo className="h-5 w-5 p-0.5" />
+              <PandaLogo size="sm" />
               variante
             </Link>
           </div>

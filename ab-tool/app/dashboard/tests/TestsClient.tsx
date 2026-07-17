@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTestList } from '@/lib/useTestList'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
-import { NewTestFlow } from '../NewTestFlow'
+import { TestCreationPanel } from '../TestCreationPanel'
 import { TestCard, type TestRow } from '../components/TestCard'
 import {
   FilterDropdown,
@@ -92,10 +92,8 @@ export function TestsClient({
 
       {/* New test flow overlay */}
       {newTestOpen && (
-        <NewTestFlow
+        <TestCreationPanel
           apiToken={apiToken}
-          hasFigmaPlugin={hasFigmaPlugin}
-          isAtFreeLimit={isAtFreeLimit}
           onClose={() => setNewTestOpen(false)}
         />
       )}

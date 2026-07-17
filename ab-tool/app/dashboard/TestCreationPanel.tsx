@@ -12,15 +12,18 @@
  * Zustand lebt im useState — kein Form-Library-Overkill für 4 Steps.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   FlaskConical, Loader2, Check, X, Globe, Search, Wand2,
   Target, ArrowRight, ArrowLeft, Sparkles, Image, Eye,
   MousePointerClick, FileText, ShoppingCart, Gauge, PlusCircle,
-  ExternalLink, RefreshCw, AlertTriangle,
+  ExternalLink, RefreshCw, AlertTriangle, Puzzle, Code, Palette,
+  Copy,
 } from 'lucide-react'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
+import { useTestsInsert } from '@/lib/useRealtime'
+import { SNIPPET_CODE } from '@/lib/snippetCode'
 
 // ─── Token-Palette (bestehendes Dashboard-Design) ───
 
@@ -77,6 +80,46 @@ export function TestCreationPanel({ apiToken, onClose }: TestCreationPanelProps)
   const [suggestions, setSuggestions] = useState<CROSuggestion[]>([])
   const [scanError, setScanError] = useState('')
   const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState<number | null>(null)
+
+  // Figma helper state
+  const [figmaListening, setFigmaListening] = useState(false)
+  const [figmaElapsed, setFigmaElapsed] = useState(0)
+  const [figmaTestName, setFigmaTestName] = useState('')
+  const [figmaReceived, setFigmaReceived] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  useEffect(() => {
+    getBrowserSupabase().auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id)
+    })
+  }, [])
+
+  // Figma realtime: neuer Test via Plugin → sofort reagieren
+  useTestsInsert(userId, (name) => {
+    if (!mountedRef.current) return
+    if (figmaListening) {
+      setFigmaReceived(true)
+      setFigmaTestName(name)
+      setFigmaListening(false)
+    }
+  })
+
+  // Figma timer
+  useEffect(() => {
+    if (!figmaListening) return
+    const t = setInterval(() => setFigmaElapsed((e) => e + 1), 1000)
+    return () => clearInterval(t)
+  }, [figmaListening])
+
+  // Snippet copy state
+  const [snippetCopied, setSnippetCopied] = useState(false)
+  const [aiPromptCopied, setAiPromptCopied] = useState(false)
 
   // Step 2: Variant
   const [variantDescription, setVariantDescription] = useState('')
@@ -309,6 +352,16 @@ export function TestCreationPanel({ apiToken, onClose }: TestCreationPanelProps)
             scanning={scanning} onScan={handleScan}
             suggestions={suggestions} scanError={scanError}
             selectedIdx={selectedSuggestionIdx} onSelect={setSelectedSuggestionIdx}
+            apiToken={apiToken}
+            figmaListening={figmaListening}
+            setFigmaListening={setFigmaListening}
+            figmaElapsed={figmaElapsed}
+            figmaReceived={figmaReceived}
+            figmaTestName={figmaTestName}
+            snippetCopied={snippetCopied}
+            setSnippetCopied={setSnippetCopied}
+            aiPromptCopied={aiPromptCopied}
+            setAiPromptCopied={setAiPromptCopied}
           />
         )}
 
@@ -392,11 +445,21 @@ export function TestCreationPanel({ apiToken, onClose }: TestCreationPanelProps)
 function Step1({
   url, setUrl, scanning, onScan,
   suggestions, scanError, selectedIdx, onSelect,
+  apiToken,
+  figmaListening, setFigmaListening,
+  figmaElapsed, figmaReceived, figmaTestName,
+  snippetCopied, setSnippetCopied,
+  aiPromptCopied, setAiPromptCopied,
 }: {
   url: string; setUrl: (v: string) => void
   scanning: boolean; onScan: () => void
   suggestions: CROSuggestion[]; scanError: string
   selectedIdx: number | null; onSelect: (i: number | null) => void
+  apiToken: string
+  figmaListening: boolean; setFigmaListening: (v: boolean) => void
+  figmaElapsed: number; figmaReceived: boolean; figmaTestName: string
+  snippetCopied: boolean; setSnippetCopied: (v: boolean) => void
+  aiPromptCopied: boolean; setAiPromptCopied: (v: boolean) => void
 }) {
   return (
     <div className="space-y-3">
@@ -468,13 +531,165 @@ function Step1({
           ))}
         </div>
       )}
+
+      {/* ── Helpers: Alternative element sources ── */}
+      <div className="mt-4 border-t border-white/[0.05] pt-3">
+        <p className="text-[10px] text-[#ededed]/20 uppercase tracking-wider mb-2">Or pick an element from</p>
+        <div className="grid grid-cols-2 gap-2">
+          {/* Figma Helper */}
+          <FigmaHelper
+            apiToken={apiToken}
+            listening={figmaListening}
+            setListening={setFigmaListening}
+            elapsed={figmaElapsed}
+            received={figmaReceived}
+            testName={figmaTestName}
+          />
+          {/* Snippet Helper */}
+          <SnippetHelper
+            snippetCopied={snippetCopied}
+            setSnippetCopied={setSnippetCopied}
+            aiPromptCopied={aiPromptCopied}
+            setAiPromptCopied={setAiPromptCopied}
+          />
+        </div>
+      </div>
     </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════════
-// Step 2: Create Variant
-// ═══════════════════════════════════════════════════════════════
+/* ── Figma Helper (Step 1) ── */
+
+function FigmaHelper({
+  apiToken, listening, setListening, elapsed, received, testName,
+}: {
+  apiToken: string
+  listening: boolean; setListening: (v: boolean) => void
+  elapsed: number; received: boolean; testName: string
+}) {
+  const [copied, setCopied] = useState(false)
+  const minutes = Math.floor(elapsed / 60)
+  const seconds = elapsed % 60
+  const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
+  function copyToken() {
+    navigator.clipboard.writeText(apiToken).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="rounded-[7px] border border-white/[0.06] bg-[#111111] px-3 py-2.5">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#a78bfa]/15">
+          <Palette className="h-3 w-3 text-[#a78bfa]" />
+        </div>
+        <span className="text-[11px] font-medium text-[#ededed]">Figma Plugin</span>
+      </div>
+
+      {received ? (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[#2fd76c]">
+            <Check className="h-3.5 w-3.5" />
+            <span className="text-[11px] font-medium">Test received!</span>
+          </div>
+          <p className="text-[11px] text-[#ededed]/50 truncate">{testName}</p>
+        </div>
+      ) : listening ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#a78bfa]" />
+            <span className="text-[11px] text-[#a78bfa]">Listening for Figma…</span>
+            <span className="text-[10px] text-[#ededed]/25">{timeStr}</span>
+          </div>
+          <button
+            onClick={() => setListening(false)}
+            className="text-[10px] text-[#ededed]/30 hover:text-[#ededed]/50 cursor-pointer"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-[10px] leading-relaxed text-[#ededed]/35">
+            Select an element in Figma and push it here. Appears automatically via realtime.
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setListening(true)}
+              className="flex items-center gap-1 rounded-[5px] bg-[#a78bfa]/15 px-2.5 py-1 text-[10px] font-medium text-[#a78bfa] hover:bg-[#a78bfa]/25 transition-colors cursor-pointer"
+            >
+              <Puzzle className="h-3 w-3" />
+              Start listening
+            </button>
+            <button
+              onClick={copyToken}
+              className="flex items-center gap-1 rounded-[5px] border border-white/[0.06] px-2 py-1 text-[10px] text-[#ededed]/30 hover:text-[#ededed]/50 transition-colors cursor-pointer"
+            >
+              {copied ? <Check className="h-3 w-3 text-[#2fd76c]" /> : <Copy className="h-3 w-3" />}
+              {copied ? 'Copied' : 'Token'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Snippet Helper (Step 1) ── */
+
+function SnippetHelper({
+  snippetCopied, setSnippetCopied, aiPromptCopied, setAiPromptCopied,
+}: {
+  snippetCopied: boolean; setSnippetCopied: (v: boolean) => void
+  aiPromptCopied: boolean; setAiPromptCopied: (v: boolean) => void
+}) {
+  function copySnippet() {
+    navigator.clipboard.writeText(SNIPPET_CODE).then(() => {
+      setSnippetCopied(true)
+      setTimeout(() => setSnippetCopied(false), 2000)
+    })
+  }
+
+  function copyAiPrompt() {
+    const prompt = `Add this A/B testing snippet to the <head> of my site:\n\n\`\`\`html\n${SNIPPET_CODE}\n\`\`\`\n\nInstructions: Place this in the <head> of every page. Keep the async attribute. Do not modify the script src or the anti-flicker style block.`
+    navigator.clipboard.writeText(prompt).then(() => {
+      setAiPromptCopied(true)
+      setTimeout(() => setAiPromptCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="rounded-[7px] border border-white/[0.06] bg-[#111111] px-3 py-2.5">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#2fd76c]/10">
+          <Code className="h-3 w-3 text-[#2fd76c]" />
+        </div>
+        <span className="text-[11px] font-medium text-[#ededed]">ab.js Picker</span>
+      </div>
+      <p className="text-[10px] leading-relaxed text-[#ededed]/35 mb-2">
+        Use the built-in element picker on your site. Install the snippet once, then pick elements visually.
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={copySnippet}
+          className="flex items-center gap-1 rounded-[5px] border border-white/[0.06] px-2.5 py-1 text-[10px] text-[#ededed]/30 hover:text-[#ededed]/50 transition-colors cursor-pointer"
+        >
+          {snippetCopied ? <Check className="h-3 w-3 text-[#2fd76c]" /> : <Copy className="h-3 w-3" />}
+          {snippetCopied ? 'Copied' : 'Snippet'}
+        </button>
+        <button
+          onClick={copyAiPrompt}
+          className="flex items-center gap-1 rounded-[5px] border border-white/[0.06] px-2.5 py-1 text-[10px] text-[#ededed]/30 hover:text-[#ededed]/50 transition-colors cursor-pointer"
+        >
+          {aiPromptCopied ? <Check className="h-3 w-3 text-[#a78bfa]" /> : <Sparkles className="h-3 w-3" />}
+          {aiPromptCopied ? 'Copied' : 'AI prompt'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function Step2({
   suggestion, variantDescription, setVariantDescription,

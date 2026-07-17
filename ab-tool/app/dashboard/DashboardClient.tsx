@@ -10,6 +10,7 @@ import { EmptyState } from '@/app/components/EmptyState'
 import { TestCreationPanel } from './TestCreationPanel'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { WhatToTestNext } from './components/WhatToTestNext'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
@@ -290,6 +291,18 @@ export function DashboardClient({
           )}
         </div>
       </div>
+
+      {/* What to test next — AI suggestions for Pro users */}
+      {testList.length > 0 && (
+        <div className="mt-6">
+          <WhatToTestNext
+            siteUrl={primaryDomain ? `https://${primaryDomain}` : null}
+            plan={plan}
+            setupComplete={hasVerifiedDomain}
+            domain={primaryDomain}
+          />
+        </div>
+      )}
     </div>
   )
 }
