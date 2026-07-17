@@ -137,7 +137,7 @@ export async function DELETE(req: Request) {
   }
 
   revalidatePath('/dashboard')
-  revalidatePath('/dashboard/setup')
+  revalidatePath('/dashboard/health')
   revalidatePath('/dashboard/account')
   return Response.json({ ok: true }, { headers: corsHeaders('DELETE, OPTIONS') })
 }

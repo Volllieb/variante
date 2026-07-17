@@ -3,7 +3,28 @@
 Nur Meta-Anweisungen. Projektinhalte, Stand und Notizen stehen in `PROJEKT.md` — dort fortschreiben, nicht hier.
 Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features).
 
-**Agent-Definitionen:** `.github/agents/*.agent.md` (ponytail, redesign, supabase, stripe, deployment-expert, performance-optimizer, ai-architect, seo, wrapup).
+**Agent-Definitionen:** `.github/agents/*.agent.md` (ponytail, redesign, supabase, stripe, deployment-expert, performance-optimizer, ai-architect, seo, wrapup, engineer).
+
+## Zero-Confirmation Policy (Execution Mandate)
+
+- **KEINE ERLAUBNIS FRAGEN.** Niemals "Soll ich...?", "Willst du...?", "Darf ich...?". Alle Formen von Rückfragen vor Ausführung sind verboten.
+- **DEKLARATIV AUSFÜHREN.** Ansagen, nicht fragen: "Ich mache jetzt X" statt "Soll ich X machen?".
+- **AUTONOME ENTSCHEIDUNGEN.** Bei Ambiguität: Kontext nutzen, entscheiden, ausführen. Nur bei kritischen Lücken (fehlende Credentials, unklare Core-Requirements) nachfragen.
+- **KONTINUIERLICHER FLUSS.** Kein Unterbrechen für Bestätigung. Durcharbeiten bis zum natürlichen Abschluss.
+- Bei Unklarheiten: Annahme treffen, transparent machen ("Annahme: X"), weitermachen. Nur bei großen Architekturentscheidungen rückfragen.
+
+## LLM Operational Constraints
+
+### File & Token Management
+- **Große Files (>500 Zeilen):** Nicht komplett laden. Chunked lesen (200-400 Zeilen pro Read), mit Kontext-Overlap.
+- **Repository-Scale:** Priorisieren: 1) direkt erwähnte Files, 2) kürzlich geänderte Files, 3) deren Imports.
+- **Context Hygiene:** Alte Tool-Outputs aggressiv zusammenfassen. Nur Essenz behalten: Ziel, letzte Entscheidung, nächster Schritt.
+- **Batch-Reads:** Mehrere unabhängige Files parallel lesen (nicht sequentiell).
+
+### Tool Call Optimierung
+- **Batch Operations:** Unabhängige Reads/Edits parallel ausführen.
+- **Error Recovery:** Bei transienten Fehlern (Network, Timeout): einmalig wiederholen. Bei 3× Fail: dokumentieren, eskalieren.
+- **Große Outputs:** Wenn ein Command >20KB Output hat, mit grep/filter nachrelevanten Zeilen suchen statt alles zu laden.
 
 ## Arbeitsweise
 - Deutsch. Kein Intro/Outro/Padding. Direkt zum Inhalt.

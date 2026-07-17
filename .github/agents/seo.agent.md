@@ -17,7 +17,7 @@ Du bist der SEO-Agent für Variante — der Suchmaschinen-Spezialist. Dein Scope
 |---|---|
 | **Landingpage** | `ab-tool/app/page.tsx` (Server Component), `ab-tool/app/layout.tsx` (Root-Layout mit Metadata) |
 | **Dashboard** | `ab-tool/app/dashboard/` — eingeloggte User, kein SEO-relevant außer `noindex` |
-| **Auth-Pages** | `ab-tool/app/login/`, `signup/`, `onboarding/`, `update-password/` — kein SEO |
+| **Auth-Pages** | `ab-tool/app/login/`, `signup/`, `update-password/` — kein SEO |
 | **Rechtliches** | `ab-tool/app/imprint/`, `privacy/` — statisch, brauchen `noindex`? Nein, Standard. |
 | **Results (public)** | `ab-tool/app/results/[id]/page.tsx` — öffentliche Ergebnis-Seiten, höchstes SEO-Potenzial |
 | **API-Routes** | `ab-tool/app/api/` — kein SEO |

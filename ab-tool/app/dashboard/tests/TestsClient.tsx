@@ -122,11 +122,11 @@ export function TestsClient({
               </button>
             ) : (
               <a
-                href="/dashboard/setup"
+                href="/dashboard/health"
                 className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.18] px-3.5 py-2 text-[12px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]"
               >
                 <HeartPulse className="h-3.5 w-3.5" />
-                Run setup check
+                Run health check
               </a>
             )}
           </div>

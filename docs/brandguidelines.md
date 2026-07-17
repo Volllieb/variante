@@ -331,7 +331,7 @@ sind temporäre UI-Zustände derselben Komponente und folgen denselben Token-Reg
 - Zentrierte Card (`--bg-1`, `--r-card`, Hairline-Border) innerhalb des Content-Bereichs
 - Icon (🎨) + Headline (`font-weight: 500`) + nummerierte Schrittliste in `--text-2`
 - Ein invertierter Primär-Button („Open Figma Plugin") + sekundärer Cancel-Link in `--text-3`
-- Setup-Guide-Link in `--text-3` unterhalb der Buttons
+- Health-Check-Link in `--text-3` unterhalb der Buttons
 
 **Regel:** Der Prompt nutzt exakt dieselben Card-, Button- und Typografie-Tokens wie der Rest
 des Dashboards — keine Sonderbehandlung, kein separates „Onboarding-Theme".

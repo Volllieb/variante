@@ -17,6 +17,7 @@
 | `@ai-architect` | architektur, AI-SDK, Vercel AI, "wie baue ich X mit AI" | AI-Architektur, Vercel AI SDK, Agent-Design |
 | `@seo` | SEO, Meta-Tags, Structured Data, Sitemap, robots.txt, Core Web Vitals, SERP, JSON-LD | Ganzheitliche Suchmaschinenoptimierung |
 | `@wrapup` | wrapup, aufräumen, session beenden, cleanup, fertig für heute | Session-Abschluss: tote Files, Ponytail-Review, Git-Hygiene, Doku-Update |
+| `@engineer` | **Default-Implementierungsagent.** Alle Tasks, die kein Spezialist braucht — "implementiere X", "fix den Bug", "bau Feature Y" | Implementation, Bugfixes, Refactoring, Feature-Arbeit |
 | `Explore` | codebase search, "wo ist X?", "wie hängt Y zusammen?" | Read-only Code-Exploration |
 
 ## Skills
