@@ -9,7 +9,6 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import {
   LayoutGrid,
   CreditCard,
-  Settings,
   FlaskConical,
   HeartPulse,
   ChevronDown,
@@ -49,9 +48,6 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
     }
   }, [avatarUrl])
 
-  const [settingsOpen, setSettingsOpen] = useState(
-    pathname.startsWith('/dashboard/billing') || pathname.startsWith('/dashboard/account')
-  )
   const [popoverOpen, setPopoverOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
 
@@ -115,39 +111,6 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           active={false}
         />
 
-        {/* Divider */}
-        <div className="mx-2 my-2 border-t border-border" />
-
-        {/* Settings group */}
-        <button
-          onClick={() => setSettingsOpen((v) => !v)}
-          className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text cursor-pointer"
-        >
-          <Settings className="h-4 w-4 shrink-0" />
-          <span className="flex-1 text-left">Settings</span>
-          <ChevronDown
-            className={`h-3.5 w-3.5 shrink-0 transition-transform ${
-              settingsOpen ? 'rotate-0' : '-rotate-90'
-            }`}
-          />
-        </button>
-
-        {settingsOpen && (
-          <div className="ml-2 flex flex-col gap-0.5 border-l border-border pl-3">
-            <SidebarSubLink
-              href="/dashboard/billing"
-              icon={CreditCard}
-              label="Billing"
-              active={isActive('/dashboard/billing')}
-            />
-            <SidebarSubLink
-              href="/dashboard/account"
-              icon={Settings}
-              label="Account"
-              active={isActive('/dashboard/account')}
-            />
-          </div>
-        )}
       </nav>
 
       {/* Spacer pushes avatar to bottom */}
@@ -207,6 +170,14 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
               <User className="h-4 w-4 shrink-0" />
               <span>Account settings</span>
             </Link>
+            <Link
+              href="/dashboard/billing"
+              onClick={() => setPopoverOpen(false)}
+              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
+            >
+              <CreditCard className="h-4 w-4 shrink-0" />
+              <span>Billing</span>
+            </Link>
             <button
               onClick={async () => {
                 await getBrowserSupabase().auth.signOut()
@@ -250,28 +221,4 @@ function SidebarLink({
   )
 }
 
-function SidebarSubLink({
-  href,
-  icon: Icon,
-  label,
-  active,
-}: {
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  active: boolean
-}) {
-  return (
-    <Link
-      href={href}
-      className={`flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[12px] transition-colors ${
-        active
-          ? 'bg-bg-2 font-medium text-text'
-          : 'text-text-2 hover:bg-bg-2 hover:text-text'
-      }`}
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
-      <span>{label}</span>
-    </Link>
-  )
-}
+
