@@ -154,39 +154,144 @@ html {
   margin-top: 0.5rem;
   font-size: 1.5rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
   color: white;
   text-align: center;
 }
 @media (min-width: 640px) {
   .section-heading {
-    font-size: 1.875rem;
+    font-size: 2rem;
   }
 }
 
 .section-sub {
-  max-width: 42rem;
+  max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.50);
   text-align: center;
-  line-height: 1.625;
+  line-height: 1.7;
 }
 @media (min-width: 640px) {
   .section-sub {
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
   }
 }
 
 .section-text {
   margin-top: 1.5rem;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.50);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
   text-align: center;
+  font-weight: 400;
+  line-height: 1.6;
 }
 @media (min-width: 640px) {
   .section-text {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ── Section divider: subtle hairline between major sections ── */
+
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0;
+}
+
+/* ── Stat bar (trust section) ── */
+
+.stat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.stat-item + .stat-item {
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.stat-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.01em;
+}
+
+.stat-text {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.38);
+  max-width: 12rem;
+  line-height: 1.5;
+}
+
+/* ── Card hover lift ── */
+
+@media (hover: hover) {
+  .card-lift {
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-border-strong);
+  }
+}
+
+/* ── Hero-specific ── */
+
+.hero-headline {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: white;
+}
+@media (min-width: 640px) {
+  .hero-headline {
+    font-size: 3rem;
+  }
+}
+@media (min-width: 768px) {
+  .hero-headline {
+    font-size: 3.5rem;
+  }
+}
+
+.hero-sub {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.48);
+  line-height: 1.65;
+  max-width: 30rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease both;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

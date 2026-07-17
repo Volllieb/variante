@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Rocket, Zap, Gauge, Globe, Palette } from '@/components/LandingIcons'
-import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
+import { Check, Zap } from '@/components/LandingIcons'
+import { techLogos, TechLogoMark } from '@/components/TechLogos'
 import { HybridDemo } from '@/app/components/HybridDemo'
 import { detectLang } from '@/lib/detectLang'
 import { getCopy, PLANS } from '@/lib/landingCopy'
-import type { Lang, PlanId } from '@/lib/landingCopy'
+import type { PlanId } from '@/lib/landingCopy'
 
 /* ── Metadata (dynamic by language) ── */
 
@@ -81,26 +81,23 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <main>
 
       {/* ── Hero ── */}
-      <section className="px-0 pt-4 pb-4 sm:pt-6 sm:pb-6">
-        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-center">
+      <section className="px-0 pt-8 pb-6 sm:pt-10 sm:pb-8">
+        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
           {/* Left: Text — second on mobile */}
           <div className="order-2 lg:order-1 text-center sm:text-left">
-            <span className="inline-block rounded-full border border-border-strong bg-bg-2 px-3.5 py-1 text-[11px] font-medium text-pro mb-4">
+            <span className="inline-block rounded-full border border-border bg-bg-2 px-3 py-1 text-[11px] font-medium text-text-3 mb-5 tracking-wide">
               {cp.heroPill}
             </span>
-            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-              {cp.heroH1.split('. ')[0]}.<br />{cp.heroH1.split('. ').slice(1).join('. ')}
+            <h1 className="hero-headline">
+              {cp.heroH1}
             </h1>
-            <p className="mt-4 max-w-xl text-base text-white/55 sm:text-lg">
+            <p className="hero-sub mt-5 text-base sm:text-lg">
               {cp.heroSub}
             </p>
-            {/* Hybrid-Onboarding (Plan §2.3): der primäre CTA führt nicht mehr zu
-                /signup, sondern zur Live-Demo weiter unten — Value vor Snippet,
-                und vor allem Value vor Sign-up. Same-page-Anker, kein Routing. */}
             <div className="mt-8 sm:mt-9">
               <a
                 href="#demo-hybrid"
-                className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
+                className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
               </a>
@@ -109,7 +106,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
           {/* Right: Hero Animation — first on mobile */}
           <div id="demo" className="order-1 lg:order-2 px-0">
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '820/480' }} aria-hidden="true">
+            <div className="relative w-full overflow-hidden rounded-xl border border-border" style={{ aspectRatio: '820/480' }} aria-hidden="true">
               <iframe
                 src="/ab-test-hero-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
@@ -119,22 +116,18 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           </div>
         </div>
 
-        {/* Trust Boxes — part of Hero */}
-        <div className="container-wide mt-4 sm:mt-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* Trust Bar */}
+        <div className="container-wide mt-8 sm:mt-10">
+          <div className="stat-bar rounded-xl border border-border bg-bg-1/50 px-6 py-5">
             {[
-              { icon: Rocket, ...cp.trustItems[0] },
-              { icon: Gauge, ...cp.trustItems[1] },
-              { icon: Globe, ...cp.trustItems[2] },
-              { icon: Palette, ...cp.trustItems[3] },
+              { label: cp.trustItems[0].label, text: cp.trustItems[0].text },
+              { label: cp.trustItems[1].label, text: cp.trustItems[1].text },
+              { label: cp.trustItems[2].label, text: cp.trustItems[2].text },
+              { label: cp.trustItems[3].label, text: cp.trustItems[3].text },
             ].map((item) => (
-              <div
-                key={item.label}
-                className="flex flex-col items-center gap-1.5 rounded-lg border border-border bg-bg-1 px-3 py-4 text-center"
-              >
-                <item.icon className="mb-0.5 h-5 w-5 text-white/50" />
-                <span className="text-xs font-semibold text-white/70">{item.label}</span>
-                <span className="text-[11px] text-text-3 leading-snug">{item.text}</span>
+              <div key={item.label} className="stat-item">
+                <span className="stat-label">{item.label}</span>
+                <span className="stat-text">{item.text}</span>
               </div>
             ))}
           </div>
@@ -145,10 +138,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <HybridDemo cp={cp} source={source} />
 
       {/* ── Works-With Logo Bar ── */}
-      <section className="section !py-10 sm:!py-14">
+      <section className="!py-10 sm:!py-12">
         <div className="container-wide text-center">
-          <h2 className="section-heading">{cp.sectionWorks}</h2>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
+          <span className="section-label">{cp.sectionWorks}</span>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
             {techLogos.map((logo) => (
               <div key={logo.name} className="flex flex-col items-center gap-2">
                 <TechLogoMark logo={logo} className="h-8 w-8 text-white/25" />
@@ -156,20 +149,23 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </div>
             ))}
           </div>
-          <p className="mt-6 text-xs text-text-3">
+          <p className="mt-5 text-xs text-text-3">
             {cp.worksLabel}
           </p>
         </div>
       </section>
 
-      {/* ── AI Agent Automation ── */}
-      <section className="!py-0">
-        <div className="container">
-          <h2 className="section-heading mt-2">{cp.agentH}</h2>
-          <p className="section-sub mt-1">{cp.agentSub}</p>
+      <div className="section-divider" />
 
-          <div className="mx-auto mt-2 max-w-full">
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '960/540' }} aria-hidden="true">
+      {/* ── AI Agent Automation ── */}
+      <section className="section">
+        <div className="container">
+          <span className="section-label">{cp.sectionAgent}</span>
+          <h2 className="section-heading mt-1">{cp.agentH}</h2>
+          <p className="section-sub">{cp.agentSub}</p>
+
+          <div className="mx-auto mt-8 max-w-full">
+            <div className="relative w-full overflow-hidden rounded-xl border border-border" style={{ aspectRatio: '960/540' }} aria-hidden="true">
               <iframe
                 src="/ai-workflow-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
@@ -177,18 +173,21 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               />
             </div>
           </div>
-          <p className="mt-1 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
+          <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
         </div>
       </section>
+
+      <div className="section-divider" />
 
       {/* ── Pricing ── */}
       <section className="section">
         <div className="container">
-          <h2 className="section-heading">{cp.sectionPricing}</h2>
+          <span className="section-label">{cp.sectionPricing}</span>
+          <h2 className="section-heading mt-1">{cp.sectionPricing}</h2>
           <p className="section-sub">{cp.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {/* Free */}
-            <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
+            <div className="card-lift flex flex-col rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
                 {cp.plans.free.label}
               </p>
@@ -198,9 +197,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               <p className="mt-1 text-xs text-text-3">{cp.plans.free.sub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
                 {cp.plans.free.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 shrink-0 text-ok" />
-                    <span className="text-white/60 break-words">{f.label}</span>
+                  <li key={f.label} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
+                    <span className="text-white/55 font-normal leading-relaxed break-words">{f.label}</span>
                   </li>
                 ))}
               </ul>
@@ -213,7 +212,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </div>
 
             {/* Pro */}
-            <div className="relative flex flex-col rounded-[10px] border border-pro/30 bg-bg-1 p-5 sm:p-6">
+            <div className="card-lift relative flex flex-col rounded-xl border border-pro/25 bg-bg-1 p-5 sm:p-6">
               <span className="absolute -top-3 right-6 rounded-full border border-pro bg-black px-3 py-1 text-[11px] font-semibold text-pro">
                 {cp.proBadge}
               </span>
@@ -227,13 +226,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               <p className="mt-1 text-xs text-text-3">{cp.plans.pro.sub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
                 {cp.plans.pro.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
+                  <li key={f.label} className="flex items-start gap-2.5">
                     {f.exclusive ? (
-                      <Zap className="h-4 w-4 shrink-0 text-pro" />
+                      <Zap className="mt-0.5 h-4 w-4 shrink-0 text-pro" />
                     ) : (
-                      <Check className="h-4 w-4 shrink-0 text-ok" />
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.exclusive ? 'text-white/80 break-words' : 'text-white/60 break-words'}>
+                    <span className={f.exclusive ? 'text-white/75 font-normal leading-relaxed break-words' : 'text-white/55 font-normal leading-relaxed break-words'}>
                       {f.label}
                     </span>
                   </li>
@@ -248,7 +247,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </div>
 
             {/* Agency */}
-            <div className="flex flex-col rounded-[10px] border border-border bg-bg-1 p-5 sm:p-6">
+            <div className="card-lift flex flex-col rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
                 {cp.plans.agency.label}
               </p>
@@ -259,13 +258,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               <p className="mt-1 text-xs text-text-3">{cp.plans.agency.sub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
                 {cp.plans.agency.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
+                  <li key={f.label} className="flex items-start gap-2.5">
                     {f.exclusive ? (
-                      <Zap className="h-4 w-4 shrink-0 text-pro" />
+                      <Zap className="mt-0.5 h-4 w-4 shrink-0 text-pro" />
                     ) : (
-                      <Check className="h-4 w-4 shrink-0 text-ok" />
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                     )}
-                    <span className={f.exclusive ? 'text-white/80 break-words' : 'text-white/60 break-words'}>
+                    <span className={f.exclusive ? 'text-white/75 font-normal leading-relaxed break-words' : 'text-white/55 font-normal leading-relaxed break-words'}>
                       {f.label}
                     </span>
                   </li>
@@ -286,35 +285,38 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── FAQ ── */}
       <section className="section">
         <div className="container-narrow">
-          <h2 className="section-heading">{cp.sectionFaq}</h2>
+          <span className="section-label">{cp.sectionFaq}</span>
+          <h2 className="section-heading mt-1">{cp.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
             {cp.faqs.map((item) => (
               <details
                 key={item.q}
-                className="group rounded-[10px] border border-border bg-bg-1 transition-colors duration-150 hover:border-border-strong"
+                className="group rounded-xl border border-border bg-bg-1 transition-colors duration-150 hover:border-border-strong"
               >
-                <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-white/80 select-none">
+                <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-white/75 select-none">
                   {item.q}
-                  <span className="ml-4 shrink-0 text-white/40 transition-transform duration-200 group-open:rotate-180">
+                  <span className="ml-4 shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-180">
                     ▾
                   </span>
                 </summary>
-                <p className="px-5 pb-4 text-sm text-white/50">{item.a}</p>
+                <p className="px-5 pb-4 text-sm text-white/45 font-normal leading-relaxed">{item.a}</p>
               </details>
             ))}
           </dl>
         </div>
       </section>
 
+      <div className="section-divider" />
+
       {/* ── Closing CTA ── */}
-      <section className="section">
+      <section className="section !pb-16 sm:!pb-20">
         <div className="container-narrow text-center">
           <h2 className="section-heading">{cp.closingH}</h2>
           <p className="section-sub">{cp.closingSub}</p>
           <div className="mt-8">
             <Link
               href={signupUrl("/signup")}
-              className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
+              className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
             >
               {cp.closingCta}
             </Link>
