@@ -1,7 +1,26 @@
 # Self-Improving Site Engine — Feature Design
 
-> Stand: 10.07.2026. Konzept-Phase. Baut auf der „What to test next"-Checkliste in docs/GOTOMARKET.md auf.
+> Stand: 17.07.2026 (ursprünglich 10.07.2026). **🟡 Teilweise implementiert.**
 > **Kernidee:** variante analysiert deine Site und sagt dir, was du als nächstes bauen/testen sollst. Nach jedem abgeschlossenen Test lernt das System dazu — die Site verbessert sich selbst.
+>
+> ### Was schon lebt (seit 13.–14.07.2026)
+>
+> | Komponente | Status | Details |
+> |---|---|---|
+> | **CRO-Analyse** (`lib/croAnalyze.ts`) | ✅ Live | `stripForCRO()`, `extractStructure()`, `analyzePage()`, 7 CRO-Kriterien |
+> | **Suggestions-API** (`POST /api/suggestions`) | ✅ Live | Pro-gated, GPT-4o-mini, 4 page-spezifische Vorschläge |
+> | **WhatToTestNext-UI** | ✅ Live | 3 Zustände: versteckt → Paywall (Free) → Vorschläge (Pro) |
+> | **Autonomous Agent** (`POST /api/agent`) | ✅ Live | `streamText()` mit 4 Tools, `AgentPanel.tsx` Streaming-UI |
+> | **site_insights-Tabelle** (Migration 019) | ✅ Live | `agent_runs` + `site_insights` deployed |
+> | **Heuristik-Matrix (v1)** | ⬜ Offen | `lib/croHeuristics.ts` existiert, aber nicht in Agent eingebunden |
+> | **Learning Loop (v3)** | ⬜ Offen | site_insights hat Schema, aber Feedback aus Testergebnissen fehlt |
+>
+> ### Was noch fehlt für den geschlossenen Loop
+>
+> - **v1 Heuristiken** in Agent-Pipeline integrieren (10 Heuristiken, DOM-Parse, $0 Kosten)
+> - **v3 Learning Loop**: Ergebnisse abgeschlossener Tests → Prompt-Kontext für nächste Analyse
+> - **Auto-Trigger**: Nach Winner-Detection automatisch nächsten Scan vorschlagen
+> - **Figma-Plugin-Integration**: "What to test next" im Plugin-Wizard
 
 ---
 
@@ -225,8 +244,12 @@ Die Analyse-Ergebnisse erscheinen an **drei Touchpoints**:
 
 ## 7. Build-Reihenfolge
 
-1. **v1 — Heuristic Audit** (1–2 Tage): `POST /api/analyze`, DOM-Parse, Heuristik-Matrix, UI-Card im Dashboard
-2. **v2 — AI Audit** (2–3 Tage): OpenAI-Integration, Prompt-Engineering, Pro-Gating
-3. **v3 — Learning Loop** (3–5 Tage): `site_insights`-Tabelle, Feedback-in-Prompt, Figma-Plugin-Integration
+| # | Phase | Status |
+|---|---|---|
+| 1 | **v1 — Heuristic Audit**: `POST /api/analyze`, DOM-Parse, Heuristik-Matrix | ⬜ Offen (`lib/croHeuristics.ts` existiert, nicht eingebunden) |
+| 2 | **v2 — AI Audit**: OpenAI-Integration, Prompt-Engineering, Pro-Gating | ✅ Live (13.07.2026 — `/api/suggestions` + `lib/croAnalyze.ts`) |
+| 3 | **v3 — Learning Loop**: `site_insights`-Tabelle, Feedback-in-Prompt, Figma-Plugin | 🟡 DB-Schema deployed, Feedback-Logik fehlt |
+
+> **Nächster Schritt:** v1 Heuristiken in Agent-Pipeline integrieren → v3 Learning Loop schließen.
 
 > **Start v1 sofort nach ersten 3 Design-Partnern.** Der Aha-Moment „Tool sagt mir was ich testen soll" ist das, was Designer converted.

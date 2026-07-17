@@ -1,8 +1,8 @@
 # Plugin / Web — Arbeitsteilung
 
-Status: ✅ Schritt 1 & 3 (Plugin + Doku) · ✅ Schritt 2 (Web-Dashboard)
+Status: ✅ Schritt 1 & 3 (Plugin + Doku) · ✅ Schritt 2 (Web-Dashboard) · **🏁 Abgeschlossen 06.07.2026 — ins Archiv.**
 
-Stand: 06.07.2026 — Alle 3 Schritte abgeschlossen.
+Stand: 17.07.2026 — Alle 3 Schritte abgeschlossen, Prinzip lebt in PROJEKT.md §12.1.
 
 ---
 
@@ -46,7 +46,7 @@ Stand: 06.07.2026 — Alle 3 Schritte abgeschlossen.
 | Screen | Inhalt |
 |---|---|
 | **Dashboard** | Test-Liste (Name, Status-Badge), "New Test"-Button |
-| **Setup** (1/6) | Test-Name, Site-URL |
+| **Test Details** (1/6) | Test-Name, Site-URL |
 | **Element** (2/6) | Browser-Extension-Picker, Waiting/Done-State |
 | **Design** (3/6) | Figma-Layer für Variant B auswählen |
 | **Metric** (4/6) | Goal-Auswahl + Custom CSS-Selector (Advanced-Toggle) |

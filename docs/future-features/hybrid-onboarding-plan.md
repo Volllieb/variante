@@ -4,13 +4,22 @@
 
 ## Kernidee
 
-User gibt URL ein → **Server-seitiges `fetch(url)` extrahiert HTML + CSS (Option A)** → GPT-4o analysiert den echten Code (nicht nur Screenshot) + schreibt CSS-Regeln mit **präzisen, DOM-verifizierten Selektoren** → Screenshot der echten Seite + **zweiter Screenshot mit CSS-Injection (urlbox.io `css`-Parameter)** → A/B-Toggle zwischen beiden Screenshots → sofortiger Aha-Moment. Sign-up + Snippet erst wenn User sagt: "Will ich live haben."
+User gibt URL ein → **Server-seitiges `fetch(url)` extrahiert HTML + CSS (Option A)** → GPT-4o analysiert den echten Code (nicht nur Screenshot) + schreibt CSS-Regeln mit **präzisen, DOM-verifizierten Selektoren** → Screenshot der echten Seite + **zweiter Screenshot mit CSS-Injection (urlbox.com `css`-Feld)** → A/B-Toggle zwischen beiden Screenshots → sofortiger Aha-Moment. Sign-up + Snippet erst wenn User sagt: "Will ich live haben."
 
 **NICHT: Snippet vor Value. SONDERN: Value vor Snippet.**
 **NICHT: Overlays auf Screenshot. SONDERN: Echter Page-Render mit injiziertem CSS.**
 **NICHT: AI rät Selektoren vom Screenshot. SONDERN: AI analysiert echten HTML/CSS-Code für korrekte Selektoren.**
 
 > **Option A (Server-seitige HTML-Extraktion)** ist der Kern dieser Plan-Revision. Siehe §0b für Details, SPA-Fallback und Vergleich.
+
+### §0c Plattform-Parität: Web und Figma sind gleichwertige Einstiegspunkte
+
+**Harte Anforderung: Jeder neue User durchläuft den Hybrid-Flow — unabhängig davon, ob er über die Website oder das Figma-Plugin einsteigt.** Es gibt keinen Einstiegspunkt, der Preview → Refine → Gate → Snippet überspringt.
+
+- **Ein gemeinsamer Server-Unterbau:** `/api/preview`, `/api/preview/refine`, `/api/claim-tests`, `lib/extractPageCode.ts`, `lib/screenshot.ts` sind plattformneutral und werden von Website UND Figma-Plugin genutzt (siehe §1.5, §2.4, §3). Keine plattformspezifische Logik in der Preview-Erzeugung — nur im UI-Rendering (§3.5).
+- **Gleiche Screen-Reihenfolge auf beiden Oberflächen:** Setup (Name+URL) → Dual-Screenshot-Preview → Refine (optional) → Gate: Sign-up → Snippet-Install → Live. Siehe §1.2 (Figma) und §2.2 (Website) — beide Flows sind bewusst identisch strukturiert.
+- **Kein "Web-only" oder "Figma-only" Shortcut zum Sign-up.** Weder auf der Website noch im Plugin darf ein CTA existieren, der direkt zu `/signup` führt, ohne vorher die Preview gezeigt zu haben (Ausnahme: bereits eingeloggte User, siehe §1.3 "Bestehende Screens").
+- **Rollout-Konsequenz:** Da Phase 1 (Website) und Phase 2 (Figma) nacheinander gebaut werden (§6), entsteht zwischen den Phasen eine temporäre Parität-Lücke — Figma-User sehen bis zum Abschluss von Phase 2 noch den alten Snippet-first-Flow. Das ist ein akzeptierter Zwischenzustand, kein Zielzustand. Siehe §5 "Temporäre Plattform-Inkonsistenz" für die Gegenmaßnahme.
 
 ---
 
@@ -52,7 +61,7 @@ Overlays (absolut positionierte Divs auf einem Screenshot) scheitern an komplexe
 
 **So funktioniert's:**
 
-1. **Screenshot 1 (Original):** `GET urlbox.io/{url}?viewport=1440x900` → `original.png`
+1. **Screenshot 1 (Original):** `POST api.urlbox.com/v1/render/sync` (Bearer-Auth) mit `{ url, width: 1440, height: 900 }` → `original.png`
 2. **GPT-4o Vision** analysiert Screenshot, gibt CSS-Regeln zurück:
    ```json
    {
@@ -66,7 +75,7 @@ Overlays (absolut positionierte Divs auf einem Screenshot) scheitern an komplexe
      "injectedCss": ".hero-cta { background: #0D99FF !important; color: #fff !important; border: none !important; border-radius: 12px !important; padding: 14px 32px !important; font-weight: 600 !important; outline: 3px solid #FFD700 !important; outline-offset: 4px !important; box-shadow: 0 0 20px rgba(255,215,0,0.3) !important; }"
    }
    ```
-3. **Screenshot 2 (Variant):** `GET urlbox.io/{url}?viewport=1440x900&css={injectedCss}` → `variant.png`
+3. **Screenshot 2 (Variant):** `POST api.urlbox.com/v1/render/sync` (Bearer-Auth) mit `{ url, width: 1440, height: 900, css: injectedCss }` → `variant.png`
 4. **Client:** A/B-Toggle zwischen zwei `<img>`-Tags. Kein Overlay, kein JavaScript-Rendering.
 
 ### Warum das funktioniert — selbst bei Ghost-Buttons & Gradienten
@@ -458,7 +467,7 @@ Landing → "See your site transformed" (URL-Eingabe) → Dual-Screenshot-Previe
 | `app/dashboard/components/ConnectWebsite.tsx` | Unverändert — wird jetzt im Post-Signup-Kontext genutzt |
 | `app/api/preview/route.ts` | **NEU** — 2 Screenshots (Original + CSS-Injection) + GPT-4o Vision |
 | `app/api/preview/refine/route.ts` | **NEU** — Refine-Schleife: neuer variantScreenshot mit verfeinertem CSS |
-| `lib/screenshot.ts` | **NEU** — Screenshot-Funktion (urlbox.io API-Wrapper, inkl. CSS-Injection-Parameter) |
+| `lib/screenshot.ts` | **NEU** — Screenshot-Funktion (`api.urlbox.com/v1/render/sync`-Wrapper, Bearer-Auth über `URLBOX_API_KEY`, inkl. `css`-Feld für CSS-Injection) |
 
 ---
 
@@ -506,9 +515,14 @@ Response 402: Keine Temp-Sessions mehr (signup_url)
    - SPA-Erkennung (leerer `#root`/`#__next`/`#app`, minimale HTML-Größe)
    - → **SPA erkannt?** Response `{ isSpa: true, spaType }` → Client zeigt Fallback-UI (§0b)
    - → **SSR-Seite?** Relevante Elemente + CSS extrahieren, weiter mit Schritt 3
-3. **Screenshot 1 (Original):** `urlbox(url, { viewport: '1440x900', fullPage: false })` → `original.png`
+3. **Screenshot 1 (Original):** `POST https://api.urlbox.com/v1/render/sync` mit `Authorization: Bearer {URLBOX_API_KEY}` und Body `{ url, format: 'png', width: 1440, height: 900 }` → Response enthält `renderUrl` (fertig gerendertes PNG) → `original.png`
    - Parallel zu Schritt 2 starten (Latenz sparen)
 4. **GPT-4o analysiert HTML/CSS + Screenshot:**
+
+   > **Implementierungs-Pattern (verifiziert 17.07.2026):** Der Codebase nutzt **kein** Vercel-AI-SDK-`generateObject` für diese Art von Analyse — das kommt nur in der Agent-Tool-Loop (`app/api/agent/route.ts`, `streamText` + `@ai-sdk/openai`) zum Einsatz. Der bestehende Pattern für strukturierte JSON-Analyse ist ein **roher `fetch('https://api.openai.com/v1/chat/completions', ...)`-Call mit `response_format: { type: 'json_object' }`**, siehe `lib/croAnalyze.ts::analyzePage()` (genutzt von `/api/suggestions`, `/api/agent`). Der neue Preview-Endpoint sollte diesem Pattern folgen — analog eine `analyzePreview()`-Funktion in `lib/screenshot.ts` oder einer neuen `lib/previewAnalyze.ts`, die HTML-Stripping (`stripForCRO`) und Struktur-Extraktion (`extractStructure`) aus `lib/croAnalyze.ts` wiederverwendet statt zu duplizieren.
+   >
+   > **Wichtiger Unterschied zu `analyzePage()`:** Diese Analyse braucht zusätzlich den Screenshot als Bild-Input (Vision), `analyzePage()` ist bisher text-only. Das erfordert im `messages`-Array ein `content`-Array mit `{ type: 'image_url', image_url: { url: originalScreenshotUrl } }` neben dem Text-Teil — Chat-Completions-Vision-Format, kein separater Endpoint. `MODEL = 'gpt-4o'` (nicht `gpt-4o-mini`, das im Rest des Codebase für Text-only-Analysen verwendet wird — siehe §7 Punkt 2).
+
    ```
    System: "You are a CRO expert. Analyze the page HTML, CSS, and screenshot
    to identify 2-4 specific UI elements to improve for higher conversion."
@@ -542,8 +556,9 @@ Response 402: Keine Temp-Sessions mehr (signup_url)
    
    Respond in JSON."
    ```
-5. **Screenshot 2 (Variant):** `urlbox(url, { viewport: '1440x900', css: injectedCss })` → `variant.png`
-   - urlbox.io injiziert das CSS VOR dem Rendern — die Seite lädt MIT den Änderungen
+   Technisch umgesetzt als `messages: [{ role: 'system', content: <System-Text> }, { role: 'user', content: [{ type: 'text', text: <Prompt-Text mit HTML/CSS> }, { type: 'image_url', image_url: { url: originalScreenshotUrl } }] }]`, `response_format: { type: 'json_object' }` — analog zu `croAnalyze.ts`, nur mit multimodalem `content`-Array statt reinem String.
+5. **Screenshot 2 (Variant):** `POST https://api.urlbox.com/v1/render/sync` mit Body `{ url, format: 'png', width: 1440, height: 900, css: injectedCss }` → `variant.png`
+   - urlbox injiziert das CSS VOR dem Rendern — die Seite lädt MIT den Änderungen
    - Highlight-Outlines sind im Screenshot eingebrannt
 6. **Beide Screenshots in Supabase Storage hochladen** (`previews` bucket, 24h TTL)
 7. **Preview-Daten in DB speichern** (Temp-Session-Scope)
@@ -580,6 +595,8 @@ Existiert bereits. Muss um Preview-Tests erweitert werden:
 - Preview-Daten (screenshot URLs, changes[], injectedCss) bleiben erhalten für Referenz
 
 ### §3.4 DB-Migration
+
+> **Nummer verifiziert (17.07.2026):** Letzte existierende Migration ist `022_avatar_upload.sql` — `023` ist der nächste freie Slot. Vor Implementierung nochmal `db/migrations/` prüfen, falls zwischenzeitlich weitere Migrationen dazukamen (im Projekt gab es zuvor bereits doppelt vergebene Nummern wie `016_realtime.sql`/`016_variant_css.sql`).
 
 ```sql
 -- 023_hybrid_onboarding.sql
@@ -657,7 +674,7 @@ Der Preview-Test ist **kein Wegwerf-Demo.** Die AI-generierten CSS-Regeln sind e
 │  User gibt URL ein                                              │
 │  → Server: Screenshot 1 (Original)                              │
 │  → Server: GPT-4o Vision analysiert Screenshot, schreibt CSS    │
-│  → Server: Screenshot 2 (CSS-Injection via urlbox.io)           │
+│  → Server: Screenshot 2 (CSS-Injection via urlbox.com)          │
 │  → DB: Test mit status='preview' + preview_data (changes[],     │
 │         injectedCss)                                            │
 │  → Client: A/B-Toggle zwischen originalScreenshotUrl &          │
@@ -753,7 +770,7 @@ Der Preview-Test ist **kein Wegwerf-Demo.** Die AI-generierten CSS-Regeln sind e
 | **SPA fälschlich erkannt** (falsch-positiv: SSR-Seite als SPA klassifiziert) | Konservativer Schwellwert (≥2 Indikatoren). SSR-Seiten haben IMMER semantische Tags (`<header>`, `<nav>`, `<main>`) — dieser Indikator allein reicht nicht für SPA-Klassifikation. HTML-Größe >2KB schließt SPA praktisch aus. |
 | **fetch(url) schlägt fehl** (Timeout, 403, DNS-Error) | Timeout 8s. Bei Fehler: Fallback auf Screenshot-only-Analyse (GPT-4o Vision rät Selektoren). User sieht trotzdem Preview — nur mit ~70–90% Selektor-Genauigkeit statt ~99%. Transparent kommunizieren: "We couldn't analyze your page's code, but here's our best guess based on the screenshot." |
 | **CSS-Injection schlägt fehl** (falsche Selektoren trotz Code-Analyse) | Deutlich seltener durch Option A (<1% statt 10–30%). Falls doch: Snippet macht Runtime-Check `document.querySelector(selector)` → null? → Warning im Dashboard. User kann Selektoren im Dashboard korrigieren. |
-| **urlbox.io CSS-Injection-Limit** (max CSS-Länge?) | Überprüfen: urlbox.io `css`-Parameter erlaubt vollständige Stylesheets. Unsere Injektion ist ~500–1500 Zeichen. Sollte passen. |
+| **urlbox.com CSS-Injection-Limit** (max CSS-Länge?) | **Verifiziert (17.07.2026):** `css`-Feld akzeptiert `!important`-Regeln und `@keyframes`-Animationen fehlerfrei, Test-Payload ~350 Zeichen erfolgreich gerendert. Unsere Injektion ist ~500–1500 Zeichen. Harte Längengrenze noch nicht getestet — bei sehr langen Injections (>5 Changes) im Prompt-Iterationszyklus (Phase 1 Step 0) mitprüfen. |
 | **2× Screenshot-Kosten ($0.008/Call)** | Rate-Limit 5/Minute, Free-Tier 10 Previews/Tag → ~$2.40/Monat bei 300 Previews. Immer noch vernachlässigbar. |
 | **2× Storage-Kosten** (2 Screenshots statt 1) | Supabase Storage ist billig. 24h TTL. Nach Claim beide löschen. ~200KB pro Screenshot → ~120MB/Monat bei 300 Previews. Kosten: <$0.01. |
 | **AI-Kosten (~$0.013/Call: Vision + HTML-Analyse)** | ~$3.90/Monat bei 300 Previews. $0.003 mehr als reiner Vision-Ansatz — durch Option A gerechtfertigt (99% statt 70–90% Selektor-Genauigkeit). Marge >10x bei Conversion zu Pro. |
@@ -763,13 +780,17 @@ Der Preview-Test ist **kein Wegwerf-Demo.** Die AI-generierten CSS-Regeln sind e
 | **User gibt Unsinn-URL ein** | SSRF-Filter (`lib/ssrf.ts`), URL-Validierung, "Seems like this page doesn't exist. Check the URL." |
 | **Snippet wird nie installiert** | Post-Signup-Empty-State pusht Snippet-Install prominent. "Your test won't go live without this." |
 | **Variant-Screenshot unterscheidet sich vom Live-Snippet-Rendering** | **Tut es nicht.** Genau das ist der Vorteil der CSS-Injection: Beide Screenshots sind der echte Page-Render. Kein Unterschied zum späteren Snippet — das Snippet injiziert exakt das gleiche CSS. |
+| **Temporäre Plattform-Inkonsistenz** (Website hat Hybrid-Flow, Figma noch nicht, oder umgekehrt) | Siehe §0c: Phase 1 (Website) und Phase 2 (Figma) laufen nacheinander, nicht parallel. Solange Phase 2 nicht live ist, bleibt das Figma-Plugin explizit auf dem alten Snippet-first-Flow — bewusst kommuniziert als Zwischenzustand, nicht stillschweigend inkonsistent gelassen. Ziel: Phase 2 startet direkt nach Phase 1, kein unbegrenztes Offenlassen der Lücke. |
 
 ---
 
 ## §6 Phasen & Prioritäten
 
+> Phase 1 und Phase 2 sind **beide verbindlich** — kein "Website first, Figma vielleicht später". Die Reihenfolge ist Umsetzungs-Priorität (Website hat den größeren Hebel auf Landingpage-Conversion), nicht Umsetzungs-Optionalität. Siehe §0c.
+
 ### Phase 1: Website Hybrid Demo (Kritisch — Landingpage-Conversion)
-1. `lib/screenshot.ts` — urlbox.io API-Wrapper mit `css`-Parameter für CSS-Injection
+0. ~~**Vorab-Verifikation**~~ **Erledigt (17.07.2026):** `POST api.urlbox.com/v1/render/sync` mit Bearer-Auth (`URLBOX_API_KEY`, in Vercel als Production+Preview-Secret hinterlegt) und JSON-Body `{ url, format, width, height, css }` liefert `200` + `renderUrl`. Test-CSS mit `!important`-Regeln und `@keyframes`-Animation wurde korrekt gerendert (gelber Hintergrund, roter Text, blaue Outline auf `<h1>` — visuell verifiziert). **Achtung:** Die im Doku-Entwurf angenommene Legacy-Form `GET urlbox.io/{key}/png?url=...` funktioniert mit diesem Key NICHT (`ApiKeyNotFound`) — der Key ist ein `ubx_sk_...`-Secret-Key für die neue Bearer-Auth-API, nicht ein Path-Key für die alte URL-Form. Verbleibend: Prompt-Engineering-Zyklus mit 10 diversen URLs, Selektor-Match-Rate messen, iterieren. Ziel: >90% Match-Rate.
+1. `lib/screenshot.ts` — `api.urlbox.com/v1/render/sync`-Wrapper (Bearer-Auth) mit `css`-Feld für CSS-Injection
 2. `app/api/preview/route.ts` — Screenshot 1 + GPT-4o Vision + Screenshot 2 (CSS-Injection)
 3. `app/components/HybridDemo.tsx` — URL-Input → Loading → Dual-Screenshot A/B-Toggle → Change-Liste → Gate
 4. `app/page.tsx` — Hero-CTA ändern, HybridDemo einbauen
@@ -789,25 +810,16 @@ Der Preview-Test ist **kein Wegwerf-Demo.** Die AI-generierten CSS-Regeln sind e
 
 ---
 
-## §7 Offene Fragen
+## §7 Entscheidungen
 
-1. **urlbox.io CSS-Injection getestet?** Noch nicht. Muss verifiziert werden: Akzeptiert der `css`-Parameter beliebig langes CSS? Werden `!important`-Regeln korrekt angewandt? Werden `@keyframes`-Animationen unterstützt?
-   → **Vor Phase 1 mit einem manuellen curl-Test verifizieren.** Bei Problemen: Alternative Screenshot-API (screenshotapi.net, apiflash.com) evaluieren.
+Die meisten früher offenen Fragen sind entschieden; hier als Log festgehalten. Wirklich offen ist nur Punkt 1 (technische Verifikation), die als Step 0 in Phase 1 (§6) eingeplant ist.
 
-2. **GPT-4o Vision vs. gpt-4o-mini?** Vision für initiale Analyse braucht ein starkes Modell.
-   → **gpt-4o für Preview, gpt-4o-mini für Refine.** Preview ist der Aha-Moment — $0.01 lohnt sich. Refine nur CSS-Tweak — $0.003 reicht.
-
-3. **Preview-Speicher-Löschung?** 2 Screenshots pro Preview verdoppeln Storage.
-   → Supabase Storage Bucket `previews` mit 24h TTL. Nach Claim BEIDE Screenshots löschen (nicht mehr nötig). Storage-Kosten vernachlässigbar.
-
-4. **Was wenn die KI keine sinnvollen Änderungen findet?** (z.B. leere Seite, Coming-Soon-Page)
-   → Fallback: "This page looks pretty minimal. Try a page with more content — like your homepage or pricing page."
-
-5. **Mobile-Ansicht?** Screenshot ist 1440px Desktop.
-   → **Phase 1: Desktop only.** 95% der User besuchen variante vom Desktop. Mobile-Screenshot in Phase 3.
-
-6. **Demo ohne Temp-Session?** Soll der erste Preview OHNE Temp-Session laufen?
-   → **Temp-Session erst bei "Go live".** Preview ist stateless bis Gate. Weniger DB-Müll, einfachere Architektur.
-
-7. **CSS-Injection-Prompt-Strategie?** Wie garantieren wir dass die KI-Selektoren tatsächlich matchen?
-   → Prompt-Engineering-Zyklus in Phase 1: 10 diverse URLs testen, Erfolgsrate messen, Prompt iterieren. Ziel: >90% Match-Rate. Fallback für die <10%: Änderungen als Text-Karten anzeigen.
+| # | Frage | Entscheidung |
+|---|---|---|
+| 1 | urlbox.com CSS-Injection funktionsfähig? | **Verifiziert (17.07.2026).** `POST api.urlbox.com/v1/render/sync`, Bearer-Auth, `css`-Feld mit `!important` + `@keyframes` funktioniert. `URLBOX_API_KEY` in Vercel (Production, Preview) hinterlegt. Details siehe §6 Phase 1 Step 0. |
+| 2 | GPT-4o Vision vs. gpt-4o-mini? | **gpt-4o für Preview** (Aha-Moment, $0.01 lohnt sich), **gpt-4o-mini für Refine** (reiner CSS-Tweak, $0.003 reicht). |
+| 3 | Preview-Speicher-Löschung? | Supabase Storage Bucket `previews`, 24h TTL. Nach Claim beide Screenshots löschen. Kosten vernachlässigbar. |
+| 4 | KI findet keine sinnvollen Änderungen (leere/Coming-Soon-Seite)? | Fallback-Message: "This page looks pretty minimal. Try a page with more content — like your homepage or pricing page." |
+| 5 | Mobile-Ansicht? | **Phase 1: Desktop only** (1440px). 95% der User besuchen variante vom Desktop. Mobile-Screenshot folgt in Phase 3. |
+| 6 | Preview ohne Temp-Session? | **Ja — Temp-Session erst bei "Go live".** Preview ist stateless bis zum Gate. Weniger DB-Müll, einfachere Architektur. |
+| 7 | Wie garantieren, dass KI-Selektoren matchen? | Prompt-Engineering-Zyklus in Phase 1 Step 0: 10 diverse URLs, Match-Rate messen, iterieren. Ziel >90%. Fallback für Rest: Änderungen als reine Text-Karten ohne Live-Highlight. |

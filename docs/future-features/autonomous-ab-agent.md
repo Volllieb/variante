@@ -1,7 +1,15 @@
 # Autonomous A/B Testing Agent — Implementation Prompt
 
 > **Ziel:** Ein KI-Agent, der eine Landingpage vollautomatisch analysiert, Optimierungs-Varianten generiert und A/B-Tests in variante anlegt.
-> **Stand:** 14.07.2026 — Prompt-Dokument. Noch kein Code. Baut auf existierender Infrastruktur auf.
+> **Stand: 14.07.2026 — ✅ Implementiert.** Dieser Prompt wurde umgesetzt. Code lebt in:
+> - `app/api/agent/route.ts` — `streamText()` mit 4 Tools
+> - `lib/agentTools.ts` — `fetchSite`, `analyzeCRO`, `generateVariant`, `createTest`
+> - `lib/croAnalyze.ts` — extrahierte CRO-Logik aus `/api/suggestions`
+> - `lib/generateVariantText.ts` — Text/Color/Layout-Varianten
+> - `app/dashboard/components/AgentPanel.tsx` — `useChat()`-Streaming-UI
+> - `db/migrations/019_agent_runs.sql` — `agent_runs` + `site_insights`
+>
+> **Historie:** PROJEKT.md §8 (14.07.2026), Migration 019 deployed. Build grün.
 > **Vorgänger:** `self-improving-site-engine.md` (Konzept), `WhatToTestNext.tsx` (UI), `POST /api/suggestions` (Analyse), `POST /api/generate` (Variant-Gen), `POST /api/tests` (Test-Anlage).
 
 ---

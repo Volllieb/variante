@@ -3,7 +3,20 @@
 > **Anfassen verboten.** Dieser Ordner dokumentiert, was sicher kommt — aber erst nach Launch & Stabilisierung.
 > Kein Code dafür schreiben, keine Vorbereitungen treffen. Nur Denkarbeit parken.
 >
-> **Stand: 06.07.2026** — Auf aktuellen Code-Stand abgeglichen.
+> **Stand: 17.07.2026** — Mit aktuellem Code-Stand (PROJEKT.md §8) abgeglichen.
+>
+> ## ✅ Seit letztem Abgleich implementiert
+>
+> | Feature | Datum | Status |
+> |---|---|---|
+> | **variant_b_css** (Layout & Position Testing) | 13.07.2026 | ✅ Live — CSS-Injection parallel zu DOM-Tausch |
+> | **Autonomous A/B Agent** (Ansatz B, Vercel AI SDK) | 14.07.2026 | ✅ Live — `POST /api/agent`, 4 Tools, Streaming-UI |
+> | **Self-Improving Site Engine v1+v2** | 13.–14.07.2026 | 🟡 Teilweise — CRO-Analyse + Agent + site_insights live, Learning Loop (v3) offen |
+> | **PLUGIN-WEB-SPLIT** | 03.–06.07.2026 | ✅ Abgeschlossen — Plugin = Creation, Web = Analysis |
+> | **Dashboard-Sprints 1–6** | 07.–17.07.2026 | ✅ Alle deployed (Setup-Checkliste → Inline-Billing) |
+> | **E2E-Test-Suite** (Playwright) | Juli 2026 | ✅ Live — smoke, auth, dashboard, conversion, mobile |
+> | **Error-Tracking** (Sentry) | 17.07.2026 | ✅ Live — 4 Env-Vars (DSN, ORG, PROJECT, AUTH_TOKEN) |
+> | **Hybrid-Onboarding-Plan v4** | 17.07.2026 | 📐 Planung — Option A (Code-Analyse), SPA-Fallback |
 
 ---
 
@@ -81,10 +94,10 @@ Praktisches Beispiel: Variante B zeigt höhere Preise aber weniger Käufe → CV
 
 ## 📧 E-Mail-Benachrichtigungen (#17)
 
-**Status:** Teilweise live (Winner-Mails), Weekly Digest als nächstes geplant. Rest zurückgestellt.
+**Status:** Winner-Mails live, Weekly Digest geplant.
 
 - ✅ „Dein Test hat einen signifikanten Winner" — Resend API + Cron-Job (`/api/cron/check-winners`) live seit 03.07.
-- 🟡 **Weekly Digest** (#17, ~4h) — Jeden Montag: „Deine Tests diese Woche" mit aktiven Tests, Visitors, Conversions, Signifikanz-Status. Neuer Cron-Job `check-digest` (läuft montags 9:00 UTC), eigene Resend-Template `weekly-digest.html`. User kann in `/dashboard/account` opt-in/out (`profiles.notify_digest`). Free + Pro.
+- 🟡 **Weekly Digest** (#17, ~4h) — Jeden Montag: „Deine Tests diese Woche". Neuer Cron-Job, `weekly-digest.html`-Template, `profiles.notify_digest`-Opt-in. Free + Pro.
 - ⬜ „Dein Test hat 100/500/1000 Visitors erreicht"
 
 **Technik:** Resend (`RESEND_API_KEY` Env-Var). Winner-Mail wird bei Signifikanz-Erkennung im Cron-Job versendet.
@@ -93,11 +106,13 @@ Praktisches Beispiel: Variante B zeigt höhere Preise aber weniger Käufe → CV
 
 ## � Token-Transfer-Bug — Onboarding-Friction
 
-**Status:** Zurückgestellt, aber hohe Priorität für Activation.
+**Status:** 🟡 Priorität für Activation. Built-in Picker (seit 07.07.2026) ist die Brücke, aber Auto-Transfer fehlt.
 
-**Problem:** Neue User erstellen ihren Account im Browser (Dashboard), müssen dann aber den API-Token **manuell kopieren und im Figma-Plugin einfügen**. Das ist der größte Drop-off-Punkt im Onboarding — Copy-Paste zwischen zwei Apps ist einer der häufigsten Abbrecher.
+**Problem:** Neue User erstellen ihren Account im Browser (Dashboard), müssen dann aber den API-Token **manuell kopieren und im Figma-Plugin einfügen**. Das ist der größte Drop-off-Punkt im Onboarding.
 
 **Ziel:** User, die im Browser signuppen, sollen den Token **nie sehen oder pasten müssen**. Der Transfer passiert automatisch.
+
+**Update 17.07.2026:** Der Built-in Picker lebt jetzt im `ab.js`-Snippet. Der Picker hat Zugriff auf das Dashboard (gleiche Domain nach Snippet-Install) und könnte den Token via `postMessage` oder gemeinsamen Storage-Key ins Figma-Plugin transferieren. Ansatz „Built-in Picker als Brücke" ist jetzt technisch möglich (~3h Aufwand).
 
 **Mögliche Ansätze (nicht entschieden):**
 
@@ -173,17 +188,29 @@ Figma-Login als dritter Auth-Weg neben Email/Passwort und Google OAuth. Designer
 
 ## 🧪 Testing & Qualität
 
-| Feature | Beschreibung |
-|---|---|
-| **E2E-Test-Suite** | Playwright: Signup → Plugin → Capture → Snippet → Conversions → Winner |
-| **Load-Testing** | `ab.js` unter 10k+ Requests, `/api/assign` unter Last |
-| **Error-Tracking** | Sentry oder ähnlich für API + ab.js |
+| Feature | Beschreibung | Status |
+|---|---|---|
+| **E2E-Test-Suite** | Playwright: smoke, auth, dashboard, conversion, mobile | ✅ Live |
+| **Error-Tracking** | Sentry für API + ab.js | ✅ Live (4 Env-Vars konfiguriert) |
+| **Load-Testing** | `ab.js` unter 10k+ Requests, `/api/assign` unter Last | ⬜ Offen |
+
+---
+
+## � variant_b_css — Layout & Position Testing
+
+**Status: ✅ Implementiert (13.07.2026).** Details in [`variant-b-css-plan.md`](./variant-b-css-plan.md).
+
+CSS-Injection als zweite Varianten-Achse — parallel zu `variant_b_html`. Für Reorder, Visibility, Spacing, Color. `ab.js` injected `<style>`-Tag, kein DOM-Tausch nötig. DB-Migration, Backend, Picker, Generate-Endpoint, Figma-Plugin alle live.
 
 ---
 
 ## 🤖 Autopilot — KI-gesteuerte Test-Iteration
 
-**Status:** Konzept, kein Scope definiert.
+**Status:** Basis live (14.07.2026), Vollausbau (Auto-Iteration, Brand-Guideline-Concierge) Konzept.
+
+> **Was schon lebt:** Der Autonomous A/B Agent (`POST /api/agent`, `AgentPanel.tsx`) analysiert Seiten, generiert Varianten und legt Tests an — in einem Streaming-Lauf. Siehe `docs/future-features/autonomous-ab-agent.md` (Implementierungsprompt, umgesetzt) und PROJEKT.md §8 (14.07.2026).
+>
+> **Was noch fehlt:** Auto-Iteration (Winner → nächste Variante), Brand-Guideline-Concierge, Guardrails. Das hier beschriebene Autopilot-Konzept ist die Vollversion.
 
 User gibt eine URL ein, die KI analysiert die Seite, schlägt Varianten vor, generiert sie, deployed sie und iteriert automatisch — bis ein signifikanter Winner feststeht. Kein manuelles Test-Design mehr.
 
@@ -307,7 +334,7 @@ Der Text-Test ist im Kern ein Element-Test, bei dem die Variante zufällig nur e
 
 ## � Dashboard-Features (geparkt 07.07.2026)
 
-**Status:** Aus Dashboard-Brainstorming + UX-Fragebogen geparkt. Kein Sprint-Plan, aber bewertet und priorisiert.
+**Status:** Aus Dashboard-Brainstorming + UX-Fragebogen geparkt. **Alle 6 Sprints deployed (Stand 17.07.2026).** Verbleibende geparkte Features:
 
 | Feature | Begründung für Parken |
 |---|---|
@@ -319,7 +346,7 @@ Der Text-Test ist im Kern ein Element-Test, bei dem die Variante zufällig nur e
 | **Referral-System** (G2) | Growth-Hebel, aber erst nach Product-Market-Fit. |
 | **Public Share-Link** (G3) | „Public Test Gallery" ist bereits als Idee gelistet. Doppelt. |
 
-**Aktive Sprints (in PROJEKT.md §12.6):** Setup-Checkliste ✅ → Test-Cards aufwerten → Results-Detailseite → Overview-Restructure → Account-Seite → Inline-Billing.
+**Aktive Sprints (in PROJEKT.md §12.6):** ~~Setup-Checkliste ✅~~ → ~~Test-Cards aufwerten ✅~~ → ~~Results-Detailseite ✅~~ → ~~Overview-Restructure ✅~~ → ~~Account-Seite ✅~~ → ~~Inline-Billing ✅~~. Alle 6 Sprints deployed.
 
 ---
 
@@ -355,4 +382,4 @@ Wenn Varianten auch ohne Figma erstellbar sind (Upload, AI-only, Copy-Variation)
 
 ---
 
-*Stand: 06.07.2026 — Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*
+*Stand: 17.07.2026 — Abgleich mit PROJEKT.md §8. Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*
