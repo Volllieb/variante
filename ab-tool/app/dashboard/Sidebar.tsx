@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PandaLogo } from '@/components/PandaLogo'
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import {
   LayoutGrid,
   CreditCard,
@@ -27,26 +28,25 @@ function initials(email: string): string {
 type SidebarProps = {
   email: string
   plan: string
+  avatarUrl: string | null
 }
 
-export function Sidebar({ email, plan }: SidebarProps) {
+export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
   const pathname = usePathname()
-  const [avatarFailed, setAvatarFailed] = useState(false)
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
+  const prevAvatarUrl = useRef(avatarUrl)
+
+  // Reset load-failed state when avatar URL changes (e.g. user uploads new one)
+  useEffect(() => {
+    if (avatarUrl !== prevAvatarUrl.current) {
+      setAvatarLoadFailed(false)
+      prevAvatarUrl.current = avatarUrl
+    }
+  }, [avatarUrl])
+
   const [settingsOpen, setSettingsOpen] = useState(
     pathname.startsWith('/dashboard/billing') || pathname.startsWith('/dashboard/account')
   )
-
-  const gravatarHash = useMemo(() => {
-    let h = 0
-    for (let i = 0; i < email.length; i++) {
-      const c = email.charCodeAt(i)
-      h = ((h << 5) - h) + c
-      h |= 0
-    }
-    return Math.abs(h).toString(16)
-  }, [email])
-
-  const gravatarSrc = `https://www.gravatar.com/avatar/${gravatarHash}?d=404&s=40`
 
   const isActive = (href: string) => pathname === href
   const isInSection = (href: string) => pathname.startsWith(href)
@@ -58,7 +58,7 @@ export function Sidebar({ email, plan }: SidebarProps) {
         href="/dashboard"
         className="flex items-center gap-2.5 px-3 py-4"
       >
-        <PandaLogo className="h-5 w-5 shrink-0 rounded-[5px]" />
+        <PandaLogo className="h-5 w-5 shrink-0" />
         <span className="text-[14px] font-semibold text-text">variante</span>
       </Link>
 
@@ -124,15 +124,16 @@ export function Sidebar({ email, plan }: SidebarProps) {
           href="/dashboard/account"
           className="flex items-center gap-2.5 rounded-[6px] p-1.5 transition-colors hover:bg-bg-2"
         >
-          {!avatarFailed ? (
-            <img
-              src={gravatarSrc}
+          {avatarUrl && !avatarLoadFailed ? (
+            <Image
+              src={avatarUrl}
               alt=""
               role="presentation"
               width={28}
               height={28}
-              className="h-7 w-7 shrink-0 rounded-full"
-              onError={() => setAvatarFailed(true)}
+              className="h-7 w-7 shrink-0 rounded-full object-cover"
+              onError={() => setAvatarLoadFailed(true)}
+              unoptimized
             />
           ) : (
             <div

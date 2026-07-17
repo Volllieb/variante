@@ -63,7 +63,7 @@ export function DashboardShell({ email, plan, children }: DashboardShellProps) {
         <div className="flex h-11 items-center gap-1 px-3">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2 px-1.5 mr-2">
-            <PandaLogo className="h-5 w-5 rounded-[5px]" />
+            <PandaLogo className="h-5 w-5" />
             <span className="text-[13px] font-semibold text-text hidden sm:inline">variante</span>
           </Link>
 

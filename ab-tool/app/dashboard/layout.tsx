@@ -9,15 +9,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const profileRes = await supabase
     .from('profiles')
-    .select('plan')
+    .select('plan, avatar_url')
     .eq('user_id', user.id)
     .single()
 
   const plan = profileRes.data?.plan ?? 'free'
+  const avatarUrl = profileRes.data?.avatar_url ?? null
 
   return (
     <div className="min-h-screen bg-bg-0 font-[family-name:var(--font-sans)] text-[13px] antialiased">
-      <Sidebar email={user.email ?? ''} plan={plan} />
+      <Sidebar email={user.email ?? ''} plan={plan} avatarUrl={avatarUrl} />
       <main className="pl-[220px]">
         {children}
       </main>

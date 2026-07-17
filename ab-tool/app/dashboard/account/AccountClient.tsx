@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, X } from 'lucide-react'
+import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, X, Camera, User } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const T = {
   ok: '#2fd76c',
@@ -14,9 +15,13 @@ const T = {
 
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
 
-export function AccountClient({ email, domains: initialDomains }: { email: string; domains: Domain[] }) {
+export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar }: { email: string; domains: Domain[]; avatarUrl: string | null }) {
   const router = useRouter()
   const [domains, setDomains] = useState<Domain[]>(initialDomains)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatar)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [domainBusy, setDomainBusy] = useState(false)
   const [domainError, setDomainError] = useState('')
   const [verifying, setVerifying] = useState<string | null>(null) // domain id being verified
@@ -29,6 +34,30 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
+
+  async function uploadAvatar(file: File) {
+    if (!file) return
+    setAvatarUploading(true)
+    setAvatarError('')
+
+    const form = new FormData()
+    form.append('file', file)
+
+    try {
+      const res = await fetch('/api/profile/avatar', { method: 'POST', body: form })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        setAvatarUrl(data.url)
+        router.refresh() // Update sidebar via server re-fetch
+      } else {
+        setAvatarError(data.error ?? 'Upload failed')
+      }
+    } catch {
+      setAvatarError('Connection failed.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   async function changeEmail() {
     if (!newEmail.trim() || !newEmail.includes('@')) {
@@ -154,6 +183,87 @@ export function AccountClient({ email, domains: initialDomains }: { email: strin
     <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-[18px] font-semibold text-[#ededed]">Account</h1>
+
+        {/* Avatar */}
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Camera className="h-4 w-4 text-[#ededed]/40" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Profile Picture</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Avatar preview */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="group relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-white/10 transition-colors hover:border-white/[0.18] disabled:opacity-50"
+              aria-label="Change profile picture"
+            >
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={email ?? 'Profile picture'}
+                  width={64}
+                  height={64}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                <User className="h-6 w-6 text-[#ededed]/30" />
+              )}
+              {avatarUploading && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                </div>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <Camera className="h-4 w-4 text-white" />
+              </div>
+            </button>
+
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="text-[12px] text-[#ededed]/40">
+                {avatarUrl
+                  ? 'Click the image to upload a new picture. PNG, JPEG, WebP or GIF — max 2 MB.'
+                  : 'Upload a profile picture. PNG, JPEG, WebP or GIF — max 2 MB.'}
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) uploadAvatar(file)
+                  // Reset so re-selecting the same file works
+                  e.target.value = ''
+                }}
+              />
+              {avatarUrl && (
+                <button
+                  onClick={async () => {
+                    setAvatarUploading(true)
+                    try {
+                      await fetch('/api/profile/avatar', { method: 'DELETE' })
+                      setAvatarUrl(null)
+                      router.refresh()
+                    } catch {
+                      setAvatarError('Failed to remove.')
+                    } finally {
+                      setAvatarUploading(false)
+                    }
+                  }}
+                  disabled={avatarUploading}
+                  className="text-[11px] text-[#ededed]/40 underline hover:text-err disabled:opacity-40"
+                >
+                  Remove
+                </button>
+              )}
+              {avatarError && (
+                <p className="text-[11px] text-err">{avatarError}</p>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Current email */}
         <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">

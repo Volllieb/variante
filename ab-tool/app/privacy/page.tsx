@@ -25,7 +25,7 @@ export default function PrivacyPage() {
               href="/"
               className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-text-2 transition-colors duration-200 hover:text-text"
             >
-              <PandaLogo className="h-5 w-5 rounded-md p-0.5" />
+              <PandaLogo className="h-5 w-5 p-0.5" />
               variante
             </Link>
           </div>

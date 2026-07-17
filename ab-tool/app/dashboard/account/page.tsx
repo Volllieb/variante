@@ -13,5 +13,11 @@ export default async function AccountPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  return <AccountClient email={user.email ?? ''} domains={domains ?? []} />
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('avatar_url')
+    .eq('user_id', user.id)
+    .single()
+
+  return <AccountClient email={user.email ?? ''} domains={domains ?? []} avatarUrl={profile?.avatar_url ?? null} />
 }
