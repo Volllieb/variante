@@ -1,4 +1,4 @@
-// Sentry — Edge-Runtime (Middleware/proxy.ts, Edge-Routes).
+// Sentry — Edge-Runtime (proxy.ts, Edge-Routes).
 // Wird von instrumentation.ts geladen. Siehe sentry.server.config.ts für die
 // Begründung der Optionen. Ohne SENTRY_DSN inaktiv.
 
