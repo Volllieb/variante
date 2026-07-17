@@ -188,7 +188,7 @@ export default function SignupPage() {
             href="/"
             className="flex items-center gap-2 text-xl font-semibold text-white transition-opacity hover:opacity-75"
           >
-            <PandaLogo className="h-8 w-8 rounded-lg p-1" />
+            <PandaLogo className="h-8 w-8 p-1" />
             variante
           </Link>
         </div>

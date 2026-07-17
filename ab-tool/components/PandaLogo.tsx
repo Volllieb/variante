@@ -7,7 +7,7 @@ export function PandaLogo({ className }: { className: string }) {
       alt=""
       width={28}
       height={28}
-      className={`bg-white object-contain ${className}`}
+      className={`rounded-full object-contain ${className}`}
     />
   )
 }

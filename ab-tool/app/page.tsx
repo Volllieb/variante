@@ -64,7 +64,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
-            <PandaLogo className="h-7 w-7 rounded-full p-1.5" />
+            <PandaLogo className="h-7 w-7 p-1.5" />
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
