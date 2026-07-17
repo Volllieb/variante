@@ -180,6 +180,7 @@ export function DashboardClient({
             icon={FlaskConical}
             label="Active Tests"
             value={activeTests.toString()}
+            tone={activeTests > 0 ? 'ok' : undefined}
           />
           <OverviewCard
             icon={Users}
@@ -208,7 +209,7 @@ export function DashboardClient({
 
       {/* Health warnings */}
       {hasHealthWarnings && (
-        <div className="mb-5 rounded-[10px] border border-pro/20 bg-pro/[0.05] px-4 py-3">
+        <div className="mb-5 rounded-[10px] border border-pro/20 bg-pro-bg px-4 py-3">
           <p className="text-[12px] text-pro/90">
             Some tests have health warnings. Check the test list below for details.
           </p>
@@ -218,20 +219,20 @@ export function DashboardClient({
       {/* Tests section */}
       <div className="rounded-[10px] border border-border bg-bg-1">
         {/* Toolbar */}
-        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search tests…"
-              className="w-full h-[30px] rounded-[6px] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus:outline-none"
+              className="w-full h-[32px] rounded-[6px] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus:outline-none"
             />
           </div>
           <Tooltip content={sortAsc ? 'Newest first' : 'Oldest first'}>
             <button
               onClick={() => setSortAsc((v) => !v)}
-              className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
+              className="flex h-[32px] w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
             </button>
@@ -240,7 +241,7 @@ export function DashboardClient({
           <Tooltip content="Refresh test list">
             <button
               onClick={() => router.refresh()}
-              className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
+              className="flex h-[32px] w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
@@ -350,13 +351,13 @@ function OverviewCard({
   tone?: 'ok' | 'pro' | 'err'
 }) {
   const colorClass = tone === 'ok' ? 'text-ok' : tone === 'pro' ? 'text-pro' : tone === 'err' ? 'text-err' : 'text-text'
+  const bgTint = tone === 'ok' ? 'bg-ok/[0.04]' : tone === 'err' ? 'bg-err/[0.04]' : ''
   return (
-    <div className="rounded-[10px] border border-border bg-bg-1 p-3.5">
-      <div className="flex items-center gap-2 mb-1.5">
-        <Icon className="h-3.5 w-3.5 shrink-0 text-text-3" />
-        <span className="text-[11px] text-text-3 truncate">{label}</span>
+    <div className={`relative rounded-[10px] border border-border bg-bg-1 p-4 ${bgTint}`}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-text-3">{label}</span>
       </div>
-      <p className={`text-[18px] font-semibold tabular-nums leading-tight ${colorClass}`}>
+      <p className={`text-[24px] font-semibold tabular-nums leading-none tracking-tight ${colorClass}`}>
         {value}
       </p>
     </div>

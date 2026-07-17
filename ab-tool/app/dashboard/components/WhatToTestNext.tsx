@@ -30,16 +30,6 @@ const TEASER_SUGGESTIONS: Suggestion[] = [
   { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social Proof ist der stärkste Vertrauenstreiber. Logos + Zahl schaffen Glaubwürdigkeit in Millisekunden.' },
 ]
 
-const T = {
-  bg1: '#0a0a0a',
-  bg2: '#111111',
-  text: '#ededed',
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-  accent: '#8b5cf6', // violett für AI
-}
-
 export function WhatToTestNext({ siteUrl, plan, setupComplete, domain }: Props) {
   const isPro = plan === 'pro' || plan === 'agency'
 
@@ -65,38 +55,38 @@ function FreeTeaser({ domain }: { domain: string | null }) {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-[#f5a623]" />
-        <h2 className="text-[13px] font-semibold text-[#ededed]">What to test next</h2>
-        <span className="rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#f5a623]">PRO</span>
+        <Sparkles className="h-3.5 w-3.5 text-pro" />
+        <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
+        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">PRO</span>
       </div>
 
       {/* Geblurrter Inhalt */}
-      <div className="relative overflow-hidden rounded-[10px] border border-white/10 bg-[#0a0a0a]">
+      <div className="relative overflow-hidden rounded-[10px] border border-border bg-bg-1">
         {/* Blur-Layer */}
         <div className="pointer-events-none select-none px-3.5 py-3 space-y-2.5 blur-[6px]">
           {TEASER_SUGGESTIONS.map((tip) => (
-            <div key={tip.element} className="flex items-start gap-2 rounded-[6px] border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+            <div key={tip.element} className="flex items-start gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] leading-relaxed text-[#ededed]/70">
-                  Test <span className="font-medium text-[#ededed]/90">"{tip.original}"</span> vs{' '}
-                  <span className="font-medium text-[#a78bfa]">"{tip.variant}"</span>
+                <p className="text-[11px] leading-relaxed text-text-2">
+                  Test <span className="font-medium text-text/90">"{tip.original}"</span> vs{' '}
+                  <span className="font-medium text-pro">"{tip.variant}"</span>
                 </p>
-                <p className="mt-0.5 text-[10px] text-[#ededed]/50">{tip.why}</p>
+                <p className="mt-0.5 text-[10px] text-text-3">{tip.why}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Paywall Overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0a0a0a]/70 backdrop-blur-[2px]">
-          <Lock className="h-5 w-5 text-[#f5a623]" />
-          <p className="text-[12px] font-medium text-[#ededed]">Page-specific AI suggestions</p>
-          <p className="max-w-[200px] text-center text-[11px] leading-relaxed text-[#ededed]/45">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-bg-1/70 backdrop-blur-[2px]">
+          <Lock className="h-5 w-5 text-pro" />
+          <p className="text-[12px] font-medium text-text">Page-specific AI suggestions</p>
+          <p className="max-w-[200px] text-center text-[11px] leading-relaxed text-text-3">
             Our AI analyzes your page and suggests what to test next — specific to your site, not generic tips.
           </p>
           <Link
             href="/dashboard/billing"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-[6px] bg-[#f5a623] px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+            className="mt-1 inline-flex items-center gap-1.5 rounded-[6px] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
           >
             <Sparkles className="h-3 w-3" />
             Upgrade to Pro
@@ -106,10 +96,10 @@ function FreeTeaser({ domain }: { domain: string | null }) {
 
       {/* Auto-optimize teaser */}
       {domain && (
-        <div className="mt-3 flex items-center gap-2.5 rounded-[8px] border border-[#f5a623]/10 bg-[#f5a623]/[0.02] px-3 py-2.5">
-          <Bot className="h-3.5 w-3.5 shrink-0 text-[#f5a623]/40" />
-          <p className="flex-1 text-[11px] text-[#ededed]/40">Auto-optimize {domain.replace(/^https?:\/\//, '')} — creates tests in one click</p>
-          <span className="shrink-0 rounded-full border border-[#f5a623]/20 px-1.5 py-0.5 text-[9px] font-semibold text-[#f5a623]/60">PRO</span>
+        <div className="mt-3 flex items-center gap-2.5 rounded-[8px] border border-pro/10 bg-pro/[0.02] px-3 py-2.5">
+          <Bot className="h-3.5 w-3.5 shrink-0 text-pro/40" />
+          <p className="flex-1 text-[11px] text-text-3">Auto-optimize {domain.replace(/^https?:\/\//, '')} — creates tests in one click</p>
+          <span className="shrink-0 rounded-full border border-pro/20 px-1.5 py-0.5 text-[9px] font-semibold text-pro/60">PRO</span>
         </div>
       )}
     </div>
@@ -122,13 +112,13 @@ function NoUrlPrompt({ domain }: { domain: string | null }) {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-[#f5a623]" />
-        <h2 className="text-[13px] font-semibold text-[#ededed]">What to test next</h2>
-        <span className="rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#f5a623]">PRO</span>
+        <Sparkles className="h-3.5 w-3.5 text-pro" />
+        <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
+        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">PRO</span>
       </div>
-      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 text-center">
-        <Globe className="mx-auto h-4 w-4 text-[#ededed]/50" />
-        <p className="mt-2 text-[12px] text-[#ededed]/50">
+      <div className="rounded-[10px] border border-border bg-bg-1 p-4 text-center">
+        <Globe className="mx-auto h-4 w-4 text-text-3" />
+        <p className="mt-2 text-[12px] text-text-3">
           Add a website and create a test first — then AI can analyze your page for specific suggestions.
         </p>
       </div>
@@ -206,40 +196,40 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-[#a78bfa]" />
-        <h2 className="text-[13px] font-semibold text-[#ededed]">What to test next</h2>
-        <span className="rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#a78bfa]">AI</span>
+        <Sparkles className="h-3.5 w-3.5 text-pro" />
+        <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
+        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">AI</span>
       </div>
 
-      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+      <div className="rounded-[10px] border border-border bg-bg-1 p-3.5">
         {/* Idle: Noch nie generiert → CTA */}
         {state === 'idle' && (
           <div className="flex flex-col items-center gap-3 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8b5cf6]/10">
-              <Wand2 className="h-4 w-4 text-[#a78bfa]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-pro/10">
+              <Wand2 className="h-4 w-4 text-pro" />
             </div>
             <div className="text-center">
-              <p className="text-[12px] font-medium text-[#ededed]">AI-powered CRO suggestions</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/50">
+              <p className="text-[12px] font-medium text-text">AI-powered CRO suggestions</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-text-3">
                 Analyzes your page and suggests specific A/B tests — tailored to your site, not generic tips.
               </p>
             </div>
             <button
               onClick={fetchSuggestions}
-              className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#8b5cf6] px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-85 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Analyze my page
             </button>
-            <p className="text-[10px] text-[#ededed]/30">~$0.005 per generation · Results cached for 24h</p>
+            <p className="text-[10px] text-text-3">~$0.005 per generation · Results cached for 24h</p>
           </div>
         )}
 
         {/* Loading */}
         {state === 'loading' && (
           <div className="flex flex-col items-center gap-2 py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-[#a78bfa]" />
-            <p className="text-[11px] text-[#ededed]/60">Analyzing {siteUrl.replace(/^https?:\/\//, '')}…</p>
+            <Loader2 className="h-5 w-5 animate-spin text-pro" />
+            <p className="text-[11px] text-text-2">Analyzing {siteUrl.replace(/^https?:\/\//, '')}…</p>
           </div>
         )}
 
@@ -247,28 +237,28 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
         {state === 'done' && (
           <div className="space-y-2.5">
             {suggestions.map((s, i) => (
-              <div key={i} className="flex items-start gap-2 rounded-[6px] border border-[#8b5cf6]/10 bg-[#8b5cf6]/[0.03] px-3 py-2">
+              <div key={i} className="flex items-start gap-2 rounded-[6px] border border-pro/10 bg-pro/[0.03] px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-[#a78bfa]">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-pro">
                     {s.element}
                   </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#ededed]/80">
+                  <p className="mt-1 text-[11px] leading-relaxed text-text-2">
                     Test{' '}
-                    <span className="font-medium text-[#ededed]/90 line-through decoration-[#f5455c]/40">"{s.original}"</span>
+                    <span className="font-medium text-text/90 line-through decoration-err/40">"{s.original}"</span>
                     {' '}vs{' '}
-                    <span className="font-medium text-[#2fd76c]">"{s.variant}"</span>
+                    <span className="font-medium text-ok">"{s.variant}"</span>
                   </p>
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-[#ededed]/50">{s.why}</p>
+                  <p className="mt-0.5 text-[10px] leading-relaxed text-text-3">{s.why}</p>
                 </div>
               </div>
             ))}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-[#ededed]/30">
+              <span className="text-[10px] text-text-3">
                 {analyzedAt ? `Analyzed ${formatTimeAgo(analyzedAt)}` : ''}
               </span>
               <button
                 onClick={fetchSuggestions}
-                className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] px-2.5 py-1 text-[11px] text-[#ededed]/50 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-text-3 transition-colors hover:border-border-strong hover:text-text-2 cursor-pointer"
               >
                 <RefreshCw className="h-3 w-3" />
                 Regenerate
@@ -280,10 +270,10 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
         {/* Error */}
         {state === 'error' && (
           <div className="flex flex-col items-center gap-2 py-3">
-            <p className="text-[11px] text-[#f5455c]/70">{error}</p>
+            <p className="text-[11px] text-err/70">{error}</p>
             <button
               onClick={fetchSuggestions}
-              className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] px-3 py-1.5 text-[11px] text-[#ededed]/60 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
@@ -334,20 +324,20 @@ function MiniAgent({ domain }: { domain: string }) {
   }
 
   return (
-    <div className="mt-3 rounded-[8px] border border-[#8b5cf6]/10 bg-[#8b5cf6]/[0.02] p-3">
+    <div className="mt-3 rounded-[8px] border border-pro/10 bg-pro/[0.02] p-3">
       <div className="flex items-center gap-2 mb-2">
-        <Bot className="h-3.5 w-3.5 text-[#a78bfa]" />
-        <p className="text-[11px] font-medium text-[#ededed]">Auto-optimize</p>
+        <Bot className="h-3.5 w-3.5 text-pro" />
+        <p className="text-[11px] font-medium text-text">Auto-optimize</p>
       </div>
 
       {!hasRun && !isRunning && (
         <div>
-          <p className="text-[11px] leading-relaxed text-[#ededed]/45">
+          <p className="text-[11px] leading-relaxed text-text-3">
             One click. Agent scans {host}, finds optimizations, generates variants, creates tests.
           </p>
           <button
             onClick={handleRun}
-            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-[#7c3aed] px-3 py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-85"
+            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
           >
             <Sparkles className="h-3 w-3" />
             Optimize {host}
@@ -364,7 +354,7 @@ function MiniAgent({ domain }: { domain: string }) {
                 {m.parts.map((part, i) => {
                   if (part.type === 'text' && part.text.trim()) {
                     return (
-                      <p key={i} className="text-[11px] leading-relaxed text-[#ededed]/75">
+                      <p key={i} className="text-[11px] leading-relaxed text-text-2">
                         {part.text}
                       </p>
                     )
@@ -380,7 +370,7 @@ function MiniAgent({ domain }: { domain: string }) {
                       <p
                         key={i}
                         className={`flex items-center gap-1.5 text-[10px] ${
-                          done ? 'text-[#2fd76c]/70' : failed ? 'text-[#f5455c]/70' : 'text-[#a78bfa]/70'
+                          done ? 'text-ok/70' : failed ? 'text-err/70' : 'text-pro/70'
                         }`}
                       >
                         {done ? (
@@ -400,14 +390,14 @@ function MiniAgent({ domain }: { domain: string }) {
             ))}
 
           {isRunning && (
-            <div className="flex items-center gap-2 py-1 text-[11px] text-[#a78bfa]">
+            <div className="flex items-center gap-2 py-1 text-[11px] text-pro">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               Working…
             </div>
           )}
 
           {error && (
-            <p className="text-[11px] text-[#f5455c]/70 flex items-center gap-1.5">
+            <p className="text-[11px] text-err/70 flex items-center gap-1.5">
               <XCircle className="h-3 w-3 shrink-0" />
               {error.message || 'Agent run failed'}
             </p>
@@ -416,7 +406,7 @@ function MiniAgent({ domain }: { domain: string }) {
           {(isDone || error) && (
             <button
               onClick={handleRun}
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-white/[0.08] py-1.5 text-[11px] text-[#ededed]/55 transition-colors hover:border-white/[0.15] hover:text-[#ededed]/70"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <RefreshCw className="h-3 w-3" />
               Run again
