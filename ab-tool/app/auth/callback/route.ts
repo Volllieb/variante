@@ -2,18 +2,55 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
 
-/** Extrahiert source/plan aus dem next-Param (z.B. `/dashboard?source=figma-plugin&plan=pro`). */
-function parseAttribution(nextRaw: string | null): { source?: string; plan?: string } {
+/** Extrahiert source/plan/temp_token/test_id aus dem next-Param (z.B. `/dashboard?source=figma-plugin&temp_token=abc&test_id=123`). */
+function parseAttribution(nextRaw: string | null): { source?: string; plan?: string; tempToken?: string; testId?: string } {
   if (!nextRaw) return {}
   try {
     const qs = nextRaw.includes('?') ? nextRaw.split('?')[1] : ''
     if (!qs) return {}
     const p = new URLSearchParams(qs)
-    const source = p.get('source') || undefined
-    const plan = p.get('plan') || undefined
-    return { source, plan }
+    return {
+      source: p.get('source') || undefined,
+      plan: p.get('plan') || undefined,
+      tempToken: p.get('temp_token') || undefined,
+      testId: p.get('test_id') || undefined,
+    }
   } catch {
     return {}
+  }
+}
+
+/** Überträgt Temp-Session-Tests auf den echten User. */
+async function claimTempTests(
+  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
+  userId: string,
+  tempToken: string,
+) {
+  try {
+    // Temp-Session finden
+    const { data: session } = await supabase
+      .from('temp_sessions')
+      .select('id')
+      .eq('token', tempToken)
+      .single()
+
+    if (!session) return
+
+    // Tests transferieren
+    await supabase
+      .from('tests')
+      .update({ user_id: userId, temp_session_id: null })
+      .eq('temp_session_id', session.id)
+
+    // Temp-Session löschen
+    await supabase.from('temp_sessions').delete().eq('id', session.id)
+
+    // Plugin-Flag setzen
+    await supabase
+      .from('profiles')
+      .upsert({ id: userId, has_figma_plugin: true }, { onConflict: 'id' })
+  } catch {
+    // best-effort — claim scheitert nicht den Auth-Flow
   }
 }
 
@@ -54,7 +91,10 @@ export async function GET(req: NextRequest) {
     }
     const next = requestUrl.searchParams.get('next') || '/dashboard'
     const attribution = parseAttribution(next)
-    if (data.user) await ensureProfile(data.user.id, attribution)
+    if (data.user) {
+      await ensureProfile(data.user.id, attribution)
+      if (attribution.tempToken) await claimTempTests(supabase, data.user.id, attribution.tempToken)
+    }
     // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
     if (attribution.plan === 'pro') {
       return NextResponse.redirect(new URL('/auth/checkout', req.url))
@@ -75,7 +115,10 @@ export async function GET(req: NextRequest) {
     }
     const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
     const attribution = parseAttribution(next)
-    if (data.user) await ensureProfile(data.user.id, attribution)
+    if (data.user) {
+      await ensureProfile(data.user.id, attribution)
+      if (attribution.tempToken) await claimTempTests(supabase, data.user.id, attribution.tempToken)
+    }
     if (attribution.plan === 'pro') {
       return NextResponse.redirect(new URL('/auth/checkout', req.url))
     }
@@ -99,7 +142,10 @@ export async function GET(req: NextRequest) {
 
   const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
   const attribution = parseAttribution(next)
-  if (data.user) await ensureProfile(data.user.id, attribution)
+  if (data.user) {
+    await ensureProfile(data.user.id, attribution)
+    if (attribution.tempToken) await claimTempTests(supabase, data.user.id, attribution.tempToken)
+  }
   if (attribution.plan === 'pro') {
     return NextResponse.redirect(new URL('/auth/checkout', req.url))
   }
