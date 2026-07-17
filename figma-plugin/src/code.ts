@@ -5,6 +5,13 @@ figma.clientStorage.getAsync('ab_token').then((token) => {
   figma.ui.postMessage({ type: 'TOKEN', token: typeof token === 'string' ? token : '' })
 })
 
+// Temp-Session-Token laden (Onboarding ohne Account) und an die UI schicken.
+figma.clientStorage.getAsync('ab_temp_token').then((token) => {
+  if (typeof token === 'string' && token) {
+    figma.ui.postMessage({ type: 'TEMP_TOKEN_LOADED', token })
+  }
+})
+
 // Gespeicherten Wizard-Draft laden (testId + Screen), damit der User nach
 // Schließen/Wiederöffnen des Plugins nicht von vorne anfangen muss.
 figma.clientStorage.getAsync('ab_draft').then((draft) => {
@@ -199,6 +206,16 @@ figma.ui.onmessage = async (msg) => {
 
     case 'TOKEN_SAVE': {
       await figma.clientStorage.setAsync('ab_token', typeof msg.token === 'string' ? msg.token : '')
+      break
+    }
+
+    case 'TEMP_TOKEN_SAVE': {
+      await figma.clientStorage.setAsync('ab_temp_token', typeof msg.token === 'string' ? msg.token : '')
+      break
+    }
+
+    case 'TEMP_TOKEN_CLEAR': {
+      await figma.clientStorage.deleteAsync('ab_temp_token')
       break
     }
 

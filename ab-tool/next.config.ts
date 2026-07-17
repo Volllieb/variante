@@ -95,6 +95,9 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'Content-Security-Policy', value: csp },
+          // Opt-out from AI/ML training datasets. Wird von GPTBot, Google Extended,
+          // CCBot und anderen KI-Crawlern vor dem Abruf ausgewertet.
+          { key: 'X-Robots-Tag', value: 'noai, noimageai' },
         ],
       },
     ]

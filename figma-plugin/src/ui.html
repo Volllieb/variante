@@ -666,6 +666,41 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 <body>
 
 <!-- ═══════════════════════════════════════════════════════════════
+     SCREEN -2 · Welcome (Onboarding Entry)
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-welcome" class="screen">
+  <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:20px 16px 16px">
+    <div class="welcome-shell">
+      <div class="welcome-hero">
+        <div class="welcome-logo">variante</div>
+        <div class="welcome-sub">Create your first A/B test — directly from Figma</div>
+      </div>
+
+      <div class="welcome-steps">
+        <div class="welcome-step">
+          <span class="welcome-step-num">1</span>
+          <span class="welcome-step-text">Enter your website &amp; install the snippet</span>
+        </div>
+        <div class="welcome-step">
+          <span class="welcome-step-num">2</span>
+          <span class="welcome-step-text">Pick an element &amp; redesign in Figma</span>
+        </div>
+        <div class="welcome-step">
+          <span class="welcome-step-num">3</span>
+          <span class="welcome-step-text">AI generates variant &mdash; sign up to go live</span>
+        </div>
+      </div>
+
+      <div class="welcome-actions">
+        <button class="btn btn-primary" onclick="startOnboarding()">Create your first test &rarr;</button>
+        <button class="btn btn-ghost" onclick="goToTokenMode()" style="font-size:var(--fs-sm)">Already have an account? Connect</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
      SCREEN –1 · Connect / Token Wall
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-connect" class="screen active">
@@ -739,14 +774,28 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Test Details</span>
-    <span class="hdr-step">1 / 5</span>
+    <span class="hdr-step">1 / 6</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-label="Step 1 of 5">
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="Step 1 of 6">
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
   <div class="body">
     <div class="hint">What are you testing, and where does it live?</div>
+
+    <!-- Website-URL (nur im Onboarding-Modus sichtbar) -->
+    <div id="setup-url-field" style="display:none">
+      <label class="lbl" for="f-website">Your website URL</label>
+      <div class="input-wrap has-prefix">
+        <div class="input-icon-left">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
+          </svg>
+        </div>
+        <input id="f-website" placeholder="https://example.com" oninput="onWebsiteInput()"/>
+      </div>
+      <div class="field-err" id="website-err" role="alert"></div>
+    </div>
 
     <label class="lbl" for="f-name">Test name</label>
     <div class="input-wrap has-prefix">
@@ -795,6 +844,59 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   </div>
   <div class="ftr">
     <button id="btn-create" class="btn btn-primary" onclick="createTest()">Continue →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN 1b · Install Snippet (Onboarding only)
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-snippet" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Install Snippet</span>
+    <span class="hdr-step">2 / 6</span>
+  </div>
+  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="2" aria-label="Step 2 of 6">
+    <div class="step-dot on"></div><div class="step-dot on"></div><div class="step-dot"></div>
+    <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
+  </div>
+  <div class="body">
+    <div class="notice notice-blue" style="margin-bottom:16px">
+      <div class="notice-head">
+        <span class="notice-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </span>
+        <div>
+          <div class="notice-title">Add this snippet to your site's &lt;head&gt;</div>
+          <div class="notice-body">This lets variante detect elements and track conversions. Takes 30 seconds — copy, paste, done.</div>
+        </div>
+      </div>
+    </div>
+
+    <label class="lbl">Your snippet</label>
+    <pre id="snippet-code" style="margin-bottom:10px">&lt;script src="https://www.getvariante.com/ab.js" data-key="<span id="sn-key">...</span>"&gt;&lt;/script&gt;</pre>
+
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button id="btn-copy-snippet" class="btn btn-secondary btn-sm" onclick="copySnippet()" style="flex:1">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy snippet
+      </button>
+    </div>
+    <div class="ok" id="sn-copied" style="display:none">✓ Copied to clipboard</div>
+
+    <div class="hint" style="margin-top:12px">
+      No access to your site's code right now? <button class="btn btn-ghost" onclick="goToElement()" style="font-size:var(--fs-sm);padding:0;vertical-align:baseline">Skip for now</button> — but the element picker won't work without it.
+    </div>
+  </div>
+  <div class="ftr">
+    <button id="btn-snippet-done" class="btn btn-primary" onclick="goToElement()">I've installed the snippet &rarr;</button>
   </div>
 </div>
 
@@ -1113,10 +1215,12 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       <div style="font-size:var(--fs-sm);color:var(--text-2);margin-bottom:24px">
         <span id="m-done-name"></span> · <span id="m-done-url"></span>
       </div>
-      <button class="btn btn-primary btn-icon-left" onclick="parent.postMessage({pluginMessage:{type:'OPEN_URL',url:API+'/dashboard'}},'*')" style="margin-bottom:8px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
-        Open in Dashboard →
-      </button>
+      <div id="m-done-cta" style="margin-bottom:8px">
+        <button class="btn btn-primary btn-icon-left" onclick="parent.postMessage({pluginMessage:{type:'OPEN_URL',url:API+'/dashboard'}},'*')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+          Open in Dashboard &rarr;
+        </button>
+      </div>
       <button class="btn btn-ghost" onclick="newTest()" style="width:100%">Create another test</button>
     </div>
   </div>
@@ -1149,6 +1253,7 @@ let scope = 'all'
 let previewVariant = 'b'
 let elTimer = null, mTimer = null, mDotTimer = null
 let API_TOKEN = ''
+let tempToken = ''  // Temp-Session-Token für Onboarding ohne Account
 let tokenReceived = false
 let navHistory = []
 let pendingDraft = null  // { testId, screen } — vom code.ts beim Boot geladen
@@ -1162,6 +1267,7 @@ function afetch(url, opts) {
   const src = opts.headers || {}
   for (const k in src) headers[k] = src[k]
   if (API_TOKEN) headers['Authorization'] = 'Bearer ' + API_TOKEN
+  else if (tempToken) headers['X-Temp-Token'] = tempToken
   opts.headers = headers
   return fetch(url, opts)
 }
@@ -1174,6 +1280,10 @@ function apiErrorMessage(status, body) {
       return 'Your content contains sensitive data (' + types.join(', ') + '). Please remove it and try again.'
     }
     return 'Your content contains sensitive data. Please remove personal information and try again.'
+  }
+  // 402 with signup_url → temp user ran out of free gens
+  if (status === 402 && body && body.signup_url) {
+    return 'Sign up to generate more variants.'
   }
   if (status === 402) return 'This feature requires a Pro plan. Upgrade to continue.'
   if (status === 429) return 'Too many requests. Please wait a moment and try again.'
@@ -1215,9 +1325,9 @@ function go(id) {
   if (id !== 'metric')  stopMetricPoll()
   if (id !== 'dashboard' && pendingDelete) commitPendingDelete()
 }
-// ponytail: Wizard-Screens sind setup/element/design/generate/metric.
+// ponytail: Wizard-Screens sind setup/snippet/element/design/generate/metric.
 // Dashboard & connect sind keine Wizard-Screens — da wird der Draft gelöscht.
-const WIZARD_SCREENS = ['setup', 'element', 'design', 'generate', 'metric']
+const WIZARD_SCREENS = ['setup', 'snippet', 'element', 'design', 'generate', 'metric']
 function saveDraft(id) {
   if (!WIZARD_SCREENS.includes(id) || !state.testId) return
   parent.postMessage({ pluginMessage: { type: 'SAVE_DRAFT', draft: { testId: state.testId, screen: id } } }, '*')
@@ -1270,6 +1380,61 @@ function goUpgrade() {
 
 function createAccount() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/signup?source=figma-plugin' } }, '*')
+}
+
+// ── Onboarding-Flow (ohne Account) ────────────────────────────────────────
+async function startOnboarding() {
+  try {
+    const res = await fetch(API + '/api/temp-session', { method: 'POST' })
+    if (!res.ok) throw new Error('Failed to create session')
+    const data = await res.json()
+    tempToken = data.token
+    // Persist in clientStorage
+    parent.postMessage({ pluginMessage: { type: 'TEMP_TOKEN_SAVE', token: tempToken } }, '*')
+  } catch (e) {
+    err('welcome', 'Could not start onboarding. Check your connection.')
+    return
+  }
+  // Reset state
+  state.testId = ''; state.snippetKey = ''; state.selector = ''; state.goal = ''
+  state.originalHtml = ''; state.goalCandidates = []
+  state.frameId = ''; state.screenshot = ''; state.frameContent = null; state.html = ''
+  previewVariant = 'b'; scope = 'all'
+  generateDone = false; generateFailed = false
+  hideUpgradeBanner()
+  // Show website field in setup
+  $('setup-url-field').style.display = 'block'
+  navHistory = []
+  navPush('setup')
+  // Focus name field
+  setTimeout(function() { var f = $('f-name'); if (f) f.focus() }, 100)
+}
+
+function onWebsiteInput() {
+  clearFieldError('f-website', 'website-err')
+}
+
+function copySnippet() {
+  var pre = $('snippet-code')
+  var range = document.createRange()
+  range.selectNodeContents(pre)
+  var sel = window.getSelection()
+  sel.removeAllRanges()
+  sel.addRange(range)
+  try {
+    document.execCommand('copy')
+    $('sn-copied').style.display = 'block'
+    setTimeout(function() { $('sn-copied').style.display = 'none' }, 3000)
+  } catch (_) {}
+  sel.removeAllRanges()
+}
+
+function goToTokenMode() {
+  tempToken = ''
+  parent.postMessage({ pluginMessage: { type: 'TEMP_TOKEN_CLEAR' } }, '*')
+  go('connect')
+  populateDatalist('dl-token', 'token')
+  if (API_TOKEN) $('connect-token').value = API_TOKEN
 }
 function openDashboardForToken() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard/setup?source=figma-plugin' } }, '*')
@@ -1703,16 +1868,30 @@ function newTest() {
 async function createTest() {
   const nameEl = $('f-name')
   const name = (nameEl.value || '').trim()
+  const isOnboarding = !API_TOKEN && !!tempToken
 
   clearFieldError('f-name', 'name-err')
 
   if (!name) { setFieldError('f-name', 'name-err', 'Give your test a name.'); nameEl.focus(); return }
 
-  // URL kommt immer von der verified domain — wird im Setup-Bereich gesetzt.
-  const url = state.verifiedDomain
-  if (!url) {
-    setFieldError('f-name', 'name-err', 'No website connected. Add your site in the dashboard first.')
-    return
+  // URL: im Onboarding aus f-website, sonst von verified domain
+  let url
+  if (isOnboarding) {
+    url = ($('f-website').value || '').trim()
+    clearFieldError('f-website', 'website-err')
+    if (!url) { setFieldError('f-website', 'website-err', 'Enter your website URL.'); $('f-website').focus(); return }
+    // Grobe URL-Validierung
+    if (!/^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(url)) {
+      setFieldError('f-website', 'website-err', 'Enter a valid URL (e.g. https://example.com).')
+      $('f-website').focus()
+      return
+    }
+  } else {
+    url = state.verifiedDomain
+    if (!url) {
+      setFieldError('f-name', 'name-err', 'No website connected. Add your site in the dashboard first.')
+      return
+    }
   }
 
   const minVisitors = parseInt($('f-visitors').value, 10) || 100
@@ -1756,8 +1935,13 @@ async function createTest() {
       state.name = name; state.url = url
     }
     hideUpgradeBanner()
-    navPush('element')
-    startElementPoll()
+    // Im Onboarding: nach Setup kommt Snippet-Screen
+    navPush(isOnboarding ? 'snippet' : 'element')
+    if (!isOnboarding) startElementPoll()
+    else {
+      // Snippet-Key anzeigen
+      $('sn-key').textContent = state.snippetKey || '...'
+    }
   } catch (e) {
     err('setup', e.message)
   } finally {
@@ -1772,7 +1956,10 @@ function siteTriggerUrl(mode) {
   const param = mode === 'goal' ? 'ab_goal' : 'ab_pick'
   const sep = base.indexOf('?') > -1 ? '&' : '?'
   let url = base + sep + param + '=' + encodeURIComponent(state.testId) +
-    '&ab_api=' + encodeURIComponent(API) + '&ab_token=' + encodeURIComponent(API_TOKEN)
+    '&ab_api=' + encodeURIComponent(API)
+  // Temp vs Auth: passenden Token-Type mitschicken
+  if (API_TOKEN) url += '&ab_token=' + encodeURIComponent(API_TOKEN)
+  else if (tempToken) url += '&ab_temp_token=' + encodeURIComponent(tempToken)
   if (mode === 'reorder') url += '&ab_reorder=1'
   return url
 }
@@ -2121,10 +2308,22 @@ async function enterMetric() {
 }
 
 function finishWizard() {
+  const isOnboarding = !API_TOKEN && !!tempToken
   $('m-form').style.display = 'none'
   $('m-done').style.display = 'flex'
   $('m-done-name').textContent = state.name || state.testId || ''
   $('m-done-url').textContent = state.url || ''
+
+  if (isOnboarding) {
+    // Onboarding: Signup-Prompt statt Dashboard-Button
+    const signupUrl = 'https://www.getvariante.com/signup?source=figma-plugin&temp_token=' +
+      encodeURIComponent(tempToken) + '&test_id=' + encodeURIComponent(state.testId)
+    $('m-done-cta').innerHTML = '<span style="display:block;margin-bottom:12px;color:var(--text-1);font-weight:600">Your test is ready! Sign up to view results.</span>' +
+      '<button class="btn btn-primary" onclick="parent.postMessage({pluginMessage:{type:\'OPEN_URL\',url:\'' + signupUrl + '\'}},\'*\')" style="width:100%">View Results in Dashboard &rarr;</button>' +
+      '<span style="display:block;margin-top:10px;font-size:var(--fs-sm);color:var(--text-2)">We\'ll save this test to your new account.</span>'
+  } else {
+    $('m-done-cta').innerHTML = '<button class="btn btn-primary" onclick="parent.postMessage({pluginMessage:{type:\'OPEN_URL\',url:\'https://www.getvariante.com/dashboard?highlight=\'+encodeURIComponent(state.testId)}},\'*\')" style="width:100%">Open in Dashboard &rarr;</button>'
+  }
 }
 
 function startMetricPoll() {
@@ -2195,6 +2394,12 @@ function startGeneration() {
   var scopeArea = $('gen-scope-area')
   if (scopeArea) scopeArea.style.display = 'none'
   generate()
+}
+
+function goToElement() {
+  // Vom Snippet-Screen zum Element-Picker (Onboarding-Flow)
+  navPush('element')
+  startElementPoll()
 }
 
 function goToGoal() {
@@ -2458,7 +2663,14 @@ window.onmessage = (event) => {
       } else {
         showDashboard()
       }
-    } else go('connect')
+    }
+    // Kein else — Boot-Timer handled den Fall ohne API_TOKEN
+    return
+  }
+
+  if (msg.type === 'TEMP_TOKEN_LOADED') {
+    tempToken = msg.token || ''
+    $('setup-url-field').style.display = 'block'
     return
   }
 
@@ -2517,7 +2729,17 @@ function openRefine() { $('refine-overlay').classList.add('open'); $('gen-feedba
 function closeRefine() { $('refine-overlay').classList.remove('open') }
 function submitRefine() { closeRefine(); refine() }
 
-// Boot: wait for token from code.ts; fallback → Connect screen after 1.5s
-setTimeout(function() { if (!tokenReceived) go('connect') }, 1500)
+// Boot: wait for token from code.ts; fallback → Welcome screen after 1.5s
+setTimeout(function() {
+  if (!tokenReceived) go('welcome')
+  else if (!API_TOKEN && tempToken) {
+    // Temp-Token geladen, aber kein Account — Onboarding-Mode
+    $('setup-url-field').style.display = 'block'
+    if (pendingDraft && pendingDraft.testId) {
+      restoreDraft(pendingDraft)
+      pendingDraft = null
+    }
+  }
+}, 1500)
 </script>
 </html>

@@ -60,6 +60,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />
         <style id="__ab_hide" dangerouslySetInnerHTML={{ __html: 'html.__ab_pending{opacity:0!important}' }} suppressHydrationWarning />
+        {/* Opt-out from AI training, screenshots, and generative image models.
+            noai / noimageai: respected by GPTBot, Google Extended, CCBot & others.
+            max-image-preview:none: prevents large previews in AI interfaces. */}
+        <meta name="robots" content="noai, noimageai, max-image-preview:none" />
         {/* Plain script tags, not next/script: beforeInteractive doesn't support inline
             scripts and re-renders the tag through React on the client ("Encountered a
             script tag..."). A plain tag in the server-rendered <head> executes during
