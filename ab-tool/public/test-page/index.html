@@ -507,31 +507,51 @@
       var debug = document.getElementById('__ab_debug');
       var debugTests = document.getElementById('__ab_debug_tests');
 
-      // Poll for __ab_tests (set by ab.js after resolve)
+      // Lies Varianten aus localStorage (ab.js speichert "ab_<snippet_key>" = {variant:"A"|"B"})
+      function readVariants() {
+        var variants = {};
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            if (key && key.indexOf('ab_') === 0 && key.indexOf('ab_conv_') !== 0) {
+              try {
+                var data = JSON.parse(localStorage.getItem(key));
+                variants[key] = data.variant || '?';
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+        return variants;
+      }
+
+      // Poll bis ab.js Varianten gespeichert hat UND __ab_pending entfernt wurde
       var attempts = 0;
       var poll = setInterval(function() {
         attempts++;
-        var tests = window.__ab_tests;
-        if (tests && Object.keys(tests).length > 0) {
+        var resolved = !document.documentElement.classList.contains('__ab_pending');
+        var variants = readVariants();
+        var keys = Object.keys(variants);
+
+        if (keys.length > 0) {
           clearInterval(poll);
           debug.classList.add('visible');
           var html = '';
-          Object.entries(tests).forEach(function(entry) {
-            var testId = entry[0];
-            var data = entry[1];
-            var variant = data.variant || '?';
+          keys.forEach(function(key) {
+            var variant = variants[key];
             html += '<span class="tag' + (variant === 'B' ? ' b' : '') + '">' +
-              testId.slice(0, 8) + ' → Var ' + variant +
+              key.replace('ab_', '').slice(0, 8) + ' → Var ' + variant +
               '</span> ';
           });
           debugTests.innerHTML = html || '<span class="dim">No active tests</span>';
         }
-        // Also check if there are CSS changes applied (ab.js might set classes)
-        if (attempts > 40) { // 2 seconds
+
+        if (attempts > 60) { // 3 Sekunden
           clearInterval(poll);
-          if (!window.__ab_tests || Object.keys(window.__ab_tests || {}).length === 0) {
+          if (keys.length === 0) {
             debug.classList.add('visible');
-            debugTests.innerHTML = '<span class="dim">No tests resolved (check snippet)</span>';
+            debugTests.innerHTML = resolved
+              ? '<span class="dim">No active tests (ab.js loaded)</span>'
+              : '<span class="dim">ab.js not loaded (check snippet)</span>';
           }
         }
       }, 50);

@@ -53,6 +53,28 @@ Dokumentation: `docs/` (Brand, GTM, Leads, Marktrecherche, E2E, Future-Features)
 - Build-Pflicht gilt weiterhin: vor JEDEM Commit `npm run vercel-build`.
 - Bei Build-Fehlern in Vercel: `npx vercel list` → `npx vercel inspect <url> --logs` → Fehler analysieren.
 
+## Env-Var-Regel (seit 2026-07-17)
+
+**Source of Truth = Vercel.** Alle Secrets leben in Vercel, niemals lokal committet.
+
+### Dateien
+| Datei | Zweck | Git? |
+|---|---|---|
+| `ab-tool/.env.local` | Lokale Secrets für `next dev` | **Nein** (gitignored) |
+| `ab-tool/.env.example` | Doku aller benötigten Vars | **Ja** (committed) |
+
+### Workflow
+1. **Onboarding:** `cd ab-tool && vercel env pull .env.local --yes`
+2. **Neue Env-Var:** `vercel env add MY_VAR production preview` → `.env.example` nachziehen → `vercel env pull .env.local --yes`
+3. **Env-Var löschen:** `vercel env rm MY_VAR` → `.env.example` nachziehen
+4. **Nach jedem Pull:** prüfen ob alle in `.env.example` dokumentierten Vars in `.env.local` vorhanden sind
+
+### Regeln
+- **Keine Secrets in `.env.example`** — nur leere `""` oder Default-Werte.
+- **`NEXT_PUBLIC_*` nur für unkritische Werte** (URLs, Anon-Keys). Nie Secrets.
+- **Vor jedem Commit prüfen:** `.env.local` ist nicht im Diff (`git status`).
+- **Root `.env.local` gelöscht 17.07.2026** — einzige kanonische Datei ist `ab-tool/.env.local`.
+
 ## Prüfpflicht
 Bei JEDEM Task (Code, Doku, Config):
 1. **Vor dem Task:** PROJEKT.md §10 durchgehen — gibt es offene Prüfpunkte?
