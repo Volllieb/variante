@@ -15,7 +15,7 @@ import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import { extractPageCode, type ExtractedPage } from '@/lib/extractPageCode'
 import { analyzePreview, buildHighlightCss } from '@/lib/previewAnalyze'
-import { captureToStorage, renderScreenshot, uploadShot, SHOT_WIDTH, SHOT_HEIGHT } from '@/lib/screenshot'
+import { renderSettledScreenshot, uploadShot, SHOT_WIDTH, SHOT_HEIGHT } from '@/lib/screenshot'
 
 // Zwei Screenshots (je bis 40s Render-Timeout + 2.5s Settle-Delay) + Vision-Call.
 // Realistisch ~15-30s; 120s Headroom, damit langsame Kundenseiten nicht die
@@ -67,7 +67,11 @@ export async function POST(req: Request) {
   // Schritt 1+2 parallel: der Screenshot ist der teure Pfad (~4-8s), der
   // HTML-Fetch der kurze (~1s). Nacheinander wären das 9s statt 8s (Plan §5).
   const previewId = crypto.randomUUID()
-  const shotPromise = captureToStorage(url, `${previewId}/original.png`)
+  const shotPromise = (async () => {
+    const { png, blank } = await renderSettledScreenshot(url)
+    if (blank) return 'blank' as const
+    return uploadShot(`${previewId}/original.png`, png)
+  })()
   const codePromise = extractPageCode(url).catch((err) => {
     // Plan §5: fetch schlägt fehl → Screenshot-only-Analyse, transparent an den
     // Client gemeldet. Lieber eine Preview mit geratenen Selektoren als keine.
@@ -85,6 +89,16 @@ export async function POST(req: Request) {
 
   if (!shotResult) {
     return json({ error: 'screenshot_failed', message: "We couldn't load that page. Check the URL and try again." }, 502)
+  }
+
+  // Leer-Render: die Seite zeigt dem Headless-Browser nichts (Preloader-Overlay,
+  // Bot-Wall, JS-gated Paint) — eine weiße Preview sähe aus wie ein kaputtes
+  // Produkt. Lieber ehrlich ablehnen (Plan §7 Punkt 4 sinngemäß).
+  if (shotResult === 'blank') {
+    return json({
+      error: 'blank_page',
+      message: "Your page appears blank to our browser — it may show a loading screen first or block automated visitors. Try a different page, like your homepage or pricing page.",
+    }, 422)
   }
 
   // SPA: fetch() sieht nur eine leere Shell, GPT hätte keine echten Selektoren.
@@ -118,7 +132,8 @@ export async function POST(req: Request) {
   // gespeichert wird analysis.injectedCss (sauber), das später live rausgeht.
   let variantShot: string
   try {
-    const png = await renderScreenshot(url, { css: buildHighlightCss(analysis.changes) })
+    const { png, blank } = await renderSettledScreenshot(url, { css: buildHighlightCss(analysis.changes) })
+    if (blank) throw new Error('variant render blank')
     variantShot = await uploadShot(`${previewId}/variant.png`, png)
   } catch (err) {
     safeError('preview-variant-screenshot', err)

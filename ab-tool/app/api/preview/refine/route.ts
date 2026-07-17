@@ -10,7 +10,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import { refinePreview, buildHighlightCss, type PreviewChange } from '@/lib/previewAnalyze'
-import { renderScreenshot, uploadShot } from '@/lib/screenshot'
+import { renderSettledScreenshot, uploadShot } from '@/lib/screenshot'
 
 // Ein Render (bis 40s Timeout + Settle-Delay) + gpt-4o-mini.
 export const maxDuration = 90
@@ -98,7 +98,8 @@ export async function POST(req: Request) {
   // (Plan §3.2 Schritt 5).
   let variantShot: string
   try {
-    const png = await renderScreenshot(url, { css: buildHighlightCss(refined.changes) })
+    const { png, blank } = await renderSettledScreenshot(url, { css: buildHighlightCss(refined.changes) })
+    if (blank) throw new Error('refined variant render blank')
     variantShot = await uploadShot(`${previewData.previewId}/variant.png`, png)
   } catch (err) {
     safeError('preview-refine-screenshot', err)

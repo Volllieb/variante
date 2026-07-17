@@ -30,7 +30,21 @@ export interface ShotOptions {
   css?: string
   width?: number
   height?: number
+  /** Settle-Zeit vor dem Capture (Default 2500ms, siehe unten). */
+  delayMs?: number
 }
+
+// Blank-Detection über die PNG-Größe: ein einfarbiges 1440x900-PNG komprimiert
+// auf ~5-15 KB, eine echte Seite liegt bei 80-800 KB. Preloader-Overlays
+// (weißer Ladescreen), JS-gated Paint oder Bot-Walls produzieren solche
+// Leer-Renders — in Produktion als "komplett weiße Preview" aufgeschlagen.
+//   < RETRY:  verdächtig → einmal mit längerem Delay neu rendern (billig)
+//   < BLANK:  auch danach praktisch sicher leer → Aufrufer soll ablehnen
+// Dazwischen (12-30 KB): vermutlich echte Minimal-Seite (à la example.com) —
+// durchlassen, lieber eine karge Preview als ein falscher Fehler.
+const BLANK_RETRY_BYTES = 30_000
+const BLANK_REJECT_BYTES = 12_000
+const SETTLE_RETRY_DELAY_MS = 6_000
 
 /**
  * Rendert `url` bei urlbox und gibt die PNG-Bytes zurück.
@@ -65,7 +79,7 @@ export async function renderScreenshot(url: string, opts: ShotOptions = {}): Pro
     block_ads: true,
     hide_cookie_banners: true,
     wait_until: 'requestsfinished',
-    delay: 2500,
+    delay: opts.delayMs ?? 2500,
   }
 
   let json = await postRender(apiKey, enhanced)
@@ -128,6 +142,28 @@ export async function uploadShot(path: string, png: Buffer): Promise<string> {
   // Cache-Buster: Refine überschreibt variant.png unter demselben Pfad (upsert),
   // ohne ?v= zeigt der Browser weiter den alten Screenshot.
   return `${data.publicUrl}?v=${Date.now()}`
+}
+
+/**
+ * Rendert mit Blank-Detection: verdächtig kleine PNGs werden einmal mit
+ * längerem Settle-Delay neu gerendert (Preloader/Animationen brauchen manchmal
+ * mehr als 2.5s). `blank: true` heißt: auch der Retry war praktisch leer —
+ * der Aufrufer sollte dem User eine Fehlermeldung zeigen statt eines weißen
+ * Screenshots, der wie ein kaputtes Produkt aussieht.
+ */
+export async function renderSettledScreenshot(
+  url: string,
+  opts: ShotOptions = {}
+): Promise<{ png: Buffer; blank: boolean }> {
+  let png = await renderScreenshot(url, opts)
+  if (png.length < BLANK_RETRY_BYTES) {
+    safeError('screenshot-blank-retry', {
+      message: `render was ${png.length} bytes — retrying with ${SETTLE_RETRY_DELAY_MS}ms delay`,
+    })
+    const retry = await renderScreenshot(url, { ...opts, delayMs: SETTLE_RETRY_DELAY_MS })
+    if (retry.length > png.length) png = retry
+  }
+  return { png, blank: png.length < BLANK_REJECT_BYTES }
 }
 
 /** Rendert und lädt in einem Schritt hoch. */
