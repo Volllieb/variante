@@ -47,7 +47,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       const res = await fetch('/api/profile/avatar', { method: 'POST', body: form })
       const data = await res.json()
       if (res.ok && data.url) {
-        setAvatarUrl(data.url + '?t=' + Date.now())
+        setAvatarUrl(data.url) // URL already versioned by API
         router.refresh() // Update sidebar via server re-fetch
       } else {
         setAvatarError(data.error ?? 'Upload failed')

@@ -71,10 +71,13 @@ export async function POST(req: Request) {
     return Response.json({ error: 'url generation failed' }, { status: 500, headers: corsHeaders('POST, DELETE, OPTIONS') })
   }
 
+  // Versioned URL so browser cache is busted on every upload
+  const versionedUrl = avatarUrl + '?v=' + Date.now()
+
   // Save to profile
   const { error: updateError } = await supabase
     .from('profiles')
-    .update({ avatar_url: avatarUrl })
+    .update({ avatar_url: versionedUrl })
     .eq('user_id', user.userId)
 
   if (updateError) {
@@ -82,7 +85,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, DELETE, OPTIONS') })
   }
 
-  return Response.json({ url: avatarUrl }, { headers: corsHeaders('POST, DELETE, OPTIONS') })
+  return Response.json({ url: versionedUrl }, { headers: corsHeaders('POST, DELETE, OPTIONS') })
 }
 
 export async function DELETE(req: Request) {
