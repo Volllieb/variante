@@ -47,7 +47,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       const res = await fetch('/api/profile/avatar', { method: 'POST', body: form })
       const data = await res.json()
       if (res.ok && data.url) {
-        setAvatarUrl(data.url)
+        setAvatarUrl(data.url + '?t=' + Date.now())
         router.refresh() // Update sidebar via server re-fetch
       } else {
         setAvatarError(data.error ?? 'Upload failed')
@@ -206,6 +206,8 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   width={64}
                   height={64}
                   className="h-full w-full rounded-full object-cover"
+                  unoptimized
+                  key={avatarUrl}
                 />
               ) : (
                 <User className="h-6 w-6 text-[#ededed]/30" />
@@ -310,12 +312,12 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
 
           {domains.length === 0 && (
             <div className="space-y-3">
-              <p className="text-[12px] text-[#ededed]/40">No website connected. Head to Setup to add one.</p>
+              <p className="text-[12px] text-[#ededed]/40">No website connected. Head to Health to add one.</p>
               <Link
-                href="/dashboard/setup"
+                href="/dashboard/health"
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
               >
-                Go to Setup
+                Go to Health
               </Link>
             </div>
           )}
@@ -392,7 +394,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           {domains.length > 0 && (
             <p className="mt-3 text-[12px] text-[#ededed]/50">
               To replace this website, delete it first, then add a new one via{' '}
-              <Link href="/dashboard/setup" className="underline hover:text-[#ededed]/60">Setup</Link>.
+              <Link href="/dashboard/health" className="underline hover:text-[#ededed]/60">Health</Link>.
             </p>
           )}
 
