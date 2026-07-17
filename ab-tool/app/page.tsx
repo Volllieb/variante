@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Zap } from '@/components/LandingIcons'
-import { techLogos, TechLogoMark } from '@/components/TechLogos'
+import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight } from '@/components/LandingIcons'
+import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
 import { HybridDemo } from '@/app/components/HybridDemo'
 import { detectLang } from '@/lib/detectLang'
 import { getCopy, PLANS } from '@/lib/landingCopy'
@@ -94,13 +94,19 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             <p className="hero-sub mt-5 text-base sm:text-lg">
               {cp.heroSub}
             </p>
-            <div className="mt-8 sm:mt-9">
+            <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
               <a
                 href="#demo-hybrid"
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
               </a>
+              <Link
+                href={signupUrl("/signup")}
+                className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"
+              >
+                {cp.navSignup} <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
+              </Link>
             </div>
           </div>
 
@@ -111,6 +117,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 src="/ab-test-hero-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
                 title="A/B Test Demo"
+                loading="lazy"
               />
             </div>
           </div>
@@ -120,12 +127,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         <div className="container-wide mt-8 sm:mt-10">
           <div className="stat-bar rounded-xl border border-border bg-bg-1/50 px-6 py-5">
             {[
-              { label: cp.trustItems[0].label, text: cp.trustItems[0].text },
-              { label: cp.trustItems[1].label, text: cp.trustItems[1].text },
-              { label: cp.trustItems[2].label, text: cp.trustItems[2].text },
-              { label: cp.trustItems[3].label, text: cp.trustItems[3].text },
+              { icon: Rocket, label: cp.trustItems[0].label, text: cp.trustItems[0].text },
+              { icon: Gauge, label: cp.trustItems[1].label, text: cp.trustItems[1].text },
+              { icon: Shield, label: cp.trustItems[2].label, text: cp.trustItems[2].text },
+              { icon: Sparkles, label: cp.trustItems[3].label, text: cp.trustItems[3].text },
             ].map((item) => (
               <div key={item.label} className="stat-item">
+                <item.icon className="mb-0.5 h-4 w-4 text-white/25" />
                 <span className="stat-label">{item.label}</span>
                 <span className="stat-text">{item.text}</span>
               </div>
@@ -150,8 +158,27 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             ))}
           </div>
           <p className="mt-5 text-xs text-text-3">
-            {cp.worksLabel}
+            {cp.platformNote.replace('{platforms}', techLogoNames.join(', '))}
           </p>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* ── How it works ── */}
+      <section className="section">
+        <div className="container">
+          <span className="section-label">{cp.sectionHow}</span>
+          <h2 className="section-heading mt-1">{cp.sectionHow}</h2>
+          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+            {cp.steps.map((s, i) => (
+              <div key={s.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
+                <span className="step-number">{i + 1}</span>
+                <h3 className="mt-4 text-sm font-semibold text-white/85">{s.title}</h3>
+                <p className="mt-2 text-sm text-white/45 font-normal leading-relaxed">{s.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -174,6 +201,41 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </div>
           </div>
           <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
+
+          {/* Agent Loop Cards */}
+          <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {cp.agentLoop.map((item, i) => (
+              <div key={item.title} className="agent-loop-card rounded-xl border border-border bg-bg-1 p-4">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-bg-2 text-[11px] font-semibold text-text-3">
+                  {i + 1}
+                </span>
+                <h4 className="mt-3 text-sm font-semibold text-white/80">{item.title}</h4>
+                <p className="mt-1.5 text-xs text-white/45 font-normal leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* ── Figma Community ── */}
+      <section className="section">
+        <div className="container-narrow text-center">
+          <span className="section-label">Figma</span>
+          <h2 className="section-heading mt-1">{cp.figmaCommunityTitle}</h2>
+          <p className="section-sub">{cp.figmaCommunityText}</p>
+          <div className="mt-8">
+            <a
+              href="https://www.figma.com/community/plugin/1653734891132085565"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full border border-border-strong px-5 py-2.5 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85"
+            >
+              {cp.figmaCommunityLinkText}
+              <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
+            </a>
+          </div>
         </div>
       </section>
 
@@ -295,9 +357,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               >
                 <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-white/75 select-none">
                   {item.q}
-                  <span className="ml-4 shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-180">
-                    ▾
-                  </span>
+                  <ChevronDown className="ml-4 h-4 w-4 shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-180" />
                 </summary>
                 <p className="px-5 pb-4 text-sm text-white/45 font-normal leading-relaxed">{item.a}</p>
               </details>
@@ -321,6 +381,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.closingCta}
             </Link>
           </div>
+          <p className="cta-urgency">{cp.heroFootnote || cp.pricingSub}</p>
         </div>
       </section>
 

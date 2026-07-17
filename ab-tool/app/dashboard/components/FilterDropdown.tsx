@@ -3,16 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Filter, X, Check } from 'lucide-react'
 
-/* ── Token palette ── */
-const T = {
-  bg1: '#0a0a0a',
-  bg2: '#111111',
-  text: '#ededed',
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-}
-
 /* ── Filter types ── */
 
 export const STATUS_OPTIONS = ['all', 'active', 'draft', 'paused', 'done', 'health-issues'] as const
@@ -124,31 +114,25 @@ export function FilterDropdown({
       <button
         onClick={() => setOpen((v) => !v)}
         title={`Filter${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
-        className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+        className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
       >
         <Filter className="h-3.5 w-3.5" />
         {activeCount > 0 && (
-          <span
-            className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full px-[3px] text-[9px] font-bold leading-none text-black"
-            style={{ background: T.pro }}
-          >
+          <span className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-pro px-[3px] text-[9px] font-bold leading-none text-black">
             {activeCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div
-          className="absolute right-0 top-[34px] z-50 w-[220px] rounded-[8px] border border-white/[0.12] p-3 shadow-xl"
-          style={{ background: T.bg1 }}
-        >
+        <div className="absolute right-0 top-[34px] z-50 w-[220px] rounded-[8px] border border-border bg-bg-1 p-3">
           {/* Header */}
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#ededed]/62">Filters</span>
+            <span className="text-[11px] font-semibold text-text-2">Filters</span>
             {activeCount > 0 && (
               <button
                 onClick={reset}
-                className="flex cursor-pointer items-center gap-1 text-[10px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/80"
+                className="flex cursor-pointer items-center gap-1 text-[10px] text-text-3 transition-colors hover:text-text-2"
               >
                 <X className="h-3 w-3" />
                 Reset
@@ -212,8 +196,8 @@ function FilterSection({
   isLast?: boolean
 }) {
   return (
-    <div className={`${isLast ? '' : 'mb-2 border-b border-white/[0.06] pb-2'}`}>
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-[#ededed]/30">
+    <div className={`${isLast ? '' : 'mb-2 border-b border-border pb-2'}`}>
+      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-text-3">
         {label}
       </span>
       <div className="flex flex-col gap-0.5">{children}</div>
@@ -233,10 +217,10 @@ function FilterOption({
   return (
     <button
       onClick={onClick}
-      className="flex w-full cursor-pointer items-center justify-between rounded-[4px] px-2 py-1 text-left text-[12px] transition-colors hover:bg-white/[0.04]"
+      className="flex w-full cursor-pointer items-center justify-between rounded-[4px] px-2 py-1 text-left text-[12px] transition-colors hover:bg-bg-2"
     >
-      <span style={{ color: active ? T.text : '#ededed62' }}>{children}</span>
-      {active && <Check className="h-3 w-3 shrink-0" style={{ color: T.ok }} />}
+      <span className={active ? 'text-text' : 'text-text-2'}>{children}</span>
+      {active && <Check className="h-3 w-3 shrink-0 text-ok" />}
     </button>
   )
 }

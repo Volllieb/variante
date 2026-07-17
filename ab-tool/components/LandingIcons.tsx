@@ -15,13 +15,16 @@ export {
   Shield,
   Gauge,
   Globe,
-  // How it works
-  MousePointer2,
   Sparkles,
   Rocket,
+  // How it works
+  MousePointer2,
   // AI translation
   Languages,
   Wand2,
   RefreshCw,
   Palette,
+  // Navigation
+  ChevronDown,
+  ArrowUpRight,
 } from 'lucide-react'

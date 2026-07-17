@@ -5,15 +5,8 @@ import Link from 'next/link'
 import { MoreHorizontal, Pause, Play, Trash2 } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
 
-/* ── Token palette ── */
-const T = {
-  bg1: '#0a0a0a',
-  bg2: '#111111',
-  text: '#ededed',
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-}
+// SVG-Farben (dynamisch, nicht über Tailwind abbildbar)
+const SIG_COLORS = { ok: '#2fd76c', pro: '#f5a623', err: '#f5455c', neutral: '#ffffff26' }
 
 export type TestRow = {
   id: string
@@ -72,14 +65,12 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
   const c = size / 2
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, Math.max(0, significance))
-  const strokeColor = pct >= 0.95 ? T.ok : pct >= 0.7 ? T.pro : '#ffffff26'
-  const bgColor = pct >= 0.95 ? `${T.ok}1f` : pct >= 0.7 ? `${T.pro}1f` : '#ffffff0d'
+  const strokeColor = pct >= 0.95 ? SIG_COLORS.ok : pct >= 0.7 ? SIG_COLORS.pro : SIG_COLORS.neutral
+  const bgColor = pct >= 0.95 ? `${SIG_COLORS.ok}1f` : pct >= 0.7 ? `${SIG_COLORS.pro}1f` : '#ffffff0d'
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      {/* Background circle */}
       <circle cx={c} cy={c} r={r} fill={bgColor} stroke="rgba(255,255,255,.06)" strokeWidth="1.5" />
-      {/* Progress arc */}
       <circle
         cx={c}
         cy={c}
@@ -92,8 +83,7 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
         transform={`rotate(-90 ${c} ${c})`}
         style={{ transition: 'stroke-dasharray 0.5s ease' }}
       />
-      {/* Center text: visitor count */}
-      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="10" fontWeight="600" fill={T.text}>
+      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="10" fontWeight="600" fill="#ededed">
         {visitors >= 1000 ? `${(visitors / 1000).toFixed(0)}k` : visitors}
       </text>
     </svg>
@@ -186,9 +176,14 @@ export function TestCard({
   return (
     <Link
       href={`/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
-      className="group/card relative block rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-white/[0.18]"
+      className="group/card relative block rounded-[10px] border border-border bg-bg-1 p-3.5 transition-colors hover:border-border-strong"
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
+      {/* Live-Pulse: subtile Signatur für aktive Tests */}
+      {status === 'active' && (
+        <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-ok animate-pulse" />
+      )}
+
       {/* ── Row 1: favicon | name+url | pie chart ── */}
       <div className="flex items-center gap-2.5">
         {/* Favicon */}
@@ -202,16 +197,16 @@ export function TestCard({
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         ) : (
-          <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-white/[0.04]">
-            <span className="text-[8px] text-[#ededed]/25">WWW</span>
+          <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
+            <span className="text-[8px] text-text-3/60">WWW</span>
           </div>
         )}
 
         {/* Name + URL */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] font-medium text-[#ededed]">{t.name}</p>
+          <p className="truncate text-[14px] font-medium text-text">{t.name}</p>
           {t.site_url && (
-            <p className="mt-0.5 truncate text-[11px] text-[#ededed]/40">{t.site_url}</p>
+            <p className="mt-0.5 truncate text-[11px] text-text-3">{t.site_url}</p>
           )}
         </div>
 
@@ -223,21 +218,18 @@ export function TestCard({
           <div ref={menuRef} className="relative">
             <button
               onClick={openMenu}
-              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-[#ededed]/40 transition-all hover:bg-white/[0.06] hover:text-[#ededed]/70"
+              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
 
             {menuOpen && (
-              <div
-                className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-white/10 bg-[#111111] py-1 shadow-lg shadow-black/40"
-                style={{ backdropFilter: 'blur(12px)' }}
-              >
+              <div className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
                 {(status === 'active' || status === 'paused') && (
                   <button
                     onClick={togglePause}
                     disabled={busy}
-                    className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-[#ededed]/80 transition-colors hover:bg-white/[0.04] hover:text-[#ededed] disabled:opacity-40"
+                    className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text disabled:opacity-40"
                   >
                     {status === 'active' ? (
                       <><Pause className="h-3.5 w-3.5" /> Pause</>
@@ -250,7 +242,7 @@ export function TestCard({
                 <button
                   onClick={handleDelete}
                   disabled={busy}
-                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-[#ededed]/80 transition-colors hover:bg-white/[0.04] hover:text-[#ededed] disabled:opacity-40"
+                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text disabled:opacity-40"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   {deleteConfirm ? 'Click to confirm' : 'Delete'}
@@ -261,21 +253,22 @@ export function TestCard({
         </div>
       </div>
 
-      {/* ── Row 2: status pill | duration | variant leader ── */}
+      {/* ── Row 2: status pill | health | duration | leader | winner ── */}
       <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
         {/* Status pill */}
         <span
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2 py-0.5 text-[11px]"
-          style={{ color: status === 'active' ? T.ok : status === 'paused' ? T.pro : '#ededed' }}
+          className={[
+            'inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px]',
+            status === 'active' ? 'text-ok' : status === 'paused' ? 'text-pro' : 'text-text-2',
+          ].join(' ')}
         >
           <span
-            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-            style={{
-              background:
-                status === 'active' ? T.ok :
-                status === 'paused' ? T.pro :
-                t.winner === 'B' ? T.ok : '#ffffff33',
-            }}
+            className={[
+              'inline-block h-1.5 w-1.5 shrink-0 rounded-full',
+              status === 'active' ? 'bg-ok' :
+              status === 'paused' ? 'bg-pro' :
+              t.winner === 'B' ? 'bg-ok' : 'bg-text-3',
+            ].join(' ')}
           />
           {status === 'active' ? 'Active' : status === 'paused' ? 'Paused' : status === 'done' ? 'Done' : 'Draft'}
         </span>
@@ -283,30 +276,29 @@ export function TestCard({
         {/* Health issues pill */}
         {t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length > 0 && (
           <span
-            className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
-            style={{ borderColor: `${T.err}30`, color: T.err, background: `${T.err}0d` }}
+            className="inline-flex items-center gap-1 rounded-full border border-err/20 bg-err/[0.05] px-2 py-0.5 text-[11px] text-err"
             title={t.health_issues.map(code => issueLabel(code)).join(', ')}
           >
-            <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: T.err }} />
+            <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-err" />
             {t.health_issues.length} {t.health_issues.length === 1 ? 'issue' : 'issues'}
           </span>
         )}
 
         {/* Duration pill */}
-        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] text-[#ededed]/50">
+        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-text-3">
           {formatDuration(t.created_at)}
         </span>
 
         {/* Variant leader pill */}
         {leader && isLive && (
-          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] font-medium text-[#ededed]/70">
+          <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-text-2">
             Variant {leader}
           </span>
         )}
 
         {/* Winner badge */}
         {t.winner === 'B' && status === 'done' && (
-          <span className="rounded-full border border-[#2fd76c]/20 bg-[#2fd76c]/10 px-2 py-0.5 text-[11px] font-semibold text-[#2fd76c]">
+          <span className="rounded-full border border-ok/20 bg-ok-bg px-2 py-0.5 text-[11px] font-semibold text-ok">
             Winner
           </span>
         )}
@@ -317,16 +309,15 @@ export function TestCard({
 
 export function StatusDot({ status, winner }: { status: string; winner?: string | null }) {
   if (winner === 'B' && status === 'done') {
-    return <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: T.ok }} title="Winner" />
+    return <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-ok" title="Winner" />
   }
   return (
     <span
-      className="inline-block h-2 w-2 shrink-0 rounded-full"
-      style={{
-        background:
-          status === 'active' ? T.ok :
-          status === 'paused' ? T.pro : '#ffffff33',
-      }}
+      className={[
+        'inline-block h-2 w-2 shrink-0 rounded-full',
+        status === 'active' ? 'bg-ok' :
+        status === 'paused' ? 'bg-pro' : 'bg-text-3',
+      ].join(' ')}
       title={status}
     />
   )

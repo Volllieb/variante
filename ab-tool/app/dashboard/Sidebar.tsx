@@ -165,7 +165,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
 
         {/* Popover */}
         {popoverOpen && (
-          <div className="absolute bottom-full left-3 right-3 mb-1 rounded-[8px] border border-white/10 bg-bg-1 p-1 shadow-lg">
+          <div className="absolute bottom-full left-3 right-3 mb-1 rounded-[8px] border border-border bg-bg-1 p-1">
             <Link
               href="/dashboard/account"
               onClick={() => setPopoverOpen(false)}
@@ -213,12 +213,14 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] transition-colors ${
+      className={`group relative flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] transition-colors ${
         active
           ? 'bg-bg-2 font-medium text-text'
           : 'text-text-2 hover:bg-bg-2 hover:text-text'
       }`}
     >
+      {/* Aktiver Seiten-Indikator: subtiler linker Balken */}
+      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-full bg-text" />}
       <Icon className="h-4 w-4 shrink-0" />
       <span>{label}</span>
     </Link>

@@ -7,12 +7,6 @@ import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, 
 import Link from 'next/link'
 import Image from 'next/image'
 
-const T = {
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-}
-
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
 
 export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar }: { email: string; domains: Domain[]; avatarUrl: string | null }) {
@@ -182,13 +176,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   return (
     <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
-        <h1 className="text-[18px] font-semibold text-[#ededed]">Account</h1>
+        <h1 className="text-[18px] font-semibold text-text">Account</h1>
 
         {/* Avatar */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Camera className="h-4 w-4 text-[#ededed]/40" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Profile Picture</span>
+            <Camera className="h-4 w-4 text-text-3" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Profile Picture</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -210,7 +204,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   key={avatarUrl}
                 />
               ) : (
-                <User className="h-6 w-6 text-[#ededed]/30" />
+                <User className="h-6 w-6 text-text-3" />
               )}
               {avatarUploading && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
@@ -223,7 +217,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
             </button>
 
             <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-[12px] text-[#ededed]/40">
+              <p className="text-[12px] text-text-3">
                 {avatarUrl
                   ? 'Click the image to upload a new picture. PNG, JPEG, WebP or GIF — max 2 MB.'
                   : 'Upload a profile picture. PNG, JPEG, WebP or GIF — max 2 MB.'}
@@ -255,7 +249,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     }
                   }}
                   disabled={avatarUploading}
-                  className="text-[11px] text-[#ededed]/40 underline hover:text-err disabled:opacity-40"
+                  className="text-[11px] text-text-3 underline hover:text-err disabled:opacity-40"
                 >
                   Remove
                 </button>
@@ -268,27 +262,27 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Current email */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Mail className="h-4 w-4 text-[#ededed]/40" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Email</span>
+            <Mail className="h-4 w-4 text-text-3" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Email</span>
           </div>
-          <p className="text-[15px] font-medium text-[#ededed]">{email}</p>
+          <p className="text-[15px] font-medium text-text">{email}</p>
 
           <div className="mt-4 space-y-3">
-            <p className="text-[11px] text-[#ededed]/40">Change to a new email address. A confirmation link will be sent.</p>
+            <p className="text-[11px] text-text-3">Change to a new email address. A confirmation link will be sent.</p>
             <div className="flex gap-2">
               <input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#ededed]/50 focus:border-white/[0.18] focus:outline-none"
+                className="flex-1 rounded-[6px] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus:outline-none"
               />
               <button
                 onClick={changeEmail}
                 disabled={busy || emailSent}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-40"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-40"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emailSent ? <Check className="h-3.5 w-3.5" /> : null}
                 {emailSent ? 'Sent' : 'Change'}
@@ -304,18 +298,18 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Website / Domain */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Globe className="h-4 w-4 text-[#ededed]/40" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Website</span>
+            <Globe className="h-4 w-4 text-text-3" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Website</span>
           </div>
 
           {domains.length === 0 && (
             <div className="space-y-3">
-              <p className="text-[12px] text-[#ededed]/40">No website connected. Head to Health to add one.</p>
+              <p className="text-[12px] text-text-3">No website connected. Head to Health to add one.</p>
               <Link
                 href="/dashboard/health"
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-4 py-2 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
               >
                 Go to Health
               </Link>
@@ -323,9 +317,9 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           )}
 
           {domains.map((d) => (
-            <div key={d.id} className="flex items-center justify-between rounded-[6px] bg-[#111111] px-4 py-3">
+            <div key={d.id} className="flex items-center justify-between rounded-[6px] bg-bg-2 px-4 py-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-[14px] font-medium text-[#ededed] truncate">{d.url}</span>
+                <span className="text-[14px] font-medium text-text truncate">{d.url}</span>
                 {d.verified ? (
                   <span className="flex items-center gap-1 rounded-full bg-ok/10 px-2 py-0.5 text-[10px] font-semibold text-ok">
                     <Check className="h-3 w-3" />
@@ -340,7 +334,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   <button
                     onClick={() => verifyDomain(d.id, d.url)}
                     disabled={verifying === d.id}
-                    className="cursor-pointer rounded-[6px] border border-white/10 px-3 py-1.5 text-[10px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed] disabled:opacity-40"
+                    className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
                   >
                     {verifying === d.id ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
@@ -353,7 +347,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   href={`https://${d.url}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="cursor-pointer rounded-[6px] p-1.5 text-[#ededed]/50 transition-colors hover:text-[#ededed]/60"
+                  className="cursor-pointer rounded-[6px] p-1.5 text-text-3 transition-colors hover:text-text-2"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -373,7 +367,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       <button
                         onClick={() => setDeleteId(null)}
                         disabled={domainBusy}
-                        className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-[#ededed]/40 hover:text-[#ededed]"
+                        className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-text-3 hover:text-text"
                       >
                         Cancel
                       </button>
@@ -382,7 +376,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 ) : (
                   <button
                     onClick={() => setDeleteId(d.id)}
-                    className="cursor-pointer rounded-[6px] p-1.5 text-[#ededed]/40 transition-colors hover:text-err"
+                    className="cursor-pointer rounded-[6px] p-1.5 text-text-3 transition-colors hover:text-err"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -392,9 +386,9 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           ))}
 
           {domains.length > 0 && (
-            <p className="mt-3 text-[12px] text-[#ededed]/50">
+            <p className="mt-3 text-[12px] text-text-3">
               To replace this website, delete it first, then add a new one via{' '}
-              <Link href="/dashboard/health" className="underline hover:text-[#ededed]/60">Health</Link>.
+              <Link href="/dashboard/health" className="underline hover:text-text-2">Health</Link>.
             </p>
           )}
 
@@ -407,18 +401,18 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Password */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Key className="h-4 w-4 text-[#ededed]/40" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Password</span>
+            <Key className="h-4 w-4 text-text-3" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Password</span>
           </div>
-          <p className="text-[11px] text-[#ededed]/40">
-            Receive a reset link at <strong className="font-medium text-[#ededed]/62">{email}</strong>.
+          <p className="text-[11px] text-text-3">
+            Receive a reset link at <strong className="font-medium text-text-2">{email}</strong>.
           </p>
           <button
             onClick={changePassword}
             disabled={busy || pwSent}
-            className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 px-4 py-2 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed] disabled:opacity-40"
+            className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-4 py-2 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : pwSent ? <Check className="h-3.5 w-3.5 text-ok" /> : <Key className="h-3.5 w-3.5" />}
             {pwSent ? 'Link sent — check your inbox' : 'Send password reset link'}
@@ -426,14 +420,14 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Danger Zone */}
-        <div className="rounded-[10px] border border-err/20 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-err/20 bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="h-4 w-4 text-err" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-err">Danger Zone</span>
           </div>
           {!showDelete ? (
             <>
-              <p className="text-[12px] leading-relaxed text-[#ededed]/40">
+              <p className="text-[12px] leading-relaxed text-text-3">
                 Permanently delete your account and all associated data — experiments, stats, and settings. This cannot be undone.
               </p>
               <button
@@ -454,7 +448,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-[6px] border border-err/20 bg-[#111111] px-3 py-2 font-mono text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-err/40 focus:outline-none"
+                className="w-full rounded-[6px] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus:outline-none"
               />
               <div className="flex items-center gap-2">
                 <button
@@ -468,7 +462,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 <button
                   onClick={() => { setShowDelete(false); setDeleteConfirm('') }}
                   disabled={deleting}
-                  className="cursor-pointer rounded-[6px] border border-white/10 px-4 py-2 text-[11px] font-semibold text-[#ededed]/40 transition-colors hover:text-[#ededed] disabled:opacity-30"
+                  className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[11px] font-semibold text-text-3 transition-colors hover:text-text disabled:opacity-30"
                 >
                   Cancel
                 </button>
@@ -488,7 +482,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         <div className="text-center">
           <button
             onClick={logout}
-            className="cursor-pointer text-[12px] text-[#ededed]/50 transition-colors hover:text-err"
+            className="cursor-pointer text-[12px] text-text-3 transition-colors hover:text-err"
           >
             Sign out
           </button>
