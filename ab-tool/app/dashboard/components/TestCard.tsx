@@ -28,6 +28,8 @@ export type TestRow = {
   conversions_b: number
   winner: string | null
   created_at: string
+  /** Gesetzt, wenn der Test aus dem Hybrid-Onboarding stammt (Preview vor Sign-up). */
+  preview_variant_screenshot_url?: string | null
 }
 
 function extractDomain(url: string | null): string | null {

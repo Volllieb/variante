@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
+import { claimTempSessionTests, markFigmaPluginUser } from '@/lib/claimTests'
 
 /** Extrahiert source/plan/temp_token/test_id aus dem next-Param (z.B. `/dashboard?source=figma-plugin&temp_token=abc&test_id=123`). */
 function parseAttribution(nextRaw: string | null): { source?: string; plan?: string; tempToken?: string; testId?: string } {
@@ -20,38 +21,17 @@ function parseAttribution(nextRaw: string | null): { source?: string; plan?: str
   }
 }
 
-/** Überträgt Temp-Session-Tests auf den echten User. */
-async function claimTempTests(
-  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
-  userId: string,
-  tempToken: string,
-) {
-  try {
-    // Temp-Session finden
-    const { data: session } = await supabase
-      .from('temp_sessions')
-      .select('id')
-      .eq('token', tempToken)
-      .single()
-
-    if (!session) return
-
-    // Tests transferieren
-    await supabase
-      .from('tests')
-      .update({ user_id: userId, temp_session_id: null })
-      .eq('temp_session_id', session.id)
-
-    // Temp-Session löschen
-    await supabase.from('temp_sessions').delete().eq('id', session.id)
-
-    // Plugin-Flag setzen
-    await supabase
-      .from('profiles')
-      .upsert({ id: userId, has_figma_plugin: true }, { onConflict: 'id' })
-  } catch {
-    // best-effort — claim scheitert nicht den Auth-Flow
-  }
+/**
+ * Überträgt Temp-Session-Tests auf den echten User.
+ * Die Logik liegt in lib/claimTests.ts, geteilt mit /api/claim-tests — inklusive
+ * preview→draft-Promotion für Tests aus dem Hybrid-Onboarding.
+ *
+ * has_figma_plugin nur bei source=figma-plugin: seit dem Hybrid-Onboarding
+ * claimen auch Website-Previews über diesen Pfad, und die kommen nie aus Figma.
+ */
+async function claimTempTests(userId: string, tempToken: string, source?: string) {
+  await claimTempSessionTests(userId, tempToken)
+  if (source === 'figma-plugin') await markFigmaPluginUser(userId)
 }
 
 /**
@@ -93,7 +73,7 @@ export async function GET(req: NextRequest) {
     const attribution = parseAttribution(next)
     if (data.user) {
       await ensureProfile(data.user.id, attribution)
-      if (attribution.tempToken) await claimTempTests(supabase, data.user.id, attribution.tempToken)
+      if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
     }
     // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
     if (attribution.plan === 'pro') {
@@ -117,7 +97,7 @@ export async function GET(req: NextRequest) {
     const attribution = parseAttribution(next)
     if (data.user) {
       await ensureProfile(data.user.id, attribution)
-      if (attribution.tempToken) await claimTempTests(supabase, data.user.id, attribution.tempToken)
+      if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
     }
     if (attribution.plan === 'pro') {
       return NextResponse.redirect(new URL('/auth/checkout', req.url))
@@ -144,7 +124,7 @@ export async function GET(req: NextRequest) {
   const attribution = parseAttribution(next)
   if (data.user) {
     await ensureProfile(data.user.id, attribution)
-    if (attribution.tempToken) await claimTempTests(supabase, data.user.id, attribution.tempToken)
+    if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
   }
   if (attribution.plan === 'pro') {
     return NextResponse.redirect(new URL('/auth/checkout', req.url))

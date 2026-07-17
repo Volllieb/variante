@@ -68,6 +68,33 @@ export interface LandingCopy {
   heroCta: string
   heroFootnote: string
 
+  // Hybrid-Demo (URL rein → echte Variante der eigenen Seite raus)
+  demo: {
+    /** Überschrift der Demo-Sektion direkt unter dem Hero. */
+    heading: string
+    sub: string
+    inputPlaceholder: string
+    submit: string
+    /** Drei Schritte der Loading-Animation — gefühlter Fortschritt statt Spinner. */
+    loadingSteps: Tuple3<string>
+    tabOriginal: string
+    tabVariant: string
+    changesHeading: string
+    refineToggle: string
+    refinePlaceholder: string
+    refineSubmit: string
+    refining: string
+    goLive: string
+    goLiveHint: string
+    tryAnother: string
+    /** SPA erkannt → Snippet-first-Fallback (Plan §0b). */
+    spaHeading: string
+    spaBody: string
+    spaCta: string
+    errGeneric: string
+    errUrl: string
+  }
+
   // Micro-Trust
   trustItems: Tuple4<{ label: string; text: string }>
 
@@ -154,8 +181,36 @@ const de: LandingCopy = {
   heroH1: 'CRO-Best-Practice. In 5 Minuten.',
   heroSub:
     'Volle Kontrolle, minimaler Aufwand. Du bestimmst, was optimiert wird — Hero, Pricing, CTAs. Deine KI analysiert, schreibt Varianten, misst Conversions und schlägt den Winner vor. Du entscheidest, was live geht.',
-  heroCta: 'Kostenlos starten',
+  heroCta: 'Zeig mir meine Seite',
   heroFootnote: '',
+
+  demo: {
+    heading: 'Sieh deine Seite optimiert — jetzt sofort',
+    sub: 'URL rein, 40 Sekunden warten. Kein Account, kein Snippet, keine Kreditkarte. Du bekommst deine echte Seite zu sehen — einmal im Original, einmal so, wie die KI sie umbauen würde.',
+    inputPlaceholder: 'deine-website.de',
+    submit: 'Variante zeigen',
+    loadingSteps: [
+      '📸 Screenshot deiner Seite …',
+      '🧠 KI liest deinen Code …',
+      '✨ Variante wird gerendert …',
+    ],
+    tabOriginal: 'Original',
+    tabVariant: 'Variante B',
+    changesHeading: 'Das hat die KI geändert',
+    refineToggle: 'Mit KI verfeinern',
+    refinePlaceholder: 'z. B. „Button runder und in Grün"',
+    refineSubmit: 'Anwenden',
+    refining: 'Wird angepasst …',
+    goLive: 'Live schalten',
+    goLiveHint: 'Account anlegen — deine Variante ist schon gespeichert.',
+    tryAnother: 'Andere URL testen',
+    spaHeading: 'Deine Seite rendert im Browser',
+    spaBody:
+      'Die Inhalte deiner Seite entstehen erst im Browser, von außen sehen wir nur eine leere Hülle. Mit dem Snippet lesen wir die echten Elemente — danach zeigen wir dir deine Variante. Der Umweg ist eigentlich eine Abkürzung: nach dem Sign-up ist der Test sofort live.',
+    spaCta: 'Snippet holen',
+    errGeneric: 'Das hat nicht geklappt. Probier es nochmal oder nimm eine andere Seite.',
+    errUrl: 'Diese URL sieht nicht richtig aus. Prüf sie nochmal.',
+  },
 
   trustItems: [
     { label: 'In 5 Minuten live', text: 'Snippet einbauen, Agent startet. Kein Setup, kein Dev.' },
@@ -330,8 +385,36 @@ const en: LandingCopy = {
   heroH1: 'CRO best practice. In 5 minutes.',
   heroSub:
     'Total control, minimum effort. You decide what to optimize — hero, pricing, CTAs. Your AI analyzes, writes variants, measures conversions, and suggests the winner. You choose what goes live.',
-  heroCta: 'Start free',
+  heroCta: 'See your site transformed',
   heroFootnote: '',
+
+  demo: {
+    heading: 'See your site transformed — right now',
+    sub: 'Drop in your URL, wait 40 seconds. No account, no snippet, no credit card. You get your real page twice — as it is, and as the AI would rebuild it.',
+    inputPlaceholder: 'your-website.com',
+    submit: 'Show me a variant',
+    loadingSteps: [
+      '📸 Taking a snapshot of your site …',
+      '🧠 AI reading your page code …',
+      '✨ Rendering your variant …',
+    ],
+    tabOriginal: 'Original',
+    tabVariant: 'Variant B',
+    changesHeading: 'What the AI changed',
+    refineToggle: 'Refine with AI',
+    refinePlaceholder: 'e.g. "make the button rounder and green"',
+    refineSubmit: 'Apply',
+    refining: 'Refining …',
+    goLive: 'Go live',
+    goLiveHint: 'Create an account — your variant is already saved.',
+    tryAnother: 'Try another URL',
+    spaHeading: 'Your site renders in the browser',
+    spaBody:
+      "Your content is built in the browser, so from the outside we only see an empty shell. The snippet lets us read the real elements — then we'll show you your variant. The detour is really a shortcut: after sign-up your test is live immediately.",
+    spaCta: 'Get the snippet',
+    errGeneric: "That didn't work. Try again, or try a different page.",
+    errUrl: "That URL doesn't look right. Give it another look.",
+  },
 
   trustItems: [
     { label: 'Live in 5 minutes', text: 'Paste the snippet, the agent starts. No setup, no dev.' },

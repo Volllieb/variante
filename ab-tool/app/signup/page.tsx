@@ -65,7 +65,7 @@ export default function SignupPage() {
       await fetch('/api/claim-tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ temp_token: tempToken }),
+        body: JSON.stringify({ temp_token: tempToken, source }),
       })
     } catch { /* best-effort */ }
   }

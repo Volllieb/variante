@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Rocket, Zap, Gauge, Globe, Palette } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
+import { HybridDemo } from '@/app/components/HybridDemo'
 import { getLang, getCopy, PLANS } from '@/lib/landingCopy'
 import type { Lang, PlanId } from '@/lib/landingCopy'
 
@@ -100,13 +101,16 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             <p className="mt-4 max-w-xl text-base text-white/55 sm:text-lg">
               {cp.heroSub}
             </p>
+            {/* Hybrid-Onboarding (Plan §2.3): der primäre CTA führt nicht mehr zu
+                /signup, sondern zur Live-Demo weiter unten — Value vor Snippet,
+                und vor allem Value vor Sign-up. Same-page-Anker, kein Routing. */}
             <div className="mt-8 sm:mt-9">
-              <Link
-                href={signupUrl("/signup")}
+              <a
+                href="#demo-hybrid"
                 className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -143,6 +147,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           </div>
         </div>
       </section>
+
+      {/* ── Hybrid-Demo: URL rein → echte Variante der eigenen Seite ── */}
+      <HybridDemo cp={cp} source={source} />
 
       {/* ── Works-With Logo Bar ── */}
       <section className="section !py-10 sm:!py-14">
