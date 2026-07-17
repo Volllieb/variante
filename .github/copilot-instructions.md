@@ -24,6 +24,7 @@
 
 | Skill | Trigger |
 |---|---|
+| `frontend-design` | Landingpage, Dashboard, Hero-Sektionen, visuelle Identität, Typografie-Entscheidungen, Anti-Template-Design |
 | `ui-ux-pro-max` | Design-Fragen, Komponenten, UI/UX-Entscheidungen |
 | `stripe-best-practices` | Stripe-API-Design, Sicherheit |
 | `stripe-directory` | Stripe-Partner-Suche |
