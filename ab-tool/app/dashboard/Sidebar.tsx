@@ -11,6 +11,7 @@ import {
   CreditCard,
   Settings,
   FlaskConical,
+  HeartPulse,
   ChevronDown,
   LogOut,
   User,
@@ -96,6 +97,14 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           icon={FlaskConical}
           label="Tests"
           active={isInSection('/dashboard/tests')}
+        />
+
+        {/* Health */}
+        <SidebarLink
+          href="/dashboard/health"
+          icon={HeartPulse}
+          label="Health"
+          active={isActive('/dashboard/health')}
         />
 
         {/* Docs */}

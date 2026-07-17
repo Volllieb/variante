@@ -14,8 +14,8 @@ import { withSentryConfig } from '@sentry/nextjs'
 //   Ohne Nonce-Umbau ist 'unsafe-inline' unvermeidbar. 'unsafe-eval' nur in Dev (HMR).
 //   Vercel Analytics/Speed-Insights laufen über /_vercel/… → same-origin, 'self' reicht.
 // - connect-src: Supabase REST + Realtime (useRealtime.ts nutzt WebSockets → wss).
-// - img-src https:: Gravatar-Avatare (DashboardShell) und beliebige Bilder in den
-//   Varianten-Previews von Kundenseiten.
+// - img-src https:: Gravatar-Avatare und beliebige Bilder in den Varianten-Previews
+//   von Kundenseiten.
 // - frame-src 'self': VariantPreview rendert srcDoc-iframes (sandbox=""), die die
 //   CSP des Parents erben.
 // - style-src 'unsafe-inline': Tailwind-Runtime + die <style>-Blöcke der Varianten.
