@@ -7,7 +7,7 @@ import { useTestList } from '@/lib/useTestList'
 import { useToast } from '@/app/components/Toast'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
-import { NewTestFlow } from './NewTestFlow'
+import { TestCreationPanel } from './TestCreationPanel'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import {
@@ -125,6 +125,14 @@ export function DashboardClient({
   const winningTests = testList.filter((t) => t.winner !== null).length
   const hasHealthWarnings = testList.some((t) => t.health_status === 'warning' || (t.health_issues && t.health_issues.length > 0))
 
+  /* Hybrid-Onboarding: der User hat seine Variante schon VOR dem Sign-up gesehen,
+     aber ohne Snippet geht sie nie live. Das ist der einzige Schritt der jetzt noch
+     zählt — also prominent, nicht als Zeile im Test-Grid (Plan §5, "Snippet wird
+     nie installiert"). */
+  const pendingPreviewTest = !hasVerifiedDomain
+    ? testList.find((t) => t.status === 'draft' && t.preview_variant_screenshot_url)
+    : undefined
+
   return (
     <div className="px-5 py-6 sm:px-8">
       {/* Upgraded banner */}
@@ -136,6 +144,9 @@ export function DashboardClient({
           </p>
         </div>
       )}
+
+      {/* Hybrid-Onboarding: Variante fertig, Snippet fehlt */}
+      {pendingPreviewTest && <PreviewReadyBanner test={pendingPreviewTest} />}
 
       {/* Content header: scope selector + CTA */}
       <div className="mb-5 flex items-center justify-between">
@@ -239,10 +250,8 @@ export function DashboardClient({
         <div className="p-4">
           {/* New test flow overlay */}
           {newTestOpen && (
-            <NewTestFlow
+            <TestCreationPanel
               apiToken={apiToken}
-              hasFigmaPlugin={hasFigmaPlugin}
-              isAtFreeLimit={!isPro && testList.filter(t => t.status !== 'done').length >= 1}
               onClose={() => setNewTestOpen(false)}
             />
           )}
@@ -286,6 +295,35 @@ export function DashboardClient({
 }
 
 /* ── Sub-components ── */
+
+function PreviewReadyBanner({ test }: { test: TestRow }) {
+  return (
+    <div className="mb-5 flex flex-col gap-4 rounded-[10px] border border-pro/25 bg-pro/[0.05] p-4 sm:flex-row sm:items-center">
+      {test.preview_variant_screenshot_url && (
+        // eslint-disable-next-line @next/next/no-img-element -- Supabase-Storage-URL, kein next/image-Loader nötig
+        <img
+          src={test.preview_variant_screenshot_url}
+          alt=""
+          className="h-20 w-32 shrink-0 rounded-[6px] border border-border object-cover object-top"
+        />
+      )}
+      <div className="min-w-0 flex-1">
+        <h2 className="text-[14px] font-semibold text-text">Your variant is ready — one step left</h2>
+        <p className="mt-1 text-[12px] text-text-2">
+          <span className="font-medium text-text">{test.name}</span> is saved as a draft. Add the
+          one-line snippet to your site and this test goes live — real visitors, real numbers.
+        </p>
+      </div>
+      <a
+        href="/dashboard/health"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+      >
+        <Globe className="h-3.5 w-3.5" />
+        Install snippet
+      </a>
+    </div>
+  )
+}
 
 function OverviewCard({
   icon: Icon,
@@ -345,11 +383,11 @@ function EmptyDashboard({
           </button>
         ) : (
           <a
-            href="/dashboard/setup"
+            href="/dashboard/health"
             className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
           >
             <Globe className="h-4 w-4" />
-            Run setup
+            Run health check
           </a>
         )}
       </div>
