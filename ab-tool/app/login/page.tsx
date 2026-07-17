@@ -84,7 +84,12 @@ export default function LoginPage() {
         if (kind === 'not-confirmed') { setNotConfirmed(true); setLoading(false); return }
         if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); setLoading(false); return }
         if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); setLoading(false); return }
-        setErr(error.message)
+        const msgStr = typeof error === 'string' ? error : error.message || JSON.stringify(error)
+        if (msgStr === '{}' || msgStr === '') {
+          setErr('Request blocked. If this persists, contact support.')
+        } else {
+          setErr(error.message || msgStr)
+        }
         setLoading(false)
         return
       }

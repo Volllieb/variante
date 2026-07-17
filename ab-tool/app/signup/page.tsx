@@ -80,6 +80,11 @@ export default function SignupPage() {
         if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); return }
         if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); return }
         const msgStr = typeof error === 'string' ? error : error.message || JSON.stringify(error)
+        // Supabase captcha enforcement returns empty error objects — show a useful message
+        if (msgStr === '{}' || msgStr === '') {
+          setErr('Request blocked. If this persists, contact support.')
+          return
+        }
         if (
           msgStr.toLowerCase().includes('already') ||
           msgStr.toLowerCase().includes('exists') ||
