@@ -87,7 +87,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <main>
 
       {/* ── Hero ── */}
-      <section className="px-4 pt-10 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:pt-14 lg:pb-32">
+      <section className="px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-16 lg:pt-10 lg:pb-20">
         <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
           {/* Left: Text — second on mobile */}
           <div className="order-2 lg:order-1 text-center sm:text-left">
@@ -112,7 +112,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
           {/* Right: Hero Animation — first on mobile */}
           <div id="demo" className="order-1 lg:order-2">
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '900/560' }} aria-hidden="true">
+            <div className="relative w-full max-w-[540px] mx-auto overflow-hidden" style={{ aspectRatio: '820/480' }} aria-hidden="true">
               <iframe
                 src="/ab-test-hero-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
@@ -123,7 +123,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
 
         {/* Trust Boxes — part of Hero */}
-        <div className="container-wide mt-14 sm:mt-20">
+        <div className="container-wide mt-8 sm:mt-12">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { icon: Rocket, ...cp.trustItems[0] },
@@ -163,13 +163,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── AI Agent Automation ── */}
-      <section className="section">
+      <section className="section !py-8 sm:!py-12">
         <div className="container">
           <h2 className="section-heading">{cp.agentH}</h2>
           <p className="section-sub">{cp.agentSub}</p>
 
-          <div className="mx-auto mt-10 max-w-5xl">
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '1040/600' }} aria-hidden="true">
+          <div className="mx-auto mt-4 max-w-3xl">
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '960/540' }} aria-hidden="true">
               <iframe
                 src="/ai-workflow-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
