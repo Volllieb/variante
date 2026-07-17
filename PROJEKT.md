@@ -120,6 +120,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 | 07.07.2026 | **Docs-Seite erstellt.** `/docs` mit 8 Sektionen (Overview, How it works, Installation, Figma Plugin, Chrome Extension, Experiments, Pricing, FAQ). Footer-Link auf Landingpage, Sitemap-Eintrag, JSON-LD. SEO: canonical, OG, Twitter-Card. |
 | 07.07.2026 | **Supabase-Agent erstellt.** `@supabase` als 9. Custom Agent — DB, Auth, Migrationen (idempotent), RLS-Policies (Defense-in-Depth), RPCs, Query-Performance. Doku: 3-Client-Architektur, Auth-Flow, 13-Migrationen-Übersicht. |
 | 07.07.2026 | **Email-Templates designed.** 5 Supabase-Auth-Templates (Confirmation, Magic Link, Reset, Invite, Change) in `ab-tool/emails/`. Brand-konform: Monochrom, schwarzer Header + Panda-Logo als inline SVG, kein Gradient/Schatten, 480px Card-Layout. Anleitung in `emails/README.md`. Templates sind copy-paste-ready für Supabase Dashboard. |
+| 17.07.2026 | **Env-Var-Cleanup: Best Practice durchgesetzt.** Root `.env.local` gelöscht — kanonische Datei ist `ab-tool/.env.local`. `ab-tool/.env.example` neu erstellt mit allen 16 benötigten Vars (Pflicht + Optional, gruppiert). `ab-tool/.vercel` auf `variante`-Projekt verlinkt (dort liegen alle Env-Vars). AGENTS.md §Env-Var-Regel dokumentiert. Offen: `SENTRY_PROJECT` in Vercel ergänzen. |
 | 08.07.2026 | **Picker: Success-Overlay redesigned + Reselect-Button.** Nach erfolgreichem Element-Pick: kompaktes Overlay mit Element-Name, Reselect-Button statt nur Erfolgsmeldung. Bessere UX für Korrekturen ohne Page-Reload. |
 | 08.07.2026 | **Fix: onDelete-Handler auf /dashboard/tests nachgerüstet.** Delete-Button in TestCard auf der Tests-Seite war ohne Handler — jetzt mit Bestätigungsdialog und API-Call. |
 | 08.07.2026 | **Figma-Plugin: Draft-Persistenz + Token-Validierung + Health-Check-Fix.** `clientStorage` speichert Wizard-Draft (SAVE_DRAFT/CLEAR_DRAFT), `pendingDraft`-Puffer gegen Race-Conditions. `saveToken()` validiert via `/api/profile`-Preflight vor Navigation. Token-Regeneration setzt `has_figma_plugin: false` zurück. |
@@ -230,6 +231,8 @@ Der Happy Path für neue User:
 | 1 | Upstash Redis Env-Vars | ✅ Erledigt | `amazing-mudfish-98038.upstash.io`, Free Tier, beide Env-Vars in Vercel gesetzt (Production + Preview). |
 | 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
 | 3 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 012. |
+| 4 | SENTRY_PROJECT in Vercel | 🔴 Offen | Wird in `next.config.ts` referenziert, fehlt in Vercel. `vercel env add SENTRY_PROJECT production preview` nachholen. |
+| 5 | ab-tool Vercel-Projekt: Env-Vars fehlen | 🟡 Später | `ab-tool`-Projekt deployt aktiv, hat aber keine Env-Vars. Entweder Env-Vars dorthin spiegeln oder Git-Integration auf `variante`-Projekt prüfen. |
 
 ## §12 Dashboard-Architektur
 
