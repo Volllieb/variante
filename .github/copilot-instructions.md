@@ -11,11 +11,6 @@
 | `@ponytail` | review, refactor, simplify, over-engineering, YAGNI, "geht das nicht einfacher?" | Code-Review, Aufräumen, Kürzen |
 | `@redesign` | redesign, neugestalten, UI überarbeiten, modernisieren, verschönern | Mutige visuelle Neugestaltungen |
 | `@supabase` | migration, schema, RLS, policy, auth, query, 'neue Tabelle', Trigger, RPC | DB, Auth, Migrationen, RLS, RPCs |
-| `@stripe` | billing, checkout, payment, webhook, subscription | Stripe-Integration (Checkout, Portal, Webhooks) |
-| `@deployment-expert` | deploy, vercel, CI/CD, environment, "deploy das" | Vercel-Deployments, CI/CD, Env-Vars |
-| `@performance-optimizer` | performance, Core Web Vitals, caching, "mach das schneller" | Core Web Vitals, Rendering-Strategien, Caching |
-| `@ai-architect` | architektur, AI-SDK, Vercel AI, "wie baue ich X mit AI" | AI-Architektur, Vercel AI SDK, Agent-Design |
-| `@seo` | SEO, Meta-Tags, Structured Data, Sitemap, robots.txt, Core Web Vitals, SERP, JSON-LD | Ganzheitliche Suchmaschinenoptimierung |
 | `@wrapup` | wrapup, aufräumen, session beenden, cleanup, fertig für heute | Session-Abschluss: tote Files, Ponytail-Review, Git-Hygiene, Doku-Update |
 | `@engineer` | **Default-Implementierungsagent.** Alle Tasks, die kein Spezialist braucht — "implementiere X", "fix den Bug", "bau Feature Y" | Implementation, Bugfixes, Refactoring, Feature-Arbeit |
 | `Explore` | codebase search, "wo ist X?", "wie hängt Y zusammen?" | Read-only Code-Exploration |
@@ -26,6 +21,9 @@
 |---|---|
 | `frontend-design` | Landingpage, Dashboard, Hero-Sektionen, visuelle Identität, Typografie-Entscheidungen, Anti-Template-Design |
 | `ui-ux-pro-max` | Design-Fragen, Komponenten, UI/UX-Entscheidungen |
+| `seo` | SEO, Meta-Tags, Structured Data, JSON-LD, Sitemap, robots.txt, Canonical URLs, SERP-Snippets |
+| `performance-optimizer` | Core Web Vitals, LCP, CLS, INP, Caching, Bundle-Analyse, Ladezeit-Optimierung |
+| `ai-architect` | AI SDK, Agent-Design, ToolLoopAgent, Provider-Konfiguration, Chatbot-Architektur |
 | `stripe-best-practices` | Stripe-API-Design, Sicherheit |
 | `stripe-directory` | Stripe-Partner-Suche |
 | `stripe-projects` | Infrastruktur-Provisioning |
@@ -56,7 +54,7 @@
 - **Error-Handling:** Ausgewogen. Kritische Pfade defensiv, Rest pragmatisch.
 
 ### Workflow
-- **Subagents:** Automatisch nutzen wenn sinnvoll (@ponytail, @supabase, @stripe, etc.).
+- **Subagents:** Automatisch nutzen wenn sinnvoll (@ponytail, @supabase, @redesign, @wrapup).
 - **Review:** @ponytail automatisch nach jeder logischen Einheit aufrufen.
 - **Build:** Automatisch vor Commit (`npm run vercel-build`).
 - **Deploy:** Preview-First (seit 16.07.2026). Feature-Branch → automatischer Vercel Preview. `vercel promote <url>` nur auf explizite Anweisung. master = production — nicht direkt pushen außer production-ready.
