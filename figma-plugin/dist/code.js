@@ -16,6 +16,11 @@
       figma.clientStorage.getAsync("ab_token").then((token) => {
         figma.ui.postMessage({ type: "TOKEN", token: typeof token === "string" ? token : "" });
       });
+      figma.clientStorage.getAsync("ab_temp_token").then((token) => {
+        if (typeof token === "string" && token) {
+          figma.ui.postMessage({ type: "TEMP_TOKEN_LOADED", token });
+        }
+      });
       figma.clientStorage.getAsync("ab_draft").then((draft) => {
         if (draft && typeof draft === "object") {
           figma.ui.postMessage({ type: "DRAFT_LOADED", draft });
@@ -173,6 +178,14 @@
           }
           case "TOKEN_SAVE": {
             await figma.clientStorage.setAsync("ab_token", typeof msg.token === "string" ? msg.token : "");
+            break;
+          }
+          case "TEMP_TOKEN_SAVE": {
+            await figma.clientStorage.setAsync("ab_temp_token", typeof msg.token === "string" ? msg.token : "");
+            break;
+          }
+          case "TEMP_TOKEN_CLEAR": {
+            await figma.clientStorage.deleteAsync("ab_temp_token");
             break;
           }
           case "SAVE_DRAFT": {

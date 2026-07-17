@@ -1,4 +1,4 @@
- um die Live-Production und den Launch. figma.showUI(__html__, { width: 360, height: 560, title: 'variante' })
+figma.showUI(__html__, { width: 360, height: 560, title: 'variante' })
 
 // Persistenten API-Token (Login) laden und an die UI schicken.
 figma.clientStorage.getAsync('ab_token').then((token) => {

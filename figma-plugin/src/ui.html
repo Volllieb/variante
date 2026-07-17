@@ -407,6 +407,16 @@ textarea { resize: vertical; }
 .seg-btn:hover { color: var(--text); }
 .seg-btn.sel { background: var(--accent); color: #fff; font-weight: var(--fw-semibold); }
 
+/* Hybrid-Preview: Loading-Schritte */
+.pv-step {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; margin-bottom: 6px;
+  font-size: var(--fs-sm); color: var(--text-1);
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;
+  transition: opacity var(--dur-fast);
+}
+.pv-step-mark { flex: 0 0 auto; width: 14px; text-align: center; }
+
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading-row {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -673,26 +683,26 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
     <div class="welcome-shell">
       <div class="welcome-hero">
         <div class="welcome-logo">variante</div>
-        <div class="welcome-sub">Create your first A/B test — directly from Figma</div>
+        <div class="welcome-sub">See your site transformed — no setup required</div>
       </div>
 
       <div class="welcome-steps">
         <div class="welcome-step">
           <span class="welcome-step-num">1</span>
-          <span class="welcome-step-text">Enter your website &amp; install the snippet</span>
+          <span class="welcome-step-text">Enter your website URL — no snippet needed yet</span>
         </div>
         <div class="welcome-step">
           <span class="welcome-step-num">2</span>
-          <span class="welcome-step-text">Pick an element &amp; redesign in Figma</span>
+          <span class="welcome-step-text">See your real page, reimagined by AI</span>
         </div>
         <div class="welcome-step">
           <span class="welcome-step-num">3</span>
-          <span class="welcome-step-text">AI generates variant &mdash; sign up to go live</span>
+          <span class="welcome-step-text">Sign up &amp; add the snippet to go live</span>
         </div>
       </div>
 
       <div class="welcome-actions">
-        <button class="btn btn-primary" onclick="startOnboarding()">Create your first test &rarr;</button>
+        <button class="btn btn-primary" onclick="startOnboarding()">Try it now &rarr;</button>
         <button class="btn btn-ghost" onclick="goToTokenMode()" style="font-size:var(--fs-sm)">Already have an account? Connect</button>
       </div>
     </div>
@@ -774,9 +784,9 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
       </svg>
     </button>
     <span class="hdr-title">Test Details</span>
-    <span class="hdr-step">1 / 6</span>
+    <span class="hdr-step" id="setup-step-label">1 / 6</span>
   </div>
-  <div class="step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="Step 1 of 6">
+  <div class="step-bar" id="setup-step-bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="Step 1 of 6">
     <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
     <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
   </div>
@@ -897,6 +907,89 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   </div>
   <div class="ftr">
     <button id="btn-snippet-done" class="btn btn-primary" onclick="goToElement()">I've installed the snippet &rarr;</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN P · Dual-Screenshot Preview (Hybrid-Onboarding)
+     Value vor Snippet: der User sieht seine echte Seite — Original ↔ Variante —
+     bevor irgendein Account oder Snippet nötig ist. Nur ein <img>, ein Toggle.
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-preview" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Your variant</span>
+  </div>
+  <div class="body">
+    <!-- Loading: drei Schritte, gefühlter Fortschritt -->
+    <div id="pv-loading" style="display:none;padding:24px 0">
+      <div id="pv-step-0" class="pv-step"><span class="pv-step-mark">○</span> 📸 Taking a snapshot of your site…</div>
+      <div id="pv-step-1" class="pv-step"><span class="pv-step-mark">○</span> 🧠 AI reading your page code…</div>
+      <div id="pv-step-2" class="pv-step"><span class="pv-step-mark">○</span> ✨ Rendering your variant…</div>
+    </div>
+
+    <!-- Result -->
+    <div id="pv-result" style="display:none">
+      <div class="seg-tabs" role="tablist" style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
+        <button id="pv-tab-original" class="seg-btn sel" role="tab" onclick="toggleVariant(false)">Original</button>
+        <button id="pv-tab-variant" class="seg-btn" role="tab" onclick="toggleVariant(true)">Variant B</button>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg-2)">
+        <img id="pv-img" alt="Preview" style="display:block;width:100%;height:auto"/>
+      </div>
+      <div id="pv-degraded" class="hint" style="display:none;margin-top:8px;font-size:var(--fs-xs)"></div>
+
+      <div class="lbl" style="margin-top:14px">What the AI changed</div>
+      <ul id="pv-changes" style="list-style:none;padding:0;margin:6px 0 0"></ul>
+
+      <!-- Refine -->
+      <div style="margin-top:14px">
+        <button id="pv-refine-toggle" class="btn btn-ghost" onclick="openRefine()" style="font-size:var(--fs-sm);padding:0">✨ Refine with AI</button>
+        <div id="pv-refine-box" style="display:none;margin-top:8px">
+          <input id="pv-refine-input" placeholder='e.g. "make the button rounder and green"' onkeydown="if(event.key==='Enter')submitRefine()"/>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button id="pv-refine-btn" class="btn btn-secondary btn-sm" onclick="submitRefine()" style="flex:1">Apply</button>
+          </div>
+        </div>
+      </div>
+      <div class="err" id="e-preview" role="alert" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="ftr" id="pv-footer" style="display:none">
+    <button class="btn btn-primary" onclick="goToGate()">Go live &rarr;</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCREEN G · Gate — Sign up to go live (Hybrid-Onboarding)
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-gate" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Go live</span>
+  </div>
+  <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:24px 16px">
+    <div class="welcome-shell">
+      <div class="welcome-hero">
+        <div class="welcome-sub" style="font-weight:var(--fw-bold);color:var(--text-1)">Your variant is ready.</div>
+        <div class="welcome-sub" style="margin-top:6px">Create a free account to go live. We'll save this test — after you sign up and add the one-line snippet, it starts running with real visitors.</div>
+      </div>
+      <div class="welcome-actions" style="margin-top:20px">
+        <button class="btn btn-primary" onclick="openSignup()">Create account &rarr;</button>
+        <button class="btn btn-ghost" onclick="navBack()" style="font-size:var(--fs-sm)">Back to variant</button>
+      </div>
+      <div class="err" id="e-gate" role="alert" style="margin-top:8px"></div>
+    </div>
   </div>
 </div>
 
@@ -1404,6 +1497,10 @@ async function startOnboarding() {
   hideUpgradeBanner()
   // Show website field in setup
   $('setup-url-field').style.display = 'block'
+  // Onboarding geht setup → preview → gate, nicht durch den 6-Step-Wizard —
+  // die "1 / 6"-Anzeige wäre irreführend.
+  var sb = $('setup-step-bar'); if (sb) sb.style.display = 'none'
+  var sl = $('setup-step-label'); if (sl) sl.style.display = 'none'
   navHistory = []
   navPush('setup')
   // Focus name field
@@ -1437,7 +1534,7 @@ function goToTokenMode() {
   if (API_TOKEN) $('connect-token').value = API_TOKEN
 }
 function openDashboardForToken() {
-  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard/setup?source=figma-plugin' } }, '*')
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard/health?source=figma-plugin' } }, '*')
 }
 function openLoginForToken() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/login?source=figma-plugin' } }, '*')
@@ -1856,6 +1953,10 @@ function newTest() {
   $('btn-el-next').disabled = true
   $('btn-export').disabled = true
   $('el-chip-wrap').innerHTML = ''
+  // Eingeloggte User laufen durch den vollen Wizard — Step-Bar wieder zeigen,
+  // falls sie im selben Session vorher onboarding gemacht haben.
+  var sb = $('setup-step-bar'); if (sb) sb.style.display = ''
+  var sl = $('setup-step-label'); if (sl) sl.style.display = ''
   hideUpgradeBanner()
   navPush('setup')
   ;(function retry(n) {
@@ -1891,6 +1992,16 @@ async function createTest() {
       setFieldError('f-name', 'name-err', 'No website connected. Add your site in the dashboard first.')
       return
     }
+  }
+
+  // Hybrid-Onboarding: statt Snippet-Wand zeigt der Onboarding-Flow zuerst die
+  // Dual-Screenshot-Preview. Kein /api/tests-Call hier — /api/preview legt den
+  // Test als status='preview' an. Der klassische Wizard (Element/Design/…) bleibt
+  // für eingeloggte User über den Nicht-Onboarding-Zweig unten erhalten.
+  if (isOnboarding) {
+    state.name = name; state.url = url
+    startPreview(name, url)
+    return
   }
 
   const minVisitors = parseInt($('f-visitors').value, 10) || 100
@@ -1947,6 +2058,191 @@ async function createTest() {
     btn.disabled = false
     if (lSetup) lSetup.style.display = 'none'
   }
+}
+
+// ── Hybrid-Onboarding: Dual-Screenshot-Preview ────────────────────────────
+let previewData = null      // { previewId, testId, originalScreenshotUrl, variantScreenshotUrl, changes, ... }
+let previewStepTimers = []
+let showingVariant = false
+
+async function startPreview(name, url) {
+  previewData = null
+  showingVariant = false
+  $('pv-loading').style.display = 'block'
+  $('pv-result').style.display = 'none'
+  $('pv-footer').style.display = 'none'
+  err('preview', '')
+  navPush('preview')
+
+  // Loading-Schritte durchlaufen — gefühlter Fortschritt statt Spinner-Starre.
+  previewStepTimers.forEach(clearTimeout)
+  previewStepTimers = []
+  setPreviewStep(0)
+  previewStepTimers.push(setTimeout(function() { setPreviewStep(1) }, 4000))
+  previewStepTimers.push(setTimeout(function() { setPreviewStep(2) }, 8000))
+
+  try {
+    const res = await afetch(API + '/api/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url, testName: name, temp_token: tempToken })
+    })
+    var body = {}; try { body = await res.json() } catch (_) {}
+    previewStepTimers.forEach(clearTimeout)
+
+    if (!res.ok) {
+      err('preview', (body && body.message) || apiErrorMessage(res.status, body))
+      $('pv-loading').style.display = 'none'
+      return
+    }
+
+    if (body.isSpa) {
+      // SPA: von außen nur eine leere Hülle. Snippet-first (Plan §0b Fallback 1) —
+      // wir schicken den User in den klassischen Snippet-Flow.
+      showPreviewSpa(body)
+      return
+    }
+
+    previewData = body
+    showPreview(body)
+  } catch (e) {
+    previewStepTimers.forEach(clearTimeout)
+    err('preview', 'Could not reach the server. Check your connection.')
+    $('pv-loading').style.display = 'none'
+  }
+}
+
+function setPreviewStep(i) {
+  for (var s = 0; s <= 2; s++) {
+    var el = $('pv-step-' + s); if (!el) continue
+    var mark = el.querySelector('.pv-step-mark')
+    if (s < i) { el.style.opacity = '0.45'; if (mark) mark.textContent = '✓' }
+    else if (s === i) { el.style.opacity = '1'; if (mark) mark.textContent = '◐' }
+    else { el.style.opacity = '0.3'; if (mark) mark.textContent = '○' }
+  }
+}
+
+function showPreview(data) {
+  $('pv-loading').style.display = 'none'
+  $('pv-result').style.display = 'block'
+  $('pv-footer').style.display = 'block'
+
+  showingVariant = false
+  $('pv-img').src = data.originalScreenshotUrl
+  // Direkt auf die Variante schalten — der Vergleich ist der Punkt.
+  setTimeout(function() { toggleVariant(true) }, 600)
+
+  var deg = $('pv-degraded')
+  if (data.degraded) { deg.textContent = data.degraded; deg.style.display = 'block' }
+  else deg.style.display = 'none'
+
+  var list = $('pv-changes')
+  list.innerHTML = ''
+  ;(data.changes || []).forEach(function(c) {
+    var li = document.createElement('li')
+    li.style.cssText = 'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:var(--fs-sm);color:var(--text-1)'
+    var dot = document.createElement('span')
+    dot.style.cssText = 'flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:5px;background:' + (c.highlightColor || '#0D99FF')
+    var txt = document.createElement('span')
+    txt.textContent = c.rationale || ''
+    li.appendChild(dot); li.appendChild(txt); list.appendChild(li)
+  })
+
+  $('pv-refine-box').style.display = 'none'
+  $('pv-refine-input').value = ''
+}
+
+function toggleVariant(variant) {
+  if (!previewData) return
+  showingVariant = !!variant
+  $('pv-img').src = showingVariant ? previewData.variantScreenshotUrl : previewData.originalScreenshotUrl
+  $('pv-tab-original').classList.toggle('sel', !showingVariant)
+  $('pv-tab-variant').classList.toggle('sel', showingVariant)
+}
+
+function openRefine() {
+  var box = $('pv-refine-box')
+  box.style.display = box.style.display === 'none' ? 'block' : 'none'
+  if (box.style.display === 'block') { var f = $('pv-refine-input'); if (f) f.focus() }
+}
+
+async function submitRefine() {
+  if (!previewData) return
+  var input = $('pv-refine-input')
+  var feedback = (input.value || '').trim()
+  if (!feedback) return
+  var btn = $('pv-refine-btn')
+  btn.disabled = true; btn.textContent = 'Refining…'
+  err('preview', '')
+  try {
+    const res = await afetch(API + '/api/preview/refine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ testId: previewData.testId, previewId: previewData.previewId, feedback: feedback })
+    })
+    var body = {}; try { body = await res.json() } catch (_) {}
+    if (!res.ok) {
+      err('preview', (body && body.message) || apiErrorMessage(res.status, body))
+    } else {
+      previewData.changes = body.changes
+      previewData.variantScreenshotUrl = body.variantScreenshotUrl
+      previewData.summary = body.summary
+      showPreview(previewData)
+    }
+  } catch (e) {
+    err('preview', 'Could not reach the server. Check your connection.')
+  } finally {
+    btn.disabled = false; btn.textContent = 'Apply'
+  }
+}
+
+// SPA-Fallback (Plan §0b, Fallback 1): /api/preview sah nur eine leere Shell und
+// hat KEINEN ausspielbaren Test angelegt. Für SPAs führt der Weg über das Snippet
+// — mit installiertem Snippet liest der Element-Picker den echten DOM. Wir legen
+// dafür einen echten Test an und schicken den User in den klassischen Snippet-Flow.
+async function showPreviewSpa(body) {
+  $('pv-loading').style.display = 'block'
+  $('pv-result').style.display = 'none'
+  $('pv-footer').style.display = 'none'
+  setPreviewStep(2)
+  err('preview', '')
+  try {
+    const res = await afetch(API + '/api/tests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: state.name, site_url: state.url })
+    })
+    var tb = {}; try { tb = await res.json() } catch (_) {}
+    if (!res.ok) {
+      $('pv-loading').style.display = 'none'
+      $('pv-result').style.display = 'block'
+      err('preview', (tb && tb.message) || apiErrorMessage(res.status, tb))
+      return
+    }
+    state.testId = tb.id; state.snippetKey = tb.snippet_key
+    $('sn-key').textContent = state.snippetKey || '...'
+    // Ab hier der bestehende Onboarding-Flow: Snippet → Element-Picker → …
+    navPush('snippet')
+  } catch (e) {
+    $('pv-loading').style.display = 'none'
+    $('pv-result').style.display = 'block'
+    err('preview', 'Could not reach the server. Check your connection.')
+  }
+}
+
+function goToGate() {
+  navPush('gate')
+}
+
+function openSignup() {
+  if (!previewData || !previewData.testId) {
+    createAccount()
+    return
+  }
+  var token = previewData.tempToken || tempToken
+  var signupUrl = 'https://www.getvariante.com/signup?source=figma-plugin&temp_token=' +
+    encodeURIComponent(token) + '&test_id=' + encodeURIComponent(previewData.testId)
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: signupUrl } }, '*')
 }
 
 function siteTriggerUrl(mode) {
