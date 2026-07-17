@@ -54,11 +54,11 @@ export async function renderScreenshot(url: string, opts: ShotOptions = {}): Pro
   // dann rendern wir ohne sie (siehe Retry unten).
   //
   // delay: Anti-Flicker-Snippets (auch unser eigenes: html.__ab_pending →
-  // opacity:0 bis ab.js resolved) und Load-Animationen verstecken die Seite in
-  // den ersten ~1-2s. Ein Capture bei "requests finished" landet dann in genau
-  // diesem Fenster → schwarzer Screenshot (in Produktion auf getvariante.com
-  // selbst beobachtet: Original schwarz, Variant ok — Race). 2.5s Settle-Zeit
-  // nach requestsfinished räumt das Fenster ab; kostet Latenz, rettet das Bild.
+  // opacity:0 bis ab.js resolved), Consent-Layer und Load-Animationen verstecken
+  // die Seite in den ersten ~1-2s. Ein Capture direkt bei "requests finished"
+  // kann in dieses Fenster fallen → leerer/halbfertiger Screenshot. 2.5s
+  // Settle-Zeit räumt das Fenster ab; kostet Latenz pro Render, macht das Bild
+  // verlässlich. (Vorsorge — in Produktion bisher nicht als Fehlerbild belegt.)
   const enhanced: Record<string, unknown> = {
     ...core,
     block_ads: true,
