@@ -87,8 +87,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <main>
 
       {/* ── Hero ── */}
-      <section className="px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-16 lg:pt-10 lg:pb-20">
-        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+      <section className="px-0 pt-4 pb-4 sm:pt-6 sm:pb-6">
+        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-center">
           {/* Left: Text — second on mobile */}
           <div className="order-2 lg:order-1 text-center sm:text-left">
             <span className="inline-block rounded-full border border-border-strong bg-bg-2 px-3.5 py-1 text-[11px] font-medium text-pro mb-4">
@@ -111,8 +111,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           </div>
 
           {/* Right: Hero Animation — first on mobile */}
-          <div id="demo" className="order-1 lg:order-2">
-            <div className="relative w-full max-w-[540px] mx-auto overflow-hidden" style={{ aspectRatio: '820/480' }} aria-hidden="true">
+          <div id="demo" className="order-1 lg:order-2 px-0">
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '820/480' }} aria-hidden="true">
               <iframe
                 src="/ab-test-hero-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
@@ -123,7 +123,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
 
         {/* Trust Boxes — part of Hero */}
-        <div className="container-wide mt-8 sm:mt-12">
+        <div className="container-wide mt-4 sm:mt-6">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { icon: Rocket, ...cp.trustItems[0] },
@@ -163,12 +163,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── AI Agent Automation ── */}
-      <section className="section !py-8 sm:!py-12">
+      <section className="!py-0">
         <div className="container">
-          <h2 className="section-heading">{cp.agentH}</h2>
-          <p className="section-sub">{cp.agentSub}</p>
+          <h2 className="section-heading mt-2">{cp.agentH}</h2>
+          <p className="section-sub mt-1">{cp.agentSub}</p>
 
-          <div className="mx-auto mt-4 max-w-3xl">
+          <div className="mx-auto mt-2 max-w-full">
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '960/540' }} aria-hidden="true">
               <iframe
                 src="/ai-workflow-animation.html"
@@ -177,7 +177,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               />
             </div>
           </div>
-          <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
+          <p className="mt-1 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
         </div>
       </section>
 
