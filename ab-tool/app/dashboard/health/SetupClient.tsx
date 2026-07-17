@@ -16,13 +16,6 @@ import {
 import type { SetupData } from './page'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
 
-const T = {
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-  text: '#ededed',
-}
-
 type StepId = 'login' | 'website' | 'plugin'
 
 type StepState = {
@@ -213,24 +206,17 @@ export function SetupClient({ data }: { data: SetupData }) {
   }
 
   const statusIcon = (status: StepState['status']) => {
-    if (status === 'loading') return <Loader2 className="h-4 w-4 animate-spin text-[#ededed]/50" />
-    if (status === 'ok') return <Check className="h-4 w-4" style={{ color: T.ok }} />
-    if (status === 'err') return <X className="h-4 w-4" style={{ color: T.err }} />
-    return <div className="h-4 w-4 rounded-full border-2 border-[#ededed]/12" />
+    if (status === 'loading') return <Loader2 className="h-4 w-4 animate-spin text-text-3" />
+    if (status === 'ok') return <Check className="h-4 w-4 text-ok" />
+    if (status === 'err') return <X className="h-4 w-4 text-err" />
+    return <div className="h-4 w-4 rounded-full border-2 border-text/10" />
   }
 
-  const statusBg = (status: StepState['status']) => {
-    if (status === 'ok') return `${T.ok}1f`
-    if (status === 'err') return `${T.err}1f`
-    if (status === 'loading') return `${T.text}08`
-    return 'transparent'
-  }
-
-  const statusBorder = (status: StepState['status']) => {
-    if (status === 'ok') return `${T.ok}33`
-    if (status === 'err') return `${T.err}33`
-    if (status === 'loading') return 'rgba(255,255,255,.08)'
-    return 'rgba(255,255,255,.08)'
+  const statusClasses = (status: StepState['status']) => {
+    if (status === 'ok') return { bg: 'bg-ok/[0.07]', border: 'border-ok/20' }
+    if (status === 'err') return { bg: 'bg-err/[0.07]', border: 'border-err/20' }
+    if (status === 'loading') return { bg: 'bg-text/[0.03]', border: 'border-text/10' }
+    return { bg: 'bg-transparent', border: 'border-text/10' }
   }
 
   const stepIcons: Record<StepId, React.ComponentType<{ className?: string }>> = {
@@ -245,10 +231,10 @@ export function SetupClient({ data }: { data: SetupData }) {
         {/* Header */}
         <div>
           <div className="flex items-center gap-2.5">
-            <HeartPulse className="h-4 w-4 text-[#ededed]/50" />
-            <h1 className="text-[18px] font-semibold text-[#ededed]">Setup health check</h1>
+            <HeartPulse className="h-4 w-4 text-text-3" />
+            <h1 className="text-[18px] font-semibold text-text">Setup health check</h1>
           </div>
-          <p className="mt-1.5 text-[12px] text-[#ededed]/40">
+          <p className="mt-1.5 text-[12px] text-text-3">
             {allOk
               ? 'All systems go — your setup is healthy.'
               : `${issues} step${issues !== 1 ? 's' : ''} remaining. Complete each one in order.`}
@@ -257,12 +243,9 @@ export function SetupClient({ data }: { data: SetupData }) {
 
         {/* Overall status pill */}
         <div
-          className="flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 text-[12px] font-medium"
-          style={{
-            background: allOk ? `${T.ok}0f` : `${T.pro}0f`,
-            border: `1px solid ${allOk ? `${T.ok}33` : `${T.pro}33`}`,
-            color: allOk ? T.ok : T.pro,
-          }}
+          className={`flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 text-[12px] font-medium ${
+            allOk ? 'border border-ok/20 bg-ok/[0.06] text-ok' : 'border border-pro/20 bg-pro/[0.06] text-pro'
+          }`}
         >
           {allOk ? <Check className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           {allOk ? 'Healthy — no issues detected' : `${issues} step${issues !== 1 ? 's' : ''} need${issues === 1 ? 's' : ''} attention`}
@@ -277,11 +260,10 @@ export function SetupClient({ data }: { data: SetupData }) {
             expanded={expanded === 'login'}
             onToggle={() => setExpanded(expanded === 'login' ? null : 'login')}
             statusIcon={statusIcon(steps.login.status)}
-            statusBg={statusBg(steps.login.status)}
-            statusBorder={statusBorder(steps.login.status)}
+            statusClasses={statusClasses(steps.login.status)}
             stepNumber={1}
           >
-            <p className="text-[12px] leading-relaxed text-[#ededed]/62">
+            <p className="text-[12px] leading-relaxed text-text-2">
               You&apos;re signed in and authenticated. Your account is ready — no additional login steps needed.
             </p>
           </StepCard>
@@ -293,57 +275,53 @@ export function SetupClient({ data }: { data: SetupData }) {
             expanded={expanded === 'website'}
             onToggle={() => setExpanded(expanded === 'website' ? null : 'website')}
             statusIcon={statusIcon(steps.website.status)}
-            statusBg={statusBg(steps.website.status)}
-            statusBorder={statusBorder(steps.website.status)}
+            statusClasses={statusClasses(steps.website.status)}
             stepNumber={2}
           >
             <div className="space-y-4">
               {website.phase === 'verified' ? (
                 <>
-                  <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                    The snippet is live on <strong className="text-[#ededed]/80">https://{website.url}</strong>. Data is flowing — visitors and conversions are being tracked.
+                  <p className="text-[12px] leading-relaxed text-text-2">
+                    The snippet is live on <strong className="text-text-2">https://{website.url}</strong>. Data is flowing — visitors and conversions are being tracked.
                   </p>
                   <button
                     onClick={() => recheckDomain(website.url)}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/[0.12] px-3 py-1.5 text-[11px] font-medium text-[#ededed]/62 transition-colors hover:border-white/[0.20] hover:text-[#ededed]"
+                    className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
                   >
                     Re-check snippet
                   </button>
                 </>
               ) : website.phase === 'not-found' ? (
                 <>
-                  <div
-                    className="flex items-start gap-3 rounded-[8px] px-3 py-2.5"
-                    style={{ background: `${T.pro}0f`, border: `1px solid ${T.pro}33` }}
-                  >
-                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: T.pro }} />
-                    <p className="text-[12px] leading-relaxed" style={{ color: `${T.pro}b3` }}>
-                      Snippet not detected on <strong className="text-[#ededed]/62">https://{website.url}</strong>.
-                      Add it to your site&apos;s <code className="rounded-[4px] bg-white/[0.06] px-1 text-[11px]">&lt;head&gt;</code>, then retry.
+                  <div className="flex items-start gap-3 rounded-[8px] border border-pro/20 bg-pro/[0.06] px-3 py-2.5">
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pro" />
+                    <p className="text-[12px] leading-relaxed text-pro/70">
+                      Snippet not detected on <strong className="text-text-2">https://{website.url}</strong>.
+                      Add it to your site&apos;s <code className="rounded-[4px] bg-bg-2 px-1 text-[11px]">&lt;head&gt;</code>, then retry.
                     </p>
                   </div>
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Universal snippet</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Universal snippet</span>
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={copySnippet}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
                         >
-                          {snippetCopied ? <Check className="h-3.5 w-3.5" style={{ color: T.ok }} /> : <Copy className="h-3.5 w-3.5" />}
+                          {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                           {snippetCopied ? 'Copied!' : 'Copy'}
                         </button>
                         <button
                           onClick={copyPrompt}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
                         >
-                          {promptCopied ? <Check className="h-3.5 w-3.5" style={{ color: T.ok }} /> : <Copy className="h-3.5 w-3.5" />}
+                          {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                           {promptCopied ? 'Copied!' : 'Copy prompt'}
                         </button>
                       </div>
                     </div>
-                    <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[10px] leading-relaxed text-[#ededed]/50 ring-1 ring-white/10">
+                    <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[10px] leading-relaxed text-text-3 ring-1 ring-border">
 {SNIPPET_CODE}
                     </pre>
                   </div>
@@ -353,13 +331,13 @@ export function SetupClient({ data }: { data: SetupData }) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => recheckDomain(website.url)}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-white/[0.12] px-3 py-1.5 text-[11px] font-medium text-[#ededed]/62 transition-colors hover:border-white/[0.20] hover:text-[#ededed]"
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
                     >
                       Re-check snippet
                     </button>
                     <button
                       onClick={() => setWebsite({ phase: 'input' })}
-                      className="cursor-pointer text-[11px] text-[#ededed]/40 transition-colors hover:text-[#ededed]/50"
+                      className="cursor-pointer text-[11px] text-text-3 transition-colors hover:text-text-2"
                     >
                       Change URL
                     </button>
@@ -367,12 +345,12 @@ export function SetupClient({ data }: { data: SetupData }) {
                 </>
               ) : (
                 <>
-                  <p className="text-[12px] leading-relaxed text-[#ededed]/62">
-                    Paste this snippet into the <code className="rounded-[5px] bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-[#ededed]/62">&lt;head&gt;</code> of every page you want to test. It&apos;s framework-agnostic — no build step, no npm.
+                  <p className="text-[12px] leading-relaxed text-text-2">
+                    Paste this snippet into the <code className="rounded-[5px] bg-bg-2 px-1.5 py-0.5 font-mono text-[11px] text-text-2">&lt;head&gt;</code> of every page you want to test. It&apos;s framework-agnostic — no build step, no npm.
                   </p>
 
-                  <div className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-[#0a0a0a] px-4 py-3">
-                    <Globe className="h-4 w-4 shrink-0 text-[#ededed]/40" />
+                  <div className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-1 px-4 py-3">
+                    <Globe className="h-4 w-4 shrink-0 text-text-3" />
                     <input
                       type="text"
                       value={urlInput}
@@ -384,18 +362,18 @@ export function SetupClient({ data }: { data: SetupData }) {
                       placeholder="yoursite.com"
                       disabled={website.phase === 'saving' || website.phase === 'checking'}
                       autoFocus
-                      className="flex-1 bg-transparent text-[15px] text-[#ededed] placeholder:text-[#ededed]/40 outline-none"
+                      className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 outline-none"
                     />
                   </div>
 
                   {website.phase === 'input' && 'error' in website && website.error && (
-                    <p className="text-[12px] text-[#f5455c]">{website.error}</p>
+                    <p className="text-[12px] text-err">{website.error}</p>
                   )}
 
                   <button
                     onClick={submitDomain}
                     disabled={website.phase !== 'input' || !urlInput.trim()}
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-white py-2.5 text-[14px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-30"
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-fill-invert py-2.5 text-[14px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                   >
                     {website.phase === 'saving' ? (
                       <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -406,7 +384,7 @@ export function SetupClient({ data }: { data: SetupData }) {
                     )}
                   </button>
 
-                  <p className="text-center text-[11px] text-[#ededed]/50">
+                  <p className="text-center text-[11px] text-text-3">
                     We check if the snippet is installed on your site. You can skip and add it later.
                   </p>
                 </>
@@ -421,18 +399,17 @@ export function SetupClient({ data }: { data: SetupData }) {
             expanded={expanded === 'plugin'}
             onToggle={() => setExpanded(expanded === 'plugin' ? null : 'plugin')}
             statusIcon={statusIcon(steps.plugin.status)}
-            statusBg={statusBg(steps.plugin.status)}
-            statusBorder={statusBorder(steps.plugin.status)}
+            statusClasses={statusClasses(steps.plugin.status)}
             stepNumber={3}
           >
             <div className="space-y-4">
               {data.hasFigmaPlugin ? (
-                <p className="text-[12px] leading-relaxed text-[#ededed]/62">
+                <p className="text-[12px] leading-relaxed text-text-2">
                   Plugin is linked. Variants created in Figma will appear in your dashboard automatically.
                 </p>
               ) : (
                 <>
-                  <p className="text-[12px] leading-relaxed text-[#ededed]/62">
+                  <p className="text-[12px] leading-relaxed text-text-2">
                     The Figma plugin lets you create A/B variants directly from your designs.{' '}
                     <a
                       href="https://www.figma.com/community/plugin/1653734891132085565"
@@ -446,19 +423,19 @@ export function SetupClient({ data }: { data: SetupData }) {
                   </p>
 
                   <div>
-                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Your plugin token</p>
+                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Your plugin token</p>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-white/10 bg-black px-3 py-2 font-mono text-[13px] text-[#ededed]/62">
+                      <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-border bg-black px-3 py-2 font-mono text-[13px] text-text-2">
                         {data.apiToken || 'No token yet'}
                       </code>
                       <button
                         onClick={copyToken}
-                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.05] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-2 text-text-2 transition-colors hover:border-border-strong hover:text-text"
                       >
-                        {tokenCopied ? <Check className="h-4 w-4" style={{ color: T.ok }} /> : <Copy className="h-4 w-4" />}
+                        {tokenCopied ? <Check className="h-4 w-4 text-ok" /> : <Copy className="h-4 w-4" />}
                       </button>
                     </div>
-                    <p className="mt-2 text-[11px] text-[#ededed]/40">
+                    <p className="mt-2 text-[11px] text-text-3">
                       After pasting the token into the Figma plugin, create a variant and push it here. The plugin status
                       updates automatically.
                     </p>
@@ -480,8 +457,7 @@ function StepCard({
   onToggle,
   icon: Icon,
   statusIcon,
-  statusBg,
-  statusBorder,
+  statusClasses,
   children,
   stepNumber,
 }: {
@@ -490,50 +466,38 @@ function StepCard({
   onToggle: () => void
   icon: React.ComponentType<{ className?: string }>
   statusIcon: React.ReactNode
-  statusBg: string
-  statusBorder: string
+  statusClasses: { bg: string; border: string }
   children: React.ReactNode
   stepNumber?: number
 }) {
+  const summaryColor = step.status === 'ok' ? 'text-text-3' : step.status === 'err' ? 'text-err' : 'text-text-3/70'
   return (
-    <div
-      className="overflow-hidden rounded-[10px] border transition-colors"
-      style={{ borderColor: statusBorder, background: '#0a0a0a' }}
-    >
+    <div className={`overflow-hidden rounded-[10px] border bg-bg-1 ${statusClasses.border}`}>
       <button
         onClick={onToggle}
-        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.02]"
+        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-2"
       >
-        <span
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px]"
-          style={{ background: statusBg }}
-        >
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] ${statusClasses.bg}`}>
           {statusIcon}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             {stepNumber && (
-              <span className="text-[10px] font-semibold text-[#ededed]/40">{stepNumber}</span>
+              <span className="text-[10px] font-semibold text-text-3">{stepNumber}</span>
             )}
-            <p className="truncate text-[13px] font-medium text-[#ededed]">{step.label}</p>
+            <p className="truncate text-[13px] font-medium text-text">{step.label}</p>
           </div>
-          <p
-            className="mt-0.5 truncate text-[11px]"
-            style={{
-              color:
-                step.status === 'ok' ? `${T.text}40` : step.status === 'err' ? T.err : `${T.text}30`,
-            }}
-          >
+          <p className={`mt-0.5 truncate text-[11px] ${summaryColor}`}>
             {step.summary}
           </p>
         </div>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-[#ededed]/50 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-text-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
         />
       </button>
 
       {expanded && (
-        <div className="border-t border-white/[0.06] px-4 py-3.5">
+        <div className="border-t border-border px-4 py-3.5">
           {children}
         </div>
       )}
@@ -604,19 +568,19 @@ export default function Document() {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Framework examples</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Framework examples</p>
       {examples.map(({ label, file, code }) => (
-        <details key={label} className="group rounded-[6px] border border-white/10 [&_summary]:list-none">
-          <summary className="flex cursor-pointer select-none items-center justify-between px-3 py-2.5 text-[11px] font-semibold text-[#ededed]/62 transition-colors hover:text-[#ededed]">
+        <details key={label} className="group rounded-[6px] border border-border [&_summary]:list-none">
+          <summary className="flex cursor-pointer select-none items-center justify-between px-3 py-2.5 text-[11px] font-semibold text-text-2 transition-colors hover:text-text">
             <span>{label}</span>
             <span className="flex items-center gap-2">
-              <code className="rounded-[5px] bg-white/[0.07] px-2 py-0.5 font-mono text-[11px] text-[#ededed]/40">
+              <code className="rounded-[5px] bg-bg-2 px-2 py-0.5 font-mono text-[11px] text-text-3">
                 {file}
               </code>
               <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
             </span>
           </summary>
-          <pre className="overflow-x-auto border-t border-white/10 px-3 py-3 text-[10px] leading-relaxed text-[#ededed]/50">
+          <pre className="overflow-x-auto border-t border-border px-3 py-3 text-[10px] leading-relaxed text-text-3">
 {code}
           </pre>
         </details>

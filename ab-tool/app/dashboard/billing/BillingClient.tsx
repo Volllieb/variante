@@ -14,12 +14,6 @@ import {
 } from 'lucide-react'
 import type { BillingData } from './page'
 
-const T = {
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-}
-
 export function BillingClient({ data }: { data: BillingData }) {
   const [busy, setBusy] = useState(false)
   const isPro = data.plan === 'pro' || data.plan === 'agency'
@@ -42,22 +36,21 @@ export function BillingClient({ data }: { data: BillingData }) {
   return (
     <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
-        <h1 className="text-[18px] font-semibold text-[#ededed]">Billing</h1>
+        <h1 className="text-[18px] font-semibold text-text">Billing</h1>
 
         {/* Plan */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-[#ededed]/40" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Plan</span>
+              <CreditCard className="h-4 w-4 text-text-3" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Plan</span>
             </div>
             <span
-              className="rounded-[5px] border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
-              style={{
-                borderColor: isAgency ? `${T.pro}33` : isPro ? `${T.ok}33` : 'rgba(255,255,255,.10)',
-                color: isAgency ? T.pro : isPro ? T.ok : '#ededed62',
-                background: isAgency ? `${T.pro}0f` : isPro ? `${T.ok}0f` : 'transparent',
-              }}
+              className={`rounded-[5px] border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                isAgency ? 'border-pro/20 bg-pro/[0.06] text-pro' :
+                isPro ? 'border-ok/20 bg-ok/[0.06] text-ok' :
+                'border-border text-text-2'
+              }`}
             >
               {isAgency ? 'Agency' : isPro ? 'Pro' : 'Free'}
             </span>
@@ -89,7 +82,7 @@ export function BillingClient({ data }: { data: BillingData }) {
                 <button
                   onClick={() => billing('checkout')}
                   disabled={busy}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-white py-2.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85 disabled:opacity-50"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-50"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Upgrade to Pro
@@ -102,7 +95,7 @@ export function BillingClient({ data }: { data: BillingData }) {
             <button
               onClick={() => billing('portal')}
               disabled={busy}
-              className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] border border-white/10 py-2.5 text-[13px] font-medium text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed] disabled:opacity-50"
+              className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] border border-border py-2.5 text-[13px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
               Manage subscription in Stripe
@@ -111,12 +104,12 @@ export function BillingClient({ data }: { data: BillingData }) {
         </div>
 
         {/* Usage */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-4 w-4 text-[#ededed]/40" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">Current Usage</span>
+            <TrendingUp className="h-4 w-4 text-text-3" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Current Usage</span>
           </div>
-          <div className="flex flex-col divide-y divide-white/[0.06]">
+          <div className="flex flex-col divide-y divide-border">
             <QuotaRow
               icon={FlaskConical}
               label="Active experiments"
@@ -143,7 +136,7 @@ export function BillingClient({ data }: { data: BillingData }) {
 
 function FeatureRow({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
-    <div className="flex items-center gap-2 text-[12px] text-[#ededed]/62">
+    <div className="flex items-center gap-2 text-[12px] text-text-2">
       <Icon className="h-3.5 w-3.5 text-ok" />
       {label}
     </div>
@@ -163,14 +156,14 @@ function QuotaRow({
   atLimit?: boolean
   tone?: 'ok' | 'err'
 }) {
-  const color = atLimit ? T.pro : tone === 'ok' ? T.ok : tone === 'err' ? T.err : undefined
+  const colorClass = atLimit ? 'text-pro' : tone === 'ok' ? 'text-ok' : tone === 'err' ? 'text-err' : 'text-text-2'
   return (
     <div className="flex items-center justify-between gap-3 py-2">
-      <span className="flex items-center gap-2 text-[12px] text-[#ededed]/62">
+      <span className="flex items-center gap-2 text-[12px] text-text-2">
         <Icon className="h-3.5 w-3.5 shrink-0" />
         {label}
       </span>
-      <span className="font-mono text-[13px] text-[#ededed]/62" style={color ? { color } : undefined}>
+      <span className={`font-mono text-[13px] ${colorClass}`}>
         {value}
       </span>
     </div>
