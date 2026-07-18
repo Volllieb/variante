@@ -83,7 +83,7 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
         transform={`rotate(-90 ${c} ${c})`}
         style={{ transition: 'stroke-dasharray 0.5s ease' }}
       />
-      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="10" fontWeight="600" fill="#ededed">
+      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="600" fill="#ededed">
         {visitors >= 1000 ? `${(visitors / 1000).toFixed(0)}k` : visitors}
       </text>
     </svg>
@@ -176,12 +176,12 @@ export function TestCard({
   return (
     <Link
       href={`/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
-      className="group/card relative block rounded-[10px] border border-border bg-bg-1 p-3.5 transition-colors hover:border-border-strong"
+      className="group/card relative block rounded-[10px] border border-border bg-bg-1 p-3.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
       {/* Live-Pulse: subtile Signatur für aktive Tests */}
       {status === 'active' && (
-        <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-ok animate-pulse" />
+        <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-ok motion-safe:animate-pulse" />
       )}
 
       {/* ── Row 1: favicon | name+url | pie chart ── */}
@@ -198,7 +198,7 @@ export function TestCard({
           />
         ) : (
           <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
-            <span className="text-[8px] text-text-3/60">WWW</span>
+            <span className="text-[10px] text-text-3/60">WWW</span>
           </div>
         )}
 
@@ -218,7 +218,8 @@ export function TestCard({
           <div ref={menuRef} className="relative">
             <button
               onClick={openMenu}
-              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2"
+              aria-label="Test actions"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>

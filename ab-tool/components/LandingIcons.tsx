@@ -27,4 +27,5 @@ export {
   // Navigation
   ChevronDown,
   ArrowUpRight,
+  ArrowRight,
 } from 'lucide-react'

@@ -113,8 +113,8 @@ export function FilterDropdown({
     <div ref={ref} className="relative shrink-0">
       <button
         onClick={() => setOpen((v) => !v)}
-        title={`Filter${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
-        className="relative flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
+        aria-label={`Filter${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
+        className="relative flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
       >
         <Filter className="h-3.5 w-3.5" />
         {activeCount > 0 && (
@@ -125,14 +125,14 @@ export function FilterDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[34px] z-50 w-[220px] rounded-[8px] border border-border bg-bg-1 p-3">
+        <div className="absolute right-0 top-[40px] z-50 w-[220px] rounded-[8px] border border-border bg-bg-1 p-3">
           {/* Header */}
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[11px] font-semibold text-text-2">Filters</span>
             {activeCount > 0 && (
               <button
                 onClick={reset}
-                className="flex cursor-pointer items-center gap-1 text-[10px] text-text-3 transition-colors hover:text-text-2"
+                className="flex cursor-pointer items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none rounded-[4px] px-1.5 py-0.5"
               >
                 <X className="h-3 w-3" />
                 Reset

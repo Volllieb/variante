@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight } from '@/components/LandingIcons'
+import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight, ArrowRight } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
-import { HybridDemo } from '@/app/components/HybridDemo'
 import { detectLang } from '@/lib/detectLang'
 import { getCopy, PLANS } from '@/lib/landingCopy'
 import type { PlanId } from '@/lib/landingCopy'
@@ -95,12 +94,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.heroSub}
             </p>
             <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
-              <a
-                href="#demo-hybrid"
+              <Link
+                href={signupUrl("/onboarding")}
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
-              </a>
+              </Link>
               <Link
                 href={signupUrl("/signup")}
                 className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"
@@ -142,8 +141,31 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── Hybrid-Demo: URL rein → echte Variante der eigenen Seite ── */}
-      <HybridDemo cp={cp} source={source} />
+      {/* ── Onboarding CTA: statt Inline-Demo jetzt eigener Flow auf /onboarding ── */}
+      <section className="section !pt-6">
+        <div className="container-wide">
+          <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-10 text-center">
+            <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
+              {cp.demo.heading}
+            </h2>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-white/55">
+              {cp.demo.sub}
+            </p>
+            <div className="mt-6">
+              <Link
+                href={signupUrl("/onboarding")}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {cp.demo.submit}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <p className="mt-3 text-[11px] text-text-3">
+              {lang === 'de' ? 'Kein Snippet nötig — einfach URL rein.' : 'No snippet needed — just drop your URL.'}
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* ── Works-With Logo Bar ── */}
       <section className="!py-10 sm:!py-12">

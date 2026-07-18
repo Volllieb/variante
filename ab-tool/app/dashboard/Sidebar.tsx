@@ -124,7 +124,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         </div>
         <button
           onClick={() => setPopoverOpen((v) => !v)}
-          className="flex w-full items-center gap-2.5 rounded-[6px] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer"
+          className="flex w-full items-center gap-2.5 rounded-[6px] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
         >
           {avatarUrl && !avatarLoadFailed ? (
             <Image
@@ -169,7 +169,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
             <Link
               href="/dashboard/account"
               onClick={() => setPopoverOpen(false)}
-              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
+              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
             >
               <User className="h-4 w-4 shrink-0" />
               <span>Account settings</span>
@@ -177,7 +177,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
             <Link
               href="/dashboard/billing"
               onClick={() => setPopoverOpen(false)}
-              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
+              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
             >
               <CreditCard className="h-4 w-4 shrink-0" />
               <span>Billing</span>
@@ -187,7 +187,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
                 await getBrowserSupabase().auth.signOut()
                 window.location.href = '/'
               }}
-              className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text cursor-pointer"
+              className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text cursor-pointer focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               <span>Sign out</span>
@@ -213,7 +213,7 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`group relative flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] transition-colors ${
+      className={`group relative flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] transition-colors focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
         active
           ? 'bg-bg-2 font-medium text-text'
           : 'text-text-2 hover:bg-bg-2 hover:text-text'

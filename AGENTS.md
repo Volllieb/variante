@@ -21,6 +21,12 @@
 - **Deploy-Regel:** Preview-First (seit 16.07.2026). Feature-Branch → Preview. Nur `vercel promote` auf Anweisung. master = production.
 - **Env-Var-Regel (seit 17.07.2026):** Source of Truth = Vercel. `ab-tool/.env.example` dokumentiert alle Vars. `ab-tool/.env.local` ist gitignored. `vercel env pull .env.local --yes` zum Syncen.
 
+## User-First-Prinzip
+
+- **User hat höchste Priorität.** Jede Entscheidung — technisch, visuell, strukturell — wird daran gemessen, ob sie dem Endnutzer dient.
+- **Bedienungsfreundlichkeit vor technischer Eleganz.** Die beste Architektur nützt nichts, wenn die UX darunter leidet. Technische Lösungen immer auf Benutzerfreundlichkeit abwägen.
+- **Frontend = UX first.** Oberste Richtschnur für jedes UI-Element: Ist es intuitiv, schnell, barrierefrei, angenehm? Keine Kompromisse bei Ladezeit, Klarheit und Interaktionsfluss.
+
 ## Schätzungen & Qualität
 
 - **Keine Zeitschätzungen.** Aufwand einschätzen: "trivial", "mittel", "aufwändig weil X, Y, Z".

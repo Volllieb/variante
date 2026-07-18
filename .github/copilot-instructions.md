@@ -47,6 +47,8 @@
 - **Fokus:** Kurz & direkt. Kein Intro/Outro/Padding.
 
 ### Coding-Präferenzen
+- **User first:** User hat höchste Priorität. Technische Lösungen immer auf Bedienungsfreundlichkeit abwägen. UX schlägt Architektur-Eleganz.
+- **Frontend UX:** Jedes UI-Element muss intuitiv, schnell, barrierefrei und angenehm sein. Keine Kompromisse bei Ladezeit, Klarheit, Interaktionsfluss.
 - **TypeScript:** Best Practice. Strict, korrekte Typen, keine any-Hacks.
 - **React/Next.js:** Best Practice. Server Components first, Client nur wo nötig.
 - **DRY:** Pragmatisch. Erst ab 3× Wiederholung abstrahieren — davor Kopieren ok.

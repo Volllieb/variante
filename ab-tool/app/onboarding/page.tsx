@@ -1,0 +1,52 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { PandaLogo } from '@/components/PandaLogo'
+import { HybridDemo } from '@/app/components/HybridDemo'
+import { detectLang } from '@/lib/detectLang'
+import { getCopy } from '@/lib/landingCopy'
+
+export const metadata: Metadata = {
+  title: 'Onboarding — Variante',
+  description: 'Sieh in 30 Sekunden, wie deine Website mit A/B-Testing performt.',
+  robots: { index: false },
+}
+
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ source?: string }>
+}) {
+  const { source } = (await searchParams) ?? {}
+  const lang = await detectLang()
+  const cp = getCopy(lang)
+
+  return (
+    <div className="min-h-screen bg-bg-0 text-white/80 antialiased flex flex-col">
+      {/* Minimal-Header: nur Logo + Escape */}
+      <header className="shrink-0 border-b border-border bg-bg-0/95 px-4 sm:px-6">
+        <div className="flex items-center justify-between py-2.5 sm:py-3 max-w-6xl mx-auto w-full">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
+          >
+            <PandaLogo size="md" />
+            variante
+          </Link>
+          <Link
+            href="/"
+            className="text-xs text-white/40 transition-colors hover:text-white/70"
+          >
+            ← {lang === 'de' ? 'Zurück' : 'Back'}
+          </Link>
+        </div>
+      </header>
+
+      {/* Onboarding nimmt den gesamten restlichen Viewport ein */}
+      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        <div className="w-full max-w-5xl">
+          <HybridDemo cp={cp} source={source} />
+        </div>
+      </main>
+    </div>
+  )
+}
