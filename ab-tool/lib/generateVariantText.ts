@@ -229,3 +229,90 @@ export async function generateVariantText(
 
   return output
 }
+
+// ─── Best-Practice-Variant (ohne User-Input) ───
+
+const BEST_PRACTICE_SYSTEM = `Du bist ein CRO-UI-Spezialist. Generiere die EINE beste Variante für ein Element,
+basierend auf bewährten Conversion-Mustern. Kein User-Input — du entscheidest autonom.
+
+REGELN:
+- Text-Buttons: füge Dringlichkeit oder Risikofreiheit hinzu ("No Credit Card", "Free", "Instant")
+- Farben: höherer Kontrast zum Hintergrund, auffälliger ohne schrill zu sein
+- CSS: Button größer (padding, font-size), abgerundet (border-radius), mit Schatten für Tiefe
+- Niemals display:none, visibility:hidden, position:fixed/absolute, z-index
+- Niemals den Text komplett ersetzen — nur optimieren
+- CSS-Selektor verwenden wo angegeben
+
+Gib NUR gültiges JSON zurück: {"variant": "...", "variant_html": "...", "variant_css": "...", "explanation": "..."}`
+
+export interface BestPracticeInput {
+  element: string       // Beschreibung
+  original: string      // Original-Text/HTML
+  elementType: string   // 'button' | 'headline' | 'text' | 'form' | 'element'
+  selector?: string
+  pageContext?: string  // Style-Kontext (Farbpalette, Klassen-Prefixe)
+}
+
+export async function generateBestPracticeVariant(
+  input: BestPracticeInput
+): Promise<GenerateVariantOutput> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OPENAI_API_KEY missing')
+
+  const selectorHint = input.selector ? `CSS-Selector: ${input.selector}` : ''
+  const contextHint = input.pageContext ? `Seiten-Kontext:\n${input.pageContext.slice(0, 2000)}` : ''
+
+  const userPrompt = [
+    `Element-Typ: ${input.elementType}`,
+    `Element: ${input.element}`,
+    `Original: ${input.original}`,
+    selectorHint,
+    contextHint,
+    '',
+    'Generiere die beste CRO-Variante für dieses Element. Wende bewährte Conversion-Muster an.',
+    'Gib NUR gültiges JSON zurück: {"variant": "...", "variant_html": "...", "variant_css": "...", "explanation": "..."}',
+  ].filter(Boolean).join('\n')
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [
+        { role: 'system', content: BEST_PRACTICE_SYSTEM },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 1024,
+      response_format: { type: 'json_object' },
+    }),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    safeError('generateBestPracticeVariant-openai-error', { message: `status ${res.status}: ${errText.slice(0, 200)}` })
+    throw new Error('Best-practice variant generation failed')
+  }
+
+  const json = await res.json() as { choices: Array<{ message: { content: string } }> }
+  const rawContent = json.choices?.[0]?.message?.content?.trim() ?? ''
+  if (!rawContent) throw new Error('Empty best-practice variant response')
+
+  let parsed: { variant?: string; variant_html?: string; variant_css?: string; explanation?: string }
+  try {
+    const cleaned = stripFences(rawContent)
+    parsed = JSON.parse(cleaned)
+  } catch {
+    safeError('generateBestPracticeVariant-parse-error', { message: rawContent.slice(0, 200) })
+    throw new Error('Failed to parse best-practice variant JSON')
+  }
+
+  if (!parsed.variant) throw new Error('Empty variant in best-practice response')
+
+  return {
+    variant: parsed.variant,
+    variant_html: parsed.variant_html,
+    variant_css: parsed.variant_css,
+    explanation: parsed.explanation ?? `CRO-optimierte Variante für "${input.element}"`,
+  }
+}

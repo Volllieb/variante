@@ -41,7 +41,16 @@
 
 ### Kommunikation & Planung
 - **Sprache:** Code & Commits Englisch, Doku & Diskussion Deutsch.
-- **Planung:** Vor größeren Tasks ausführlichen Plan skizzieren (Schritte, Risiken, Alternativen).
+- **Planung:** Vor größeren Tasks ausführlichen Plan skizzieren (Schritte, Risiken, Alternativen). **Jeder Schritt mit Agent-Zuweisung:** `[@agent]` vor dem Schritt-Titel. Format:
+  ```
+  Plan: {Feature-Name}
+  1. [@engineer] DB-Migration + API-Route — orientier dich an Pattern-Katalog §1+§2
+  2. [@ponytail] Review Schritt 1
+  3. [@engineer] Client Component + Integration — orientier dich an Pattern-Katalog §3
+  4. [@ponytail] Final Review
+  5. [@wrapup] Aufräumen, Build, Commit
+  ```
+  Agenten: `[@engineer]` (Default), `[@supabase]` (nur isolierte DB-Tasks), `[@ponytail]` (Review), `[@redesign]` (visuelles Redesign), `[@wrapup]` (Session-Abschluss).
 - **Rückfragen:** Bei Unklarheiten Annahme treffen, aber transparent machen ("Annahme: X"). Nur bei großen Entscheidungen nachfragen.
 - **Todo-Listen:** Immer via `manage_todo_list` tracken.
 - **Fokus:** Kurz & direkt. Kein Intro/Outro/Padding.

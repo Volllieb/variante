@@ -367,7 +367,11 @@ REGELN:
 - "type" ist die Art der Änderung: "text" (Copy-Änderung), "color" (Farbwechsel),
   "css" (Styling-Tweak) oder "layout" (Umordnung/Sichtbarkeit).
 - "selector" nur angeben, wenn er sich eindeutig aus dem HTML ableiten lässt
-  (id oder eindeutige Klasse). Im Zweifel weglassen.`
+  (id oder eindeutige Klasse). Im Zweifel weglassen.
+- "primarySuggestionIndex": der Index (0–3) des EINEN Vorschlags, der den
+  größten Conversion-Impact verspricht. Wähle den, der am schnellsten und
+  einfachsten umsetzbar ist UND die höchste Conversion-Wirkung hat.
+  Bevorzuge: Button/CTA > Headline > Social Proof > Layout.`
 
 // Few-Shot-Beispiel für stabiles JSON-Format
 export const FEW_SHOT_EXAMPLE = `Beispiel für eine SaaS-Landingpage:
@@ -409,11 +413,27 @@ export const FEW_SHOT_EXAMPLE = `Beispiel für eine SaaS-Landingpage:
 // GPT-4o-mini-Call: Seite analysieren, Suggestions als Array zurückgeben.
 // Wirft bei API-/Parse-Fehlern; leeres Array ist ein valides Ergebnis
 // (Aufrufer entscheidet, wie er damit umgeht).
+export interface AnalyzePageResult {
+  suggestions: CROSuggestion[]
+  /** 0-basierter Index des AI-gewählten besten Erst-Test-Elements */
+  primarySuggestionIndex: number
+}
+
 export async function analyzePage(
   html: string,
   structure: string,
   options?: { pageGoal?: string; industry?: string }
 ): Promise<CROSuggestion[]> {
+  const result = await analyzePageWithPrimary(html, structure, options)
+  return result.suggestions
+}
+
+/** Erweiterte Analyse mit Primary-Suggestion-Index für den neuen Wizard-Flow. */
+export async function analyzePageWithPrimary(
+  html: string,
+  structure: string,
+  options?: { pageGoal?: string; industry?: string }
+): Promise<AnalyzePageResult> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY missing')
 
@@ -462,7 +482,7 @@ export async function analyzePage(
   if (!raw) throw new Error('Empty AI response')
 
   // Parse JSON (mit Fallback für Markdown-Fences)
-  let parsed: { suggestions?: CROSuggestion[] }
+  let parsed: { suggestions?: CROSuggestion[]; primarySuggestionIndex?: number }
   try {
     const cleaned = raw.replace(/```(?:json)?\s*/g, '').replace(/```\s*$/g, '').trim()
     parsed = JSON.parse(cleaned)
@@ -471,7 +491,14 @@ export async function analyzePage(
     throw new Error('Failed to parse AI response')
   }
 
-  return (parsed.suggestions ?? []).slice(0, 4)
+  const suggestions = (parsed.suggestions ?? []).slice(0, 4)
+  const primarySuggestionIndex = typeof parsed.primarySuggestionIndex === 'number'
+    && parsed.primarySuggestionIndex >= 0
+    && parsed.primarySuggestionIndex < suggestions.length
+    ? parsed.primarySuggestionIndex
+    : 0 // Fallback: erstes Element
+
+  return { suggestions, primarySuggestionIndex }
 }
 
 // ─── Cache-Layer: site_insights als Analyse-Cache ───

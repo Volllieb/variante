@@ -1,0 +1,125 @@
+'use client'
+
+/**
+ * StepReview — Step 4: Review & Create.
+ *
+ * Zeigt alle Test-Details auf einer Summary-Karte.
+ * Auto-generierter Name, editierbar.
+ */
+
+import { Globe, MousePointerClick, Sparkles, Target, Edit3 } from 'lucide-react'
+import { useEffect } from 'react'
+import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
+
+interface StepReviewProps {
+  url: string
+  element: ElementSelection
+  variantResult: VariantResult | null
+  goal: GoalSelection | null
+  autoName: string
+  onAutoNameChange: (name: string) => void
+}
+
+export function StepReview({
+  url, element, variantResult, goal, autoName, onAutoNameChange,
+}: StepReviewProps) {
+  const displayUrl = /^https?:\/\//i.test(url) ? url.replace(/^https?:\/\//, '') : url
+
+  // Set a sensible default name if none yet
+  useEffect(() => {
+    if (!autoName && element.elementName) {
+      onAutoNameChange(`${element.elementName} — AI Variant`)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[13px] leading-relaxed text-text-2">
+          Review your test setup. Give it a name and choose when to start.
+        </p>
+      </div>
+
+      {/* Summary Card */}
+      <div className="rounded-[10px] border border-border bg-bg-1 p-4 space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-accent/15">
+            <Sparkles className="h-3.5 w-3.5 text-accent" />
+          </div>
+          <p className="text-[14px] font-semibold text-text">Test Summary</p>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-2.5">
+          <DetailRow icon={Globe} label="Site" value={displayUrl} />
+          <DetailRow icon={Target} label="Element" value={element.elementName} />
+          <DetailRow
+            icon={MousePointerClick}
+            label="Goal"
+            value={goal?.label ?? 'Not set'}
+          />
+          {variantResult && (
+            <DetailRow
+              icon={Sparkles}
+              label="Variant"
+              value={variantResult.explanation || variantResult.variant}
+            />
+          )}
+        </div>
+
+        {/* Auto-name */}
+        <div>
+          <label className="mb-1.5 block text-[11px] font-medium text-text-2">
+            Test Name
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={autoName}
+              onChange={(e) => onAutoNameChange(e.target.value)}
+              placeholder="e.g. Hero-CTA: Ghost to Solid Button"
+              className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 pl-3 pr-8 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
+            />
+            <Edit3 className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
+          </div>
+          <p className="mt-1 text-[10px] text-text-3">
+            AI-generated name — edit or keep as is
+          </p>
+        </div>
+
+        {/* CSS preview (collapsed) */}
+        {variantResult?.variant_css && (
+          <div>
+            <p className="mb-1 text-[11px] font-medium text-text-2">CSS Changes</p>
+            <code className="block max-h-24 overflow-y-auto rounded-[6px] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
+              {variantResult.variant_css}
+            </code>
+          </div>
+        )}
+      </div>
+
+      {/* What happens next */}
+      <div className="rounded-[8px] border border-border bg-bg-1 p-3">
+        <p className="text-[11px] text-text-2">
+          <strong className="text-text">Go Live:</strong> Test starts immediately. Visitors will be split 50/50 between original and variant.
+        </p>
+        <p className="mt-1 text-[11px] text-text-2">
+          <strong className="text-text">Save Paused:</strong> Test is created but not active yet. Start it anytime from the dashboard.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function DetailRow({ icon: Icon, label, value }: { icon: typeof Globe; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-3" />
+      <div className="min-w-0">
+        <p className="text-[10px] text-text-3 uppercase tracking-wider">{label}</p>
+        <p className="text-[12px] text-text truncate">{value}</p>
+      </div>
+    </div>
+  )
+}

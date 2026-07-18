@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTestList } from '@/lib/useTestList'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
-import { TestCreationPanel } from '../TestCreationPanel'
+import { NewTestDrawer } from '../components/NewTestDrawer'
 import { TestCard, type TestRow } from '../components/TestCard'
 import {
   FilterDropdown,
@@ -20,25 +20,21 @@ import {
 } from 'lucide-react'
 
 /* ── Token palette ── */
-const T = {
-  bg1: '#0a0a0a',
-  bg2: '#111111',
-  text: '#ededed',
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-}
+
+/* ── Component ── */
 
 export function TestsClient({
   apiToken,
   tests,
   hasFigmaPlugin,
-  isAtFreeLimit,
+  userId,
+  plan,
 }: {
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
-  isAtFreeLimit: boolean
+  userId: string
+  plan: string
 }) {
   const router = useRouter()
   const [newTestOpen, setNewTestOpen] = useState(false)
@@ -90,13 +86,16 @@ export function TestsClient({
         </Tooltip>
       </div>
 
-      {/* New test flow overlay */}
-      {newTestOpen && (
-        <TestCreationPanel
-          apiToken={apiToken}
-          onClose={() => setNewTestOpen(false)}
-        />
-      )}
+      {/* New test flow — Drawer Wizard */}
+      <NewTestDrawer
+        isOpen={newTestOpen}
+        onClose={() => setNewTestOpen(false)}
+        userId={userId}
+        onTestCreated={() => {
+          setNewTestOpen(false)
+          router.refresh()
+        }}
+      />
 
       {/* Empty / No results */}
       {testList.length === 0 ? (

@@ -14,7 +14,7 @@ import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits } from '@/lib/planLimits'
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
-import { generateVariantText, type VariantType, type GenerateVariantInput } from '@/lib/generateVariantText'
+import { generateVariantText, generateBestPracticeVariant, type VariantType, type GenerateVariantInput } from '@/lib/generateVariantText'
 
 export const maxDuration = 30
 
@@ -38,20 +38,28 @@ export async function POST(req: Request) {
   }
 
   // ─── Body + Validate ───
-  let body: GenerateVariantInput
+  let body: GenerateVariantInput & { elementType?: string }
   try { body = await req.json() } catch {
     return Response.json({ error: 'invalid json' }, { status: 400, headers })
   }
 
-  const { element, original, variantDescription, type, pageContext, selector } = body
-  if (!element || !original || !variantDescription || !type) {
-    return Response.json({ error: 'element, original, variantDescription, type required' }, { status: 400, headers })
+  const { element, original, variantDescription, type, pageContext, selector, elementType } = body
+  if (!element || !original) {
+    return Response.json({ error: 'element and original are required' }, { status: 400, headers })
   }
-  if (!['text', 'color', 'css', 'layout'].includes(type)) {
+  // variantDescription ist jetzt optional — wenn undefined, AI-generierte Best-Practice-Variante
+  if (variantDescription !== undefined && typeof variantDescription !== 'string') {
+    return Response.json({ error: 'variantDescription must be a string' }, { status: 400, headers })
+  }
+  // type ist optional wenn kein variantDescription (best-practice mode)
+  if (variantDescription !== undefined && !type) {
+    return Response.json({ error: 'type required when variantDescription is provided' }, { status: 400, headers })
+  }
+  if (type && !['text', 'color', 'css', 'layout'].includes(type)) {
     return Response.json({ error: 'type must be text, color, css, or layout' }, { status: 400, headers })
   }
-  // Sanity-Check: keine überlangen Inputs (max 5000 chars kombiniert)
-  if (element.length > 500 || variantDescription.length > 2000 || original.length > 3000) {
+  // Sanity-Check: keine überlangen Inputs
+  if (element.length > 500 || (variantDescription && variantDescription.length > 2000) || original.length > 3000) {
     return Response.json({ error: 'input too long' }, { status: 400, headers })
   }
 
@@ -96,14 +104,28 @@ export async function POST(req: Request) {
 
   // ─── Generate ───
   try {
-    const result = await generateVariantText({
-      element,
-      original,
-      variantDescription,
-      type: type as VariantType,
-      pageContext,
-      selector,
-    })
+    let result: { variant: string; variant_html?: string; variant_css?: string; explanation: string }
+
+    if (variantDescription !== undefined) {
+      // User-driven mode: User beschreibt die gewünschte Änderung
+      result = await generateVariantText({
+        element,
+        original,
+        variantDescription,
+        type: type as VariantType,
+        pageContext,
+        selector,
+      })
+    } else {
+      // Best-practice mode: AI entscheidet autonom
+      result = await generateBestPracticeVariant({
+        element,
+        original,
+        elementType: elementType ?? 'element',
+        selector,
+        pageContext,
+      })
+    }
 
     return Response.json(result, { headers })
   } catch (err) {

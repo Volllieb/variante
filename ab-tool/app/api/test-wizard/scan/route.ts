@@ -13,7 +13,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits } from '@/lib/planLimits'
-import { analyzePage, stripForCRO, extractStructure, type CROSuggestion } from '@/lib/croAnalyze'
+import { analyzePageWithPrimary, stripForCRO, extractStructure, type CROSuggestion } from '@/lib/croAnalyze'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
@@ -116,9 +116,24 @@ export async function POST(req: Request) {
     const html = stripForCRO(rawHtml)
     const structure = extractStructure(html)
 
-    const suggestions = await analyzePage(html, structure)
+    const { suggestions, primarySuggestionIndex } = await analyzePageWithPrimary(html, structure)
 
-    return Response.json({ suggestions }, { headers })
+    const primarySuggestion = suggestions[primarySuggestionIndex] ?? null
+
+    return Response.json({
+      suggestions,
+      primarySuggestionIndex,
+      primarySuggestion: primarySuggestion ? {
+        selector: primarySuggestion.selector ?? null,
+        element: primarySuggestion.element,
+        rationale: primarySuggestion.why,
+        elementType: primarySuggestion.type === 'text' && primarySuggestion.element.toLowerCase().includes('button') ? 'button'
+          : primarySuggestion.type === 'text' && /h[1-6]/i.test(primarySuggestion.element) ? 'headline'
+          : primarySuggestion.type === 'text' ? 'text'
+          : primarySuggestion.type === 'layout' ? 'layout'
+          : 'element',
+      } : null,
+    }, { headers })
   } catch (err) {
     safeError('scan-failed', err)
     return Response.json({

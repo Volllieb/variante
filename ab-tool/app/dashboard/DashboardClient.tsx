@@ -7,7 +7,7 @@ import { useTestList } from '@/lib/useTestList'
 import { useToast } from '@/app/components/Toast'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
-import { TestCreationPanel } from './TestCreationPanel'
+import { NewTestDrawer } from './components/NewTestDrawer'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
@@ -252,13 +252,16 @@ export function DashboardClient({
 
         {/* Content */}
         <div className="p-4">
-          {/* New test flow overlay */}
-          {newTestOpen && (
-            <TestCreationPanel
-              apiToken={apiToken}
-              onClose={() => setNewTestOpen(false)}
-            />
-          )}
+          {/* New test flow — Drawer Wizard */}
+          <NewTestDrawer
+            isOpen={newTestOpen}
+            onClose={() => setNewTestOpen(false)}
+            userId={userId}
+            onTestCreated={() => {
+              setNewTestOpen(false)
+              router.refresh()
+            }}
+          />
 
           {testList.length === 0 ? (
             <EmptyDashboard
