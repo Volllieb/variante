@@ -13,7 +13,7 @@
 | **ICP** | Designer, Indie Hacker & Gründer |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 18.07.2026 — Production-Hardening: Error-Boundaries, Per-IP-Rate-Limits, SSRF-Redirect-Fixes, A11y-Restore. Build grün. |
+| **Stand** | 18.07.2026 — Production-Hardening: Error-Boundaries, Per-IP-Rate-Limits, SSRF-Redirect-Fixes, A11y-Restore, k6-Loadtest, Incident-Runbook. Build grün. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community). |
 
 ## §2 Stack
@@ -33,7 +33,7 @@
 ab-tool/ — Next.js (API, Dashboard, Landingpage)
 figma-plugin/ — code.ts + ui.html
 db/migrations/ — Supabase SQL (001–023)
-docs/ — Brand, GTM, Leads, Historie, Architektur, Baustellen, Future-Features
+docs/ — Brand, GTM, Leads, Historie, Architektur, Baustellen, Runbook, Future-Features
 
 ## §4 Deployment
 
