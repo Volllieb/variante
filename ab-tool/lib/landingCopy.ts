@@ -185,8 +185,8 @@ const de: LandingCopy = {
   heroFootnote: '',
 
   demo: {
-    heading: 'Sieh deine Seite optimiert — jetzt sofort',
-    sub: 'URL rein, 40 Sekunden warten. Kein Account, kein Snippet, keine Kreditkarte. Du bekommst deine echte Seite zu sehen — einmal im Original, einmal so, wie die KI sie umbauen würde.',
+    heading: 'Das würde KI an deiner Seite verbessern',
+    sub: 'URL rein, 40 Sekunden. Kein Account, kein Snippet. Du siehst deine Seite — und die Optimierungen, die eine KI vorschlagen würde.',
     inputPlaceholder: 'deine-website.de',
     submit: 'Variante zeigen',
     loadingSteps: [
@@ -389,8 +389,8 @@ const en: LandingCopy = {
   heroFootnote: '',
 
   demo: {
-    heading: 'See your site transformed — right now',
-    sub: 'Drop in your URL, wait 40 seconds. No account, no snippet, no credit card. You get your real page twice — as it is, and as the AI would rebuild it.',
+    heading: 'What AI would change about your site',
+    sub: 'Drop your URL, wait 40 seconds. No account, no snippet. See your page — and the improvements AI would suggest.',
     inputPlaceholder: 'your-website.com',
     submit: 'Show me a variant',
     loadingSteps: [

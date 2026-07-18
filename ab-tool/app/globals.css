@@ -295,34 +295,6 @@ html {
   }
 }
 
-/* ── Step cards (How it works) ── */
-
-.step-card {
-  position: relative;
-}
-
-.step-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 9999px;
-  background: var(--color-bg-2);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-3);
-}
-
-@media (hover: hover) {
-  .step-card {
-    transition: border-color 0.2s ease;
-  }
-  .step-card:hover {
-    border-color: var(--color-border-strong);
-  }
-}
-
 /* ── Agent loop cards ── */
 
 .agent-loop-card {

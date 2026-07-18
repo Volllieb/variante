@@ -170,7 +170,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Works-With Logo Bar ── */}
       <section className="!py-10 sm:!py-12">
         <div className="container-wide text-center">
-          <span className="section-label">{cp.sectionWorks}</span>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
             {techLogos.map((logo) => (
               <div key={logo.name} className="flex flex-col items-center gap-2">
@@ -190,7 +189,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── AI Agent Automation ── */}
       <section className="section">
         <div className="container">
-          <span className="section-label">{cp.sectionAgent}</span>
           <h2 className="section-heading mt-1">{cp.agentH}</h2>
           <p className="section-sub">{cp.agentSub}</p>
 
@@ -222,32 +220,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       <div className="section-divider" />
 
-      {/* ── Figma Community ── */}
-      <section className="section">
-        <div className="container-narrow text-center">
-          <span className="section-label">Figma</span>
-          <h2 className="section-heading mt-1">{cp.figmaCommunityTitle}</h2>
-          <p className="section-sub">{cp.figmaCommunityText}</p>
-          <div className="mt-8">
-            <a
-              href="https://www.figma.com/community/plugin/1653734891132085565"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-full border border-border-strong px-5 py-2.5 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85"
-            >
-              {cp.figmaCommunityLinkText}
-              <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
       {/* ── Pricing ── */}
       <section className="section">
         <div className="container">
-          <span className="section-label">{cp.sectionPricing}</span>
           <h2 className="section-heading mt-1">{cp.sectionPricing}</h2>
           <p className="section-sub">{cp.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
@@ -350,7 +325,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── FAQ ── */}
       <section className="section">
         <div className="container-narrow">
-          <span className="section-label">{cp.sectionFaq}</span>
           <h2 className="section-heading mt-1">{cp.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
             {cp.faqs.map((item) => (
