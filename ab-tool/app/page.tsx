@@ -187,25 +187,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       <div className="section-divider" />
 
-      {/* ── How it works ── */}
-      <section className="section">
-        <div className="container">
-          <span className="section-label">{cp.sectionHow}</span>
-          <h2 className="section-heading mt-1">{cp.sectionHow}</h2>
-          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-            {cp.steps.map((s, i) => (
-              <div key={s.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
-                <span className="step-number">{i + 1}</span>
-                <h3 className="mt-4 text-sm font-semibold text-white/85">{s.title}</h3>
-                <p className="mt-2 text-sm text-white/45 font-normal leading-relaxed">{s.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
       {/* ── AI Agent Automation ── */}
       <section className="section">
         <div className="container">
