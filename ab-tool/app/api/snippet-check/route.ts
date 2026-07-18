@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
+import { isBlockedHost } from '@/lib/ssrf'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 /**
  * POST /api/snippet-check
@@ -11,6 +12,13 @@ import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
  */
 export async function POST(req: NextRequest) {
   try {
+    // Öffentlicher Endpunkt, der beliebige URLs fetcht — ohne Limit ein
+    // Traffic-Amplifier für Dritte.
+    const ip = getClientIp(req)
+    if (!(await checkRateLimit(`snippet-check:${ip}`, 10, 60_000))) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const { site_url } = await req.json()
 
     if (!site_url || typeof site_url !== 'string') {
@@ -31,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
     }
 
-    if (BLOCKED_HOSTS.test(hostname) || BLOCKED_HOSTNAMES.includes(hostname)) {
+    if (isBlockedHost(hostname)) {
       return NextResponse.json({ error: 'Blocked host' }, { status: 403 })
     }
 
@@ -49,8 +57,23 @@ export async function POST(req: NextRequest) {
         },
         redirect: 'follow',
       })
-      // Only check first 200KB — snippet is in <head>
-      html = await res.text()
+      // redirect:'follow' kann auf interne Hosts umleiten (public URL → 302 →
+      // 169.254.169.254). res.url ist das finale Ziel — geblockt = verwerfen.
+      // Gleiches Muster wie lib/extractPageCode.ts.
+      if (res.url && isBlockedHost(new URL(res.url).hostname)) {
+        return NextResponse.json({ error: 'Blocked host' }, { status: 403 })
+      }
+      // Nur die ersten 200KB lesen — das Snippet steht im <head>.
+      const reader = res.body?.getReader()
+      if (reader) {
+        const decoder = new TextDecoder()
+        while (html.length < 200_000) {
+          const { done, value } = await reader.read()
+          if (done) break
+          html += decoder.decode(value, { stream: true })
+        }
+        reader.cancel().catch(() => {})
+      }
     } catch {
       return NextResponse.json({
         detected: false,

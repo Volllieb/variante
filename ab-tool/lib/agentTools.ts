@@ -54,6 +54,15 @@ export function makeAgentTools(user: ApiUser) {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
 
+        // redirect:'follow' kann auf interne Hosts umleiten — finales Ziel
+        // re-validieren (gleiches Muster wie lib/extractPageCode.ts).
+        if (res.url) {
+          const finalHost = new URL(res.url).hostname
+          if (BLOCKED_HOSTS.test(finalHost) || BLOCKED_HOSTNAMES.includes(finalHost)) {
+            throw new Error(`Blocked host: ${finalHost}`)
+          }
+        }
+
         const html = await res.text()
         if (!html || html.length < 100) {
           throw new Error('Page returned no usable content (empty or JS-rendered SPA?)')
