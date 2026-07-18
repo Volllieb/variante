@@ -29,9 +29,9 @@ export interface PlanStructure {
 }
 
 export const PLANS: readonly PlanStructure[] = [
-  { id: 'free', price: '0 €', perMonth: false, href: '/signup', featured: false },
-  { id: 'pro', price: '35 €', perMonth: true, href: '/signup?plan=pro', featured: true },
-  { id: 'agency', price: '99 €', perMonth: true, href: '/signup?plan=agency', featured: false },
+  { id: 'free', price: '0 €', perMonth: false, href: '/onboarding', featured: false },
+  { id: 'pro', price: '35 €', perMonth: true, href: '/onboarding?plan=pro', featured: true },
+  { id: 'agency', price: '99 €', perMonth: true, href: '/onboarding?plan=agency', featured: false },
 ]
 
 /* ── Typen: erzwingen gleiche Element-Anzahl in DE und EN ── */

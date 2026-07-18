@@ -1,4 +1,4 @@
--- Migration 024 — RLS-Policies für Tabellen ohne Policies
+-- Migration 025 — RLS-Policies für Tabellen ohne Policies
 -- Schließt Supabase-Sicherheitswarnungen für stripe_webhook_events,
 -- temp_sessions und waitlist.
 -- Alle drei Tabellen werden ausschließlich über den Service-Role-Client

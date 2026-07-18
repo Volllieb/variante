@@ -68,7 +68,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.navLogin}
             </Link>
             <Link
-              href={signupUrl("/signup")}
+              href={signupUrl("/onboarding")}
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
               {cp.navSignup}
@@ -101,7 +101,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 {cp.heroCta}
               </a>
               <Link
-                href={signupUrl("/signup")}
+                href={signupUrl("/onboarding")}
                 className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"
               >
                 {cp.navSignup} <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
@@ -406,7 +406,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <p className="section-sub">{cp.closingSub}</p>
           <div className="mt-8">
             <Link
-              href={signupUrl("/signup")}
+              href={signupUrl("/onboarding")}
               className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
             >
               {cp.closingCta}
@@ -420,7 +420,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       {/* ── Badge Demo ── */}
       <Link
-        href={signupUrl("/signup")}
+        href={signupUrl("/onboarding")}
         className="fixed bottom-3 right-3 z-50 badge-desktop-only rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
