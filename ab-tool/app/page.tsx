@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight, ArrowRight } from '@/components/LandingIcons'
+import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
 import { detectLang } from '@/lib/detectLang'
 import { getCopy, PLANS } from '@/lib/landingCopy'
@@ -94,12 +94,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.heroSub}
             </p>
             <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
-              <Link
-                href={signupUrl("/onboarding")}
+              <a
+                href="#demo-hybrid"
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
-              </Link>
+              </a>
               <Link
                 href={signupUrl("/signup")}
                 className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"
@@ -141,8 +141,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── Onboarding CTA: statt Inline-Demo jetzt eigener Flow auf /onboarding ── */}
-      <section className="section !pt-6">
+      {/* ── Demo-Einstieg: URL direkt auf der Landingpage eingeben ── */}
+      <section id="demo-hybrid" className="section !pt-6">
         <div className="container-wide">
           <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-10 text-center">
             <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
@@ -151,18 +151,27 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             <p className="mx-auto mt-2 max-w-xl text-sm text-white/55">
               {cp.demo.sub}
             </p>
-            <div className="mt-6">
-              <Link
-                href={signupUrl("/onboarding")}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
+            <form
+              action="/onboarding"
+              method="GET"
+              className="mx-auto mt-6 flex max-w-xl flex-col gap-2 sm:flex-row"
+            >
+              <input
+                type="text"
+                name="url"
+                inputMode="url"
+                placeholder={cp.demo.inputPlaceholder}
+                aria-label={cp.demo.inputPlaceholder}
+                className="h-12 flex-1 rounded-full border border-border bg-bg-0 px-5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
               >
                 {cp.demo.submit}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <p className="mt-3 text-[11px] text-text-3">
-              {lang === 'de' ? 'Kein Snippet nötig — einfach URL rein.' : 'No snippet needed — just drop your URL.'}
-            </p>
+                <span className="text-base">→</span>
+              </button>
+            </form>
           </div>
         </div>
       </section>
@@ -170,6 +179,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Works-With Logo Bar ── */}
       <section className="!py-10 sm:!py-12">
         <div className="container-wide text-center">
+          <span className="section-label">{cp.sectionWorks}</span>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
             {techLogos.map((logo) => (
               <div key={logo.name} className="flex flex-col items-center gap-2">
@@ -186,9 +196,29 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       <div className="section-divider" />
 
+      {/* ── How it works ── */}
+      <section className="section">
+        <div className="container">
+          <span className="section-label">{cp.sectionHow}</span>
+          <h2 className="section-heading mt-1">{cp.sectionHow}</h2>
+          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+            {cp.steps.map((s, i) => (
+              <div key={s.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
+                <span className="step-number">{i + 1}</span>
+                <h3 className="mt-4 text-sm font-semibold text-white/85">{s.title}</h3>
+                <p className="mt-2 text-sm text-white/45 font-normal leading-relaxed">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
       {/* ── AI Agent Automation ── */}
       <section className="section">
         <div className="container">
+          <span className="section-label">{cp.sectionAgent}</span>
           <h2 className="section-heading mt-1">{cp.agentH}</h2>
           <p className="section-sub">{cp.agentSub}</p>
 
@@ -220,9 +250,32 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       <div className="section-divider" />
 
+      {/* ── Figma Community ── */}
+      <section className="section">
+        <div className="container-narrow text-center">
+          <span className="section-label">Figma</span>
+          <h2 className="section-heading mt-1">{cp.figmaCommunityTitle}</h2>
+          <p className="section-sub">{cp.figmaCommunityText}</p>
+          <div className="mt-8">
+            <a
+              href="https://www.figma.com/community/plugin/1653734891132085565"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full border border-border-strong px-5 py-2.5 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85"
+            >
+              {cp.figmaCommunityLinkText}
+              <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
       {/* ── Pricing ── */}
       <section className="section">
         <div className="container">
+          <span className="section-label">{cp.sectionPricing}</span>
           <h2 className="section-heading mt-1">{cp.sectionPricing}</h2>
           <p className="section-sub">{cp.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
@@ -325,6 +378,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── FAQ ── */}
       <section className="section">
         <div className="container-narrow">
+          <span className="section-label">{cp.sectionFaq}</span>
           <h2 className="section-heading mt-1">{cp.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
             {cp.faqs.map((item) => (

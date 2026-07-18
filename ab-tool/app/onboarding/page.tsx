@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ source?: string }>
+  searchParams?: Promise<{ source?: string; url?: string }>
 }) {
-  const { source } = (await searchParams) ?? {}
+  const { source, url } = (await searchParams) ?? {}
   const lang = await detectLang()
   const cp = getCopy(lang)
 
@@ -44,7 +44,7 @@ export default async function OnboardingPage({
       {/* Onboarding nimmt den gesamten restlichen Viewport ein */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-5xl">
-          <HybridDemo cp={cp} source={source} />
+          <HybridDemo cp={cp} source={source} prefillUrl={url} />
         </div>
       </main>
     </div>

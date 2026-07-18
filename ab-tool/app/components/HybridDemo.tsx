@@ -47,7 +47,7 @@ type State = 'idle' | 'loading' | 'preview' | 'spa' | 'error'
 // gefühlter Fortschritt statt Spinner-Starre (Plan §5).
 const STEP_MS = 4000
 
-export function HybridDemo({ cp, source }: { cp: LandingCopy; source?: string }) {
+export function HybridDemo({ cp, source, prefillUrl }: { cp: LandingCopy; source?: string; prefillUrl?: string }) {
   const [state, setState] = useState<State>('idle')
   const [url, setUrl] = useState('')
   const [step, setStep] = useState(0)
@@ -85,7 +85,10 @@ export function HybridDemo({ cp, source }: { cp: LandingCopy; source?: string })
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const trimmed = url.trim()
+    await doSubmit(url.trim())
+  }
+
+  async function doSubmit(trimmed: string) {
     if (!trimmed) return
 
     setState('loading')
@@ -118,14 +121,21 @@ export function HybridDemo({ cp, source }: { cp: LandingCopy; source?: string })
       if (json.tempToken) tempTokenRef.current = json.tempToken
       setData(json as PreviewResponse)
       setState('preview')
-      // Direkt auf die Variante schalten: der Vergleich ist der Punkt, und die
-      // eigene Seite im Original kennt der User bereits.
       setTimeout(() => setShowingVariant(true), 600)
     } catch {
       setError(cp.demo.errGeneric)
       setState('error')
     }
   }
+
+  // Auto-submit wenn von der Landingpage mit URL-Param redirected
+  useEffect(() => {
+    if (prefillUrl && state === 'idle') {
+      setUrl(prefillUrl)
+      doSubmit(prefillUrl.trim())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillUrl])
 
   async function refine(e: React.FormEvent) {
     e.preventDefault()

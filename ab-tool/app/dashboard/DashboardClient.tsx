@@ -165,7 +165,7 @@ export function DashboardClient({
           <button
             onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
             disabled={!hasVerifiedDomain}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25"
           >
             <Plus className="h-3.5 w-3.5" />
             New test
@@ -226,14 +226,13 @@ export function DashboardClient({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search tests…"
-              className="w-full h-[36px] rounded-[6px] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="w-full h-[32px] rounded-[6px] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus:outline-none"
             />
           </div>
           <Tooltip content={sortAsc ? 'Newest first' : 'Oldest first'}>
             <button
               onClick={() => setSortAsc((v) => !v)}
-              aria-label={sortAsc ? 'Sort: newest first' : 'Sort: oldest first'}
-              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex h-[32px] w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
             </button>
@@ -242,8 +241,7 @@ export function DashboardClient({
           <Tooltip content="Refresh test list">
             <button
               onClick={() => router.refresh()}
-              aria-label="Refresh test list"
-              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex h-[32px] w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </button>

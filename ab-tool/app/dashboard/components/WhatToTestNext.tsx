@@ -216,7 +216,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
             </div>
             <button
               onClick={fetchSuggestions}
-              className="inline-flex items-center gap-1.5 rounded-[6px] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Analyze my page
@@ -258,7 +258,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
               </span>
               <button
                 onClick={fetchSuggestions}
-                className="flex items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-text-3 transition-colors hover:border-border-strong hover:text-text-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+                className="flex items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-text-3 transition-colors hover:border-border-strong hover:text-text-2 cursor-pointer"
               >
                 <RefreshCw className="h-3 w-3" />
                 Regenerate
@@ -273,7 +273,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
             <p className="text-[11px] text-err/70">{error}</p>
             <button
               onClick={fetchSuggestions}
-              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
@@ -337,7 +337,7 @@ function MiniAgent({ domain }: { domain: string }) {
           </p>
           <button
             onClick={handleRun}
-            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
           >
             <Sparkles className="h-3 w-3" />
             Optimize {host}
@@ -406,7 +406,7 @@ function MiniAgent({ domain }: { domain: string }) {
           {(isDone || error) && (
             <button
               onClick={handleRun}
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <RefreshCw className="h-3 w-3" />
               Run again
