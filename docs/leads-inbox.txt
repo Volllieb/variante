@@ -1,0 +1,25 @@
+# Leads-Inbox — eine URL pro Zeile.
+# Pipeline (npm run leadgen) liest diese Datei und verarbeitet neue URLs.
+# Bereits verarbeitete URLs werden in docs/leads/ abgelegt und hier gelöscht.
+# Zeilen die mit # beginnen werden ignoriert.
+
+# === Top-Fit ===
+https://www.getibex.com
+# https://exeechain.com — URL recherchieren
+# https://crade.ai — URL recherchieren
+# https://researchpal.ai — URL recherchieren
+# https://searchspot.ai — URL recherchieren
+https://postfox.app
+# https://bookingpilot.com — URL recherchieren
+
+# === Good-Fit ===
+# https://musegen.ai — URL recherchieren
+# https://leapinvoice.com — URL recherchieren
+# https://clarifeed.com — URL recherchieren
+# https://launchpanda.com — URL recherchieren
+# https://vora.ai — URL recherchieren
+# https://myintelbrief.com — URL recherchieren
+# https://planndu.com — URL recherchieren
+# https://rephelper.com — URL recherchieren
+# https://uniscribe.ai — URL recherchieren
+# https://zevor.ai — URL recherchieren

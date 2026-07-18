@@ -20,7 +20,8 @@
     "loadtest": "k6 run __tests__/load/main.k6.js",
     "loadtest:smoke": "k6 run __tests__/load/main.k6.js -e STAGE=smoke",
     "bot": "node scripts/ab-bot.mjs",
-    "bot:prod": "node scripts/ab-bot.mjs --prod"
+    "bot:prod": "node scripts/ab-bot.mjs --prod",
+    "leadgen": "npx tsx scripts/leadgen/pipeline.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.13",
@@ -52,6 +53,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4",
     "typescript": "^5"
   }
 }
