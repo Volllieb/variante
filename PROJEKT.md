@@ -13,7 +13,7 @@
 | **ICP** | Designer, Indie Hacker & Gründer |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 17.07.2026 — Production-Ready Wizard. Hybrid-Onboarding v4. Build grün. |
+| **Stand** | 18.07.2026 — Production-Hardening: Error-Boundaries, Per-IP-Rate-Limits, SSRF-Redirect-Fixes, A11y-Restore. Build grün. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community). |
 
 ## §2 Stack
