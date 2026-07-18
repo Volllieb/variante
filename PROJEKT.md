@@ -13,7 +13,7 @@
 | **ICP** | Designer, Indie Hacker & Gründer |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 18.07.2026 — Production-Hardening: Error-Boundaries, Per-IP-Rate-Limits, SSRF-Redirect-Fixes, A11y-Restore, k6-Loadtest, Incident-Runbook. Build grün. |
+| **Stand** | 18.07.2026 — Production-Hardening: Error-Boundaries, Per-IP-Rate-Limits, SSRF-Redirect-Fixes, A11y-Restore, k6-Loadtest, Incident-Runbook. Build grün. Migration 027: `increment_gen_cost` mit `set search_path` neu gebaut. Code-Hygiene: `assertSafeUrl` dead code entfernt, Sidebar focus-visible + group bereinigt. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community). |
 
 ## §2 Stack
@@ -32,7 +32,7 @@
 
 ab-tool/ — Next.js (API, Dashboard, Landingpage)
 figma-plugin/ — code.ts + ui.html
-db/migrations/ — Supabase SQL (001–023)
+db/migrations/ — Supabase SQL (001–027)
 docs/ — Brand, GTM, Leads, Historie, Architektur, Baustellen, Runbook, Future-Features
 
 ## §4 Deployment
@@ -63,7 +63,13 @@ Steuer: Kleinunternehmer (§19 UStG).
 - Supabase JWT, bcrypt, HTTP-only Cookies, API-Key UUID v4
 - Kein CDN/Analytics-Drittanbieter. Keine Kreditkarten auf eigenem Server.
 
-## §8 Selbstprüfung
+## §8 Historie (letzte Einträge)
+
+| Datum | Eintrag |
+|---|---|
+| 18.07.2026 | **Wrapup: Code-Hygiene.** `assertSafeUrl` aus `lib/ssrf.ts` entfernt (dead code). Sidebar: ungenutzte `group`-Klasse + überflüssigen Flex-Wrapper um `NotificationCenter` entfernt. Migration 027: `increment_gen_cost` mit `set search_path` neu gebaut. Build grün. |
+
+## §9 Selbstprüfung
 
 > Bei JEDER Änderung. Erst reviewen, dann pushen:
 

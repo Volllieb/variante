@@ -17,6 +17,7 @@
 > | **E2E-Test-Suite** (Playwright) | Juli 2026 | ✅ Live — smoke, auth, dashboard, conversion, mobile |
 > | **Error-Tracking** (Sentry) | 17.07.2026 | ✅ Live — 4 Env-Vars (DSN, ORG, PROJECT, AUTH_TOKEN) |
 > | **Hybrid-Onboarding-Plan v4** | 17.07.2026 | 📐 Planung — Option A (Code-Analyse), SPA-Fallback |
+| **Web Test-Erstellungs-Flow** | 18.07.2026 | ❓ Fragebogen — Anforderungsklärung für Wizard-Redesign |
 
 ---
 
