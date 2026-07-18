@@ -47,7 +47,7 @@ type State = 'idle' | 'loading' | 'preview' | 'spa' | 'error'
 // gefühlter Fortschritt statt Spinner-Starre (Plan §5).
 const STEP_MS = 4000
 
-export function HybridDemo({ cp, source, prefillUrl }: { cp: LandingCopy; source?: string; prefillUrl?: string }) {
+export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; source?: string; prefillUrl?: string; plan?: string }) {
   const [state, setState] = useState<State>('idle')
   const [url, setUrl] = useState('')
   const [step, setStep] = useState(0)
@@ -174,6 +174,7 @@ export function HybridDemo({ cp, source, prefillUrl }: { cp: LandingCopy; source
       temp_token: data.tempToken,
       test_id: data.testId,
     })
+    if (plan) params.set('plan', plan)
     return `/signup?${params.toString()}`
   }
 

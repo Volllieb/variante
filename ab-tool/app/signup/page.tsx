@@ -70,18 +70,29 @@ export default function SignupPage() {
     } catch { /* best-effort */ }
   }
 
-  // UX: Bereits eingeloggt → direkt zum Dashboard
+  // UX: Bereits eingeloggt → direkt zum Dashboard.
+  // Ohne Session UND ohne tempToken (d.h. nicht vom Onboarding kommend) →
+  // redirect zum Onboarding, damit jeder neue User den Aha-Moment kriegt.
   useEffect(() => {
     getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/dashboard')
         return
       }
+      // Nicht vom Onboarding gekommen → dorthin redirecten
+      if (!tempToken) {
+        const params = new URLSearchParams()
+        if (source) params.set('source', source)
+        if (signupPlan) params.set('plan', signupPlan)
+        const qs = params.toString()
+        router.push(`/onboarding${qs ? `?${qs}` : ''}`)
+        return
+      }
       setSessionChecked(true)
     }).catch(() => {
       setSessionChecked(true)
     })
-  }, [router])
+  }, [router, tempToken, source, signupPlan])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
