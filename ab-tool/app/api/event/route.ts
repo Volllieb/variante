@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { calcSignificance, determineWinner } from '@/lib/significance'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 import { safeError } from '@/lib/safeLog'
 
 // Security: UUID v4 Format-Validierung für snippet_key
@@ -25,7 +25,7 @@ type TestRow = {
 export async function POST(req: Request) {
   // Security: Rate-Limiting — maximal 30 Event-Calls pro Minute pro IP
   const ip = getClientIp(req)
-  if (!await checkRateLimit(`event:${ip}`, 30, 60_000)) {
+  if (!loadtestBypass(req) && !await checkRateLimit(`event:${ip}`, 30, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('POST, OPTIONS') })
   }
 

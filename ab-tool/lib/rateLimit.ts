@@ -73,6 +73,18 @@ export async function checkRateLimit(
   return true
 }
 
+// Loadtest-Bypass: k6 läuft von EINER IP — ohne Bypass misst der Test nur
+// das Rate-Limit (429s), nie die Kapazität. Echter Traffic kommt von vielen
+// Besucher-IPs und stößt nie ans Per-IP-Limit.
+// Dreifach gesichert: NIE in Production (VERCEL_ENV), nur wenn das Secret
+// explizit gesetzt ist, und nur bei exaktem Header-Match.
+export function loadtestBypass(req: Request): boolean {
+  if (process.env.VERCEL_ENV === 'production') return false
+  const secret = process.env.LOADTEST_SECRET
+  if (!secret) return false
+  return req.headers.get('x-loadtest-secret') === secret
+}
+
 // Client-IP aus Vercel-Headern extrahieren (x-forwarded-for oder x-real-ip).
 export function getClientIp(req: Request): string {
   return (

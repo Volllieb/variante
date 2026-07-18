@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { sanitizeHtml } from '@/lib/sanitize'
 import { safeError } from '@/lib/safeLog'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 
 export async function OPTIONS() {
   return preflight('GET, OPTIONS')
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
   // Resolve wird bei jedem Seitenaufruf von ab.js aufgerufen, daher das
   // gleiche Limit wie /api/event (das ebenfalls pro Seitenaufruf feuert).
   const ip = getClientIp(req)
-  if (!await checkRateLimit(`resolve:${ip}`, 30, 60_000)) {
+  if (!loadtestBypass(req) && !await checkRateLimit(`resolve:${ip}`, 30, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeaders('GET, OPTIONS'), 'Retry-After': '60' } })
   }
 
