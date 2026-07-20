@@ -12,9 +12,9 @@ const MODEL = 'gpt-4o-mini'
 // Cache-TTL: 24 Stunden. Danach wird die Seite neu analysiert.
 const CACHE_TTL_HOURS = 24
 
-// Maximale HTML-Größe für die Analyse: 120KB. Reicht für die Struktur
-// (Headlines, CTAs, Layout), spart Token-Kosten.
-const MAX_HTML_BYTES = 120_000
+// Maximale HTML-Größe für die Analyse: 80KB. Reicht für die Struktur
+// (Headlines, CTAs, Layout), spart Token-Kosten und verhindert Timeouts.
+const MAX_HTML_BYTES = 80_000
 
 export interface CROSuggestion {
   element: string // "CTA-Button (Hero)"
@@ -457,6 +457,7 @@ export async function analyzePageWithPrimary(
   const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    signal: AbortSignal.timeout(45_000), // 45s — maxDuration der Route ist 60s
     body: JSON.stringify({
       model: MODEL,
       messages: [

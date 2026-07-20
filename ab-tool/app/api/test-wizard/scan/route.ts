@@ -106,7 +106,7 @@ export async function POST(req: Request) {
   try {
     const pageRes = await fetch(url, {
       headers: { 'User-Agent': 'variante-cro-scanner/1.0', 'Accept': 'text/html' },
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(25_000),
     })
     if (!pageRes.ok) {
       const msg = pageRes.status === 404 ? 'Page not found (404)'
@@ -142,10 +142,18 @@ export async function POST(req: Request) {
       } : null,
     }, { headers })
   } catch (err) {
-    safeError('scan-failed', err)
+    const msg = err instanceof Error ? err.message : String(err)
+    safeError('scan-failed', { url, error: msg })
+    // Gib die echte Fehlermeldung zurück, damit der User weiss was los ist
     return Response.json({
       error: 'scan failed',
-      message: 'Could not analyze the page. It might be behind a bot-blocker or too large.',
+      message: msg.includes('timed out') || msg.includes('timeout') || msg.includes('abort')
+        ? 'Die Analyse hat zu lange gedauert. Bei großen Seiten kann das vorkommen — versuche es erneut.'
+        : msg.includes('AI generation failed') || msg.includes('Failed to parse')
+          ? 'Die KI-Analyse ist fehlgeschlagen. Bitte versuche es erneut.'
+          : msg.includes('fetch') || msg.includes('ENOTFOUND') || msg.includes('ECONNREFUSED')
+            ? 'Die Seite konnte nicht geladen werden. Prüfe die URL und ob die Seite online ist.'
+            : `Analyse fehlgeschlagen: ${msg.slice(0, 200)}`,
     }, { status: 502, headers })
   }
 }
