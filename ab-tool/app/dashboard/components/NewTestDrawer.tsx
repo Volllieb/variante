@@ -21,6 +21,7 @@ import { StepUrlAndElement } from './new-test/StepUrlAndElement'
 import { StepVariantB } from './new-test/StepVariantB'
 import { StepMetricPicker } from './new-test/StepMetricPicker'
 import { StepReview } from './new-test/StepReview'
+import type { UserEdits, VariantTab } from './new-test/types'
 
 // ─── Types ───
 
@@ -36,6 +37,8 @@ export interface VariantResult {
   variant_html?: string
   variant_css?: string
   explanation: string
+  /** User-Edits aus dem manuellen Editor (optional — nur wenn User editiert hat) */
+  userEdits?: UserEdits
 }
 
 export interface GoalSelection {
@@ -50,6 +53,8 @@ interface WizardState {
   selectedElement: ElementSelection | null
   elementConfirmed: boolean
   variantResult: VariantResult | null
+  /** Welcher Tab im Variant-Step aktiv ist */
+  variantTab: VariantTab
   selectedGoal: GoalSelection | null
   goalConfirmed: boolean
   testName: string
@@ -62,6 +67,7 @@ const INITIAL_STATE: WizardState = {
   selectedElement: null,
   elementConfirmed: false,
   variantResult: null,
+  variantTab: 'ai',
   selectedGoal: null,
   goalConfirmed: false,
   testName: '',
@@ -339,14 +345,16 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
             />
           )}
 
-          {/* Step 1: Variant B (KI bleibt — Ausnahme) */}
+          {/* Step 1: Variant B */}
           {state.step === 1 && state.selectedElement && (
             <StepVariantB
               element={state.selectedElement}
               url={state.url}
               variantResult={state.variantResult}
+              variantTab={state.variantTab}
+              onTabChange={(tab) => updateState({ variantTab: tab })}
               onGenerate={async () => {
-                updateState({ variantResult: null })
+                updateState({ variantResult: null, variantTab: 'ai' })
                 const res = await fetch('/api/test-wizard/generate', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -368,8 +376,14 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
                 const data: VariantResult = await res.json()
                 updateState({ variantResult: data })
               }}
+              onVariantUpdate={(patch) => {
+                updateState({
+                  variantResult: state.variantResult
+                    ? { ...state.variantResult, ...patch }
+                    : patch as VariantResult,
+                })
+              }}
               onSkip={() => {
-                // Create a minimal fallback variant so user can proceed
                 updateState({
                   variantResult: {
                     variant: state.selectedElement!.elementName,

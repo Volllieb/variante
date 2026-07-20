@@ -11,10 +11,10 @@
 |---|---|
 | **Produkt** | variante — autonomer KI-Agent für A/B-Testing, kein Dev nötig. "Total Control, Minimum Effort": KI macht alles, User greift nur ein wenn er will. |
 | **ICP** | Designer, Indie Hacker & Gründer (Solopreneure & kleine Teams) auf beliebigen Plattformen (Custom HTML, WordPress, Next/React, Shopify) |
-| **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
+| **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 20.07.2026 — 🎨 **Onboarding-Redesign**: Copy-Kürzung (DE/EN), Header-Consolidierung, Skip-Button, Icon-Overhaul (check/cube). HybridDemo: Copy-Refresh + Live-Link-CTA. Landing: Hero-CTA-Fix (primär → #demo-hybrid). |
+| **Stand** | 20.07.2026 — 🎨 **Web-UI Controls + Inspiration Gallery**: VariantEditor mit Live-Preview + PropertyControls, InspirationGallery mit 5 CRO-Patterns, ColorPicker, PropertySlider, mergeVariantEdits-Logik, 3-Tab-Layout in StepVariantB. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -98,6 +98,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 | Datum | Eintrag |
 |---|---|
 | 20.07.2026 | **Wrapup: Onboarding-Redesign.** Ponytail-Review: Hero-CTA-Fix (primär → #demo-hybrid statt /onboarding). Tote Komponenten (7 Stück, 21KB) nach `docs/future-features/components/` verschoben: Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview. TODO: `TestCreationPanel.tsx:210` (pageContext aus ab.js picker). Build grün. |
+| 20.07.2026 | **Web-UI Controls + Inspiration Gallery.** StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration). Neue Komponenten: `VariantEditor.tsx` (Live-Preview + PropertyControls), `InspirationGallery.tsx` (5 CRO-Patterns: SocialProof, Urgency, TrustSignals, Clarity, VisualHierarchy), `ColorPicker.tsx`, `PropertySlider.tsx`. Neue Libs: `mergeVariantEdits.ts` (UserEdits-Typ + merge-Logik), `inspirationPatterns.ts` (Pattern-Definitionen), `generatePatternVariant.ts` (Pattern→CSS-Generierung), `types.ts` (Shared Types). Alle Dateien in `new-test/`. Build grün. |
 | 18.07.2026 | **Leadgen-Pipeline (Sprint 1).** `npm run leadgen` → `ab-tool/scripts/leadgen/pipeline.ts` orchestriert Enrichment, Analyse + Draft. Plan: `docs/future-features/leadgen-pipeline.md`. |
 | 18.07.2026 | **Dashboard Design Token Migration.** Alle Komponenten (TestCard, DashboardClient, FilterDropdown, WhatToTestNext, EmptyState, Sidebar, AccountClient, BillingClient, SetupClient) von Hardcode-Hex + `T`-Konstanten auf Tailwind-v4-Design-Tokens migriert. AI-Purple → Pro-Orange. Shadow/Blur-Verletzungen entfernt. Sidebar: aktiver Indikator (2px left bar). TestCard: Live-Pulse für aktive Tests. Build grün. |
 | 17.07.2026 | **Future-Features-Review: Abgleich mit Code-Stand.** 8 Files in `docs/future-features/` gegen PROJEKT.md §8 abgeglichen. `README.md` aktualisiert: Implementierte Features markiert (variant_b_css ✅, Autonomous Agent ✅, Self-Improving Site Engine 🟡, PLUGIN-WEB-SPLIT ✅, Dashboard-Sprints 1–6 ✅, E2E ✅, Sentry ✅), Hybrid-Onboarding-Plan v4 referenziert. `autonomous-ab-agent.md`: Header auf ✅ Implementiert gesetzt, Code-Referenzen ergänzt. `self-improving-site-engine.md`: Implementierungsstand pro Komponente dokumentiert, Build-Reihenfolge aktualisiert. `PLUGIN-WEB-SPLIT.md`: Archiv-Vermerk. Kein Code geändert. |
