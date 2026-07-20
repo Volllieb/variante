@@ -12,7 +12,13 @@ export async function POST() {
   const redis = new Redis({ url, token })
 
   try {
-    const keys = await redis.keys('rl:preview:day:*')
+    const keys = await redis.keys('preview:day:*')
+    const refineKeys = await redis.keys('preview-refine:day:*')
+    const allKeys = [...keys, ...refineKeys]
+    if (allKeys.length > 0) {
+      await redis.del(...allKeys)
+    }
+    return Response.json({ reset: allKeys.length })
     if (keys.length > 0) {
       await redis.del(...keys)
     }
