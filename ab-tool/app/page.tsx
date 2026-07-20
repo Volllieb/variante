@@ -94,12 +94,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.heroSub}
             </p>
             <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
-              <Link
-                href={signupUrl("/onboarding")}
+              <a
+                href="#demo-hybrid"
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
-              </Link>
+              </a>
               <Link
                 href={signupUrl("/onboarding")}
                 className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"

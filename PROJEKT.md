@@ -14,7 +14,7 @@
 | **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 21.07.2026 — 🧙 **New Test Wizard** implementiert: 5-Step Drawer (Scan→Picker→Variant→Metric→Review), AI-First mit Best-Practice-Varianten, Draft-Speicherung serverseitig. Figma-Plugin auf Stats-Viewer eingedampft. API-Routen: `test-wizard/scan`, `test-wizard/generate`, `test-wizard/create`, `test-wizard/draft`, `figma/stats`. `TestCreationPanel` & `figmaListening`-Code entfernt. |
+| **Stand** | 20.07.2026 — 🎨 **Onboarding-Redesign**: Copy-Kürzung (DE/EN), Header-Consolidierung, Skip-Button, Icon-Overhaul (check/cube). HybridDemo: Copy-Refresh + Live-Link-CTA. Landing: Hero-CTA-Fix (primär → #demo-hybrid). |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -34,7 +34,7 @@
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, claim-tests, cron, domains, event, events, figma, generate, preview, profile, resolve, results, snippet-check, stripe, suggestions, temp-session, test-wizard, tests, token
-├── app/dashboard/ tests/ login/ signup/ results/ imprint/ privacy/ docs/
+├── app/components/     # HybridDemo, SkipButton (Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview → docs/future-features/components/)
 ├── components/         # LandingIcons, PandaLogo, TechLogos
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # agentTools, auth, claimTests, cors, croAnalyze, croHeuristics, detectLang, email, extractPageCode, generateVariantText, getExperimentStats, landingCopy, pii, planLimits, previewAnalyze, rateLimit, safeLog, sanitize, screenshot, significance, snippetCode, ssrf, stripe, supabase, supabaseBrowser, supabaseServer, useRealtime, useTestList
@@ -97,7 +97,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 
 | Datum | Eintrag |
 |---|---|
-| 18.07.2026 | **Wrapup: Code-Hygiene.** `assertSafeUrl` aus `lib/ssrf.ts` entfernt (dead code, kein Caller mehr). Sidebar: ungenutzte `group`-Klasse + überflüssigen Flex-Wrapper um `NotificationCenter` entfernt. Migration 027: `increment_gen_cost` mit `set search_path` neu gebaut. Build grün. |
+| 20.07.2026 | **Wrapup: Onboarding-Redesign.** Ponytail-Review: Hero-CTA-Fix (primär → #demo-hybrid statt /onboarding). Tote Komponenten (7 Stück, 21KB) nach `docs/future-features/components/` verschoben: Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview. TODO: `TestCreationPanel.tsx:210` (pageContext aus ab.js picker). Build grün. |
 | 18.07.2026 | **Leadgen-Pipeline (Sprint 1).** `npm run leadgen` → `ab-tool/scripts/leadgen/pipeline.ts` orchestriert Enrichment, Analyse + Draft. Plan: `docs/future-features/leadgen-pipeline.md`. |
 | 18.07.2026 | **Dashboard Design Token Migration.** Alle Komponenten (TestCard, DashboardClient, FilterDropdown, WhatToTestNext, EmptyState, Sidebar, AccountClient, BillingClient, SetupClient) von Hardcode-Hex + `T`-Konstanten auf Tailwind-v4-Design-Tokens migriert. AI-Purple → Pro-Orange. Shadow/Blur-Verletzungen entfernt. Sidebar: aktiver Indikator (2px left bar). TestCard: Live-Pulse für aktive Tests. Build grün. |
 | 17.07.2026 | **Future-Features-Review: Abgleich mit Code-Stand.** 8 Files in `docs/future-features/` gegen PROJEKT.md §8 abgeglichen. `README.md` aktualisiert: Implementierte Features markiert (variant_b_css ✅, Autonomous Agent ✅, Self-Improving Site Engine 🟡, PLUGIN-WEB-SPLIT ✅, Dashboard-Sprints 1–6 ✅, E2E ✅, Sentry ✅), Hybrid-Onboarding-Plan v4 referenziert. `autonomous-ab-agent.md`: Header auf ✅ Implementiert gesetzt, Code-Referenzen ergänzt. `self-improving-site-engine.md`: Implementierungsstand pro Komponente dokumentiert, Build-Reihenfolge aktualisiert. `PLUGIN-WEB-SPLIT.md`: Archiv-Vermerk. Kein Code geändert. |
