@@ -79,6 +79,37 @@ Respond with JSON only:
   "summary": "<short sentence naming what changed>"
 }`
 
+const SYSTEM_PROMPT_CODE = `You are a CRO (conversion rate optimization) expert who writes CSS.
+
+You receive a page's real HTML and a list of candidate elements with VERIFIED CSS
+selectors extracted from that HTML server-side.
+
+Your job: pick 2-4 elements and describe a higher-converting visual variant of each,
+expressed purely as CSS.
+
+HARD RULES:
+1. The "selector" of every change MUST be copied verbatim from the candidate element
+   list. Never invent, simplify or shorten a selector.
+2. "css" is a plain CSS declaration list (e.g. "background: #0D99FF; color: #fff;").
+   No selector, no braces, no !important — the server adds that.
+3. Only visual properties: color, background, border, border-radius, padding, margin,
+   font-size, font-weight, letter-spacing, line-height, text-transform, box-shadow,
+   opacity, display (flex/block/inline-flex only), gap, width, max-width, text-align.
+4. Never use: position: fixed, position: absolute, display: none, visibility: hidden,
+   z-index, transform, content, @import, url() with anything but https:.
+5. Whatever you change, the element must stay READABLE — if you set a background,
+   set a matching color too. If you enlarge text, keep it inside its container.
+6. Focus on what actually moves conversion: CTA contrast and size, headline clarity
+   and hierarchy, trust signals, pricing emphasis. No decorative changes.
+
+Respond with JSON only:
+{
+  "changes": [
+    { "selector": "<verbatim from candidates>", "css": "<declarations>", "rationale": "<one sentence, why this lifts conversion>" }
+  ],
+  "summary": "<short sentence naming what changed>"
+}`
+
 interface RawChange {
   selector?: unknown
   css?: unknown
@@ -141,6 +172,58 @@ export async function analyzePreview(
         { type: 'image_url', image_url: { url: screenshotUrl } },
       ],
     },
+  ])
+
+  const changes = normalizeChanges(parsed.changes, page)
+  if (changes.length === 0) throw new Error('No usable changes generated')
+
+  return {
+    changes,
+    injectedCss: buildInjectedCss(changes),
+    summary: typeof parsed.summary === 'string' && parsed.summary.trim()
+      ? parsed.summary.trim().slice(0, 200)
+      : changes.map((c) => c.rationale).join(' '),
+  }
+}
+
+/**
+ * Code-Only-Analyse für SSR-Seiten — kein Screenshot, kein Vision-Modell.
+ * Gleiche Output-Shape wie analyzePreview(), gleiche Selektor-Verifikation via
+ * cheerio. Das Modell bekommt KEIN image_url und ist dadurch gezwungen, nur aus
+ * der Kandidatenliste zu wählen — es KANN gar keine Selektoren aus Pixeln erfinden.
+ *
+ * `page` ist garantiert nicht-null und nicht-SPA (Aufrufer prüft das vorher).
+ *
+ * Kosten: ~$0.00015/Call (gpt-4o-mini, text-only) vs ~$0.01 (GPT-4o + Vision).
+ * Latenz: ~1-2s vs ~2-4s.
+ */
+export async function analyzeCodeOnly(
+  url: string,
+  page: ExtractedPage
+): Promise<PreviewAnalysis> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OPENAI_API_KEY missing')
+
+  const promptParts: string[] = [`Page: ${url}`]
+  if (page.title) promptParts.push(`Title: ${page.title}`)
+
+  promptParts.push(
+    '',
+    'CANDIDATE ELEMENTS (selectors verified against the real DOM — copy one verbatim into "selector"):',
+    page.elements!.map((e) => `- ${e.selector}  [${e.kind}, <${e.tag}>]  text: "${e.text}"`).join('\n')
+  )
+  if (page.css) {
+    promptParts.push('', 'CSS CONTEXT (design tokens and matched rules):', truncate(page.css, 6000))
+  }
+  if (page.html) {
+    promptParts.push('', 'PAGE HTML (body, scripts/styles stripped):', truncate(page.html, 24_000))
+  }
+
+  promptParts.push('', 'Return the JSON object described in the system prompt.')
+
+  const parsed = await callOpenAI(apiKey, 'gpt-4o-mini', [
+    { role: 'system', content: SYSTEM_PROMPT_CODE },
+    { role: 'user', content: promptParts.join('\n') },
   ])
 
   const changes = normalizeChanges(parsed.changes, page)

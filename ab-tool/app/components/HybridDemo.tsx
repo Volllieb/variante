@@ -8,7 +8,7 @@
 // — die gesamte Komplexität liegt serverseitig, wo sie hingehört (Plan §3.5).
 
 import { useState, useEffect, useRef } from 'react'
-import { ArrowRight, Sparkles, RefreshCw } from 'lucide-react'
+import { ArrowRight, Code2, Sparkles, RefreshCw, ImageIcon } from 'lucide-react'
 import type { LandingCopy } from '@/lib/landingCopy'
 
 interface Change {
@@ -23,8 +23,9 @@ interface PreviewResponse {
   previewId: string
   testId: string
   tempToken: string
-  originalScreenshotUrl: string
-  variantScreenshotUrl: string
+  originalScreenshotUrl?: string
+  variantScreenshotUrl?: string
+  screenshotsPending?: boolean
   screenshotWidth: number
   screenshotHeight: number
   changes: Change[]
@@ -41,11 +42,12 @@ interface SpaResponse {
 
 type State = 'idle' | 'loading' | 'preview' | 'spa' | 'error'
 
-// Die Schritte laufen zeitgesteuert durch, nicht synchron zum Server — der
-// Request ist ein einzelner Round-Trip. Sie zeigen ehrlich WAS gerade passiert
-// (Screenshot → Analyse → Render), nur ohne exakte Übergänge. Der Punkt ist
-// gefühlter Fortschritt statt Spinner-Starre (Plan §5).
-const STEP_MS = 4000
+// Code-Extraktion + KI sind ~3s, 2s pro Step ist realistisch.
+const STEP_MS = 2000
+
+// Screenshot-Polling: 30 Versuche à 2s = 60s Timeout.
+const POLL_MAX = 30
+const POLL_MS = 2000
 
 export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; source?: string; prefillUrl?: string; plan?: string }) {
   const [state, setState] = useState<State>('idle')
@@ -59,20 +61,19 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
   const [feedback, setFeedback] = useState('')
   const [refining, setRefining] = useState(false)
   const resultRef = useRef<HTMLDivElement>(null)
-  // Temp-Session-Token über mehrere Previews hinweg wiederverwenden: alle Tests
-  // dieses Besuchers hängen dann an EINER Session — der Claim beim Sign-up holt
-  // sie alle, statt nur den letzten (frühere blieben sonst verwaist bis zum Cron).
   const tempTokenRef = useRef<string>('')
+  // Code-First: Screenshots werden asynchron nachgeliefert
+  const [screenshotsPending, setScreenshotsPending] = useState(false)
+  const [screenshotsReady, setScreenshotsReady] = useState(false)
+  const [screenshotUrls, setScreenshotUrls] = useState<{ original: string; variant: string } | null>(null)
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Loading-Schritte durchlaufen lassen; beim letzten stehen bleiben.
+  // Loading-Schritte durchlaufen lassen (2 Steps: Code extrahieren → KI analysiert).
   useEffect(() => {
     if (state !== 'loading') return
     setStep(0)
-    const timers = [
-      setTimeout(() => setStep(1), STEP_MS),
-      setTimeout(() => setStep(2), STEP_MS * 2),
-    ]
-    return () => timers.forEach(clearTimeout)
+    const timer = setTimeout(() => setStep(1), STEP_MS)
+    return () => clearTimeout(timer)
   }, [state])
 
   // Nach dem Laden zum Ergebnis scrollen — der Aha-Moment soll nicht unter der
@@ -97,6 +98,10 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
     setSpa(null)
     setShowingVariant(false)
     setRefineOpen(false)
+    setScreenshotsPending(false)
+    setScreenshotsReady(false)
+    setScreenshotUrls(null)
+    if (pollTimerRef.current) { clearTimeout(pollTimerRef.current); pollTimerRef.current = null }
 
     try {
       const res = await fetch('/api/preview', {
@@ -119,14 +124,65 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
       }
 
       if (json.tempToken) tempTokenRef.current = json.tempToken
-      setData(json as PreviewResponse)
+      const previewData = json as PreviewResponse
+      setData(previewData)
       setState('preview')
-      setTimeout(() => setShowingVariant(true), 600)
+
+      if (json.screenshotsPending) {
+        // Code-First: Changes sind da, Screenshots werden asynchron nachgeliefert
+        setScreenshotsPending(true)
+        startPollingScreenshots(json.previewId, json.testId)
+      } else {
+        // Fallback/SPA: Screenshots waren schon in der Response
+        setScreenshotsReady(true)
+        if (json.originalScreenshotUrl && json.variantScreenshotUrl) {
+          setScreenshotUrls({ original: json.originalScreenshotUrl, variant: json.variantScreenshotUrl })
+        }
+        setTimeout(() => setShowingVariant(true), 600)
+      }
     } catch {
       setError(cp.demo.errGeneric)
       setState('error')
     }
   }
+
+  function startPollingScreenshots(previewId: string, testId: string) {
+    let attempts = 0
+
+    async function poll() {
+      attempts++
+      try {
+        const res = await fetch(`/api/preview/screenshots?previewId=${encodeURIComponent(previewId)}&testId=${encodeURIComponent(testId)}`)
+        const json = await res.json()
+
+        if (res.ok && json.originalUrl && json.variantUrl) {
+          setScreenshotUrls({ original: json.originalUrl, variant: json.variantUrl })
+          setScreenshotsPending(false)
+          setScreenshotsReady(true)
+          setShowingVariant(true)
+          // Update data für refine (braucht variantScreenshotUrl)
+          setData((prev) => prev ? { ...prev, originalScreenshotUrl: json.originalUrl, variantScreenshotUrl: json.variantUrl } : prev)
+          return
+        }
+      } catch {
+        // Netzwerkfehler → nächster Poll in 2s
+      }
+
+      if (attempts < POLL_MAX) {
+        pollTimerRef.current = setTimeout(poll, POLL_MS)
+      } else {
+        // Timeout nach 60s — Screenshots bleiben unavailable
+        setScreenshotsPending(false)
+      }
+    }
+
+    pollTimerRef.current = setTimeout(poll, POLL_MS)
+  }
+
+  // Cleanup poll timer on unmount
+  useEffect(() => {
+    return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current) }
+  }, [])
 
   // Auto-submit wenn von der Landingpage mit URL-Param redirected
   useEffect(() => {
@@ -245,22 +301,28 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
 
                 {/* Screenshot im Laptop-Frame — "das ist wirklich meine Seite" */}
                 <div className="mx-auto mt-5 max-w-4xl">
-                  <div className="overflow-hidden rounded-[10px] border border-border-strong bg-bg-0">
-                    <div className="flex items-center gap-1.5 border-b border-border bg-bg-2 px-3 py-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-                      <span className="ml-3 truncate text-[11px] text-text-3">{data.summary}</span>
+                  {!screenshotsReady ? (
+                    <ScreenshotSkeleton />
+                  ) : screenshotUrls ? (
+                    <div className="overflow-hidden rounded-[10px] border border-border-strong bg-bg-0">
+                      <div className="flex items-center gap-1.5 border-b border-border bg-bg-2 px-3 py-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                        <span className="ml-3 truncate text-[11px] text-text-3">{data.summary}</span>
+                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element -- Supabase-Storage-URL, kein next/image-Loader */}
+                      <img
+                        src={showingVariant ? screenshotUrls.variant : screenshotUrls.original}
+                        alt={showingVariant ? cp.demo.tabVariant : cp.demo.tabOriginal}
+                        width={data.screenshotWidth}
+                        height={data.screenshotHeight}
+                        className="w-full transition-opacity duration-200"
+                      />
                     </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- Supabase-Storage-URL, kein next/image-Loader */}
-                    <img
-                      src={showingVariant ? data.variantScreenshotUrl : data.originalScreenshotUrl}
-                      alt={showingVariant ? cp.demo.tabVariant : cp.demo.tabOriginal}
-                      width={data.screenshotWidth}
-                      height={data.screenshotHeight}
-                      className="w-full transition-opacity duration-200"
-                    />
-                  </div>
+                  ) : (
+                    <p className="text-center text-xs text-text-3">{cp.demo.screenshotFailed}</p>
+                  )}
                 </div>
 
                 {data.degraded && (
@@ -328,9 +390,10 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
                 <div className="mt-8 text-center">
                   <a
                     href={signupHref()}
-                    className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all hover:bg-white/90"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all hover:bg-white/90"
                   >
-                    {cp.demo.goLive} →
+                    {cp.demo.goLive}
+                    <ArrowRight className="h-4 w-4" />
                   </a>
                   <p className="mt-2.5 text-[11px] text-text-3">{cp.demo.goLiveHint}</p>
                   <button
@@ -374,25 +437,51 @@ function TabButton({
 }
 
 function LoadingSteps({ steps, current }: { steps: readonly string[]; current: number }) {
+  const icons = [Code2, Sparkles]
+
   return (
     <div className="mx-auto mt-8 max-w-xl space-y-2.5">
-      {steps.map((label, i) => (
-        <div
-          key={label}
-          className={`flex items-center gap-3 rounded-[6px] border px-4 py-3 text-sm transition-all duration-300 ${
-            i === current
-              ? 'border-border-strong bg-bg-2 text-white'
-              : i < current
-                ? 'border-border bg-bg-1 text-white/40'
-                : 'border-border bg-bg-1 text-white/25'
-          }`}
-        >
-          <span className="shrink-0">
-            {i < current ? '✓' : i === current ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : '○'}
-          </span>
-          {label}
-        </div>
-      ))}
+      {steps.map((label, i) => {
+        const Icon = icons[i] ?? Sparkles
+        return (
+          <div
+            key={label}
+            className={`flex items-center gap-3 rounded-[6px] border px-4 py-3 text-sm transition-all duration-300 ${
+              i === current
+                ? 'border-border-strong bg-bg-2 text-white'
+                : i < current
+                  ? 'border-border bg-bg-1 text-white/40'
+                  : 'border-border bg-bg-1 text-white/25'
+            }`}
+          >
+            <span className="shrink-0 rounded-full bg-white/10 p-2 text-white/80">
+              {i === current ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Icon className="h-4 w-4" />}
+            </span>
+            {label}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * Skeleton-Placeholder für den Screenshot-Bereich während des Pollings.
+ * Zeigt einen animierten Puls-Effekt mit Image-Icon — signalisiert "Bilder
+ * kommen noch", während die Changes schon sichtbar sind.
+ */
+function ScreenshotSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-[10px] border border-border-strong bg-bg-0">
+      <div className="flex items-center gap-1.5 border-b border-border bg-bg-2 px-3 py-2">
+        <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+        <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+        <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+      </div>
+      <div className="flex flex-col items-center justify-center gap-3 py-16 animate-pulse">
+        <ImageIcon className="h-8 w-8 text-white/20" />
+        <span className="text-xs text-white/30">Rendering screenshots …</span>
+      </div>
     </div>
   )
 }
@@ -428,9 +517,10 @@ function SpaFallback({
       <div className="mt-6 flex flex-col items-center gap-3">
         <a
           href={href}
-          className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90"
+          className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90"
         >
-          {cp.demo.spaCta} →
+          {cp.demo.spaCta}
+          <ArrowRight className="h-4 w-4" />
         </a>
         <button
           onClick={onReset}

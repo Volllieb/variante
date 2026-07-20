@@ -39,6 +39,7 @@ export const PLANS: readonly PlanStructure[] = [
 /** Fixed-length tuple — DE und EN müssen dieselbe Anzahl Einträge liefern. */
 type Tuple4<T> = readonly [T, T, T, T]
 type Tuple3<T> = readonly [T, T, T]
+type Tuple2<T> = readonly [T, T]
 type Tuple5<T> = readonly [T, T, T, T, T]
 
 export interface PlanFeature {
@@ -75,8 +76,8 @@ export interface LandingCopy {
     sub: string
     inputPlaceholder: string
     submit: string
-    /** Drei Schritte der Loading-Animation — gefühlter Fortschritt statt Spinner. */
-    loadingSteps: Tuple3<string>
+    /** Zwei Schritte der Loading-Animation — Code-Extraktion + KI-Analyse (~3s). */
+    loadingSteps: Tuple2<string>
     tabOriginal: string
     tabVariant: string
     changesHeading: string
@@ -93,6 +94,8 @@ export interface LandingCopy {
     spaCta: string
     errGeneric: string
     errUrl: string
+    /** Text wenn Screenshot-Polling fehlschlägt (Code-First: Changes sind da, Bilder nicht). */
+    screenshotFailed: string
   }
 
   // Micro-Trust
@@ -185,14 +188,13 @@ const de: LandingCopy = {
   heroFootnote: '',
 
   demo: {
-    heading: 'Das würde KI an deiner Seite verbessern',
-    sub: 'URL rein, 40 Sekunden. Kein Account, kein Snippet. Du siehst deine Seite — und die Optimierungen, die eine KI vorschlagen würde.',
+    heading: 'So würde KI deine Seite verbessern',
+    sub: 'URL eingeben, 40 Sekunden warten. Du siehst dann deine Seite und die Optimierungen, die unsere KI vorschlägt.',
     inputPlaceholder: 'deine-website.de',
-    submit: 'Variante zeigen',
+    submit: 'Jetzt starten',
     loadingSteps: [
-      '📸 Screenshot deiner Seite …',
-      '🧠 KI liest deinen Code …',
-      '✨ Variante wird gerendert …',
+      'KI liest deinen Code …',
+      'Variante wird analysiert …',
     ],
     tabOriginal: 'Original',
     tabVariant: 'Variante B',
@@ -210,6 +212,7 @@ const de: LandingCopy = {
     spaCta: 'Snippet holen',
     errGeneric: 'Das hat nicht geklappt. Probier es nochmal oder nimm eine andere Seite.',
     errUrl: 'Diese URL sieht nicht richtig aus. Prüf sie nochmal.',
+    screenshotFailed: 'Screenshots konnten nicht geladen werden — die Analyse ist aber fertig.',
   },
 
   trustItems: [
@@ -389,14 +392,13 @@ const en: LandingCopy = {
   heroFootnote: '',
 
   demo: {
-    heading: 'What AI would change about your site',
-    sub: 'Drop your URL, wait 40 seconds. No account, no snippet. See your page — and the improvements AI would suggest.',
+    heading: 'What AI would improve on your site',
+    sub: 'Enter your URL, wait 40 seconds. You will then see your page and the improvements our AI recommends.',
     inputPlaceholder: 'your-website.com',
-    submit: 'Show me a variant',
+    submit: 'Start now',
     loadingSteps: [
-      '📸 Taking a snapshot of your site …',
-      '🧠 AI reading your page code …',
-      '✨ Rendering your variant …',
+      'AI reading your page code …',
+      'Analyzing the variant …',
     ],
     tabOriginal: 'Original',
     tabVariant: 'Variant B',
@@ -414,6 +416,7 @@ const en: LandingCopy = {
     spaCta: 'Get the snippet',
     errGeneric: "That didn't work. Try again, or try a different page.",
     errUrl: "That URL doesn't look right. Give it another look.",
+    screenshotFailed: "Screenshots couldn't load — but the analysis is ready.",
   },
 
   trustItems: [
