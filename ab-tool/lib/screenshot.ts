@@ -166,16 +166,6 @@ export async function renderSettledScreenshot(
   return { png, blank: png.length < BLANK_REJECT_BYTES }
 }
 
-/** Rendert und lädt in einem Schritt hoch. */
-export async function captureToStorage(
-  url: string,
-  path: string,
-  opts: ShotOptions = {}
-): Promise<string> {
-  const png = await renderScreenshot(url, opts)
-  return uploadShot(path, png)
-}
-
 /** Löscht alle Screenshots eines Previews (nach Claim oder beim Cleanup). */
 export async function deletePreviewShots(previewId: string): Promise<void> {
   const { data: files } = await supabase.storage.from(BUCKET).list(previewId)

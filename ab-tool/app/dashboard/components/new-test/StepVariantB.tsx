@@ -58,7 +58,7 @@ export function StepVariantB({ element, url, variantResult, onGenerate }: StepVa
         })
         if (res.ok) {
           const data = await res.json()
-          setScreenshots({ original: data.originalUrl })
+          if (data.originalScreenshotUrl) setScreenshots({ original: data.originalScreenshotUrl })
         }
       } catch { /* Screenshots are nice-to-have */ }
     })()

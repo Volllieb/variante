@@ -22,20 +22,21 @@ function classify(error: any): ErrKind {
   return 'generic'
 }
 
-function signupParams(): { source: string; plan: string; tempToken: string; testId: string } {
-  if (typeof window === 'undefined') return { source: '', plan: '', tempToken: '', testId: '' }
+function signupParams(): { source: string; plan: string; tempToken: string; testId: string; skip: string } {
+  if (typeof window === 'undefined') return { source: '', plan: '', tempToken: '', testId: '', skip: '' }
   const p = new URLSearchParams(window.location.search)
   return {
     source: p.get('source') || '',
     plan: p.get('plan') || '',
     tempToken: p.get('temp_token') || '',
     testId: p.get('test_id') || '',
+    skip: p.get('skip') || '',
   }
 }
 
 export default function SignupPage() {
   const router = useRouter()
-  const { source, plan: signupPlan, tempToken, testId } = signupParams()
+  const { source, plan: signupPlan, tempToken, testId, skip } = signupParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -73,14 +74,15 @@ export default function SignupPage() {
   // UX: Bereits eingeloggt → direkt zum Dashboard.
   // Ohne Session UND ohne tempToken (d.h. nicht vom Onboarding kommend) →
   // redirect zum Onboarding, damit jeder neue User den Aha-Moment kriegt.
+  // Ausnahme: skip=1 (User hat Onboarding bewusst übersprungen).
   useEffect(() => {
     getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/dashboard')
         return
       }
-      // Nicht vom Onboarding gekommen → dorthin redirecten
-      if (!tempToken) {
+      // Nicht vom Onboarding gekommen UND kein Skip → dorthin redirecten
+      if (!tempToken && !skip) {
         const params = new URLSearchParams()
         if (source) params.set('source', source)
         if (signupPlan) params.set('plan', signupPlan)
@@ -92,7 +94,7 @@ export default function SignupPage() {
     }).catch(() => {
       setSessionChecked(true)
     })
-  }, [router, tempToken, source, signupPlan])
+  }, [router, tempToken, source, signupPlan, skip])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()

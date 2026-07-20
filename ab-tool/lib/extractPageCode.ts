@@ -291,22 +291,26 @@ async function extractCss($: cheerio.CheerioAPI, pageUrl: string): Promise<strin
     if (href) hrefs.push(href)
   })
 
-  for (const href of hrefs.slice(0, MAX_STYLESHEETS)) {
+  const fetches = hrefs.slice(0, MAX_STYLESHEETS).map(async (href) => {
     try {
       const abs = new URL(href, pageUrl).toString()
       const res = await fetch(abs, {
         headers: { 'User-Agent': 'variante-preview-bot/1.0' },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       })
-      if (!res.ok) continue
+      if (!res.ok) return ''
       const text = await res.text()
-      parts.push(text.slice(0, MAX_STYLESHEET_BYTES))
+      return text.slice(0, MAX_STYLESHEET_BYTES)
     } catch (err) {
       // Ein fehlendes Stylesheet ist kein Grund die Preview abzubrechen —
       // die Selektoren kommen aus dem HTML, das CSS ist nur Farbkontext.
       safeError('extractPageCode-stylesheet', err)
+      return ''
     }
-    if (parts.join('').length > MAX_CSS_CHARS * 4) break
+  })
+  const results = await Promise.all(fetches)
+  for (const text of results) {
+    if (text) parts.push(text)
   }
 
   return condenseCss(parts.join('\n')).slice(0, MAX_CSS_CHARS)

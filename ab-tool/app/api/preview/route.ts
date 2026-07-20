@@ -27,6 +27,7 @@ export const maxDuration = 45
 // deckeln den Schaden durch Bots/Scripted Abuse (Plan §5: Free-Tier ~10/Tag).
 const DAILY_IP_LIMIT = Number(process.env.PREVIEW_DAILY_IP_LIMIT) || 10
 const DAILY_GLOBAL_LIMIT = Number(process.env.PREVIEW_DAILY_GLOBAL_LIMIT) || 300
+const PER_MINUTE_LIMIT = Number(process.env.PREVIEW_PER_MINUTE_LIMIT) || 5
 const DAY_MS = 86_400_000
 
 export async function OPTIONS() {
@@ -35,8 +36,8 @@ export async function OPTIONS() {
 
 export async function POST(req: Request) {
   const ip = getClientIp(req)
-  if (!(await checkRateLimit(`preview:${ip}`, 5, 60_000))) {
-    return json({ error: 'too many requests', message: 'Give it a minute — you can run 5 previews per minute.' }, 429)
+  if (!(await checkRateLimit(`preview:${ip}`, PER_MINUTE_LIMIT, 60_000))) {
+    return json({ error: 'too many requests', message: `Give it a minute — you can run ${PER_MINUTE_LIMIT} previews per minute.` }, 429)
   }
   if (!(await checkRateLimit(`preview:day:${ip}`, DAILY_IP_LIMIT, DAY_MS))) {
     return json({

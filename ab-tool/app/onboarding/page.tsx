@@ -22,12 +22,14 @@ export default async function OnboardingPage({
   const lang = await detectLang()
   const cp = getCopy(lang)
 
-  // Skip-Link baut die gleichen Query-Parameter wie die Landingpage-CTAs
+  // Skip-Link: gleiche Query-Parameter wie Landingpage-CTAs + skip=1,
+  // damit /signup nicht zurück zu /onboarding redirected.
   const skipParams = new URLSearchParams()
+  skipParams.set('skip', '1')
   if (source) skipParams.set('source', source)
   if (plan) skipParams.set('plan', plan)
   const skipQs = skipParams.toString()
-  const skipHref = `/signup${skipQs ? `?${skipQs}` : ''}`
+  const skipHref = `/signup?${skipQs}`
 
   return (
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased flex flex-col">
