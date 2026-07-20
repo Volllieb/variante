@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight } from '@/components/LandingIcons'
+import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight, Code2, MousePointer2, FlaskConical } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
 import { copy, PLANS } from '@/lib/landingCopy'
 import type { PlanId } from '@/lib/landingCopy'
-import { HybridDemo } from '@/app/components/HybridDemo'
 
 /* ── Metadata (dynamic by language) ── */
 
@@ -137,8 +136,52 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── Demo: HybridDemo-Component direkt auf der Landingpage ── */}
-      <HybridDemo cp={copy} source={source} />
+      {/* ── How it works (statische Feature-Showcase) ── */}
+      <section className="section">
+        <div className="container">
+          <span className="section-label">How it works</span>
+          <h2 className="section-heading mt-1">Three steps to your first test</h2>
+          <p className="section-sub">No dev ticket. No setup. Start in 5 minutes.</p>
+
+          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+            {[
+              {
+                icon: Code2,
+                title: 'Install the snippet',
+                body: 'Paste one script tag into your site. It loads async at 5 KB — zero impact on performance.',
+              },
+              {
+                icon: MousePointer2,
+                title: 'Pick an element',
+                body: 'Click any element on your page — a headline, a button, a pricing card. The picker highlights what you selected.',
+              },
+              {
+                icon: FlaskConical,
+                title: 'Create a variant & test',
+                body: 'Write the new version — or let the AI draft one. Variante splits traffic and measures conversions.',
+              },
+            ].map((step, i) => (
+              <div key={step.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/70 mb-4">
+                  <step.icon className="h-5 w-5" />
+                </span>
+                <h3 className="text-sm font-semibold text-white/85">{step.title}</h3>
+                <p className="mt-2 text-sm text-white/45 font-normal leading-relaxed">{step.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Start now — it&apos;s free
+              <ArrowUpRight className="ml-1 h-3.5 w-3.5 opacity-60" />
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* ── Works-With Logo Bar ── */}
       <section className="!py-10 sm:!py-12">
@@ -155,25 +198,6 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <p className="mt-5 text-xs text-text-3">
             {copy.platformNote.replace('{platforms}', techLogoNames.join(', '))}
           </p>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ── How it works ── */}
-      <section className="section">
-        <div className="container">
-          <span className="section-label">{copy.sectionHow}</span>
-          <h2 className="section-heading mt-1">{copy.sectionHow}</h2>
-          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-            {copy.steps.map((s, i) => (
-              <div key={s.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
-                <span className="step-number">{i + 1}</span>
-                <h3 className="mt-4 text-sm font-semibold text-white/85">{s.title}</h3>
-                <p className="mt-2 text-sm text-white/45 font-normal leading-relaxed">{s.body}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

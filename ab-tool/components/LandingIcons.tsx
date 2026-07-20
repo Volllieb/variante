@@ -19,6 +19,8 @@ export {
   Rocket,
   // How it works
   MousePointer2,
+  Code2,
+  FlaskConical,
   // AI translation
   Languages,
   Wand2,

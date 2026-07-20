@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
-import { claimTempSessionTests, markFigmaPluginUser } from '@/lib/claimTests'
 
-/** Extrahiert source/plan/temp_token/test_id aus dem next-Param (z.B. `/dashboard?source=figma-plugin&temp_token=abc&test_id=123`). */
-function parseAttribution(nextRaw: string | null): { source?: string; plan?: string; tempToken?: string; testId?: string } {
+/** Extrahiert source/plan aus dem next-Param (z.B. `/dashboard?source=figma-plugin&plan=pro`). */
+function parseAttribution(nextRaw: string | null): { source?: string; plan?: string } {
   if (!nextRaw) return {}
   try {
     const qs = nextRaw.includes('?') ? nextRaw.split('?')[1] : ''
@@ -13,25 +12,10 @@ function parseAttribution(nextRaw: string | null): { source?: string; plan?: str
     return {
       source: p.get('source') || undefined,
       plan: p.get('plan') || undefined,
-      tempToken: p.get('temp_token') || undefined,
-      testId: p.get('test_id') || undefined,
     }
   } catch {
     return {}
   }
-}
-
-/**
- * Überträgt Temp-Session-Tests auf den echten User.
- * Die Logik liegt in lib/claimTests.ts, geteilt mit /api/claim-tests — inklusive
- * preview→draft-Promotion für Tests aus dem Hybrid-Onboarding.
- *
- * has_figma_plugin nur bei source=figma-plugin: seit dem Hybrid-Onboarding
- * claimen auch Website-Previews über diesen Pfad, und die kommen nie aus Figma.
- */
-async function claimTempTests(userId: string, tempToken: string, source?: string) {
-  await claimTempSessionTests(userId, tempToken)
-  if (source === 'figma-plugin') await markFigmaPluginUser(userId)
 }
 
 /**
@@ -74,7 +58,6 @@ export async function GET(req: NextRequest) {
       const attribution = parseAttribution(next)
       if (data.user) {
         await ensureProfile(data.user.id, attribution)
-        if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
       }
       // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
       if (attribution.plan === 'pro') {
@@ -111,7 +94,6 @@ export async function GET(req: NextRequest) {
     const attribution = parseAttribution(next)
     if (data.user) {
       await ensureProfile(data.user.id, attribution)
-      if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
     }
     if (attribution.plan === 'pro') {
       return NextResponse.redirect(new URL('/auth/checkout', req.url))
@@ -148,7 +130,6 @@ export async function GET(req: NextRequest) {
   const attribution = parseAttribution(next)
   if (data.user) {
     await ensureProfile(data.user.id, attribution)
-    if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
   }
   if (attribution.plan === 'pro') {
     return NextResponse.redirect(new URL('/auth/checkout', req.url))

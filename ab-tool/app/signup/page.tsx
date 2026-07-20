@@ -22,21 +22,19 @@ function classify(error: any): ErrKind {
   return 'generic'
 }
 
-function signupParams(): { source: string; plan: string; tempToken: string; testId: string; skip: string } {
-  if (typeof window === 'undefined') return { source: '', plan: '', tempToken: '', testId: '', skip: '' }
+function signupParams(): { source: string; plan: string; skip: string } {
+  if (typeof window === 'undefined') return { source: '', plan: '', skip: '' }
   const p = new URLSearchParams(window.location.search)
   return {
     source: p.get('source') || '',
     plan: p.get('plan') || '',
-    tempToken: p.get('temp_token') || '',
-    testId: p.get('test_id') || '',
     skip: p.get('skip') || '',
   }
 }
 
 export default function SignupPage() {
   const router = useRouter()
-  const { source, plan: signupPlan, tempToken, testId, skip } = signupParams()
+  const { source, plan: signupPlan, skip } = signupParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -54,37 +52,21 @@ export default function SignupPage() {
     const parts: string[] = []
     if (source) parts.push(`source=${encodeURIComponent(source)}`)
     if (signupPlan) parts.push(`plan=${encodeURIComponent(signupPlan)}`)
-    if (tempToken) parts.push(`temp_token=${encodeURIComponent(tempToken)}`)
-    if (testId) parts.push(`test_id=${encodeURIComponent(testId)}`)
     return parts.length > 0 ? '?' + parts.join('&') : ''
   }
 
-  // Helper: claimt Temp-Tests nach erfolgreichem Signup
-  async function claimTempTests() {
-    if (!tempToken) return
-    try {
-      await fetch('/api/claim-tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ temp_token: tempToken, source }),
-      })
-    } catch { /* best-effort */ }
-  }
-
   // UX: Bereits eingeloggt → direkt zum Dashboard.
-  // Ohne Session UND ohne tempToken (d.h. nicht vom Onboarding kommend) →
-  // redirect zum Onboarding, damit jeder neue User den Aha-Moment kriegt.
-  // Ausnahme: skip=1 (User hat Onboarding bewusst übersprungen).
+  // Ohne Session → redirect zum Onboarding, damit jeder neue User den
+  // Produkt-Flow sieht. Ausnahme: skip=1 (User hat Onboarding übersprungen).
   useEffect(() => {
     getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/dashboard')
         return
       }
-      // Von Landingpage-CTA gekommen (source/plan) aber ohne tempToken/Skip →
-      // redirect zum Onboarding für den Aha-Moment. Direktes /signup ohne Parameter
-      // bleibt auf /signup.
-      if (!tempToken && !skip && (source || signupPlan)) {
+      // Von Landingpage-CTA gekommen (source/plan) aber ohne Skip →
+      // redirect zum Onboarding. Direktes /signup ohne Parameter bleibt.
+      if (!skip && (source || signupPlan)) {
         const params = new URLSearchParams()
         if (source) params.set('source', source)
         if (signupPlan) params.set('plan', signupPlan)
@@ -96,7 +78,7 @@ export default function SignupPage() {
     }).catch(() => {
       setSessionChecked(true)
     })
-  }, [router, tempToken, source, signupPlan, skip])
+  }, [router, source, signupPlan, skip])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -150,7 +132,6 @@ export default function SignupPage() {
         return
       }
       if (data.session) {
-        await claimTempTests()
         router.push('/dashboard')
         router.refresh()
       } else {
