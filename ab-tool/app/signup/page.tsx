@@ -81,8 +81,10 @@ export default function SignupPage() {
         router.push('/dashboard')
         return
       }
-      // Nicht vom Onboarding gekommen UND kein Skip → dorthin redirecten
-      if (!tempToken && !skip) {
+      // Von Landingpage-CTA gekommen (source/plan) aber ohne tempToken/Skip →
+      // redirect zum Onboarding für den Aha-Moment. Direktes /signup ohne Parameter
+      // bleibt auf /signup.
+      if (!tempToken && !skip && (source || signupPlan)) {
         const params = new URLSearchParams()
         if (source) params.set('source', source)
         if (signupPlan) params.set('plan', signupPlan)
