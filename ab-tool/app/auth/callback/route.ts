@@ -63,23 +63,37 @@ export async function GET(req: NextRequest) {
 
   // OAuth-Flow (Google etc.): Code → Session via PKCE exchange
   if (code) {
-    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
-    if (error) {
+    try {
+      const { error, data } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) {
+        return NextResponse.redirect(
+          new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
+        )
+      }
+      const next = requestUrl.searchParams.get('next') || '/dashboard'
+      const attribution = parseAttribution(next)
+      if (data.user) {
+        await ensureProfile(data.user.id, attribution)
+        if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
+      }
+      // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
+      if (attribution.plan === 'pro') {
+        return NextResponse.redirect(new URL('/auth/checkout', req.url))
+      }
+      return NextResponse.redirect(new URL(next, req.url))
+    } catch (e: any) {
+      // PKCE exchange kann fehlschlagen, wenn die Session bereits via
+      // OAuth-Implicit-Flow gesetzt wurde (Supabase setzt Cookies direkt).
+      // Dann prüfen wir ob trotzdem eine Session da ist.
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await ensureProfile(user.id)
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
       return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
+        new URL(`/login?error=${encodeURIComponent(e?.message || 'auth-failed')}`, req.url)
       )
     }
-    const next = requestUrl.searchParams.get('next') || '/dashboard'
-    const attribution = parseAttribution(next)
-    if (data.user) {
-      await ensureProfile(data.user.id, attribution)
-      if (attribution.tempToken) await claimTempTests(data.user.id, attribution.tempToken, attribution.source)
-    }
-    // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
-    if (attribution.plan === 'pro') {
-      return NextResponse.redirect(new URL('/auth/checkout', req.url))
-    }
-    return NextResponse.redirect(new URL(next, req.url))
   }
 
   // Email-Flow (Passwort-Reset, E-Mail-Bestätigung) via token hash or direct tokens
@@ -106,6 +120,16 @@ export async function GET(req: NextRequest) {
   }
 
   if (!tokenHash) {
+    // Kein code, kein access_token, kein token_hash — möglicherweise hat
+    // Supabase die Session bereits via OAuth-Implicit-Flow gesetzt (z. B.
+    // Google-Login, bei dem der Auth-Server direkt Cookies setzt).
+    // Prüfe, ob trotzdem eine Session existiert.
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await ensureProfile(user.id)
+      const next = requestUrl.searchParams.get('next') || '/dashboard'
+      return NextResponse.redirect(new URL(next, req.url))
+    }
     return NextResponse.redirect(new URL('/login?error=missing-token', req.url))
   }
 

@@ -129,7 +129,7 @@ export function NotificationCenter() {
       </Tooltip>
 
       {open && (
-        <div className="absolute right-0 bottom-full z-50 mb-1.5 w-80 rounded-[10px] border border-white/10 bg-[#0a0a0a] shadow-xl">
+        <div className="absolute left-0 bottom-full z-50 mb-1.5 w-80 rounded-[10px] border border-white/10 bg-[#0a0a0a] shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
             <span className="text-[12px] font-semibold text-[#ededed]">Notifications</span>

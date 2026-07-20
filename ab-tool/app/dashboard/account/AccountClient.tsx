@@ -3,8 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, ExternalLink, X, Camera, User } from 'lucide-react'
-import Link from 'next/link'
+import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, X, Camera, User } from 'lucide-react'
 import Image from 'next/image'
 
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
@@ -20,6 +19,11 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   const [domainError, setDomainError] = useState('')
   const [verifying, setVerifying] = useState<string | null>(null) // domain id being verified
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  // ── Change connected page inline flow ──
+  const [changingPage, setChangingPage] = useState(false)
+  const [changeUrl, setChangeUrl] = useState('')
+  const [changeState, setChangeState] = useState<'input' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
+  const [changeError, setChangeError] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [pwSent, setPwSent] = useState(false)
@@ -143,6 +147,97 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       setDomainBusy(false)
       setDeleteId(null)
     }
+  }
+
+  async function changeConnectedPage() {
+    const primary = domains[0]
+    if (!primary || !changeUrl.trim()) return
+
+    const normalized = changeUrl.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+    if (!normalized || !normalized.includes('.')) {
+      setChangeError('Please enter a valid domain (e.g. yoursite.com)')
+      return
+    }
+
+    setChangeError('')
+    setChangeState('saving')
+
+    try {
+      // 1. Save new domain
+      const saveRes = await fetch('/api/domains', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: normalized }),
+      })
+      if (saveRes.status === 402) {
+        const data = await saveRes.json().catch(() => ({}))
+        setChangeError(data.error || 'Domain limit reached.')
+        setChangeState('input')
+        return
+      }
+      if (!saveRes.ok && saveRes.status !== 409) {
+        const data = await saveRes.json().catch(() => ({}))
+        setChangeError(data.error || 'Failed to save domain.')
+        setChangeState('input')
+        return
+      }
+    } catch {
+      setChangeError('Connection failed.')
+      setChangeState('input')
+      return
+    }
+
+    // 2. Snippet check
+    setChangeState('checking')
+    try {
+      const checkRes = await fetch('/api/snippet-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_url: normalized }),
+      })
+      const json = await checkRes.json()
+
+      if (!json.detected) {
+        setChangeState('not-found')
+        return
+      }
+    } catch {
+      setChangeState('not-found')
+      return
+    }
+
+    // 3. Verify new domain
+    try {
+      const domainsRes = await fetch('/api/domains')
+      const { domains: freshDomains } = await domainsRes.json()
+      const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
+      if (newDomain?.id) {
+        await fetch('/api/domains/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domainId: newDomain.id }),
+        })
+      }
+    } catch { /* Verify is best-effort */ }
+
+    // 4. Delete old domain
+    try {
+      await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
+    } catch { /* Delete is best-effort */ }
+
+    // 5. Update local state
+    setDomains((prev) => {
+      const withoutOld = prev.filter((d) => d.id !== primary.id)
+      return [{ id: crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
+    })
+    setChangeState('verified')
+  }
+
+  function resetChangeFlow() {
+    setChangingPage(false)
+    setChangeUrl('')
+    setChangeState('input')
+    setChangeError('')
   }
 
   async function deleteAccount() {
@@ -297,102 +392,242 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           </div>
         </div>
 
-        {/* Website / Domain */}
+        {/* Connected Page */}
         <div className="rounded-[10px] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Globe className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Website</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Connected Page</span>
           </div>
 
-          {domains.length === 0 && (
+          <p className="mb-4 text-[12px] text-text-3 leading-relaxed">
+            This is where your variante snippet lives. We check this page to verify experiments are running.
+            When creating a test, you can use <strong className="text-text-2">any URL</strong> — not just this one.
+          </p>
+
+          {/* ── No connected page ── */}
+          {domains.length === 0 && !changingPage && (
             <div className="space-y-3">
-              <p className="text-[12px] text-text-3">No website connected. Head to Health to add one.</p>
-              <Link
-                href="/dashboard/health"
+              <div className="flex items-center gap-2 rounded-[6px] border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-pro" />
+                <p className="text-[13px] text-pro">No page connected yet — tests won&apos;t run without a snippet.</p>
+              </div>
+              <button
+                onClick={() => { setChangingPage(true); setChangeState('input'); setChangeError('') }}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
               >
-                Go to Health
-              </Link>
+                Connect a page
+              </button>
             </div>
           )}
 
-          {domains.map((d) => (
-            <div key={d.id} className="flex items-center justify-between rounded-[6px] bg-bg-2 px-4 py-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-[14px] font-medium text-text truncate">{d.url}</span>
-                {d.verified ? (
-                  <span className="flex items-center gap-1 rounded-full bg-ok/10 px-2 py-0.5 text-[10px] font-semibold text-ok">
-                    <Check className="h-3 w-3" />
-                    Verified
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-pro/10 px-2 py-0.5 text-[10px] font-semibold text-pro">Pending</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {!d.verified && (
-                  <button
-                    onClick={() => verifyDomain(d.id, d.url)}
-                    disabled={verifying === d.id}
-                    className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
-                  >
-                    {verifying === d.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      'Re-verify'
-                    )}
-                  </button>
-                )}
-                <a
-                  href={`https://${d.url}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cursor-pointer rounded-[6px] p-1.5 text-text-3 transition-colors hover:text-text-2"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-                {deleteId === d.id ? (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-[11px] text-pro">
-                      Active tests on this domain will be paused. Test configurations are preserved — reconnect anytime.
-                    </p>
-                    <div className="flex items-center gap-1">
+          {/* ── Connected page card ── */}
+          {domains.length > 0 && !changingPage && (
+            <div className="space-y-3">
+              {/* Primary domain */}
+              <div className="rounded-[8px] border border-ok/20 bg-ok/[0.04] px-4 py-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ok/15">
+                      <Check className="h-3.5 w-3.5 text-ok" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[15px] font-semibold text-text truncate">{domains[0].url}</span>
+                        {domains[0].verified ? (
+                          <span className="flex items-center gap-1 rounded-full bg-ok/15 px-2 py-0.5 text-[10px] font-semibold text-ok">
+                            <Check className="h-2.5 w-2.5" /> Snippet active
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 rounded-full bg-pro/15 px-2 py-0.5 text-[10px] font-semibold text-pro">
+                            <AlertTriangle className="h-2.5 w-2.5" /> Not verified
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-text-3">Snippet-tested on every health check</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {!domains[0].verified && (
                       <button
-                        onClick={() => deleteDomain(d.id)}
-                        disabled={domainBusy}
-                        className="cursor-pointer rounded-[4px] bg-err px-2 py-1 text-[10px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
+                        onClick={() => verifyDomain(domains[0].id, domains[0].url)}
+                        disabled={verifying === domains[0].id}
+                        className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
                       >
-                        {domainBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
+                        {verifying === domains[0].id ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Re-verify'}
                       </button>
+                    )}
+                    <button
+                      onClick={() => { setChangingPage(true); setChangeState('input'); setChangeError(''); setChangeUrl('') }}
+                      className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional domains */}
+              {domains.length > 1 && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">Additional pages</p>
+                  {domains.slice(1).map((d) => (
+                    <div key={d.id} className="flex items-center justify-between rounded-[6px] bg-bg-2 px-3 py-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[13px] text-text-2 truncate">{d.url}</span>
+                        {d.verified ? (
+                          <span className="shrink-0 rounded-full bg-ok/10 px-1.5 py-0.5 text-[9px] font-semibold text-ok">Verified</span>
+                        ) : (
+                          <span className="shrink-0 rounded-full bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">Pending</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!d.verified && (
+                          <button
+                            onClick={() => verifyDomain(d.id, d.url)}
+                            disabled={verifying === d.id}
+                            className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-text-3 transition-colors hover:text-text disabled:opacity-40"
+                          >
+                            {verifying === d.id ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : 'Verify'}
+                          </button>
+                        )}
+                        {deleteId === d.id ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => deleteDomain(d.id)}
+                              disabled={domainBusy}
+                              className="cursor-pointer rounded-[4px] bg-err px-2 py-0.5 text-[9px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
+                            >
+                              {domainBusy ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : 'Confirm'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteId(null)}
+                              disabled={domainBusy}
+                              className="cursor-pointer rounded-[4px] px-1.5 py-0.5 text-[9px] text-text-3 hover:text-text"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteId(d.id)}
+                            className="cursor-pointer rounded-[4px] p-1 text-text-3/50 transition-colors hover:text-err"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Inline change flow ── */}
+          {changingPage && (
+            <div className="space-y-3">
+              {/* Back button when showing results */}
+              {(changeState === 'not-found' || changeState === 'verified') && (
+                <button
+                  onClick={resetChangeFlow}
+                  className="cursor-pointer text-[11px] text-text-3 underline hover:text-text-2"
+                >
+                  ← Cancel
+                </button>
+              )}
+
+              {/* Input / Saving / Checking */}
+              {(changeState === 'input' || changeState === 'saving' || changeState === 'checking') && (
+                <>
+                  <div className="flex items-center gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2.5">
+                    <Globe className="h-4 w-4 shrink-0 text-text-3" />
+                    <input
+                      type="text"
+                      value={changeUrl}
+                      onChange={(e) => { setChangeUrl(e.target.value); setChangeError('') }}
+                      onKeyDown={(e) => e.key === 'Enter' && changeConnectedPage()}
+                      placeholder={domains.length > 0 ? 'new-domain.com' : 'yoursite.com'}
+                      disabled={changeState !== 'input'}
+                      autoFocus
+                      className="flex-1 bg-transparent text-[14px] text-text placeholder:text-text-3/50 outline-none"
+                    />
+                  </div>
+
+                  {changeError && <p className="text-[12px] text-err">{changeError}</p>}
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={changeConnectedPage}
+                      disabled={changeState !== 'input' || !changeUrl.trim()}
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-fill-invert py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                    >
+                      {changeState === 'saving' || changeState === 'checking' ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          {changeState === 'saving' ? 'Saving…' : 'Checking snippet…'}
+                        </>
+                      ) : (
+                        domains.length > 0 ? 'Replace connected page' : 'Connect page'
+                      )}
+                    </button>
+                    {domains.length > 0 && changeState === 'input' && (
                       <button
-                        onClick={() => setDeleteId(null)}
-                        disabled={domainBusy}
-                        className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-text-3 hover:text-text"
+                        onClick={resetChangeFlow}
+                        className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[12px] text-text-3 transition-colors hover:text-text"
                       >
                         Cancel
                       </button>
-                    </div>
+                    )}
                   </div>
-                ) : (
-                  <button
-                    onClick={() => setDeleteId(d.id)}
-                    className="cursor-pointer rounded-[6px] p-1.5 text-text-3 transition-colors hover:text-err"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+                </>
+              )}
 
-          {domains.length > 0 && (
-            <p className="mt-3 text-[12px] text-text-3">
-              To replace this website, delete it first, then add a new one via{' '}
-              <Link href="/dashboard/health" className="underline hover:text-text-2">Health</Link>.
-            </p>
+              {/* Not found */}
+              {changeState === 'not-found' && (
+                <div className="rounded-[6px] border border-pro/20 bg-pro/[0.04] px-4 py-3">
+                  <p className="text-[13px] font-semibold text-pro">Snippet not found</p>
+                  <p className="mt-1 text-[12px] text-text-3">
+                    We couldn&apos;t detect the variante snippet on <strong>{changeUrl.trim() || '(your URL)'}</strong>.
+                    Add the snippet to your site&apos;s <code className="rounded-[3px] bg-white/[0.06] px-1 text-[11px]">&lt;head&gt;</code>, then try again.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={changeConnectedPage}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                    >
+                      <Loader2 className="h-3 w-3" /> Retry
+                    </button>
+                    <button
+                      onClick={() => { setChangeState('input'); setChangeError('') }}
+                      className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[11px] text-text-3 transition-colors hover:text-text"
+                    >
+                      Change URL
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Verified */}
+              {changeState === 'verified' && (
+                <div className="rounded-[6px] border border-ok/20 bg-ok/[0.04] px-4 py-3">
+                  <p className="flex items-center gap-2 text-[13px] font-semibold text-ok">
+                    <Check className="h-4 w-4" /> Page connected
+                  </p>
+                  <p className="mt-1 text-[12px] text-text-3">
+                    <strong>{changeUrl.trim()}</strong> is now your connected page. Snippet verified and active.
+                  </p>
+                  <button
+                    onClick={resetChangeFlow}
+                    className="mt-3 cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
-          {domainError && (
+          {domainError && !changingPage && (
             <p className="mt-3 flex items-center gap-1.5 text-[12px] text-err">
               <AlertTriangle className="h-3 w-3" />
               {domainError}
