@@ -239,7 +239,7 @@ export function TestCreationPanel({ apiToken, onClose }: TestCreationPanelProps)
       })
       if (res.ok) {
         const data = await res.json()
-        if (data.originalUrl) setScreenshotUrl(data.originalUrl)
+        if (data.originalScreenshotUrl) setScreenshotUrl(data.originalScreenshotUrl)
       }
     } catch { /* Screenshot ist nice-to-have, kein Blocker */ }
   }, [url])
