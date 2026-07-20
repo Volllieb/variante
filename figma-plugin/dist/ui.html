@@ -995,6 +995,106 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
 
 
 <!-- ═══════════════════════════════════════════════════════════════
+     SCREEN HS · Hybrid Snippet — Post-Signup Install (Hybrid-Onboarding)
+     Nach dem Gate: User hat sich im Browser registriert, Token geholt.
+     Jetzt: Snippet installieren → Verify → Live.
+════════════════════════════════════════════════════════════════════ -->
+<div id="s-hybrid-snippet" class="screen">
+  <div class="hdr">
+    <button class="back-btn" onclick="navBack()" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="hdr-title">Install Snippet</span>
+  </div>
+  <div class="body">
+    <!-- Zustand 1: Token noch nicht da → zeig Token-Input -->
+    <div id="hs-need-token">
+      <div class="notice notice-blue" style="margin-bottom:16px">
+        <div class="notice-head">
+          <span class="notice-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </span>
+          <div>
+            <div class="notice-title">Almost there — one last step</div>
+            <div class="notice-body">After signing up, paste your API token from the dashboard below. Then install the snippet and verify.</div>
+          </div>
+        </div>
+      </div>
+
+      <label class="lbl" for="hs-token">API Token</label>
+      <div class="input-wrap">
+        <input id="hs-token" placeholder="Paste your token from the dashboard" autocomplete="off" spellcheck="false" oninput="onHsTokenInput()" onkeydown="if(event.key==='Enter')connectHsToken()"/>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-secondary btn-sm" onclick="openHsDashboard()" style="flex:1">Open Dashboard to get token</button>
+      </div>
+      <div style="margin-top:8px">
+        <button class="btn btn-primary" id="hs-connect-btn" onclick="connectHsToken()" disabled>Connect →</button>
+      </div>
+      <div class="err" id="e-hs-connect" role="alert" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Zustand 2: Token verbunden → zeig Snippet + Verify -->
+    <div id="hs-snippet-area" style="display:none">
+      <div class="notice notice-blue" style="margin-bottom:16px">
+        <div class="notice-head">
+          <span class="notice-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </span>
+          <div>
+            <div class="notice-title">Add this snippet to your site's &lt;head&gt;</div>
+            <div class="notice-body">This lets variante detect elements and track conversions. Takes 30 seconds — copy, paste, done.</div>
+          </div>
+        </div>
+      </div>
+
+      <label class="lbl">Your snippet</label>
+      <pre id="hs-snippet-code" style="margin-bottom:10px">&lt;script src="https://www.getvariante.com/ab.js" data-key="<span id="hs-sn-key">...</span>"&gt;&lt;/script&gt;</pre>
+
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <button id="btn-hs-copy" class="btn btn-secondary btn-sm" onclick="copyHsSnippet()" style="flex:1">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy snippet
+        </button>
+      </div>
+      <div class="ok" id="hs-copied" style="display:none">✓ Copied to clipboard</div>
+
+      <div class="loading-row" id="l-hs-verify" role="status" style="display:none;margin-top:8px">
+        <div class="spinner" aria-hidden="true"></div>
+        Checking snippet…
+      </div>
+      <div class="err" id="e-hs-verify" role="alert" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Zustand 3: Verifiziert → Done -->
+    <div id="hs-done" style="display:none;text-align:center;padding:20px 0">
+      <div style="margin-bottom:20px">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="hint-strong" style="margin-bottom:6px;border:none;background:none;padding:0">Your test is live 🎉</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-2);margin-bottom:24px">
+        <span id="hs-done-name"></span> · <span id="hs-done-url"></span>
+      </div>
+      <button class="btn btn-primary btn-icon-left" onclick="openHsDashboard()" style="width:auto;margin:0 auto">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+        Open Dashboard &rarr;
+      </button>
+      <button class="btn btn-ghost" onclick="showDashboard()" style="width:100%;margin-top:8px">Back to Figma dashboard</button>
+    </div>
+  </div>
+  <div class="ftr" id="hs-footer" style="display:none">
+    <button id="btn-hs-verify" class="btn btn-primary" onclick="verifyHsSnippet()">I've installed it → Verify</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
      SCREEN 2 · Pick Element
 ════════════════════════════════════════════════════════════════════ -->
 <div id="s-element" class="screen">
@@ -2243,6 +2343,120 @@ function openSignup() {
   var signupUrl = 'https://www.getvariante.com/signup?source=figma-plugin&temp_token=' +
     encodeURIComponent(token) + '&test_id=' + encodeURIComponent(previewData.testId)
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: signupUrl } }, '*')
+  // Direkt zum Snippet-Screen — User signed up im Browser und kommt mit Token zurück
+  goToHybridSnippet()
+}
+
+// ── Hybrid-Onboarding: Post-Gate Snippet-Install ──────────────────────────
+function goToHybridSnippet() {
+  // Snippet-Key aus den Preview-Daten setzen
+  var sk = state.snippetKey
+  if (!sk && previewData && previewData.testId) {
+    // snippetKey wurde beim Create gesetzt, siehe startPreview() Fallback-Pfad
+    sk = state.snippetKey
+  }
+  $('hs-sn-key').textContent = sk || '...'
+
+  // Reset UI-Zustand
+  $('hs-need-token').style.display = 'block'
+  $('hs-snippet-area').style.display = 'none'
+  $('hs-done').style.display = 'none'
+  $('hs-footer').style.display = 'none'
+  $('hs-token').value = ''
+  err('hs-connect', '')
+  err('hs-verify', '')
+  $('hs-connect-btn').disabled = true
+
+  // Falls Token schon da ist (vom code.ts geladen), direkt Snippet zeigen
+  if (API_TOKEN) {
+    $('hs-need-token').style.display = 'none'
+    $('hs-snippet-area').style.display = 'block'
+    $('hs-footer').style.display = 'block'
+  }
+
+  navPush('hybrid-snippet')
+}
+
+function onHsTokenInput() {
+  var v = ($('hs-token').value || '').trim()
+  $('hs-connect-btn').disabled = !v
+  err('hs-connect', '')
+}
+
+function openHsDashboard() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard/health?source=figma-plugin' } }, '*')
+}
+
+async function connectHsToken() {
+  var v = ($('hs-token').value || '').trim()
+  if (!v) { err('hs-connect', 'Please paste your token.'); return }
+  var btn = $('hs-connect-btn')
+  btn.textContent = 'Checking…'; btn.disabled = true
+  try {
+    var res = await fetch(API + '/api/profile', { headers: { Authorization: 'Bearer ' + v } })
+    if (!res.ok) throw new Error('Invalid token — please check your dashboard.')
+    API_TOKEN = v
+    saveInputHistory('token', v)
+    parent.postMessage({ pluginMessage: { type: 'TOKEN_SAVE', token: v } }, '*')
+    // Token gültig → Snippet zeigen
+    $('hs-need-token').style.display = 'none'
+    $('hs-snippet-area').style.display = 'block'
+    $('hs-footer').style.display = 'block'
+  } catch (e) {
+    btn.textContent = 'Connect →'; btn.disabled = false
+    err('hs-connect', e.message || 'Invalid token')
+  }
+}
+
+function copyHsSnippet() {
+  var pre = $('hs-snippet-code')
+  var range = document.createRange()
+  range.selectNodeContents(pre)
+  var sel = window.getSelection()
+  sel.removeAllRanges()
+  sel.addRange(range)
+  try {
+    document.execCommand('copy')
+    $('hs-copied').style.display = 'block'
+    setTimeout(function() { $('hs-copied').style.display = 'none' }, 3000)
+  } catch (_) {}
+  sel.removeAllRanges()
+}
+
+async function verifyHsSnippet() {
+  if (!state.testId) { err('hs-verify', 'No test to verify. Go back and try again.'); return }
+  var btn = $('btn-hs-verify')
+  btn.disabled = true; btn.textContent = 'Verifying…'
+  $('l-hs-verify').style.display = 'flex'
+  err('hs-verify', '')
+  try {
+    var res = await afetch(API + '/api/snippet-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ snippet_key: state.snippetKey, site_url: state.url })
+    })
+    var body = {}; try { body = await res.json() } catch (_) {}
+    $('l-hs-verify').style.display = 'none'
+    if (!res.ok) {
+      btn.disabled = false; btn.textContent = 'I\'ve installed it → Verify'
+      if (res.status === 404) {
+        err('hs-verify', 'Snippet not found on your site. Make sure you added it to the <head> and the page is live.')
+      } else {
+        err('hs-verify', (body && body.message) || apiErrorMessage(res.status, body))
+      }
+      return
+    }
+    // Verifiziert!
+    $('hs-snippet-area').style.display = 'none'
+    $('hs-footer').style.display = 'none'
+    $('hs-done').style.display = 'block'
+    $('hs-done-name').textContent = state.name || 'Your test'
+    $('hs-done-url').textContent = (state.url || '').replace(/^https?:\/\//, '').replace(/\/+$/, '') || ''
+  } catch (e) {
+    $('l-hs-verify').style.display = 'none'
+    btn.disabled = false; btn.textContent = 'I\'ve installed it → Verify'
+    err('hs-verify', 'Could not reach the server. Check your connection.')
+  }
 }
 
 function siteTriggerUrl(mode) {
@@ -2952,6 +3166,13 @@ window.onmessage = (event) => {
       $('connect-token').value = API_TOKEN
       // Verified domain des Users laden (für URL-Vorausfüllung)
       fetchVerifiedDomain()
+      // Hybrid-Onboarding: Token kam an während User auf Snippet-Screen wartet
+      if ($('s-hybrid-snippet').classList.contains('active')) {
+        $('hs-need-token').style.display = 'none'
+        $('hs-snippet-area').style.display = 'block'
+        $('hs-footer').style.display = 'block'
+        return
+      }
       // Wenn ein Draft existiert, versuche ihn wiederherzustellen
       if (pendingDraft && pendingDraft.testId) {
         restoreDraft(pendingDraft)
