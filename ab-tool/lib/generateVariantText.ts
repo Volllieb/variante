@@ -253,6 +253,18 @@ export interface BestPracticeInput {
   pageContext?: string  // Style-Kontext (Farbpalette, Klassen-Prefixe)
 }
 
+/** Entfernt HTML-Tags und normalisiert Whitespace für die AI-Eingabe */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 1500)
+}
+
 export async function generateBestPracticeVariant(
   input: BestPracticeInput
 ): Promise<GenerateVariantOutput> {
@@ -262,10 +274,13 @@ export async function generateBestPracticeVariant(
   const selectorHint = input.selector ? `CSS-Selector: ${input.selector}` : ''
   const contextHint = input.pageContext ? `Seiten-Kontext:\n${input.pageContext.slice(0, 2000)}` : ''
 
+  // Strip HTML from original — the model only needs text content for best-practice generation
+  const cleanOriginal = stripHtml(input.original)
+
   const userPrompt = [
     `Element-Typ: ${input.elementType}`,
     `Element: ${input.element}`,
-    `Original: ${input.original}`,
+    `Original: ${cleanOriginal}`,
     selectorHint,
     contextHint,
     '',

@@ -58,8 +58,8 @@ export async function POST(req: Request) {
   if (type && !['text', 'color', 'css', 'layout'].includes(type)) {
     return Response.json({ error: 'type must be text, color, css, or layout' }, { status: 400, headers })
   }
-  // Sanity-Check: keine überlangen Inputs
-  if (element.length > 500 || (variantDescription && variantDescription.length > 2000) || original.length > 3000) {
+  // Sanity-Check: keine überlangen Inputs (großzügiger, da wir truncaten)
+  if (element.length > 2000 || (variantDescription && variantDescription.length > 2000)) {
     return Response.json({ error: 'input too long' }, { status: 400, headers })
   }
 
@@ -102,6 +102,11 @@ export async function POST(req: Request) {
     }, { status: 429, headers })
   }
 
+  // ─── Truncate original to avoid token overflow ───
+  const truncatedOriginal = original.length > 2000
+    ? original.slice(0, 2000) + '\n<!-- ... truncated ... -->'
+    : original
+
   // ─── Generate ───
   try {
     let result: { variant: string; variant_html?: string; variant_css?: string; explanation: string }
@@ -110,7 +115,7 @@ export async function POST(req: Request) {
       // User-driven mode: User beschreibt die gewünschte Änderung
       result = await generateVariantText({
         element,
-        original,
+        original: truncatedOriginal,
         variantDescription,
         type: type as VariantType,
         pageContext,
@@ -120,7 +125,7 @@ export async function POST(req: Request) {
       // Best-practice mode: AI entscheidet autonom
       result = await generateBestPracticeVariant({
         element,
-        original,
+        original: truncatedOriginal,
         elementType: elementType ?? 'element',
         selector,
         pageContext,
@@ -130,9 +135,13 @@ export async function POST(req: Request) {
     return Response.json(result, { headers })
   } catch (err) {
     safeError('variant-gen-failed', err)
+    const isOpenAIError = err instanceof Error &&
+      (err.message.includes('OpenAI') || err.message.includes('API') || err.message.includes('fetch'))
     return Response.json({
       error: 'generation failed',
-      message: 'Could not generate variant. Try a different description.',
+      message: isOpenAIError
+        ? 'AI generation service temporarily unavailable. You can skip this step or try again.'
+        : 'Could not generate variant. Try a different description or skip this step.',
     }, { status: 502, headers })
   }
 }

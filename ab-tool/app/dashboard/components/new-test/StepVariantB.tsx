@@ -31,7 +31,6 @@ interface StepVariantBProps {
   onTabChange: (tab: VariantTab) => void
   onGenerate: () => Promise<void>
   onVariantUpdate: (patch: Partial<VariantResult>) => void
-  onSkip?: () => void
 }
 
 const TABS: Array<{ id: VariantTab; label: string; icon: typeof Sparkles }> = [
@@ -42,7 +41,7 @@ const TABS: Array<{ id: VariantTab; label: string; icon: typeof Sparkles }> = [
 
 export function StepVariantB({
   element, url, variantResult, variantTab, onTabChange,
-  onGenerate, onVariantUpdate, onSkip,
+  onGenerate, onVariantUpdate,
 }: StepVariantBProps) {
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
@@ -126,27 +125,44 @@ export function StepVariantB({
 
       {/* Error */}
       {error && (
-        <div className="flex items-start gap-2 rounded-[7px] border border-err/20 bg-err/5 px-3 py-2.5">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-err/70" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-err/70">{error}</p>
-            <div className="mt-2 flex items-center gap-2">
+        <div className="space-y-3 rounded-[10px] border border-err/20 bg-err/5 px-4 py-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-err/70" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] text-err/70">{error}</p>
+            </div>
+          </div>
+
+          {/* Retry */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="flex items-center gap-1 rounded-[6px] bg-accent/15 px-3 py-1.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <RefreshCw className={`h-3 w-3 ${generating ? 'animate-spin' : ''}`} />
+              {generating ? 'Retrying…' : 'Try again'}
+            </button>
+          </div>
+
+          {/* Alternative: edit manually or inspiration */}
+          <div className="border-t border-err/10 pt-2.5">
+            <p className="mb-2 text-[11px] font-medium text-text-3">Create a variant manually instead:</p>
+            <div className="flex flex-wrap gap-2">
               <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="text-[11px] text-accent hover:underline disabled:opacity-50 cursor-pointer"
+                onClick={() => onTabChange('edit')}
+                className="flex items-center gap-1.5 rounded-[6px] border border-border bg-bg-1 px-3.5 py-2 text-[12px] font-medium text-text transition-colors hover:border-border-strong hover:bg-bg-2 cursor-pointer"
               >
-                {generating ? 'Retrying…' : 'Try again'}
+                <PenLine className="h-3.5 w-3.5" />
+                Edit manually
               </button>
-              {onSkip && (
-                <button
-                  onClick={onSkip}
-                  className="flex items-center gap-1 text-[11px] text-text-3 hover:text-text transition-colors cursor-pointer"
-                >
-                  Skip variant generation
-                  <ArrowRight className="h-3 w-3" />
-                </button>
-              )}
+              <button
+                onClick={() => onTabChange('inspiration')}
+                className="flex items-center gap-1.5 rounded-[6px] border border-border bg-bg-1 px-3.5 py-2 text-[12px] font-medium text-text transition-colors hover:border-border-strong hover:bg-bg-2 cursor-pointer"
+              >
+                <Lightbulb className="h-3.5 w-3.5" />
+                Inspiration patterns
+              </button>
             </div>
           </div>
         </div>

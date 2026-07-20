@@ -385,14 +385,6 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                     : patch as VariantResult,
                 })
               }}
-              onSkip={() => {
-                updateState({
-                  variantResult: {
-                    variant: state.selectedElement!.elementName,
-                    explanation: 'Original element — no variant generated',
-                  },
-                })
-              }}
             />
           )}
 
