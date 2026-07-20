@@ -268,6 +268,20 @@
           e.preventDefault(); e.stopPropagation()
           var el = e.target, sel = cssSelector(el)
 
+          // PostMessage an öffnendes Dashboard-Fenster (Wizard-Picker-Flow).
+          // Dashboard-Komponenten lauschen auf 'ab-pick' / 'ab-goal' messages.
+          // Unabhängig vom API-Call — funktioniert auch ohne Auth-Token.
+          try {
+            if (window.opener && !window.opener.closed) {
+              var text = (el.innerText || el.textContent || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 200)
+              if (cfg.mode === 'goal') {
+                window.opener.postMessage({ type: 'ab-goal', selector: sel, text: text }, '*')
+              } else {
+                window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text }, '*')
+              }
+            }
+          } catch (_) {}
+
           // --- Reorder-Modus: erster Klick → Element A speichern, auf B warten
           if (cfg.mode === 'reorder') {
             if (!reorderEl1) {
@@ -323,10 +337,21 @@
 
           // --- Normaler / Goal Modus ---------------------------------------
           cleanup(); hideBanner()
+
+          // Wenn via window.open vom Dashboard-Wizard geöffnet:
+          // Daten wurden bereits via postMessage gesendet → Erfolg zeigen,
+          // auch wenn der API-Call fehlschlägt (kein Auth-Token).
+          var hasOpener = false
+          try { hasOpener = !!(window.opener && !window.opener.closed) } catch (_) {}
+
           doCaptureRequest(el, sel).then(function (r) {
             if (r.ok) showOverlay(cfg.mode === 'goal' ? 'Goal saved' : 'Element captured', sel, false)
+            else if (hasOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
             else showOverlay('Save failed (' + r.status + ')', '', true)
-          }).catch(function () { showOverlay('Network error while saving.', '', true) })
+          }).catch(function () {
+            if (hasOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
+            else showOverlay('Network error while saving.', '', true)
+          })
         }
 
         function onKey(e) { if (e.key === 'Escape') { cleanup(); hideBanner() } }
