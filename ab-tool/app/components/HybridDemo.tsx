@@ -45,9 +45,11 @@ type State = 'idle' | 'loading' | 'preview' | 'spa' | 'error'
 // Code-Extraktion + KI sind ~3s, 2s pro Step ist realistisch.
 const STEP_MS = 2000
 
-// Screenshot-Polling: 30 Versuche à 2s = 60s Timeout.
-const POLL_MAX = 30
-const POLL_MS = 2000
+// Screenshot-Polling: 15s Timeout (max 10 Versuche). In Production müssen
+// Screenshots schnell da sein — nach 15s zeigen wir einen Hinweis und lassen
+// den User trotzdem fortfahren. Die Changes sind ja schon da.
+const POLL_MAX = 10
+const POLL_MS = 1500
 
 export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; source?: string; prefillUrl?: string; plan?: string }) {
   const [state, setState] = useState<State>('idle')
@@ -66,6 +68,7 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
   const [screenshotsPending, setScreenshotsPending] = useState(false)
   const [screenshotsReady, setScreenshotsReady] = useState(false)
   const [screenshotUrls, setScreenshotUrls] = useState<{ original: string; variant: string } | null>(null)
+  const [screenshotTimeout, setScreenshotTimeout] = useState(false)
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Loading-Schritte durchlaufen lassen (2 Steps: Code extrahieren → KI analysiert).
@@ -101,6 +104,7 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
     setScreenshotsPending(false)
     setScreenshotsReady(false)
     setScreenshotUrls(null)
+    setScreenshotTimeout(false)
     if (pollTimerRef.current) { clearTimeout(pollTimerRef.current); pollTimerRef.current = null }
 
     try {
@@ -171,8 +175,9 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
       if (attempts < POLL_MAX) {
         pollTimerRef.current = setTimeout(poll, POLL_MS)
       } else {
-        // Timeout nach 60s — Screenshots bleiben unavailable
+        // Timeout — Screenshots nicht rechtzeitig da, aber Changes sind schon sichtbar
         setScreenshotsPending(false)
+        setScreenshotTimeout(true)
       }
     }
 
@@ -304,8 +309,13 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
 
                 {/* Screenshot im Laptop-Frame — "das ist wirklich meine Seite" */}
                 <div className="mx-auto mt-5 max-w-4xl">
-                  {!screenshotsReady ? (
+                  {!screenshotsReady && !screenshotTimeout ? (
                     <ScreenshotSkeleton />
+                  ) : screenshotTimeout ? (
+                    <div className="rounded-[10px] border border-border-strong bg-bg-0 p-6 text-center">
+                      <ImageIcon className="mx-auto h-8 w-8 text-white/20" />
+                      <p className="mt-3 text-sm text-white/55">{cp.demo.screenshotFailed}</p>
+                    </div>
                   ) : screenshotUrls ? (
                     <div className="overflow-hidden rounded-[10px] border border-border-strong bg-bg-0">
                       <div className="flex items-center gap-1.5 border-b border-border bg-bg-2 px-3 py-2">

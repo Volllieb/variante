@@ -1,30 +1,16 @@
-// Landingpage-Copy DE/EN — ICP: Designer, Indie Hacker, Gründer (solopreneurs & small teams)
-// Agent-first: autonomer KI-Agent analysiert, generiert Varianten, misst & rolled aus
-// Deutsch = Default (DACH-ICP), Englisch = Fallback für internationale Reach
-//
-// STRUKTUR-REGEL: Es gibt genau *eine* Landingpage. DE und EN unterscheiden sich
-// ausschließlich im Text — nie in Aufbau, Reihenfolge oder Anzahl der Elemente.
-// Alles Nicht-Sprachliche (Preise, Links, welcher Plan hervorgehoben ist, wie viele
-// Features/Steps/FAQs es gibt) steht deshalb *außerhalb* der Sprachobjekte in
-// `PLANS` bzw. wird über die Typen erzwungen (Tupel fester Länge).
-// Wer hier ein Feld nur in einer Sprache ändert, bekommt einen Type-Error.
+// Landingpage-Copy — English only (since July 2026).
+// ICP: Designers, indie hackers, founders (solopreneurs & small teams).
+// Agent-first: autonomous AI agent analyzes, generates variants, measures & rolls out.
 
 import { techLogoNames } from '@/components/TechLogos'
-
-export type Lang = 'de' | 'en'
-
-/* ── Struktur: sprachunabhängig, für beide Sprachen identisch ── */
 
 export type PlanId = 'free' | 'pro' | 'agency'
 
 export interface PlanStructure {
   id: PlanId
-  /** Preis inkl. Währung — Ziffern sind in beiden Sprachen gleich. */
   price: string
-  /** Zeigt den „pro Monat"-Suffix (`plans.period`). Free ist einmalig/dauerhaft. */
   perMonth: boolean
   href: string
-  /** Genau ein Plan pro Seite ist hervorgehoben (brandguidelines §2.2). */
   featured: boolean
 }
 
@@ -34,9 +20,6 @@ export const PLANS: readonly PlanStructure[] = [
   { id: 'agency', price: '99 €', perMonth: true, href: '/onboarding?plan=agency', featured: false },
 ]
 
-/* ── Typen: erzwingen gleiche Element-Anzahl in DE und EN ── */
-
-/** Fixed-length tuple — DE und EN müssen dieselbe Anzahl Einträge liefern. */
 type Tuple4<T> = readonly [T, T, T, T]
 type Tuple3<T> = readonly [T, T, T]
 type Tuple2<T> = readonly [T, T]
@@ -174,211 +157,7 @@ export interface LandingCopy {
   ogImageAlt: string
 }
 
-const de: LandingCopy = {
-  navDemo: 'Demo',
-  navPricing: 'Preise',
-  navLogin: 'Login',
-  navSignup: 'Kostenlos starten',
-
-  heroPill: 'KI-Agenten verbessern deine Conversion autonom',
-  heroH1: 'CRO-Best-Practice. In 5 Minuten.',
-  heroSub:
-    'Volle Kontrolle, minimaler Aufwand. Du bestimmst, was optimiert wird — Hero, Pricing, CTAs. Deine KI analysiert, schreibt Varianten, misst Conversions und schlägt den Winner vor. Du entscheidest, was live geht.',
-  heroCta: 'Zeig mir meine Seite',
-  heroFootnote: '',
-
-  demo: {
-    heading: 'Sieh, was KI aus deiner Seite macht',
-    sub: 'URL eingeben, kurz warten. Du siehst deine echte Seite und die KI-Variante im Direktvergleich.',
-    inputPlaceholder: 'deine-website.de',
-    submit: 'Seite analysieren',
-    loadingSteps: [
-      'Lese deinen Code …',
-      'Schreibe Variante …',
-    ],
-    tabOriginal: 'Original',
-    tabVariant: 'KI-Variante',
-    changesHeading: 'Was die KI geändert hat',
-    refineToggle: 'Verfeinern',
-    refinePlaceholder: 'z. B. „Button runder, Text prägnanter"',
-    refineSubmit: 'Übernehmen',
-    refining: 'Wird angepasst …',
-    goLive: 'Kostenlos starten',
-    goLiveHint: 'Account anlegen — deine Variante ist gespeichert.',
-    tryAnother: 'Andere Seite testen',
-    spaHeading: 'Deine Seite rendert im Browser',
-    spaBody:
-      'Die Inhalte deiner Seite entstehen erst im Browser, von außen sehen wir nur eine leere Hülle. Mit dem Snippet lesen wir die echten Elemente — danach zeigen wir dir deine Variante. Der Umweg ist eigentlich eine Abkürzung: nach dem Sign-up ist der Test sofort live.',
-    spaCta: 'Snippet holen',
-    errGeneric: 'Das hat nicht geklappt. Probier es nochmal oder nimm eine andere Seite.',
-    errUrl: 'Diese URL sieht nicht richtig aus. Prüf sie nochmal.',
-    screenshotFailed: 'Screenshots konnten nicht geladen werden — die Analyse ist aber fertig.',
-  },
-
-  trustItems: [
-    { label: 'In 5 Minuten live', text: 'Snippet einbauen, Agent startet. Kein Setup, kein Dev.' },
-    { label: '5 KB Snippet', text: 'Lädt asynchron. Null Performance-Impact.' },
-    { label: 'DSGVO-konform', text: 'EU-Hosting. Keine Drittstaaten-Daten.' },
-    { label: 'KI-Agent', text: 'Autonom. Kein Briefing. Kein Dev-Ticket.' },
-  ],
-
-  sectionWorks: 'Funktioniert mit deinem Stack',
-  worksLabel: 'Ein Snippet — überall wo du ein Script-Tag einfügen kannst',
-
-  sectionAgent: 'KI-Agent-Automatisierung',
-  agentH: 'Volle Kontrolle. Minimaler Aufwand.',
-  agentSub:
-    'Klassische A/B-Tools geben dir ein Ergebnis und warten auf deinen nächsten Einfall. Der Variante-Agent läuft im Kreis: analysieren, testen, ausrollen, wieder von vorn. Du gibst das Ziel vor, er macht die Runden.',
-  agentMotto: 'Volle Kontrolle. Minimaler Aufwand.',
-  agentMottoSub: 'Wähl aus, was du willst — den Rest erledigt die KI.',
-  agentModePill: 'Du oder KI',
-  agentLoop: [
-    {
-      title: 'Seite analysieren',
-      body: 'Der Agent liest deine Seite, findet die schwächsten Conversion-Punkte und priorisiert nach erwartetem Impact.',
-    },
-    {
-      title: 'Hypothese erstellen',
-      body: 'Er leitet eine Variante ab und schreibt sie selbst — Text, Hierarchie, CTAs. Du reviewst nur noch, was live gehen soll.',
-    },
-    {
-      title: 'Testen',
-      body: 'Traffic wird sauber gesplittet, Conversions getrackt, Signifikanz berechnet. Kein Tracking-Plan nötig.',
-    },
-    {
-      title: 'Gewinner wählen',
-      body: 'Der Sieger geht automatisch live. Der Agent nimmt sich sofort die nächste Hypothese vor.',
-    },
-  ],
-  agentLoopNote: 'Jede Runde verbessert die Conversion deiner Seite.',
-
-  figmaCommunityTitle: 'Figma Community Plugin',
-  figmaCommunityText:
-    'Teste und optimiere direkt aus Figma heraus — ohne den Browser zu wechseln. Wähle ein Element, generiere eine Variante, pushe sie live.',
-  figmaCommunityLinkText: 'Plugin in der Community ansehen →',
-
-  soloDevTitle: 'Gebaut für Builder. Designer, Indie Hacker, Gründer.',
-  soloDevBody:
-    'Gebaut von jemandem, der die „soll ich das testen oder shippen?"-Frage selbst kennt. Jede Zeile Code ist dokumentiert, jedes Update öffentlich im Changelog.',
-  impliedUsersText:
-    'Schließ dich Designern, Indie Hackern und Gründern an, die shippen UND testen — ohne Dev-Team.',
-
-  sectionHow: 'So funktioniert’s',
-  steps: [
-    {
-      title: 'Deine Seite. Deine Regeln. Dein Agent.',
-      body: 'Sag dem Agenten, welche Seite er optimieren soll. Er analysiert automatisch den Aufbau, die Conversion-Pfade und die UX — völlig egal ob WordPress, Next.js, Shopify oder Custom.',
-    },
-    {
-      title: 'Varianten entstehen von allein.',
-      body: 'Der Agent generiert Varianten basierend auf dem, was er gelernt hat — bessere CTAs, klarere Hierarchie, optimierte Texte. Du reviewst, was live gehen soll. Der Rest passiert automatisch.',
-    },
-    {
-      title: 'Daten statt Bauchgefühl. In Tagen, nicht Wochen.',
-      body: 'Ein Snippet in deine Seite — fertig. Der Agent serviert Varianten, trackt Conversions, errechnet Signifikanz und rollt den Winner aus. Ohne dass du eine Pipeline anfassen musst.',
-    },
-  ],
-  platformNote: 'Ein Snippet. Funktioniert mit {platforms} — überall wo du ein Script-Tag einfügen kannst.',
-
-  sectionPricing: 'Preise',
-  pricingSub: 'Starte kostenlos. Upgrade, wenn der erste Test sich bezahlt gemacht hat.',
-  period: '/Mon.',
-  proBadge: 'Empfohlen',
-  plans: {
-    free: {
-      label: 'Free',
-      sub: 'Dauerhaft kostenlos. Keine Kreditkarte.',
-      cta: 'Kostenlos starten',
-      features: [
-        { label: '1 aktives Experiment', exclusive: false },
-        { label: 'KI-Agent analysiert deine Seite', exclusive: false },
-        { label: 'Autonome Variantengenerierung', exclusive: false },
-        { label: 'Ganze Sektionen testen — Hero, Pricing, CTAs', exclusive: false },
-        { label: 'Conversion-Tracking, eingebaut', exclusive: false },
-        { label: '„Powered by Variante"-Badge auf deiner Seite', exclusive: false },
-      ],
-    },
-    pro: {
-      label: 'Pro',
-      sub: 'Alles aus Free, plus:',
-      cta: 'Pro starten',
-      features: [
-        { label: 'Unbegrenzt Experimente', exclusive: true },
-        { label: 'Statistische Signifikanz — weiß, wann du aufhören kannst', exclusive: true },
-        { label: 'Auto-Winner — beste Variante geht automatisch live', exclusive: true },
-        { label: 'Dynamic Content — eigene Inhalte je Traffic-Quelle', exclusive: true },
-        { label: 'Preis-Testing — Pläne und Preispunkte experimentell', exclusive: true },
-        { label: 'Kein Badge auf deiner Seite', exclusive: true },
-        { label: 'Priority-Support', exclusive: false },
-      ],
-    },
-    agency: {
-      label: 'Agency',
-      sub: 'Alles aus Pro, plus:',
-      cta: 'Agency starten',
-      features: [
-        { label: 'Bis zu 100 Domains — alle Kunden-Sites managen', exclusive: true },
-        { label: 'White-Label — keine Variante-Erwähnung', exclusive: true },
-        { label: 'Kunden-Reports — gebrandete PDFs', exclusive: true },
-        { label: 'Team-Zugang — Tests agenturweit teilen', exclusive: true },
-        { label: 'Dedizierter Support — Direktkontakt, kein Ticket', exclusive: true },
-        { label: 'Priority-Feature-Requests', exclusive: false },
-        { label: 'Frühzugang zu neuen Features', exclusive: false },
-      ],
-    },
-  },
-
-  sectionFaq: 'Häufige Fragen',
-  faqs: [
-    {
-      q: 'Bremst das Snippet meine Seite aus?',
-      a: 'Nein. Unter 5 KB, lädt asynchron, blockiert nie das Rendering. Deine Core Web Vitals bleiben unberührt.',
-    },
-    {
-      q: 'Muss ich dem Agenten genau sagen, was er tun soll?',
-      a: 'Nur grob. „Optimier meine Pricing-Page" reicht. Der Agent analysiert eigenständig, schreibt Varianten, du reviewst — fertig. Kein Prompt-Engineering nötig.',
-    },
-    {
-      q: 'Funktioniert das mit meinem Stack?',
-      a: 'WordPress, Webflow, Shopify, Framer, Squarespace, React, Next.js, Custom HTML — wenn du ein <script>-Tag einfügen kannst, funktioniert es.',
-    },
-    {
-      q: 'Wieso nicht einfach Optimizely oder VWO?',
-      a: 'Weil du dafür einen Entwickler und einen Tracking-Plan brauchst. Variante: Agent anschalten, Varianten reviewen, Winner ausrollen. Ohne Dev. Ohne Enterprise-Sales-Call.',
-    },
-    {
-      q: 'Ich bin Solo-Founder — lohnt sich das?',
-      a: 'Gerade dann. Deine Zeit ist zu wertvoll für manuelles A/B-Testing. Der Agent arbeitet, während du baust, verkaufst oder schläfst. Ein Experiment kann dir sagen, ob deine Pricing-Page 20 % mehr converted — das ist der ROI eines Nachmittags.',
-    },
-  ],
-
-  closingH: 'Deine Seite kann ab heute besser werden.',
-  closingSub: 'Ein Snippet, ein Experiment, kein Entwickler. Den Rest übernimmt der Agent.',
-  closingCta: 'Kostenlos starten',
-
-  footerLine: '© 2026 Variante · Made in Bavaria',
-  footerDocs: 'Docs',
-  footerPrivacy: 'Datenschutz',
-  footerImprint: 'Impressum',
-
-  badgeText: 'A/B by Variante',
-
-  jsonldDescription:
-    'A/B-Tests per KI-Agent — für Designer, Indie Hacker & Gründer. Kein Entwickler, kein Deployment.',
-  jsonldProDescription: 'Unbegrenzt Experimente, Signifikanz-Analyse, Auto-Winner',
-
-  metaTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
-  metaDescription:
-    'Autonomer KI-Agent für A/B-Tests. Seite analysieren, Varianten generieren, Conversions messen — kein Entwickler nötig. Für WordPress, Next.js, Shopify.',
-  ogTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
-  ogDescription:
-    'Dein KI-Agent optimiert deine Seite. Varianten generieren, testen, Winner ausrollen — autonom.',
-  twitterTitle: 'A/B-Tests per KI-Agent — Für Designer, Indie Hacker & Gründer | Variante',
-  twitterDescription: 'Autonomer KI-Agent für A/B-Tests. Kein Entwickler nötig.',
-  ogImageAlt: 'Variante — A/B-Testing per KI-Agent',
-}
-
-const en: LandingCopy = {
+const copy: LandingCopy = {
   navDemo: 'Demo',
   navPricing: 'Pricing',
   navLogin: 'Log in',
@@ -416,7 +195,7 @@ const en: LandingCopy = {
     spaCta: 'Get the snippet',
     errGeneric: "That didn't work. Try again, or try a different page.",
     errUrl: "That URL doesn't look right. Give it another look.",
-    screenshotFailed: "Screenshots couldn't load — but the analysis is ready.",
+    screenshotFailed: "Screenshots couldn't load — but the analysis is ready. You'll see the variant in your dashboard after signing up.",
   },
 
   trustItems: [
@@ -582,20 +361,4 @@ const en: LandingCopy = {
   ogImageAlt: 'Variante — AI Agent for A/B Testing',
 }
 
-/** Helper: detect language from request headers. */
-export function getLang(acceptLanguage: string | null, cookieLang: string | null): Lang {
-  if (cookieLang === 'de' || cookieLang === 'en') return cookieLang
-  if (acceptLanguage?.toLowerCase().startsWith('de')) return 'de'
-  return 'en'
-}
-
-export function getCopy(lang: Lang): LandingCopy {
-  return lang === 'de' ? de : en
-}
-
-/** `platformNote` with `{platforms}` filled from the TechLogos source of truth. */
-export function platformSentence(copy: LandingCopy): string {
-  return copy.platformNote.replace('{platforms}', techLogoNames.join(', '))
-}
-
-export { de as deCopy, en as enCopy }
+export { copy }

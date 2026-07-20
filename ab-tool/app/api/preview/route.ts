@@ -25,9 +25,13 @@ export const maxDuration = 45
 // Kostenschutz: der Endpoint ist unauthentifiziert und gibt pro Call ~$0.02
 // aus (2x urlbox + GPT-4o). Das Minuten-Limit bremst Bursts, die Tages-Limits
 // deckeln den Schaden durch Bots/Scripted Abuse (Plan §5: Free-Tier ~10/Tag).
-const DAILY_IP_LIMIT = Number(process.env.PREVIEW_DAILY_IP_LIMIT) || 10
-const DAILY_GLOBAL_LIMIT = Number(process.env.PREVIEW_DAILY_GLOBAL_LIMIT) || 300
-const PER_MINUTE_LIMIT = Number(process.env.PREVIEW_PER_MINUTE_LIMIT) || 5
+// Production-Limits grosszügiger: das Produkt ist live und der Onboarding-Flow
+// ist der zentrale Conversion-Pfad. 10/IP/Tag war für eine Beta ok, aber in
+// Production treffen echte User auf das Limit — besonders in Shared-Netzwerken
+// (Büro, Coworking, Uni) oder nach Fehlversuchen.
+const DAILY_IP_LIMIT = Number(process.env.PREVIEW_DAILY_IP_LIMIT) || 25
+const DAILY_GLOBAL_LIMIT = Number(process.env.PREVIEW_DAILY_GLOBAL_LIMIT) || 500
+const PER_MINUTE_LIMIT = Number(process.env.PREVIEW_PER_MINUTE_LIMIT) || 10
 const DAY_MS = 86_400_000
 
 export async function OPTIONS() {
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
   if (!(await checkRateLimit(`preview:day:${ip}`, DAILY_IP_LIMIT, DAY_MS))) {
     return json({
       error: 'daily limit',
-      message: `That's ${DAILY_IP_LIMIT} previews today — sign up to keep testing.`,
+      message: `You've used ${DAILY_IP_LIMIT} free previews today — create an account to continue testing with saved variants and live A/B tests.`,
       signup_url: '/signup?source=demo-limit',
     }, 429)
   }

@@ -3,21 +3,19 @@ import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight } from '@/components/LandingIcons'
 import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
-import { detectLang } from '@/lib/detectLang'
-import { getCopy, PLANS } from '@/lib/landingCopy'
+import { copy, PLANS } from '@/lib/landingCopy'
 import type { PlanId } from '@/lib/landingCopy'
+import { HybridDemo } from '@/app/components/HybridDemo'
 
 /* ── Metadata (dynamic by language) ── */
 
 export async function generateMetadata(): Promise<Metadata> {
-  const lang = await detectLang()
-  const cp = getCopy(lang)
   return {
-    title: cp.metaTitle,
-    description: cp.metaDescription,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     openGraph: {
-      title: cp.ogTitle,
-      description: cp.ogDescription,
+      title: copy.ogTitle,
+      description: copy.ogDescription,
       url: 'https://www.getvariante.com',
       siteName: 'Variante',
       images: [
@@ -25,14 +23,14 @@ export async function generateMetadata(): Promise<Metadata> {
           url: 'https://www.getvariante.com/og',
           width: 1200,
           height: 630,
-          alt: cp.ogImageAlt,
+          alt: copy.ogImageAlt,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: cp.twitterTitle,
-      description: cp.twitterDescription,
+      title: copy.twitterTitle,
+      description: copy.twitterDescription,
       images: ['https://www.getvariante.com/og'],
     },
   }
@@ -42,8 +40,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage({ searchParams }: { searchParams?: Promise<{ source?: string }> }) {
   const { source } = (await searchParams) ?? {}
-  const lang = await detectLang()
-  const cp = getCopy(lang)
   const signupUrl = (base: string) => source ? `${base}${base.includes('?') ? '&' : '?'}source=${encodeURIComponent(source)}` : base
   const plan = (id: PlanId) => PLANS.find((p) => p.id === id)!
 
@@ -65,13 +61,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               href="/login"
               className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
             >
-              {cp.navLogin}
+              {copy.navLogin}
             </Link>
             <Link
               href={signupUrl("/onboarding")}
               className="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
             >
-              {cp.navSignup}
+              {copy.navSignup}
             </Link>
           </div>
         </nav>
@@ -85,26 +81,26 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           {/* Left: Text — second on mobile */}
           <div className="order-2 lg:order-1 text-center sm:text-left">
             <span className="inline-block rounded-full border border-border bg-bg-2 px-3 py-1 text-[11px] font-medium text-text-3 mb-5 tracking-wide">
-              {cp.heroPill}
+              {copy.heroPill}
             </span>
             <h1 className="hero-headline">
-              {cp.heroH1}
+              {copy.heroH1}
             </h1>
             <p className="hero-sub mt-5 text-base sm:text-lg">
-              {cp.heroSub}
+              {copy.heroSub}
             </p>
             <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
               <a
                 href="#demo-hybrid"
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
-                {cp.heroCta}
+                {copy.heroCta}
               </a>
               <Link
                 href={signupUrl("/onboarding")}
                 className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"
               >
-                {cp.navSignup} <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
+                {copy.navSignup} <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
               </Link>
             </div>
           </div>
@@ -126,10 +122,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         <div className="container-wide mt-8 sm:mt-10">
           <div className="stat-bar rounded-xl border border-border bg-bg-1/50 px-6 py-5">
             {[
-              { icon: Rocket, label: cp.trustItems[0].label, text: cp.trustItems[0].text },
-              { icon: Gauge, label: cp.trustItems[1].label, text: cp.trustItems[1].text },
-              { icon: Shield, label: cp.trustItems[2].label, text: cp.trustItems[2].text },
-              { icon: Sparkles, label: cp.trustItems[3].label, text: cp.trustItems[3].text },
+              { icon: Rocket, label: copy.trustItems[0].label, text: copy.trustItems[0].text },
+              { icon: Gauge, label: copy.trustItems[1].label, text: copy.trustItems[1].text },
+              { icon: Shield, label: copy.trustItems[2].label, text: copy.trustItems[2].text },
+              { icon: Sparkles, label: copy.trustItems[3].label, text: copy.trustItems[3].text },
             ].map((item) => (
               <div key={item.label} className="stat-item">
                 <item.icon className="mb-0.5 h-4 w-4 text-white/25" />
@@ -141,41 +137,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── Demo-Einstieg: Screen 1 des Onboarding-Flows ── */}
-      <section id="demo-hybrid" className="section !pt-6">
-        <div className="container-wide">
-          <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-10 text-center">
-            <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
-              {cp.demo.heading}
-            </h2>
-            <p className="mx-auto mt-2 max-w-xl text-sm text-white/55">
-              {cp.demo.sub}
-            </p>
-            <form
-              action={signupUrl("/onboarding")}
-              method="GET"
-              className="mx-auto mt-6 flex max-w-xl flex-col gap-2 sm:flex-row"
-            >
-              <input
-                type="text"
-                name="url"
-                inputMode="url"
-                placeholder={cp.demo.inputPlaceholder}
-                aria-label={cp.demo.inputPlaceholder}
-                className="h-12 flex-1 rounded-full border border-border bg-bg-0 px-5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
-              >
-                {cp.demo.submit}
-                <ArrowUpRight className="h-4 w-4" />
-              </button>
-            </form>
-            <p className="mt-3 text-[11px] text-text-3">{cp.demo.goLiveHint}</p>
-          </div>
-        </div>
-      </section>
+      {/* ── Demo: HybridDemo-Component direkt auf der Landingpage ── */}
+      <HybridDemo cp={copy} source={source} />
 
       {/* ── Works-With Logo Bar ── */}
       <section className="!py-10 sm:!py-12">
