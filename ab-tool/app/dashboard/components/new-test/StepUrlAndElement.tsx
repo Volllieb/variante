@@ -49,6 +49,7 @@ export function StepUrlAndElement({
           : 'element',
         elementName: text ?? selector,
       })
+      setPickerOpen(false)
       setWaitingForPicker(false)
     }
 

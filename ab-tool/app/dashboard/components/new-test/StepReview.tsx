@@ -7,7 +7,7 @@
  * Name wird manuell vom User eingegeben (kein KI-Auto-Name).
  */
 
-import { Globe, MousePointerClick, Sparkles, Target, Edit3 } from 'lucide-react'
+import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
 
 interface StepReviewProps {
@@ -45,7 +45,7 @@ export function StepReview({
         {/* Details */}
         <div className="space-y-2.5">
           <DetailRow icon={Globe} label="Site" value={displayUrl} />
-          <DetailRow icon={Target} label="Element" value={element.elementName} />
+          <DetailRow icon={Crosshair} label="Element" value={element.elementName} />
           <DetailRow
             icon={MousePointerClick}
             label="Goal"
