@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { PandaLogo } from '@/components/PandaLogo'
 import { HybridDemo } from '@/app/components/HybridDemo'
 import { detectLang } from '@/lib/detectLang'
@@ -30,25 +31,26 @@ export default async function OnboardingPage({
 
   return (
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased flex flex-col">
-      {/* Minimal-Header: nur Logo + Escape */}
+      {/* Minimal-Header: Logo + Navigation */}
       <header className="shrink-0 border-b border-border bg-bg-0/95 px-4 sm:px-6">
         <div className="flex items-center justify-between py-2.5 sm:py-3 max-w-6xl mx-auto w-full">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
-          >
-            <PandaLogo size="md" />
-            variante
-          </Link>
-          <div className="flex items-center gap-4">
-            <SkipButton href={skipHref} label={lang === 'de' ? 'Überspringen' : 'Skip'} />
+          <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="text-xs text-white/40 transition-colors hover:text-white/70"
+              className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
             >
-              ← {lang === 'de' ? 'Zurück' : 'Back'}
+              <PandaLogo size="md" />
+              variante
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {lang === 'de' ? 'Zurück' : 'Back'}
             </Link>
           </div>
+          <SkipButton href={skipHref} label={lang === 'de' ? 'Überspringen' : 'Skip'} />
         </div>
       </header>
 

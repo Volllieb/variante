@@ -8,7 +8,7 @@
 // — die gesamte Komplexität liegt serverseitig, wo sie hingehört (Plan §3.5).
 
 import { useState, useEffect, useRef } from 'react'
-import { ArrowRight, Code2, Sparkles, RefreshCw, ImageIcon } from 'lucide-react'
+import { ChevronRight, Code2, Sparkles, RefreshCw, ImageIcon, PenLine } from 'lucide-react'
 import type { LandingCopy } from '@/lib/landingCopy'
 
 interface Change {
@@ -268,9 +268,12 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
               className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-black transition-all hover:bg-white/90 disabled:pointer-events-none disabled:opacity-40"
             >
               {cp.demo.submit}
-              <ArrowRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </form>
+          <p className="mx-auto mt-3 max-w-xl text-center text-[11px] text-text-3">
+            {cp.demo.goLiveHint}
+          </p>
 
           <div ref={resultRef}>
             {state === 'loading' && <LoadingSteps steps={cp.demo.loadingSteps} current={step} />}
@@ -331,12 +334,13 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
 
                 {/* Change-Liste */}
                 <div className="mx-auto mt-6 max-w-2xl">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-text-3">
+                  <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-3">
+                    <PenLine className="h-3 w-3" />
                     {cp.demo.changesHeading}
                   </h3>
-                  <ul className="mt-3 space-y-2.5">
+                  <ul className="mt-3 space-y-2">
                     {data.changes.map((c) => (
-                      <li key={c.id} className="flex items-start gap-2.5 text-sm text-white/60">
+                      <li key={c.id} className="flex items-start gap-2.5 rounded-[6px] border border-border bg-bg-0 px-3 py-2 text-sm text-white/60">
                         <span
                           className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                           style={{ background: c.highlightColor }}
@@ -390,15 +394,14 @@ export function HybridDemo({ cp, source, prefillUrl, plan }: { cp: LandingCopy; 
                 <div className="mt-8 text-center">
                   <a
                     href={signupHref()}
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all hover:bg-white/90"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
                   >
                     {cp.demo.goLive}
-                    <ArrowRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" />
                   </a>
-                  <p className="mt-2.5 text-[11px] text-text-3">{cp.demo.goLiveHint}</p>
                   <button
                     onClick={reset}
-                    className="mt-4 text-[11px] text-text-3 underline transition-colors hover:text-text-2"
+                    className="mt-3 text-[11px] text-text-3 underline transition-colors hover:text-text-2"
                   >
                     {cp.demo.tryAnother}
                   </button>
@@ -520,7 +523,7 @@ function SpaFallback({
           className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90"
         >
           {cp.demo.spaCta}
-          <ArrowRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" />
         </a>
         <button
           onClick={onReset}

@@ -94,12 +94,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.heroSub}
             </p>
             <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
-              <a
-                href="#demo-hybrid"
+              <Link
+                href={signupUrl("/onboarding")}
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {cp.heroCta}
-              </a>
+              </Link>
               <Link
                 href={signupUrl("/onboarding")}
                 className="inline-flex rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85 active:scale-[0.98] sm:px-6 sm:py-3.5"
@@ -141,7 +141,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── Demo-Einstieg: URL direkt auf der Landingpage eingeben ── */}
+      {/* ── Demo-Einstieg: Screen 1 des Onboarding-Flows ── */}
       <section id="demo-hybrid" className="section !pt-6">
         <div className="container-wide">
           <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-10 text-center">
@@ -152,7 +152,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {cp.demo.sub}
             </p>
             <form
-              action="/onboarding"
+              action={signupUrl("/onboarding")}
               method="GET"
               className="mx-auto mt-6 flex max-w-xl flex-col gap-2 sm:flex-row"
             >
@@ -169,9 +169,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
               >
                 {cp.demo.submit}
-                <span className="text-base">→</span>
+                <ArrowUpRight className="h-4 w-4" />
               </button>
             </form>
+            <p className="mt-3 text-[11px] text-text-3">{cp.demo.goLiveHint}</p>
           </div>
         </div>
       </section>
