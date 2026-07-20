@@ -180,6 +180,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 - **Design-Partner:** 1 von 5 angefragt
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
 - **E2E:** ✅ M1 abgeschlossen
+- **Offen:** `TestCreationPanel.tsx:210` — `pageContext` aus ab.js picker anreichern (TODO im Code)
 - **Nächster Schritt:** §9.1 Quick-Wins (Figma-SEO, X-Profil, Pain-Suchen) → Week-1 X-Outreach → Pain-Interviews
 
 ### Meilensteine

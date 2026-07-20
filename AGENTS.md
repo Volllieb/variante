@@ -12,13 +12,13 @@
 
 ## Standing Order
 
-- **Auf Feature-Branch arbeiten** — nie direkt auf master, außer production-ready Fix.
+- **Auf `main` arbeiten.** Feature-Branch nur bei echten Risiken (großes Refactoring, DB-Schema-Änderung, Breaking Changes).
 - **Immer alle relevanten Projektinfos speichern** → in `PROJEKT.md` & `docs/` fortschreiben.
 - **Nach jeder Änderung: Selbstprüfung** → `PROJEKT.md` §8 (git diff, git status, build, commit, push, docs).
 - **Nach jeder logischen Einheit: Commit → Push.** Was nicht gepusht ist, ist vergessen.
 - **Vor jedem Commit in `ab-tool/`:** `npm run vercel-build` muss grün sein. Kein Commit mit rotem Build.
 - **Build-Pflicht:** `npm run vercel-build` in `ab-tool/` vor jedem Commit (seit 15.07.2026).
-- **Deploy-Regel:** Preview-First (seit 16.07.2026). Feature-Branch → Preview. Nur `vercel promote` auf Anweisung. master = production.
+- **Deploy-Regel:** Auf `main` committen & pushen. Vercel deployt `main` automatisch. Feature-Branch nur bei Risiko-Änderungen.
 - **Env-Var-Regel (seit 17.07.2026):** Source of Truth = Vercel. `ab-tool/.env.example` dokumentiert alle Vars. `ab-tool/.env.local` ist gitignored. `vercel env pull .env.local --yes` zum Syncen.
 
 ## User-First-Prinzip
