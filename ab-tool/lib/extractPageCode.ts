@@ -228,13 +228,18 @@ function textOf($el: cheerio.Cheerio<AnyNode>): string {
  * Sammelt die CRO-relevanten Kandidaten (CTAs, Headlines, Hero-Text, Formulare)
  * mit verifizierten Selektoren. Reihenfolge = DOM-Reihenfolge, also grob
  * "above the fold zuerst" — das passt zum 1440x900-Screenshot.
+ *
+ * Wichtig: grosszügig sammeln — das Modell filtert später selbst. Eine leere
+ * Kandidatenliste führt unweigerlich zum "minimal page"-Fehler, weil GPT keine
+ * Selektoren zum Vorschlagen hat (Plan §5, "extractRelevantElements zu restriktiv").
  */
 export function extractRelevantElements($: cheerio.CheerioAPI): ExtractedElement[] {
   const out: ExtractedElement[] = []
   const seen = new Set<string>()
+  const MAX = 30
 
   const push = (el: AnyNode, kind: ExtractedElement['kind']) => {
-    if (out.length >= 25) return
+    if (out.length >= MAX) return
     const $el = $(el)
     const text = textOf($el)
     if (!text) return
@@ -249,8 +254,8 @@ export function extractRelevantElements($: cheerio.CheerioAPI): ExtractedElement
     })
   }
 
-  // Headlines
-  $('h1, h2').slice(0, 8).each((_, el) => push(el, 'heading'))
+  // Headlines — alle Ebenen, viele Seiten nutzen h3/h4 für Sub-Headlines
+  $('h1, h2, h3, h4').slice(0, 12).each((_, el) => push(el, 'heading'))
 
   // Buttons + CTA-Links
   $('button, [role="button"]').slice(0, 10).each((_, el) => push(el, 'cta'))
@@ -260,17 +265,53 @@ export function extractRelevantElements($: cheerio.CheerioAPI): ExtractedElement
     if (!text) return
     const looksLikeCta =
       CTA_TEXT.test(text) || ($el.attr('class') ?? '').toLowerCase().includes('btn') ||
-      ($el.attr('class') ?? '').toLowerCase().includes('button')
+      ($el.attr('class') ?? '').toLowerCase().includes('button') ||
+      ($el.attr('class') ?? '').toLowerCase().includes('cta')
     if (looksLikeCta) push(el, 'cta')
   })
 
-  // Hero-Fließtext (substanzielle Absätze)
+  // Alle Links mit Text — auch nicht-CTA-Links sind potentiell interessant
+  $('a').toArray().slice(0, 30).forEach((el) => {
+    const text = textOf($(el))
+    if (!text || text.length < 3) return
+    // Nicht schon als CTA erfasst
+    const sel = buildSelector($, el)
+    if (!sel || seen.has(sel)) return
+    seen.add(sel)
+    out.push({
+      tag: 'a',
+      selector: sel,
+      text,
+      kind: 'text',
+    })
+  })
+
+  // Hero-Fließtext — auch kürzere Absätze (nicht nur ≥40)
   $('p').toArray().slice(0, 20).forEach((el) => {
-    if (textOf($(el)).length >= 40) push(el, 'text')
+    if (textOf($(el)).length >= 15) push(el, 'text')
   })
 
   // Formulare (Reibungsverluste)
   $('form').slice(0, 3).each((_, el) => push(el, 'form'))
+
+  // Divs/Sections mit substanziellem Text — fängt Seiten ohne semantische Tags
+  $('div, section').toArray().slice(0, 30).forEach((el) => {
+    const $el = $(el)
+    const text = textOf($el)
+    if (text.length < 30) return
+    // Nur direkte Text-Knoten, nicht verschachtelte Struktur
+    const directText = $el.contents().filter((_, n) => n.type === 'text').text().trim()
+    if (directText.length < 15) return
+    const sel = buildSelector($, el)
+    if (!sel || seen.has(sel)) return
+    seen.add(sel)
+    out.push({
+      tag: (el as { tagName?: string }).tagName?.toLowerCase() ?? 'div',
+      selector: sel,
+      text: directText.slice(0, 120),
+      kind: 'text',
+    })
+  })
 
   return out
 }

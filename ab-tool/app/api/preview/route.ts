@@ -106,10 +106,10 @@ export async function POST(req: Request) {
       analysis = await analyzePreview(url, shotResult, null)
     } catch (err) {
       safeError('preview-analyze-fallback', err)
-      return json({
-        error: 'no_changes',
-        message: 'This page looks pretty minimal. Try a page with more content — like your homepage or pricing page.',
-      }, 422)
+      const msg = err instanceof Error && err.message === 'No candidate elements found on page'
+        ? "We couldn't read any content from this page. Try a different URL — like your homepage or a landing page."
+        : "We couldn't find enough elements to suggest changes on this page. Try a different page — like your homepage or a landing page with headlines and buttons."
+      return json({ error: 'no_changes', message: msg }, 422)
     }
 
     // Variant-Screenshot im Fallback-Pfad (wie vorher)
@@ -194,10 +194,10 @@ export async function POST(req: Request) {
     analysis = await analyzeCodeOnly(url, page)
   } catch (err) {
     safeError('preview-analyze-code', err)
-    return json({
-      error: 'no_changes',
-      message: 'This page looks pretty minimal. Try a page with more content — like your homepage or pricing page.',
-    }, 422)
+    const msg = err instanceof Error && err.message === 'No candidate elements found on page'
+      ? "We couldn't read any content from this page. Try a different URL — like your homepage or a landing page."
+      : "We couldn't find enough elements to suggest changes on this page. Try a different page — like your homepage or a landing page with headlines and buttons."
+    return json({ error: 'no_changes', message: msg }, 422)
   }
 
   let session: { id: string; token: string }

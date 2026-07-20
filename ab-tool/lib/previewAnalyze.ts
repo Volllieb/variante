@@ -175,7 +175,12 @@ export async function analyzePreview(
   ])
 
   const changes = normalizeChanges(parsed.changes, page)
-  if (changes.length === 0) throw new Error('No usable changes generated')
+  if (changes.length === 0) {
+    if (!page?.elements?.length && !hasCode) {
+      throw new Error('No candidate elements found on page')
+    }
+    throw new Error('No usable changes generated')
+  }
 
   return {
     changes,
@@ -227,7 +232,14 @@ export async function analyzeCodeOnly(
   ])
 
   const changes = normalizeChanges(parsed.changes, page)
-  if (changes.length === 0) throw new Error('No usable changes generated')
+  if (changes.length === 0) {
+    // Unterscheide: leere Kandidatenliste (Seite hat kaum Elemente) vs.
+    // KI hat keine brauchbaren Changes generiert (trotz Kandidaten).
+    if (!page.elements?.length) {
+      throw new Error('No candidate elements found on page')
+    }
+    throw new Error('No usable changes generated')
+  }
 
   return {
     changes,
