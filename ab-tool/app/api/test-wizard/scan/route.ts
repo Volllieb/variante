@@ -106,13 +106,20 @@ export async function POST(req: Request) {
   try {
     const pageRes = await fetch(url, {
       headers: { 'User-Agent': 'variante-cro-scanner/1.0', 'Accept': 'text/html' },
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(20_000),
     })
     if (!pageRes.ok) {
-      return Response.json({ error: 'page not reachable', message: `Page returned ${pageRes.status}` }, { status: 502, headers })
+      const msg = pageRes.status === 404 ? 'Page not found (404)'
+        : pageRes.status >= 500 ? 'Server error on target page'
+        : `Page returned status ${pageRes.status}`
+      return Response.json({ error: 'page not reachable', message: msg }, { status: 502, headers })
     }
 
     const rawHtml = await pageRes.text()
+    if (rawHtml.length < 100) {
+      return Response.json({ error: 'page too small', message: 'The page returned minimal content — it may require JavaScript to render.' }, { status: 422, headers })
+    }
+
     const html = stripForCRO(rawHtml)
     const structure = extractStructure(html)
 

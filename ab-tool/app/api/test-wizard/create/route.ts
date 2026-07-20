@@ -126,9 +126,21 @@ export async function POST(req: Request) {
 
   // Input-Längenlimits
   if (site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers })
-  if (selector && selector.length > 512) return Response.json({ error: 'selector too long' }, { status: 400, headers })
   if (goal.length > 256) return Response.json({ error: 'goal too long' }, { status: 400, headers })
   if (goal_selector && goal_selector.length > 512) return Response.json({ error: 'goal_selector too long' }, { status: 400, headers })
+
+  // Normalize: empty string → null for optional fields
+  const normalizedSelector = selector?.trim() || null
+  const normalizedGoalSelector = goal_selector?.trim() || null
+  const normalizedVariantHtml = variant_b_html?.trim() || null
+  const normalizedVariantCss = variant_b_css?.trim() || null
+  const normalizedVariantText = variant_text?.trim() || null
+  const normalizedOriginalHtml = original_html?.trim() || null
+
+  // Validate: if selector is provided, it must be a valid CSS selector (basic check)
+  if (normalizedSelector && normalizedSelector.length > 512) {
+    return Response.json({ error: 'selector too long' }, { status: 400, headers })
+  }
 
   // ─── Plan-Limit: Active Tests (Free = 1) ───
   const plan = (user.user_metadata?.plan as string) ?? 'free'
@@ -148,8 +160,8 @@ export async function POST(req: Request) {
 
   // ─── Auto-Name generieren ───
   const autoName = await generateAutoName({
-    element: selector ?? undefined,
-    variantText: variant_text,
+    element: normalizedSelector ?? undefined,
+    variantText: normalizedVariantText ?? undefined,
     goal,
     siteUrl: site_url,
   })
@@ -160,13 +172,13 @@ export async function POST(req: Request) {
     name: autoName,
     auto_generated_name: autoName,
     site_url,
-    selector: selector ?? null,
+    selector: normalizedSelector,
     goal,
-    goal_selector: goal_selector ?? null,
-    variant_b_html: variant_b_html ?? null,
-    variant_b_css: variant_b_css ?? null,
-    variant_text: variant_text ?? null,
-    original_html: original_html ?? null,
+    goal_selector: normalizedGoalSelector,
+    variant_b_html: normalizedVariantHtml,
+    variant_b_css: normalizedVariantCss,
+    variant_text: normalizedVariantText,
+    original_html: normalizedOriginalHtml,
     status,
     traffic_split: 50,
   }

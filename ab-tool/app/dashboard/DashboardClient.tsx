@@ -56,6 +56,7 @@ export function DashboardClient({
   const { toast } = useToast()
   const [busy, setBusy] = useState(false)
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
+  const [drawerOpenCount, setDrawerOpenCount] = useState(0)
   const isPro = plan === 'pro' || plan === 'agency'
 
   const {
@@ -254,11 +255,13 @@ export function DashboardClient({
         <div className="p-4">
           {/* New test flow — Drawer Wizard */}
           <NewTestDrawer
+            key={`drawer-${newTestOpen ? 'open' : 'closed'}-${drawerOpenCount}`}
             isOpen={newTestOpen}
             onClose={() => setNewTestOpen(false)}
             userId={userId}
             onTestCreated={() => {
               setNewTestOpen(false)
+              setDrawerOpenCount((c) => c + 1)
               router.refresh()
             }}
           />

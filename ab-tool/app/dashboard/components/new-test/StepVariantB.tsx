@@ -51,9 +51,10 @@ export function StepVariantB({ element, url, variantResult, onGenerate, onSkip }
     }
   }
 
-  // Load screenshots when variant is ready
+  // Load screenshots when variant is ready (with abort on unmount)
   useEffect(() => {
     if (!variantResult || !url) return
+    const abort = new AbortController()
     ;(async () => {
       try {
         const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
@@ -61,6 +62,7 @@ export function StepVariantB({ element, url, variantResult, onGenerate, onSkip }
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: finalUrl }),
+          signal: abort.signal,
         })
         if (res.ok) {
           const data = await res.json()
@@ -68,6 +70,7 @@ export function StepVariantB({ element, url, variantResult, onGenerate, onSkip }
         }
       } catch { /* Screenshots are nice-to-have */ }
     })()
+    return () => abort.abort()
   }, [variantResult, url])
 
   return (

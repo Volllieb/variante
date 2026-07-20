@@ -23,6 +23,8 @@ interface StepMetricPickerProps {
   onConfirm: () => void
 }
 
+const ALLOWED_GOAL_LABELS = new Set(['click', 'form_submit', 'page_view', 'purchase', 'custom'])
+
 const GOAL_TYPES: Array<{ type: GoalSelection['type']; icon: typeof MousePointerClick; label: string; desc: string }> = [
   { type: 'click', icon: MousePointerClick, label: 'Click', desc: 'Track clicks on a specific element' },
   { type: 'form_submit', icon: FileText, label: 'Form Submit', desc: 'Track form submissions' },
@@ -51,6 +53,12 @@ export function StepMetricPicker({
   // Listen for postMessage from ab.js goal picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
+      // SECURITY: Only accept messages from the user's own site
+      const userSiteOrigin = (() => {
+        try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
+      })()
+      if (userSiteOrigin && e.origin !== userSiteOrigin) return
+
       if (!e.data || e.data.type !== 'ab-goal') return
       const { selector, text } = e.data
       if (!selector) return
@@ -63,7 +71,7 @@ export function StepMetricPicker({
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [onGoalSelected])
+  }, [url, onGoalSelected])
 
   function openGoalPicker() {
     if (!url) return
@@ -176,15 +184,19 @@ export function StepMetricPicker({
       )}
 
       {/* Confirm button */}
-      {selectedGoal && (
-        <button
-          onClick={onConfirm}
-          className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
-        >
-          <Check className="h-4 w-4" />
-          Confirm {selectedGoal.label}
-        </button>
-      )}
+      {selectedGoal && (() => {
+        const isCustomEmpty = selectedGoal.type === 'custom' && (!selectedGoal.label || selectedGoal.label === 'Custom conversion' || selectedGoal.label === 'Custom')
+        return (
+          <button
+            onClick={onConfirm}
+            disabled={isCustomEmpty}
+            className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Check className="h-4 w-4" />
+            Confirm {selectedGoal.label}
+          </button>
+        )
+      })()}
     </div>
   )
 }

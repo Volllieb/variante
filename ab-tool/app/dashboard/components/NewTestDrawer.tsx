@@ -104,16 +104,29 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
   const [createdTestId, setCreatedTestId] = useState<string | null>(null)
   const draftTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const mountedRef = useRef(true)
+  const draftLoadedRef = useRef(false)
 
   useEffect(() => {
     mountedRef.current = true
     return () => { mountedRef.current = false }
   }, [])
 
-  // ─── Draft: Load on open ───
+  // ─── Reset state when drawer opens ───
+  useEffect(() => {
+    if (isOpen) {
+      setState(INITIAL_STATE)
+      setCreating(false)
+      setCreateError('')
+      setCreatedTestId(null)
+      draftLoadedRef.current = false
+    }
+  }, [isOpen])
+
+  // ─── Draft: Load on open (only once per open) ───
 
   useEffect(() => {
-    if (!isOpen || !userId) return
+    if (!isOpen || !userId || draftLoadedRef.current) return
+    draftLoadedRef.current = true
     ;(async () => {
       try {
         const res = await fetch('/api/test-wizard/draft')

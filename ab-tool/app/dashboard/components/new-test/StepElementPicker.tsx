@@ -10,7 +10,7 @@
  *    Kommunikation per postMessage.
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ExternalLink, Loader2, Check, MousePointerClick } from 'lucide-react'
 import type { ElementSelection } from '../NewTestDrawer'
 
@@ -32,17 +32,24 @@ export function StepElementPicker({
 }: StepElementPickerProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
+  const onElementSelectedRef = useRef(onElementSelected)
+  onElementSelectedRef.current = onElementSelected
 
   // Listen for postMessage from ab.js picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      // Only accept messages from same origin or from the user's site
+      // SECURITY: Only accept messages from the user's own site
+      const userSiteOrigin = (() => {
+        try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
+      })()
+      if (userSiteOrigin && e.origin !== userSiteOrigin) return
+
       if (!e.data || e.data.type !== 'ab-pick') return
 
       const { selector, html, tagName, text } = e.data
       if (!selector) return
 
-      onElementSelected({
+      onElementSelectedRef.current({
         selector,
         originalHtml: html ?? '',
         elementType: tagName?.toLowerCase() === 'button' ? 'button'
@@ -55,7 +62,7 @@ export function StepElementPicker({
 
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [onElementSelected])
+  }, [url])
 
   // Open picker on user's site
   const openPicker = useCallback(() => {
