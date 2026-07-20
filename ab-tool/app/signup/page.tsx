@@ -22,19 +22,18 @@ function classify(error: any): ErrKind {
   return 'generic'
 }
 
-function signupParams(): { source: string; plan: string; skip: string } {
-  if (typeof window === 'undefined') return { source: '', plan: '', skip: '' }
+function signupParams(): { source: string; plan: string } {
+  if (typeof window === 'undefined') return { source: '', plan: '' }
   const p = new URLSearchParams(window.location.search)
   return {
     source: p.get('source') || '',
     plan: p.get('plan') || '',
-    skip: p.get('skip') || '',
   }
 }
 
 export default function SignupPage() {
   const router = useRouter()
-  const { source, plan: signupPlan, skip } = signupParams()
+  const { source, plan: signupPlan } = signupParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -47,8 +46,8 @@ export default function SignupPage() {
   const [googleErr, setGoogleErr] = useState('')
   const [sessionChecked, setSessionChecked] = useState(false)
 
-  // Helper: baut die Query-Parameter für den Redirect
-  function onboardingQS(): string {
+  // Helper: baut die Query-Parameter für den Redirect nach dem Signup
+  function afterSignupQS(): string {
     const parts: string[] = []
     if (source) parts.push(`source=${encodeURIComponent(source)}`)
     if (signupPlan) parts.push(`plan=${encodeURIComponent(signupPlan)}`)
@@ -56,29 +55,17 @@ export default function SignupPage() {
   }
 
   // UX: Bereits eingeloggt → direkt zum Dashboard.
-  // Ohne Session → redirect zum Onboarding, damit jeder neue User den
-  // Produkt-Flow sieht. Ausnahme: skip=1 (User hat Onboarding übersprungen).
   useEffect(() => {
     getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/dashboard')
         return
       }
-      // Von Landingpage-CTA gekommen (source/plan) aber ohne Skip →
-      // redirect zum Onboarding. Direktes /signup ohne Parameter bleibt.
-      if (!skip && (source || signupPlan)) {
-        const params = new URLSearchParams()
-        if (source) params.set('source', source)
-        if (signupPlan) params.set('plan', signupPlan)
-        const qs = params.toString()
-        router.push(`/onboarding${qs ? `?${qs}` : ''}`)
-        return
-      }
       setSessionChecked(true)
     }).catch(() => {
       setSessionChecked(true)
     })
-  }, [router, source, signupPlan, skip])
+  }, [router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -89,9 +76,9 @@ export default function SignupPage() {
     if (norm(email) === norm(password)) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
-      const nextPath = '/dashboard'
+      const nextPath = '/onboarding'
       const normalEmail = norm(email)
-      const qs = onboardingQS()
+      const qs = afterSignupQS()
       const { data, error } = await supabase.auth.signUp({
         email: normalEmail,
         password,
@@ -132,7 +119,7 @@ export default function SignupPage() {
         return
       }
       if (data.session) {
-        router.push('/dashboard')
+        router.push('/onboarding')
         router.refresh()
       } else {
         setInfo('Almost there — confirm your email address, then you can log in.')
@@ -150,12 +137,12 @@ export default function SignupPage() {
     setLoading(true)
     try {
       const supabase = getBrowserSupabase()
-      const qs = onboardingQS()
+      const qs = afterSignupQS()
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: norm(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qs)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding' + qs)}`,
         },
       })
       if (error) { setErr(error.message); setLoading(false); return }
@@ -173,11 +160,11 @@ export default function SignupPage() {
     setGoogleLoading(true)
     try {
       const supabase = getBrowserSupabase()
-      const qs = onboardingQS()
+      const qs = afterSignupQS()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard' + qs)}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/onboarding' + qs)}`,
         },
       })
       if (error) {
