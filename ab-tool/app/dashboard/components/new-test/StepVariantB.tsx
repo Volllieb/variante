@@ -9,8 +9,8 @@
  * - "Variante übernehmen" oder "Neu generieren"
  */
 
-import { useState, useEffect } from 'react'
-import { Sparkles, Loader2, RefreshCw, Eye, Image, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Sparkles, Loader2, RefreshCw, Eye, Image, AlertTriangle, Wand2 } from 'lucide-react'
 import type { ElementSelection, VariantResult } from '../NewTestDrawer'
 
 interface StepVariantBProps {
@@ -25,10 +25,12 @@ export function StepVariantB({ element, url, variantResult, onGenerate }: StepVa
   const [error, setError] = useState('')
   const [screenshots, setScreenshots] = useState<{ original?: string; variant?: string }>({})
   const [showVariant, setShowVariant] = useState(false)
+  const autoFired = useRef(false)
 
-  // Auto-generate on mount if no variant yet
+  // Auto-generate on mount if no variant yet (only once, even with Strict Mode double-mount)
   useEffect(() => {
-    if (!variantResult && !generating) {
+    if (!variantResult && !generating && !autoFired.current) {
+      autoFired.current = true
       handleGenerate()
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -38,8 +40,9 @@ export function StepVariantB({ element, url, variantResult, onGenerate }: StepVa
     setError('')
     try {
       await onGenerate()
-    } catch {
-      setError('Failed to generate variant. Please try again.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate variant. Please try again.'
+      setError(msg)
     } finally {
       setGenerating(false)
     }
@@ -96,7 +99,24 @@ export function StepVariantB({ element, url, variantResult, onGenerate }: StepVa
           </div>
         </div>
       )}
-
+      {/* Fallback: no variant yet, not generating, no error — manual trigger */}
+      {!variantResult && !generating && !error && (
+        <div className="flex flex-col items-center gap-3 rounded-[10px] border border-border bg-bg-1 py-8">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15">
+            <Wand2 className="h-5 w-5 text-accent" />
+          </div>
+          <p className="text-[13px] text-text-2 text-center max-w-[280px]">
+            Ready to generate an AI-powered CRO variant for this element.
+          </p>
+          <button
+            onClick={handleGenerate}
+            className="flex items-center gap-1.5 rounded-[6px] bg-accent px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Generate Variant
+          </button>
+        </div>
+      )}
       {/* Result */}
       {variantResult && !generating && (
         <div className="space-y-4">

@@ -29,36 +29,6 @@ const colorMap = {
   tip: { bg: 'bg-white/5', text: 'text-[#ededed]/60' },
 }
 
-/* ── Demo notifications (seed data) ── */
-function seedNotifications(): Notification[] {
-  return [
-    {
-      id: 'seed-1',
-      type: 'test_done',
-      title: 'Test completed',
-      body: '"Hero CTA" reached significance — Variant B won with +32% uplift.',
-      read: false,
-      createdAt: new Date(Date.now() - 3600000),
-    },
-    {
-      id: 'seed-2',
-      type: 'significance',
-      title: 'Almost there',
-      body: '"Pricing headline" is at 92% significance. ~200 more visitors needed.',
-      read: false,
-      createdAt: new Date(Date.now() - 86400000),
-    },
-    {
-      id: 'seed-3',
-      type: 'tip',
-      title: 'Pro tip',
-      body: 'You can filter tests by status — click the filter icon in your test list.',
-      read: true,
-      createdAt: new Date(Date.now() - 3 * 86400000),
-    },
-  ]
-}
-
 function timeAgo(d: Date): string {
   const diff = Date.now() - d.getTime()
   const mins = Math.floor(diff / 60000)
@@ -74,16 +44,14 @@ export function NotificationCenter() {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     if (typeof window === 'undefined') return []
-    const stored = localStorage.getItem('variante-notifications')
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        return parsed.map((n: Record<string, unknown>) => ({ ...n, createdAt: new Date(n.createdAt as string) }))
-      } catch {
-        return seedNotifications()
-      }
+    try {
+      const stored = localStorage.getItem('variante-notifications')
+      if (!stored) return []
+      const parsed = JSON.parse(stored)
+      return parsed.map((n: Record<string, unknown>) => ({ ...n, createdAt: new Date(n.createdAt as string) }))
+    } catch {
+      return []
     }
-    return seedNotifications()
   })
   const ref = useRef<HTMLDivElement>(null)
   const unreadCount = notifications.filter((n) => !n.read).length

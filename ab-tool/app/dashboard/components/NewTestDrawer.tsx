@@ -187,7 +187,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
   // ─── Create Test ───
 
   const handleCreate = useCallback(async (status: 'active' | 'paused') => {
-    if (!state.url || !state.selectedElement || !state.selectedGoal) return
+    if (!state.url || !state.selectedElement || !state.selectedGoal || !state.variantResult) return
     setCreating(true)
     setCreateError('')
 
@@ -398,21 +398,26 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               variantResult={state.variantResult}
               onGenerate={async () => {
                 updateState({ variantResult: null })
-                try {
-                  const res = await fetch('/api/test-wizard/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      element: state.selectedElement!.elementName,
-                      original: state.selectedElement!.originalHtml || state.selectedElement!.selector,
-                      elementType: state.selectedElement!.elementType,
-                      selector: state.selectedElement!.selector || undefined,
-                    }),
-                  })
-                  if (!res.ok) throw new Error('Generation failed')
-                  const data: VariantResult = await res.json()
-                  updateState({ variantResult: data })
-                } catch { /* Error shown in StepVariantB */ }
+                const res = await fetch('/api/test-wizard/generate', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    element: state.selectedElement!.elementName,
+                    original: state.selectedElement!.originalHtml || state.selectedElement!.selector,
+                    elementType: state.selectedElement!.elementType,
+                    selector: state.selectedElement!.selector || undefined,
+                  }),
+                })
+                if (!res.ok) {
+                  let msg = `Generation failed (${res.status})`
+                  try {
+                    const err = await res.json()
+                    if (err.message) msg = err.message
+                  } catch { /* use default */ }
+                  throw new Error(msg)
+                }
+                const data: VariantResult = await res.json()
+                updateState({ variantResult: data })
               }}
             />
           )}
