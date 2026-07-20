@@ -284,13 +284,13 @@ export default function SignupPage() {
             {alreadyRegistered && (
               <div className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
                 <p>
-                  Diese E-Mail ist bereits registriert.{' '}
+                  This email is already registered.{' '}
                   <Link href={`/login${source || signupPlan ? `?${new URLSearchParams({ source, plan: signupPlan }).toString()}` : ''}`} className="font-semibold underline transition-colors hover:opacity-80">
-                    Direkt einloggen
+                    Log in instead
                   </Link>
                 </p>
                 <p className="text-pro/70">
-                  Keine Bestätigungsmail bekommen?
+                  Didn&apos;t get a confirmation email?
                 </p>
                 <button
                   type="button"
@@ -298,13 +298,13 @@ export default function SignupPage() {
                   disabled={loading}
                   className="font-semibold underline transition-colors hover:opacity-80 disabled:opacity-40"
                 >
-                  Bestätigungslink erneut senden
+                  Resend confirmation link
                 </button>
               </div>
             )}
             {confirmationResent && (
               <p className="rounded-[6px] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
-                Bestätigungslink erneut gesendet — check deine E-Mails.
+                Confirmation link resent — check your inbox.
               </p>
             )}
             {info && (
