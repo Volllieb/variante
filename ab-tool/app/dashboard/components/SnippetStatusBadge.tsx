@@ -20,8 +20,8 @@ type SnippetStatusBadgeProps = {
 type BannerState =
   | { phase: 'input'; error?: string }
   | { phase: 'saving' }
-  | { phase: 'checking'; url: string }
-  | { phase: 'not-found'; url: string }
+  | { phase: 'checking'; url: string; progress?: number }
+  | { phase: 'not-found'; url: string; timeout?: boolean }
   | { phase: 'verified'; url: string }
 
 /* ── Main Component ── */
@@ -224,13 +224,20 @@ function SnippetBanner({
       return
     }
 
-    onChange({ phase: 'checking', url: normalized })
+    onChange({ phase: 'checking', url: normalized, progress: 0 })
     try {
+      let p = 0
+      const progressTimer = setInterval(() => {
+        p = Math.min(p + 25, 90)
+        onChange({ phase: 'checking', url: normalized, progress: p } as BannerState)
+      }, 800)
+
       const checkRes = await fetch('/api/snippet-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ site_url: normalized }),
       })
+      clearInterval(progressTimer)
       const json = await checkRes.json()
 
       if (json.detected) {
@@ -245,30 +252,41 @@ function SnippetBanner({
           })
         }
         onVerified(normalized)
+      } else if (json.timeout) {
+        onChange({ phase: 'not-found', url: normalized, timeout: true })
       } else {
         onChange({ phase: 'not-found', url: normalized })
       }
     } catch {
-      onChange({ phase: 'not-found', url: normalized })
+      onChange({ phase: 'not-found', url: normalized, timeout: true })
     }
   }, [urlInput, onChange, onVerified])
 
   const recheckDomain = useCallback(async (url: string) => {
-    onChange({ phase: 'checking', url })
+    onChange({ phase: 'checking', url, progress: 0 })
     try {
+      let p = 0
+      const progressTimer = setInterval(() => {
+        p = Math.min(p + 25, 90)
+        onChange({ phase: 'checking', url, progress: p } as BannerState)
+      }, 800)
+
       const checkRes = await fetch('/api/snippet-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ site_url: url }),
       })
+      clearInterval(progressTimer)
       const json = await checkRes.json()
       if (json.detected) {
         onVerified(url)
+      } else if (json.timeout) {
+        onChange({ phase: 'not-found', url, timeout: true })
       } else {
         onChange({ phase: 'not-found', url })
       }
     } catch {
-      onChange({ phase: 'not-found', url })
+      onChange({ phase: 'not-found', url, timeout: true })
     }
   }, [onChange, onVerified])
 
@@ -279,8 +297,39 @@ function SnippetBanner({
     })
   }
 
-  function copyPrompt() {
+  const [promptMode, setPromptMode] = useState<'dev' | 'guide'>('dev')
+
+  function copyPrompt(mode: 'dev' | 'guide') {
     const url = state.phase === 'not-found' || state.phase === 'checking' ? state.url : urlInput || '(your site URL)'
+
+    if (mode === 'guide') {
+      const guide = [
+        `How to add the variante A/B testing snippet to https://${url}`,
+        '',
+        '1. Open your website project in your code editor',
+        '2. Find the file that contains the <head> tag:',
+        '   - Next.js: app/layout.tsx or pages/_document.tsx',
+        '   - Plain HTML: index.html or the main template file',
+        '   - WordPress: header.php (via Appearance → Theme File Editor)',
+        '   - Shopify: theme.liquid (via Online Store → Themes → Edit Code)',
+        '   - Webflow: Site Settings → Custom Code → Head Code',
+        '   - Squarespace: Settings → Advanced → Code Injection → Header',
+        '3. Copy this snippet and paste it inside <head>:',
+        '```html',
+        SNIPPET_CODE,
+        '```',
+        '4. Save the file and publish/deploy your site',
+        '5. Come back here and click "Re-check" to confirm it\'s live',
+        '',
+        'That\'s it! No build step, no npm install needed.',
+      ].join('\n')
+      navigator.clipboard.writeText(guide).then(() => {
+        setPromptCopied(true)
+        setTimeout(() => setPromptCopied(false), 2000)
+      })
+      return
+    }
+
     const prompt = [
       `Add the variante A/B testing snippet below to https://${url}.`,
       '',
@@ -351,7 +400,13 @@ function SnippetBanner({
                 className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
               >
                 {state.phase === 'saving' || state.phase === 'checking' ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking…</>
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Checking…</span>
+                    {state.phase === 'checking' && state.progress !== undefined && (
+                      <span className="text-[10px] text-text-on-invert/60">{state.progress}%</span>
+                    )}
+                  </span>
                 ) : (
                   'Check'
                 )}
@@ -371,13 +426,29 @@ function SnippetBanner({
                 {snippetCopied ? <Check className="h-3 w-3 text-ok" /> : <Copy className="h-3 w-3" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
               </button>
-              <button
-                onClick={copyPrompt}
-                className="inline-flex cursor-pointer items-center gap-1 text-text-3 transition-colors hover:text-text"
-              >
-                {promptCopied ? <Check className="h-3 w-3 text-ok" /> : <Copy className="h-3 w-3" />}
-                {promptCopied ? 'Copied!' : 'Copy AI prompt'}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => copyPrompt(promptMode)}
+                  className="inline-flex cursor-pointer items-center gap-1 text-text-3 transition-colors hover:text-text"
+                >
+                  {promptCopied ? <Check className="h-3 w-3 text-ok" /> : <Copy className="h-3 w-3" />}
+                  {promptCopied ? 'Copied!' : promptMode === 'dev' ? 'Copy prompt' : 'Quick guide'}
+                </button>
+                <div className="absolute left-0 top-full z-10 mt-1 flex rounded-[6px] border border-border bg-bg-1 shadow-lg">
+                  <button
+                    onClick={() => { setPromptMode('dev'); copyPrompt('dev') }}
+                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'dev' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
+                  >
+                    For developers
+                  </button>
+                  <button
+                    onClick={() => { setPromptMode('guide'); copyPrompt('guide') }}
+                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'guide' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
+                  >
+                    Quick guide
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -393,8 +464,16 @@ function SnippetBanner({
           <X className="mt-0.5 h-4 w-4 shrink-0 text-err" />
           <div className="min-w-0 flex-1 space-y-3">
             <p className="text-[13px] font-medium text-text">
-              Snippet not found on <strong>{state.url}</strong>
+              {state.timeout
+                ? 'Site unreachable — check your URL and try again'
+                : <>Snippet not found on <strong>{state.url}</strong></>
+              }
             </p>
+            {state.timeout && (
+              <p className="text-[11px] text-err/60">
+                Make sure the site is publicly accessible and not behind a login or local network.
+              </p>
+            )}
 
             <p className="text-[11px] text-text-3">
               Paste this in your <code className="rounded-[3px] bg-bg-2 px-1 text-[11px]">&lt;head&gt;</code>:
@@ -412,13 +491,29 @@ function SnippetBanner({
                 {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
               </button>
-              <button
-                onClick={copyPrompt}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
-              >
-                {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
-                {promptCopied ? 'Copied!' : 'Copy AI prompt'}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => copyPrompt(promptMode)}
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                >
+                  {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
+                  {promptCopied ? 'Copied!' : promptMode === 'dev' ? 'Copy prompt' : 'Quick guide'}
+                </button>
+                <div className="absolute left-0 top-full z-10 mt-1 flex rounded-[6px] border border-border bg-bg-1 shadow-lg">
+                  <button
+                    onClick={() => { setPromptMode('dev'); copyPrompt('dev') }}
+                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'dev' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
+                  >
+                    For developers
+                  </button>
+                  <button
+                    onClick={() => { setPromptMode('guide'); copyPrompt('guide') }}
+                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'guide' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
+                  >
+                    Quick guide
+                  </button>
+                </div>
+              </div>
               <button
                 onClick={() => recheckDomain(state.url)}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
@@ -434,6 +529,15 @@ function SnippetBanner({
             </div>
 
             <FrameworkExamples />
+
+            <div className="pt-1">
+              <a
+                href="/dashboard/account"
+                className="inline-flex items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text"
+              >
+                Need help? See setup guide →
+              </a>
+            </div>
           </div>
         </div>
       </div>

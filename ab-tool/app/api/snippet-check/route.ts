@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
         detected: false,
         checked_url: url,
         reason: 'Site unreachable or timed out',
+        timeout: true,
       })
     } finally {
       clearTimeout(timeout)

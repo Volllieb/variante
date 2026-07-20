@@ -12,6 +12,7 @@ export type SetupData = {
   domainId: string | null       // for verify call
   hasAnyDomain: boolean         // whether user has saved a domain at all
   testCount: number
+  verifiedAt: string | null     // when the domain was last verified
 }
 
 export default async function HealthPage() {
@@ -26,7 +27,7 @@ export default async function HealthPage() {
       .single(),
     supabase
       .from('domains')
-      .select('id, url, verified')
+      .select('id, url, verified, verified_at')
       .eq('user_id', user.id)
       .limit(5),
   ])
@@ -36,13 +37,13 @@ export default async function HealthPage() {
 
   if (!profile) {
     await ensureProfile(user.id)
-    return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, siteUrl: null, domainId: null, hasAnyDomain: false, testCount: 0 }} />
+    return <SetupClient data={{ plan: 'free', apiToken: '', hasFigmaPlugin: false, siteUrl: null, domainId: null, hasAnyDomain: false, testCount: 0, verifiedAt: null }} />
   }
 
-  const verifiedDomain = domains.find((d) => d.verified)?.url ?? null
-  const verifiedDomainId = domains.find((d) => d.verified)?.id ?? null
+  const verifiedDomain = domains.find((d) => d.verified)
+  const verifiedDomainId = verifiedDomain?.id ?? null
   const hasAnyDomain = domains.length > 0
-  const testCount = domains.filter((d) => d.verified).length // proxy: verified domains = einsatzbereit
+  const testCount = domains.filter((d) => d.verified).length
 
   return (
     <SetupClient
@@ -50,10 +51,11 @@ export default async function HealthPage() {
         plan: profile.plan ?? 'free',
         apiToken: profile.api_token ?? '',
         hasFigmaPlugin: profile.has_figma_plugin ?? false,
-        siteUrl: verifiedDomain,
+        siteUrl: verifiedDomain?.url ?? null,
         domainId: verifiedDomainId,
         hasAnyDomain,
         testCount,
+        verifiedAt: verifiedDomain?.verified_at ?? null,
       }}
     />
   )
