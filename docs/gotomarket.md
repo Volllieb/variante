@@ -1,4 +1,4 @@
-# GOTOMARKET.md — variante
+# gotomarket.md — variante
 
 Stand: 13.07.2026. 🔥 Phase 2 läuft — Outreach aktiv. 2 High-Potential-Leads recherchiert (IbexAI, PostFox), erste Cold-DMs gehen heute raus. Figma-Plugin LIVE.
 

@@ -59,7 +59,7 @@ Problem: IndieHackers hat keine DMs mehr. Man muss über externe Kanäle gehen.
    - LinkedIn (Founder-Name googlen)
    - Support-Email (letzter Ausweg, oft nicht gelesen)
 
-### Cold-DM-Template (Loom-basiert, aus docs/GOTOMARKET.md)
+### Cold-DM-Template (Loom-basiert, aus docs/gotomarket.md)
 
 ```
 Subject: Quick Loom re: [ihre-site.com]

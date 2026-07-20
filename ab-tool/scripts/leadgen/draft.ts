@@ -6,7 +6,7 @@
  * Liest changes.json + enriched.json aus docs/leads/<slug>/, generiert
  * DM-Entwurf (X-DM, 4 Sätze max) und E-Mail-Entwurf (Fallback).
  *
- * Stilvorlage: Loom-DM-Template aus GOTOMARKET.md + Posting-Stil aus User-Memory.
+ * Stilvorlage: Loom-DM-Template aus gotomarket.md + Posting-Stil aus User-Memory.
  *
  * Usage (direkt):
  *   npx tsx scripts/leadgen/draft.ts --slug getibex-com
@@ -45,7 +45,7 @@ Short sentences. No corporate speak, no exclamation marks, no "excited to announ
 energy. Lead with the pain, not the product. Humor is understated. Never polish —
 this is a cold DM, not a pitch deck.`
 
-const DM_TEMPLATE_REF = `Template reference (from the project's GOTOMARKET.md):
+const DM_TEMPLATE_REF = `Template reference (from the project's gotomarket.md):
 "Hey [Name], 30 sec Loom attached — I ran your landing page through our
 A/B tool (designers test straight from Figma, no dev). [One specific observation
 about their site.] I'd be happy to set up your first experiment for free.

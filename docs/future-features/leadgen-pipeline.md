@@ -59,7 +59,7 @@ Kosten: ~$0,02/Lead (urlbox ~$0.01 + GPT-4o ~$0.01). 50 Leads ≈ $1.
 
 GPT bekommt:
 - Dossier (Produkt, Founder, LP-Schwächen aus `changes[]`)
-- Loom-DM-Template aus `GOTOMARKET.md` als Stilvorlage
+- Loom-DM-Template aus `gotomarket.md` als Stilvorlage
 - Posting-Stil aus User-Memory (`posting-style.md`)
 
 Output: `draft-dm.txt` + `draft-email.txt`.
@@ -157,7 +157,7 @@ Style reference (from user memory):
 Short sentences. No corporate speak, no exclamation marks, no 'excited to announce'
 energy. Lead with the pain, not the product. Humor is understated."
 
-Template reference (from GOTOMARKET.md):
+Template reference (from gotomarket.md):
 "Hey [Name], 30 sec Loom attached — I ran your landing page through our A/B tool
 (designers test straight from Figma, no dev). [One specific observation about their
 site.] I'd be happy to set up your first experiment for free. Takes 5 minutes,

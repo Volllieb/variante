@@ -1171,7 +1171,7 @@
 
 ---
 
-### 7.2 GOTOMARKET.md — ✅ STRATEGISCH
+### 7.2 gotomarket.md — ✅ STRATEGISCH
 
 **Status:** Channels, CTAs, Cold-DM-Template, Outreach-Phase live.
 

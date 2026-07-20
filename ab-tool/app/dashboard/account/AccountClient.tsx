@@ -22,8 +22,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   // ── Change connected page inline flow ──
   const [changingPage, setChangingPage] = useState(false)
   const [changeUrl, setChangeUrl] = useState('')
-  const [changeState, setChangeState] = useState<'input' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
+  const [changeState, setChangeState] = useState<'input' | 'deleting' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
   const [changeError, setChangeError] = useState('')
+  // ── Add additional page inline flow ──
+  const [addingPage, setAddingPage] = useState(false)
+  const [addUrl, setAddUrl] = useState('')
+  const [addState, setAddState] = useState<'input' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
+  const [addError, setAddError] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [pwSent, setPwSent] = useState(false)
@@ -159,11 +164,33 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    setChangeError('')
-    setChangeState('saving')
+    // Don't replace with the same URL
+    if (normalized === primary.url) {
+      setChangeError('That already is your connected page.')
+      return
+    }
 
+    setChangeError('')
+    setChangeState('deleting')
+
+    // 1. Delete old domain FIRST (frees the slot for Free-plan users)
     try {
-      // 1. Save new domain
+      const delRes = await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
+      if (!delRes.ok) {
+        const data = await delRes.json().catch(() => ({}))
+        setChangeError(data.error || 'Failed to remove current page.')
+        setChangeState('input')
+        return
+      }
+    } catch {
+      setChangeError('Connection failed.')
+      setChangeState('input')
+      return
+    }
+
+    // 2. Save new domain
+    setChangeState('saving')
+    try {
       const saveRes = await fetch('/api/domains', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,7 +204,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       }
       if (!saveRes.ok && saveRes.status !== 409) {
         const data = await saveRes.json().catch(() => ({}))
-        setChangeError(data.error || 'Failed to save domain.')
+        setChangeError(data.error || 'Failed to save domain. Refresh the page and try again.')
         setChangeState('input')
         return
       }
@@ -187,7 +214,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    // 2. Snippet check
+    // 3. Snippet check
     setChangeState('checking')
     try {
       const checkRes = await fetch('/api/snippet-check', {
@@ -206,7 +233,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    // 3. Verify new domain
+    // 4. Verify new domain
     try {
       const domainsRes = await fetch('/api/domains')
       const { domains: freshDomains } = await domainsRes.json()
@@ -220,17 +247,93 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       }
     } catch { /* Verify is best-effort */ }
 
-    // 4. Delete old domain
-    try {
-      await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
-    } catch { /* Delete is best-effort */ }
-
-    // 5. Update local state
+    // 5. Update local state — remove old, add new at front
     setDomains((prev) => {
       const withoutOld = prev.filter((d) => d.id !== primary.id)
       return [{ id: crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
     })
     setChangeState('verified')
+  }
+
+  async function addAdditionalPage() {
+    if (!addUrl.trim()) return
+
+    const normalized = addUrl.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+    if (!normalized || !normalized.includes('.')) {
+      setAddError('Please enter a valid domain (e.g. yoursite.com)')
+      return
+    }
+
+    setAddError('')
+    setAddState('saving')
+
+    // 1. Save domain
+    try {
+      const saveRes = await fetch('/api/domains', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: normalized }),
+      })
+      if (saveRes.status === 402) {
+        const data = await saveRes.json().catch(() => ({}))
+        setAddError(data.error || 'Domain limit reached.')
+        setAddState('input')
+        return
+      }
+      if (!saveRes.ok && saveRes.status !== 409) {
+        const data = await saveRes.json().catch(() => ({}))
+        setAddError(data.error || 'Failed to save domain.')
+        setAddState('input')
+        return
+      }
+    } catch {
+      setAddError('Connection failed.')
+      setAddState('input')
+      return
+    }
+
+    // 2. Snippet check
+    setAddState('checking')
+    try {
+      const checkRes = await fetch('/api/snippet-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_url: normalized }),
+      })
+      const json = await checkRes.json()
+      if (!json.detected) {
+        setAddState('not-found')
+        return
+      }
+    } catch {
+      setAddState('not-found')
+      return
+    }
+
+    // 3. Verify
+    try {
+      const domainsRes = await fetch('/api/domains')
+      const { domains: freshDomains } = await domainsRes.json()
+      const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
+      if (newDomain?.id) {
+        await fetch('/api/domains/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domainId: newDomain.id }),
+        })
+      }
+    } catch { /* best-effort */ }
+
+    // 4. Update local state
+    setDomains((prev) => [...prev, { id: crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }])
+    setAddState('verified')
+  }
+
+  function resetAddFlow() {
+    setAddingPage(false)
+    setAddUrl('')
+    setAddState('input')
+    setAddError('')
   }
 
   function resetChangeFlow() {
@@ -400,8 +503,9 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           </div>
 
           <p className="mb-4 text-[12px] text-text-3 leading-relaxed">
-            This is where your variante snippet lives. We check this page to verify experiments are running.
-            When creating a test, you can use <strong className="text-text-2">any URL</strong> — not just this one.
+            This is where your variante snippet lives. We check this page to verify the snippet is installed.
+            Subpages like <code className="rounded-[3px] bg-white/[0.06] px-1 text-[11px]">/pricing</code> inherit the snippet automatically — no need to add them separately.
+            When creating a test, you can use <strong className="text-text-2">any URL on this domain</strong>.
           </p>
 
           {/* ── No connected page ── */}
@@ -467,7 +571,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               </div>
 
               {/* Additional domains */}
-              {domains.length > 1 && (
+              {(domains.length > 1 || addingPage) && (
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">Additional pages</p>
                   {domains.slice(1).map((d) => (
@@ -518,6 +622,77 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       </div>
                     </div>
                   ))}
+
+                  {/* Add page button or inline form */}
+                  {!addingPage ? (
+                    <button
+                      onClick={() => { setAddingPage(true); setAddState('input'); setAddError(''); setAddUrl('') }}
+                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[6px] border border-dashed border-border py-2 text-[10px] font-semibold text-text-3 transition-colors hover:border-border-strong hover:text-text-2"
+                    >
+                      + Add page
+                    </button>
+                  ) : (
+                    <div className="space-y-2 rounded-[6px] bg-bg-2 p-3">
+                      {(addState === 'input' || addState === 'saving' || addState === 'checking') && (
+                        <>
+                          <div className="flex items-center gap-2 rounded-[4px] border border-border bg-bg-1 px-2.5 py-2">
+                            <Globe className="h-3.5 w-3.5 shrink-0 text-text-3" />
+                            <input
+                              type="text"
+                              value={addUrl}
+                              onChange={(e) => { setAddUrl(e.target.value); setAddError('') }}
+                              onKeyDown={(e) => e.key === 'Enter' && addAdditionalPage()}
+                              placeholder="another-site.com"
+                              disabled={addState !== 'input'}
+                              autoFocus
+                              className="flex-1 bg-transparent text-[12px] text-text placeholder:text-text-3/50 outline-none"
+                            />
+                          </div>
+                          {addError && <p className="text-[11px] text-err">{addError}</p>}
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={addAdditionalPage}
+                              disabled={addState !== 'input' || !addUrl.trim()}
+                              className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[4px] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                            >
+                              {addState === 'saving' || addState === 'checking' ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  {addState === 'saving' ? 'Saving…' : 'Checking snippet…'}
+                                </>
+                              ) : (
+                                'Add'
+                              )}
+                            </button>
+                            <button
+                              onClick={resetAddFlow}
+                              className="cursor-pointer rounded-[4px] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {addState === 'not-found' && (
+                        <div className="space-y-2">
+                          <p className="text-[11px] text-pro">Snippet not found on <strong>{addUrl.trim()}</strong>. Add it to the page&apos;s &lt;head&gt; and retry.</p>
+                          <div className="flex gap-1.5">
+                            <button onClick={addAdditionalPage} className="flex cursor-pointer items-center gap-1 rounded-[4px] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+                              <Loader2 className="h-2.5 w-2.5" /> Retry
+                            </button>
+                            <button onClick={() => { setAddState('input'); setAddError('') }} className="cursor-pointer rounded-[4px] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Change URL</button>
+                            <button onClick={resetAddFlow} className="cursor-pointer rounded-[4px] px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
+                          </div>
+                        </div>
+                      )}
+                      {addState === 'verified' && (
+                        <div className="space-y-2">
+                          <p className="flex items-center gap-1.5 text-[11px] text-ok"><Check className="h-3 w-3" /> <strong>{addUrl.trim()}</strong> added &amp; verified.</p>
+                          <button onClick={resetAddFlow} className="cursor-pointer rounded-[4px] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">Done</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -537,7 +712,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               )}
 
               {/* Input / Saving / Checking */}
-              {(changeState === 'input' || changeState === 'saving' || changeState === 'checking') && (
+              {(changeState === 'input' || changeState === 'deleting' || changeState === 'saving' || changeState === 'checking') && (
                 <>
                   <div className="flex items-center gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2.5">
                     <Globe className="h-4 w-4 shrink-0 text-text-3" />
@@ -561,10 +736,10 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       disabled={changeState !== 'input' || !changeUrl.trim()}
                       className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-fill-invert py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                     >
-                      {changeState === 'saving' || changeState === 'checking' ? (
+                      {changeState === 'deleting' || changeState === 'saving' || changeState === 'checking' ? (
                         <>
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          {changeState === 'saving' ? 'Saving…' : 'Checking snippet…'}
+                          {changeState === 'deleting' ? 'Removing current…' : changeState === 'saving' ? 'Saving…' : 'Checking snippet…'}
                         </>
                       ) : (
                         domains.length > 0 ? 'Replace connected page' : 'Connect page'

@@ -5,7 +5,7 @@
 Designer pickt Element auf Live-Site (eingebauter Picker im Snippet) → beschreibt Variante B in Figma → KI generiert HTML → Snippet trackt Conversions. **Kein Dev nötig.**
 
 > **Ausführliche Projektdoku:** [`PROJEKT.md`](./PROJEKT.md) (DSO)  
-> **GTM-Strategie:** [`docs/GOTOMARKET.md`](./docs/GOTOMARKET.md)  
+> **GTM-Strategie:** [`docs/gotomarket.md`](./docs/gotomarket.md)  
 > **Arbeitsanweisungen:** [`AGENTS.md`](./AGENTS.md)
 
 ## Pakete
