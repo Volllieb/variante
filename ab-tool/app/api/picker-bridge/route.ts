@@ -79,25 +79,30 @@ export async function GET(request: NextRequest) {
     // Relative URLs in absolute umbiegen (für <base href>)
     const baseTag = `<base href="${origin}/">`
 
-    // ab.js als inline-Script injecten (kein async — Picker muss sofort starten)
+    // ab.js von unserem Server laden
     const abJsUrl = `${request.nextUrl.origin}/ab.js`
-    const pickerParam = mode === 'goal' ? 'ab_goal=pick' : 'ab_pick=new'
 
-    // ab.js als <script> mit den Picker-Parametern einfügen
+    // Picker-Script: injected ab.js mit URL-Parametern.
+    // Wichtig: ab.js parst location.search beim eigenen Skript-Start.
+    // Wir schreiben die Parameter via replaceState BEVOR wir ab.js laden.
+    // Zusätzlicher Guard: falls ab.js den auto-start verpasst (z.B. async-Timing),
+    // starten wir den Picker manuell via __abRekindlePicker.
     const pickerScript = `
 <script>
 // Variante Picker Bridge — injected by /api/picker-bridge
 (function() {
-  // Picker-Parameter in die URL schreiben, damit ab.js sie findet
   var url = new URL(window.location.href);
-  url.searchParams.set('${mode === 'goal' ? 'ab_goal' : 'ab_pick'}', 'pick');
+
+  // Picker-Parameter setzen BEVOR ab.js geladen wird
+  url.searchParams.set('${mode === 'goal' ? 'ab_goal' : 'ab_pick'}', 'bridge');
   url.searchParams.set('ab_api', '${request.nextUrl.origin}');
   window.history.replaceState({}, '', url);
 
-  // ab.js dynamisch laden
+  // ab.js dynamisch laden (nicht async — Reihenfolge garantiert)
   var s = document.createElement('script');
   s.src = '${abJsUrl}';
-  s.onload = function() {
+  s.async = false;
+  s.onload = s.onreadystatechange = function() {
     // Picker manuell triggern falls ab.js den auto-start verpasst hat
     if (typeof window.__abRekindlePicker === 'function') {
       window.__abRekindlePicker();
@@ -107,13 +112,20 @@ export async function GET(request: NextRequest) {
 })();
 <\/script>`
 
-    // <base> und Picker-Script in <head> einfügen
-    // Strategie: Nach <head> oder <title> oder <meta> — vor dem ersten <link>/<script>
+    // <base> und Picker-Script DIREKT nach <head> einfügen (vor <link>/<style>/<script>)
+    // Damit ab.js so früh wie möglich geladen wird.
+    const headOpenPos = html.indexOf('<head>')
     const headClosePos = html.lastIndexOf('</head>')
-    if (headClosePos !== -1) {
+
+    if (headOpenPos !== -1 && headClosePos !== -1 && headClosePos > headOpenPos) {
+      // Nach <head> einfügen (vor allen anderen Elementen im Head)
+      const insertPos = headOpenPos + '<head>'.length
+      html = html.slice(0, insertPos) + '\n' + baseTag + '\n' + pickerScript + '\n' + html.slice(insertPos)
+    } else if (headClosePos !== -1) {
+      // Fallback: vor </head>
       html = html.slice(0, headClosePos) + baseTag + pickerScript + html.slice(headClosePos)
     } else {
-      // Fallback: vor </html> oder ans Ende
+      // Fallback: vor </html>
       const htmlClosePos = html.lastIndexOf('</html>')
       if (htmlClosePos !== -1) {
         html = html.slice(0, htmlClosePos) + baseTag + pickerScript + html.slice(htmlClosePos)
