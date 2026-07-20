@@ -151,7 +151,7 @@ export function DashboardClient({
       {/* Hybrid-Onboarding: Variante fertig, Snippet fehlt */}
       {pendingPreviewTest && <PreviewReadyBanner test={pendingPreviewTest} />}
 
-      {/* Onboarding-Banner: Snippet oder Domain fehlen */}
+      {/* Onboarding-Banner: Snippet oder Domain fehlen (nur bei leerem Dashboard) */}
       {!pendingPreviewTest && testList.length === 0 && (
         <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-pro/20 bg-pro/[0.05] px-5 py-3.5">
           <Globe className="h-4 w-4 shrink-0 text-pro" />
@@ -164,7 +164,7 @@ export function DashboardClient({
             href="/onboarding"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
           >
-            Finish setup
+            Setup guide
             <ArrowRight className="h-3 w-3" />
           </a>
         </div>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Copy, Globe, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react'
+import { SNIPPET_CODE } from '@/lib/snippetCode'
 
 type Step = 1 | 2 | 3
 
@@ -13,7 +14,6 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>(1)
   const [sessionChecked, setSessionChecked] = useState(false)
-  const [apiToken, setApiToken] = useState('')
   const [copied, setCopied] = useState(false)
   const [domainUrl, setDomainUrl] = useState('')
   const [domainErr, setDomainErr] = useState('')
@@ -22,20 +22,10 @@ export default function OnboardingPage() {
 
   // Session check — if no session, redirect to /signup
   useEffect(() => {
-    getBrowserSupabase().auth.getSession().then(async ({ data: { session } }) => {
+    getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         router.push('/signup')
         return
-      }
-      // Load API token from profile
-      const supabase = getBrowserSupabase()
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('api_token')
-        .eq('user_id', session.user.id)
-        .single()
-      if (profile?.api_token) {
-        setApiToken(profile.api_token)
       }
       setSessionChecked(true)
     }).catch(() => {
@@ -43,20 +33,15 @@ export default function OnboardingPage() {
     })
   }, [router])
 
-  const snippet = apiToken
-    ? `<script src="https://www.getvariante.com/ab.js" data-variante-token="${apiToken}" defer></script>`
-    : ''
-
   const handleCopy = useCallback(async () => {
-    if (!snippet) return
     try {
-      await navigator.clipboard.writeText(snippet)
+      await navigator.clipboard.writeText(SNIPPET_CODE)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Fallback
       const el = document.createElement('textarea')
-      el.value = snippet
+      el.value = SNIPPET_CODE
       document.body.appendChild(el)
       el.select()
       document.execCommand('copy')
@@ -64,7 +49,7 @@ export default function OnboardingPage() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
-  }, [snippet])
+  }, [])
 
   async function handleAddDomain(e: React.FormEvent) {
     e.preventDefault()
@@ -161,12 +146,11 @@ export default function OnboardingPage() {
               <div className="mt-8 text-left">
                 <div className="relative rounded-[10px] border border-border bg-bg-1 p-4">
                   <pre className="overflow-x-auto text-[13px] text-white/80 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                    {snippet || 'Loading…'}
+                    {SNIPPET_CODE}
                   </pre>
                   <button
                     onClick={handleCopy}
-                    disabled={!snippet}
-                    className="absolute top-3 right-3 flex items-center gap-1.5 rounded-[6px] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20 disabled:opacity-40"
+                    className="absolute top-3 right-3 flex items-center gap-1.5 rounded-[6px] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
                   >
                     {copied ? (
                       <><Check className="h-3.5 w-3.5 text-ok" /> Copied!</>
@@ -217,7 +201,7 @@ export default function OnboardingPage() {
                     <input
                       type="text"
                       required
-                      placeholder="mysite.com"
+                      placeholder="https://mysite.com"
                       value={domainUrl}
                       onChange={(e) => setDomainUrl(e.target.value)}
                       className="flex-1 rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus:outline-none"
@@ -234,7 +218,7 @@ export default function OnboardingPage() {
                     <p className="mt-2 text-xs text-err text-left">{domainErr}</p>
                   )}
                   <p className="mt-2 text-xs text-text-3 text-left">
-                    Just the domain name — no protocol needed.
+                    Your site&apos;s URL — protocol is optional.
                   </p>
                 </form>
               )}
@@ -261,17 +245,15 @@ export default function OnboardingPage() {
                 You&apos;re all set!
               </h1>
               <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
-                {apiToken
-                  ? 'Your snippet is ready to paste. Head to the dashboard to create your first test.'
-                  : 'Your account is ready. Head to the dashboard to get started.'}
+                Your snippet is ready to paste. Head to the dashboard to create your first test.
               </p>
 
               <div className="mt-8 space-y-3 text-left max-w-md mx-auto">
                 <div className="flex items-start gap-3 rounded-[10px] border border-border bg-bg-1 p-4">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                   <div>
-                    <p className="text-sm font-semibold text-white">Snippet copied</p>
-                    <p className="text-xs text-text-3 mt-0.5">Paste it into your site to start tracking.</p>
+                    <p className="text-sm font-semibold text-white">Snippet ready</p>
+                    <p className="text-xs text-text-3 mt-0.5">Paste it into your site&apos;s <code className="text-white/80 bg-white/5 px-1 rounded text-[11px]">&lt;head&gt;</code> to start tracking.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-[10px] border border-border bg-bg-1 p-4">
