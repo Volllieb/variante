@@ -1,14 +1,13 @@
 'use client'
 
 /**
- * StepReview — Step 4: Review & Create.
+ * StepReview — Step 3: Review & Create.
  *
  * Zeigt alle Test-Details auf einer Summary-Karte.
- * Auto-generierter Name, editierbar.
+ * Name wird manuell vom User eingegeben (kein KI-Auto-Name).
  */
 
 import { Globe, MousePointerClick, Sparkles, Target, Edit3 } from 'lucide-react'
-import { useEffect, useRef } from 'react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
 
 interface StepReviewProps {
@@ -16,23 +15,14 @@ interface StepReviewProps {
   element: ElementSelection
   variantResult: VariantResult | null
   goal: GoalSelection | null
-  autoName: string
-  onAutoNameChange: (name: string) => void
+  testName: string
+  onTestNameChange: (name: string) => void
 }
 
 export function StepReview({
-  url, element, variantResult, goal, autoName, onAutoNameChange,
+  url, element, variantResult, goal, testName, onTestNameChange,
 }: StepReviewProps) {
   const displayUrl = /^https?:\/\//i.test(url) ? url.replace(/^https?:\/\//, '') : url
-  const nameInitialized = useRef(false)
-
-  // Set a sensible default name only once (not on re-renders or re-mounts)
-  useEffect(() => {
-    if (!autoName && element.elementName && !nameInitialized.current) {
-      nameInitialized.current = true
-      onAutoNameChange(`${element.elementName} — AI Variant`)
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-4">
@@ -70,7 +60,7 @@ export function StepReview({
           )}
         </div>
 
-        {/* Auto-name */}
+        {/* Test name (manual, no AI) */}
         <div>
           <label className="mb-1.5 block text-[11px] font-medium text-text-2">
             Test Name
@@ -78,15 +68,15 @@ export function StepReview({
           <div className="relative">
             <input
               type="text"
-              value={autoName}
-              onChange={(e) => onAutoNameChange(e.target.value)}
+              value={testName}
+              onChange={(e) => onTestNameChange(e.target.value)}
               placeholder="e.g. Hero-CTA: Ghost to Solid Button"
               className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 pl-3 pr-8 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
             />
             <Edit3 className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
           </div>
           <p className="mt-1 text-[10px] text-text-3">
-            AI-generated name — edit or keep as is
+            Give your test a descriptive name
           </p>
         </div>
 

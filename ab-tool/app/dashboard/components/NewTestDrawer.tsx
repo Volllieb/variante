@@ -4,39 +4,25 @@
  * NewTestDrawer — Vercel-Style Drawer für die Test-Erstellung.
  *
  * Slide-in von rechts, nimmt 50vw auf Desktop, 100vw auf Mobile.
- * Enthält die komplette Wizard-State-Machine und rendert die 5 Steps.
+ * Enthält die komplette Wizard-State-Machine und rendert die 4 Steps.
  *
- * AI-First: Jeder Step zeigt SOFORT den AI-Vorschlag, mit "Selbst machen"-Alternative.
+ * Flow ohne KI (ausser Variant-Generierung):
+ * Step 0: URL + Element auf Live-Site wählen
+ * Step 1: Variant B (KI-generiert — Ausnahme)
+ * Step 2: Goal/Metrik wählen
+ * Step 3: Review + Create
+ *
  * Draft: Fortschritt wird automatisch serverseitig gespeichert (debounced).
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight } from 'lucide-react'
-import { StepUrlScan } from './new-test/StepUrlScan'
-import { StepElementPicker } from './new-test/StepElementPicker'
+import { StepUrlAndElement } from './new-test/StepUrlAndElement'
 import { StepVariantB } from './new-test/StepVariantB'
 import { StepMetricPicker } from './new-test/StepMetricPicker'
 import { StepReview } from './new-test/StepReview'
 
 // ─── Types ───
-
-export interface ScanResult {
-  suggestions: Array<{
-    element: string
-    original: string
-    variant: string
-    why: string
-    type?: string
-    selector?: string
-  }>
-  primarySuggestionIndex: number
-  primarySuggestion: {
-    selector: string | null
-    element: string
-    rationale: string
-    elementType: 'button' | 'headline' | 'text' | 'layout' | 'element'
-  } | null
-}
 
 export interface ElementSelection {
   selector: string
@@ -59,30 +45,26 @@ export interface GoalSelection {
 }
 
 interface WizardState {
-  step: number // 0–4
+  step: number // 0–3
   url: string
-  scanResult: ScanResult | null
-  scanError: string
   selectedElement: ElementSelection | null
   elementConfirmed: boolean
   variantResult: VariantResult | null
   selectedGoal: GoalSelection | null
   goalConfirmed: boolean
-  autoName: string
+  testName: string
   testStatus: 'active' | 'paused'
 }
 
 const INITIAL_STATE: WizardState = {
   step: 0,
   url: '',
-  scanResult: null,
-  scanError: '',
   selectedElement: null,
   elementConfirmed: false,
   variantResult: null,
   selectedGoal: null,
   goalConfirmed: false,
-  autoName: '',
+  testName: '',
   testStatus: 'active',
 }
 
@@ -156,7 +138,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               label: draft.goal ?? '',
             } : null,
             goalConfirmed: !!draft.goal,
-            autoName: draft.auto_name ?? '',
+            testName: draft.auto_name ?? '',
           }))
         }
       } catch { /* Draft-Load ist nice-to-have */ }
@@ -182,7 +164,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
             variant_text: s.variantResult?.variant ?? null,
             goal: s.selectedGoal ? (s.selectedGoal.type === 'click' && s.selectedGoal.selector ? `click:${s.selectedGoal.selector}` : s.selectedGoal.type) : null,
             goal_selector: s.selectedGoal?.selector ?? null,
-            auto_name: s.autoName || null,
+            auto_name: s.testName || null,
           }),
         })
       } catch { /* silent */ }
@@ -227,6 +209,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
         variant_text: state.variantResult?.variant ?? undefined,
         original_html: state.selectedElement.originalHtml,
         status,
+        name: state.testName || undefined,
       }
 
       const res = await fetch('/api/test-wizard/create', {
@@ -263,15 +246,14 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
 
   const canAdvanceFromStep = (step: number): boolean => {
     switch (step) {
-      case 0: return state.scanResult !== null && state.scanResult.primarySuggestion !== null
-      case 1: return state.selectedElement !== null && state.elementConfirmed
-      case 2: return state.variantResult !== null
-      case 3: return state.selectedGoal !== null && state.goalConfirmed
+      case 0: return state.selectedElement !== null && state.elementConfirmed
+      case 1: return state.variantResult !== null
+      case 2: return state.selectedGoal !== null && state.goalConfirmed
       default: return true
     }
   }
 
-  const stepLabels = ['Scan', 'Element', 'Variant', 'Goal', 'Review']
+  const stepLabels = ['Element', 'Variant', 'Goal', 'Review']
 
   // ─── Render ───
 
@@ -309,7 +291,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
             <div>
               <p className="text-[14px] font-semibold text-text">New Test</p>
               <p className="text-[11px] text-text-3">
-                Step {state.step + 1} of 5 — {stepLabels[state.step]}
+                Step {state.step + 1} of 4 — {stepLabels[state.step]}
               </p>
             </div>
           </div>
@@ -336,7 +318,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               >
                 {i < state.step ? <Check className="h-3 w-3" /> : i + 1}
               </div>
-              {i < 4 && (
+              {i < 3 && (
                 <div className={`h-px w-5 transition-colors ${i < state.step ? 'bg-ok' : 'bg-border'}`} />
               )}
             </div>
@@ -346,84 +328,19 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
 
         {/* Body */}
         <div className="overflow-y-auto px-5 py-5" style={{ height: 'calc(100vh - 180px)' }}>
-          {/* Step 0: URL Scan */}
+          {/* Step 0: URL + Element Picker */}
           {state.step === 0 && (
-            <StepUrlScan
+            <StepUrlAndElement
               url={state.url}
-              onUrlChange={(url) => updateState({ url, scanResult: null, scanError: '' })}
-              scanResult={state.scanResult}
-              scanError={state.scanError}
-              onScan={async (url) => {
-                // Validate URL before scanning
-                if (!url.trim()) {
-                  updateState({ scanError: 'Please enter a URL.' })
-                  return
-                }
-                const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-                try {
-                  new URL(finalUrl)
-                } catch {
-                  updateState({ scanError: 'Invalid URL. Please enter a valid website address (e.g. example.com).' })
-                  return
-                }
-                updateState({ url, scanError: '', scanResult: null })
-                try {
-                  const res = await fetch('/api/test-wizard/scan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: finalUrl }),
-                  })
-                  if (!res.ok) {
-                    const err = await res.json().catch(() => ({ error: 'Unknown error' }))
-                    updateState({ scanError: err.message ?? err.error ?? 'Scan failed' })
-                    return
-                  }
-                  const data: ScanResult = await res.json()
-                  if (!data.suggestions?.length) {
-                    updateState({ scanError: 'No optimization opportunities found on this page.' })
-                    return
-                  }
-                  updateState({ scanResult: data })
-                } catch {
-                  updateState({ scanError: 'Network error — please try again.' })
-                }
-              }}
-              onSelectPrimary={() => {
-                const prim = state.scanResult?.primarySuggestion
-                if (!prim) return
-                // Fallback: use element name as selector if no CSS selector available
-                const selector = prim.selector ?? prim.element
-                updateState({
-                  selectedElement: {
-                    selector,
-                    originalHtml: '',
-                    elementType: prim.elementType,
-                    elementName: prim.element,
-                  },
-                  elementConfirmed: true,
-                  step: 2, // Skip element picker if user accepts AI choice
-                })
-              }}
-              onPickDifferent={() => {
-                // Go to element picker step with scan context
-                updateState({ step: 1 })
-              }}
-            />
-          )}
-
-          {/* Step 1: Element Picker */}
-          {state.step === 1 && (
-            <StepElementPicker
-              url={state.url}
-              preSelectedElement={state.scanResult?.primarySuggestion ?? null}
+              onUrlChange={(url) => updateState({ url, selectedElement: null, elementConfirmed: false })}
               selectedElement={state.selectedElement}
               onElementSelected={(el) => updateState({ selectedElement: el, elementConfirmed: false })}
               onConfirm={() => updateState({ elementConfirmed: true })}
             />
           )}
 
-          {/* Step 2: Variant B */}
-          {state.step === 2 && state.selectedElement && (
+          {/* Step 1: Variant B (KI bleibt — Ausnahme) */}
+          {state.step === 1 && state.selectedElement && (
             <StepVariantB
               element={state.selectedElement}
               url={state.url}
@@ -463,8 +380,8 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
             />
           )}
 
-          {/* Step 3: Goal/Metric */}
-          {state.step === 3 && (
+          {/* Step 2: Goal/Metric */}
+          {state.step === 2 && (
             <StepMetricPicker
               elementType={state.selectedElement?.elementType ?? 'element'}
               elementName={state.selectedElement?.elementName ?? ''}
@@ -475,15 +392,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
             />
           )}
 
-          {/* Step 4: Review */}
-          {state.step === 4 && state.selectedElement && (
+          {/* Step 3: Review */}
+          {state.step === 3 && state.selectedElement && (
             <StepReview
               url={state.url}
               element={state.selectedElement}
               variantResult={state.variantResult}
               goal={state.selectedGoal}
-              autoName={state.autoName}
-              onAutoNameChange={(name) => updateState({ autoName: name })}
+              testName={state.testName}
+              onTestNameChange={(name) => updateState({ testName: name })}
             />
           )}
         </div>
@@ -502,7 +419,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               {state.step === 0 ? 'Cancel' : 'Back'}
             </button>
 
-            {state.step < 4 ? (
+            {state.step < 3 ? (
               <button
                 onClick={() => updateState({ step: state.step + 1 })}
                 disabled={!canAdvanceFromStep(state.step)}
