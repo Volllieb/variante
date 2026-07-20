@@ -64,6 +64,13 @@ export async function POST(req: Request) {
   const guard = ssrfCheck(url)
   if (guard) return guard
 
+  // Früher Config-Check: Ohne API-Key scheitert der Screenshot immer.
+  // Das hier vermeidet 8s Wartezeit + irreführende "Seite nicht ladbar"-Meldung.
+  if (!process.env.URLBOX_API_KEY) {
+    safeError('preview-config', 'URLBOX_API_KEY missing')
+    return json({ error: 'config_missing', message: 'Server configuration error. Please try again later.' }, 500)
+  }
+
   // Schritt 1+2 parallel: der Screenshot ist der teure Pfad (~4-8s), der
   // HTML-Fetch der kurze (~1s). Nacheinander wären das 9s statt 8s (Plan §5).
   const previewId = crypto.randomUUID()
