@@ -229,7 +229,7 @@ function SnippetBanner({
       let p = 0
       const progressTimer = setInterval(() => {
         p = Math.min(p + 25, 90)
-        onChange({ phase: 'checking', url: normalized, progress: p } as BannerState)
+        onChange({ phase: 'checking', url: normalized, progress: p })
       }, 800)
 
       const checkRes = await fetch('/api/snippet-check', {
@@ -268,7 +268,7 @@ function SnippetBanner({
       let p = 0
       const progressTimer = setInterval(() => {
         p = Math.min(p + 25, 90)
-        onChange({ phase: 'checking', url, progress: p } as BannerState)
+        onChange({ phase: 'checking', url, progress: p })
       }, 800)
 
       const checkRes = await fetch('/api/snippet-check', {
