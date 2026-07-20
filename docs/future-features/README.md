@@ -19,6 +19,7 @@
 > | **Hybrid-Onboarding-Plan v4** | 17.07.2026 | 📐 Planung — Option A (Code-Analyse), SPA-Fallback |
 | **Web Test-Erstellungs-Flow** | 18.07.2026 | ❓ Fragebogen — Anforderungsklärung für Wizard-Redesign |
 | **New Test Flow — Multi-Agent-Plan** | 18.07.2026 | 📐 Planung — 13 Schritte, 5 Components, 3 API-Routen, Figma-Umbau |
+| **Button-Editor — Visueller Werkzeugkasten** | 20.07.2026 | 📐 Planung — Property-Panel, Hover-Presets, CSS-Generator, Live-Preview |
 
 ---
 
