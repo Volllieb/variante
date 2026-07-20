@@ -28,12 +28,14 @@ export function TestsClient({
   hasFigmaPlugin,
   userId,
   plan,
+  verifiedDomains,
 }: {
   apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
   userId: string
   plan: string
+  verifiedDomains: { url: string; verifiedAt: string | null }[]
 }) {
   const router = useRouter()
   const [newTestOpen, setNewTestOpen] = useState(false)
@@ -94,6 +96,7 @@ export function TestsClient({
           setNewTestOpen(false)
           router.refresh()
         }}
+        verifiedDomains={verifiedDomains}
       />
 
       {/* Empty / No results */}

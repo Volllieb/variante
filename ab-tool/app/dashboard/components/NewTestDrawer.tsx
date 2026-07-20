@@ -81,11 +81,12 @@ interface NewTestDrawerProps {
   onClose: () => void
   userId: string
   onTestCreated: () => void
+  verifiedDomains: { url: string; verifiedAt: string | null }[]
 }
 
 // ─── Component ───
 
-export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTestDrawerProps) {
+export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verifiedDomains }: NewTestDrawerProps) {
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
@@ -342,6 +343,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               selectedElement={state.selectedElement}
               onElementSelected={(el) => updateState({ selectedElement: el, elementConfirmed: false })}
               onConfirm={() => updateState({ elementConfirmed: true })}
+              verifiedDomains={verifiedDomains}
             />
           )}
 

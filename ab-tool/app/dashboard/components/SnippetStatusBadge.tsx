@@ -7,10 +7,13 @@ import { FrameworkExamples } from './FrameworkExamples'
 
 /* ── Types ── */
 
+type VerifiedDomain = { url: string; verifiedAt: string | null }
+
 type SnippetStatusBadgeProps = {
   hasVerifiedDomain: boolean
   primaryDomain: string | null
   verifiedAt?: string | null
+  allVerifiedDomains?: VerifiedDomain[]
   onDomainVerified: () => void
 }
 
@@ -27,6 +30,7 @@ export function SnippetStatusBadge({
   hasVerifiedDomain,
   primaryDomain,
   verifiedAt,
+  allVerifiedDomains,
   onDomainVerified,
 }: SnippetStatusBadgeProps) {
   const [banner, setBanner] = useState<BannerState>(() => {
@@ -47,6 +51,7 @@ export function SnippetStatusBadge({
       <SnippetVerifiedBadge
         domain={banner.url}
         verifiedAt={verifiedAt}
+        allVerifiedDomains={allVerifiedDomains}
         onRecheck={() => setBanner({ phase: 'input' })}
         expanded={expandedVerified}
         onToggle={() => setExpandedVerified((v) => !v)}
@@ -72,12 +77,14 @@ export function SnippetStatusBadge({
 function SnippetVerifiedBadge({
   domain,
   verifiedAt,
+  allVerifiedDomains,
   onRecheck,
   expanded,
   onToggle,
 }: {
   domain: string
   verifiedAt?: string | null
+  allVerifiedDomains?: { url: string; verifiedAt: string | null }[]
   onRecheck: () => void
   expanded: boolean
   onToggle: () => void
@@ -90,6 +97,8 @@ function SnippetVerifiedBadge({
         return `${Math.floor(diff / 3600)}h ago`
       })()
     : null
+
+  const otherDomains = (allVerifiedDomains ?? []).filter((d) => d.url !== domain)
 
   return (
     <div className="mb-5 rounded-[10px] border border-ok/20 bg-ok/[0.04] px-4 py-2.5">
@@ -112,6 +121,12 @@ function SnippetVerifiedBadge({
           >
             Re-check
           </button>
+          <a
+            href="/dashboard/account"
+            className="cursor-pointer text-[11px] font-medium text-pro transition-colors hover:text-pro/80"
+          >
+            + Add site
+          </a>
           <button
             onClick={onToggle}
             className="flex cursor-pointer items-center justify-center h-5 w-5 rounded-[4px] text-text-3 transition-colors hover:bg-ok/10 hover:text-text"
@@ -124,16 +139,37 @@ function SnippetVerifiedBadge({
       </div>
 
       {expanded && (
-        <div className="mt-3 border-t border-ok/10 pt-3">
+        <div className="mt-3 border-t border-ok/10 pt-3 space-y-2">
           <p className="text-[12px] text-text-2 leading-relaxed">
             Data is flowing. Visitors and conversions are being tracked.
           </p>
-          <button
-            onClick={onRecheck}
-            className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
-          >
-            Re-check snippet
-          </button>
+
+          {otherDomains.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">All sites</p>
+              {[domain, ...otherDomains.map((d) => d.url)].map((url) => (
+                <div key={url} className="flex items-center gap-2 text-[12px] text-text-2">
+                  <Check className="h-3 w-3 shrink-0 text-ok" />
+                  <span>{url}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={onRecheck}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+            >
+              Re-check snippet
+            </button>
+            <a
+              href="/dashboard/account"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-pro transition-colors hover:border-pro/30 hover:text-pro"
+            >
+              + Add another site
+            </a>
+          </div>
         </div>
       )}
     </div>

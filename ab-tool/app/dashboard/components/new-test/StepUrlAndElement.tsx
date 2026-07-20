@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Globe, ExternalLink, Loader2, Check, MousePointerClick } from 'lucide-react'
+import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown } from 'lucide-react'
 import type { ElementSelection } from '../NewTestDrawer'
 
 interface StepUrlAndElementProps {
@@ -17,10 +17,11 @@ interface StepUrlAndElementProps {
   selectedElement: ElementSelection | null
   onElementSelected: (el: ElementSelection) => void
   onConfirm: () => void
+  verifiedDomains: { url: string; verifiedAt: string | null }[]
 }
 
 export function StepUrlAndElement({
-  url, onUrlChange, selectedElement, onElementSelected, onConfirm,
+  url, onUrlChange, selectedElement, onElementSelected, onConfirm, verifiedDomains,
 }: StepUrlAndElementProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
@@ -88,17 +89,50 @@ export function StepUrlAndElement({
         </p>
       </div>
 
-      {/* URL Input */}
+      {/* Domain selector (if verified domains exist) */}
+      {verifiedDomains.length > 0 && (
+        <div>
+          <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Your site</label>
+          <div className="relative">
+            <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
+            <select
+              value={url}
+              onChange={(e) => {
+                onUrlChange(e.target.value)
+                // Reset element selection when domain changes
+                if (selectedElement) {
+                  onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
+                }
+              }}
+              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+            >
+              <option value="">Enter custom URL…</option>
+              {verifiedDomains.map((d) => (
+                <option key={d.url} value={`https://${d.url}`}>
+                  {d.url}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
+          </div>
+        </div>
+      )}
+
+      {/* URL Input (shown when no domain selected or no verified domains) */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
+          {verifiedDomains.length === 0 && (
+            <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
+          )}
           <input
             type="url"
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && urlValid && openPicker()}
             placeholder="https://example.com/landing"
-            className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
+            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
+              verifiedDomains.length > 0 ? 'pl-3 pr-3' : 'pl-9 pr-3'
+            }`}
           />
         </div>
         <button

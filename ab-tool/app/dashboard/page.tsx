@@ -35,11 +35,12 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const hasVerifiedDomain = domains.some((d) => d.verified)
   const primaryDomain = domains.find((d) => d.verified)?.url ?? domains[0]?.url ?? null
   const verifiedAt = domains.find((d) => d.verified)?.verified_at ?? null
+  const allVerifiedDomains = domains.filter((d) => d.verified).map((d) => ({ url: d.url, verifiedAt: d.verified_at }))
 
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} email={user.email ?? ''} userId={user.id} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} email={user.email ?? ''} userId={user.id} />
   }
 
   return (
@@ -51,6 +52,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       hasVerifiedDomain={hasVerifiedDomain}
       primaryDomain={primaryDomain}
       verifiedAt={verifiedAt}
+      allVerifiedDomains={allVerifiedDomains}
       highlightNew={searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}

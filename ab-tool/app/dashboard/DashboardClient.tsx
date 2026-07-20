@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { useTestList } from '@/lib/useTestList'
@@ -26,6 +26,7 @@ import {
   Check,
   Globe,
   ArrowRight,
+  ChevronDown,
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
 
@@ -37,6 +38,7 @@ export function DashboardClient({
   hasVerifiedDomain,
   primaryDomain,
   verifiedAt,
+  allVerifiedDomains,
   highlightNew,
   upgraded,
   openNewTest,
@@ -50,6 +52,7 @@ export function DashboardClient({
   hasVerifiedDomain: boolean
   primaryDomain: string | null
   verifiedAt: string | null
+  allVerifiedDomains: { url: string; verifiedAt: string | null }[]
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
@@ -62,6 +65,30 @@ export function DashboardClient({
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [drawerOpenCount, setDrawerOpenCount] = useState(0)
   const isPro = plan === 'pro' || plan === 'agency'
+
+  // ── Scope selector (localStorage-persisted) ──
+  const scopeKey = `dashboard-scope:${userId}`
+  const [scope, setScope] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all'
+    return localStorage.getItem(scopeKey) ?? 'all'
+  })
+
+  const domainOptions = useMemo(() => {
+    const urls = allVerifiedDomains.map((d) => d.url)
+    return ['all', ...urls]
+  }, [allVerifiedDomains])
+
+  const setScopeAndPersist = (val: string) => {
+    setScope(val)
+    try { localStorage.setItem(scopeKey, val) } catch { /* noop */ }
+  }
+
+  // Reset scope if current selection no longer valid
+  useEffect(() => {
+    if (scope !== 'all' && !domainOptions.includes(scope)) {
+      setScopeAndPersist('all')
+    }
+  }, [domainOptions, scope])
 
   const {
     testList,
@@ -76,11 +103,16 @@ export function DashboardClient({
     handleDeleteTest,
   } = useTestList({ initial: tests, sort: true })
 
+  const scopedTests = useMemo(() => {
+    if (scope === 'all') return testList
+    return testList.filter((t) => t.site_url === scope || t.site_url?.includes(scope))
+  }, [testList, scope])
+
   useEffect(() => {
     if (openNewTest) setNewTestOpen(true)
   }, [openNewTest])
 
-  useEffect(() => { setTestList(tests) }, [tests])
+  /* ── Aggregate stats (scoped) ── */
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
@@ -113,13 +145,13 @@ export function DashboardClient({
     }
   }
 
-  /* ── Aggregate stats ── */
-  const activeTests = testList.filter((t) => t.status === 'active').length
-  const totalVisitors = testList.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
-  const totalConversions = testList.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
+  /* ── Aggregate stats (scoped) ── */
+  const activeTests = scopedTests.filter((t) => t.status === 'active').length
+  const totalVisitors = scopedTests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
+  const totalConversions = scopedTests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
   const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
 
-  const lifts = testList
+  const lifts = scopedTests
     .map((t) => {
       const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
       const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
@@ -128,15 +160,15 @@ export function DashboardClient({
     .filter((l): l is number => l !== null && isFinite(l))
   const avgUplift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
 
-  const winningTests = testList.filter((t) => t.winner !== null).length
-  const hasHealthWarnings = testList.some((t) => t.health_status === 'warning' || (t.health_issues && t.health_issues.length > 0))
+  const winningTests = scopedTests.filter((t) => t.winner !== null).length
+  const hasHealthWarnings = scopedTests.some((t) => t.health_status === 'warning' || (t.health_issues && t.health_issues.length > 0))
 
   /* Hybrid-Onboarding: der User hat seine Variante schon VOR dem Sign-up gesehen,
      aber ohne Snippet geht sie nie live. Das ist der einzige Schritt der jetzt noch
      zählt — also prominent, nicht als Zeile im Test-Grid (Plan §5, "Snippet wird
      nie installiert"). */
   const pendingPreviewTest = !hasVerifiedDomain
-    ? testList.find((t) => t.status === 'draft' && t.preview_variant_screenshot_url)
+    ? scopedTests.find((t) => t.status === 'draft' && t.preview_variant_screenshot_url)
     : undefined
 
   return (
@@ -156,6 +188,7 @@ export function DashboardClient({
         hasVerifiedDomain={hasVerifiedDomain}
         primaryDomain={primaryDomain}
         verifiedAt={verifiedAt}
+        allVerifiedDomains={allVerifiedDomains}
         onDomainVerified={() => router.refresh()}
       />
 
@@ -164,13 +197,29 @@ export function DashboardClient({
 
       {/* Content header: scope selector + CTA */}
       <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h1 className="text-[15px] font-semibold text-text">
-            {primaryDomain ? primaryDomain : 'All sites'}
-          </h1>
+        <div className="relative">
+          {domainOptions.length > 1 ? (
+            <select
+              value={scope}
+              onChange={(e) => setScopeAndPersist(e.target.value)}
+              className="appearance-none bg-transparent text-[15px] font-semibold text-text pr-5 cursor-pointer outline-none"
+            >
+              <option value="all">All sites</option>
+              {domainOptions.filter((d) => d !== 'all').map((url) => (
+                <option key={url} value={url}>{url}</option>
+              ))}
+            </select>
+          ) : (
+            <h1 className="text-[15px] font-semibold text-text">
+              {primaryDomain ? primaryDomain : 'All sites'}
+            </h1>
+          )}
+          {domainOptions.length > 1 && (
+            <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
+          )}
           {hasVerifiedDomain && (
             <p className="text-[12px] text-text-3 mt-0.5">
-              {testList.length} test{testList.length !== 1 ? 's' : ''}
+              {filteredTests.length} test{filteredTests.length !== 1 ? 's' : ''}
             </p>
           )}
         </div>
@@ -187,7 +236,7 @@ export function DashboardClient({
       </div>
 
       {/* Overview cards */}
-      {testList.length > 0 && (
+      {scopedTests.length > 0 && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <OverviewCard
             icon={FlaskConical}
@@ -276,9 +325,10 @@ export function DashboardClient({
               setDrawerOpenCount((c) => c + 1)
               router.refresh()
             }}
+            verifiedDomains={allVerifiedDomains}
           />
 
-          {testList.length === 0 ? (
+          {scopedTests.length === 0 ? (
             <EmptyDashboard
               hasVerifiedDomain={hasVerifiedDomain}
               isPro={isPro}
@@ -314,7 +364,7 @@ export function DashboardClient({
       </div>
 
       {/* What to test next — AI suggestions for Pro users */}
-      {testList.length > 0 && (
+      {scopedTests.length > 0 && (
         <div className="mt-6">
           <WhatToTestNext
             siteUrl={primaryDomain ? `https://${primaryDomain}` : null}
