@@ -54,7 +54,8 @@ export function SetupClient({ data }: { data: SetupData }) {
         body: JSON.stringify({ url: normalized }),
       })
       if (saveRes.status === 402) {
-        setWebsite({ phase: 'input', error: 'Multiple websites require the Agency plan.' })
+        const d = await saveRes.json().catch(() => ({ error: 'Domain limit reached.' }))
+        setWebsite({ phase: 'input', error: d.error || 'Domain limit reached.' })
         return
       }
       if (!saveRes.ok && saveRes.status !== 409) {

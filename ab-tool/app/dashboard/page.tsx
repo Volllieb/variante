@@ -24,7 +24,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       .order('created_at', { ascending: false }),
     supabase
       .from('domains')
-      .select('url, verified')
+      .select('url, verified, verified_at')
       .eq('user_id', user.id)
       .limit(5),
   ])
@@ -34,11 +34,12 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const domains = domainsRes.data ?? []
   const hasVerifiedDomain = domains.some((d) => d.verified)
   const primaryDomain = domains.find((d) => d.verified)?.url ?? domains[0]?.url ?? null
+  const verifiedAt = domains.find((d) => d.verified)?.verified_at ?? null
 
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} email={user.email ?? ''} userId={user.id} />
+    return <DashboardClient plan="free" apiToken="" tests={[]} hasFigmaPlugin={false} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} email={user.email ?? ''} userId={user.id} />
   }
 
   return (
@@ -49,6 +50,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
       hasVerifiedDomain={hasVerifiedDomain}
       primaryDomain={primaryDomain}
+      verifiedAt={verifiedAt}
       highlightNew={searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}

@@ -36,6 +36,7 @@ export function DashboardClient({
   hasFigmaPlugin,
   hasVerifiedDomain,
   primaryDomain,
+  verifiedAt,
   highlightNew,
   upgraded,
   openNewTest,
@@ -48,6 +49,7 @@ export function DashboardClient({
   hasFigmaPlugin: boolean
   hasVerifiedDomain: boolean
   primaryDomain: string | null
+  verifiedAt: string | null
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
@@ -153,6 +155,7 @@ export function DashboardClient({
       <SnippetStatusBadge
         hasVerifiedDomain={hasVerifiedDomain}
         primaryDomain={primaryDomain}
+        verifiedAt={verifiedAt}
         onDomainVerified={() => router.refresh()}
       />
 

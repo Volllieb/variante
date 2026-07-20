@@ -15,9 +15,9 @@ export default async function AccountPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('avatar_url')
+    .select('avatar_url, plan')
     .eq('user_id', user.id)
     .single()
 
-  return <AccountClient email={user.email ?? ''} domains={domains ?? []} avatarUrl={profile?.avatar_url ?? null} />
+  return <AccountClient email={user.email ?? ''} domains={domains ?? []} avatarUrl={profile?.avatar_url ?? null} plan={profile?.plan ?? 'free'} />
 }

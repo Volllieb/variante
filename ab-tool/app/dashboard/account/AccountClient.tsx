@@ -8,7 +8,7 @@ import Image from 'next/image'
 
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
 
-export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar }: { email: string; domains: Domain[]; avatarUrl: string | null }) {
+export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar, plan }: { email: string; domains: Domain[]; avatarUrl: string | null; plan: string }) {
   const router = useRouter()
   const [domains, setDomains] = useState<Domain[]>(initialDomains)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatar)
@@ -29,6 +29,11 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   const [addUrl, setAddUrl] = useState('')
   const [addState, setAddState] = useState<'input' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
   const [addError, setAddError] = useState('')
+
+  // ── Helper ──
+  const normalize = (raw: string) =>
+    raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+
   const [newEmail, setNewEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [pwSent, setPwSent] = useState(false)
@@ -158,7 +163,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     const primary = domains[0]
     if (!primary || !changeUrl.trim()) return
 
-    const normalized = changeUrl.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+    const normalized = normalize(changeUrl)
     if (!normalized || !normalized.includes('.')) {
       setChangeError('Please enter a valid domain (e.g. yoursite.com)')
       return
@@ -171,24 +176,26 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     }
 
     setChangeError('')
-    setChangeState('deleting')
 
-    // 1. Delete old domain FIRST (frees the slot for Free-plan users)
-    try {
-      const delRes = await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
-      if (!delRes.ok) {
-        const data = await delRes.json().catch(() => ({}))
-        setChangeError(data.error || 'Failed to remove current page.')
+    // Free-Plan (Limit=1): Delete old FIRST to free the slot
+    if (plan === 'free') {
+      setChangeState('deleting')
+      try {
+        const delRes = await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
+        if (!delRes.ok) {
+          const data = await delRes.json().catch(() => ({}))
+          setChangeError(data.error || 'Failed to remove current page.')
+          setChangeState('input')
+          return
+        }
+      } catch {
+        setChangeError('Connection failed.')
         setChangeState('input')
         return
       }
-    } catch {
-      setChangeError('Connection failed.')
-      setChangeState('input')
-      return
     }
 
-    // 2. Save new domain
+    // Save new domain
     setChangeState('saving')
     try {
       const saveRes = await fetch('/api/domains', {
@@ -214,7 +221,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    // 3. Snippet check
+    // Snippet check
     setChangeState('checking')
     try {
       const checkRes = await fetch('/api/snippet-check', {
@@ -225,6 +232,11 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       const json = await checkRes.json()
 
       if (!json.detected) {
+        // If snippet not found and we already deleted the old domain (Free plan),
+        // the user is in a broken state — show error with recovery option
+        if (plan === 'free') {
+          setChangeError('Snippet not found on the new domain, and the old domain was removed. Re-add your previous domain or install the snippet first.')
+        }
         setChangeState('not-found')
         return
       }
@@ -233,7 +245,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    // 4. Verify new domain
+    // Verify new domain
     try {
       const domainsRes = await fetch('/api/domains')
       const { domains: freshDomains } = await domainsRes.json()
@@ -247,7 +259,14 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       }
     } catch { /* Verify is best-effort */ }
 
-    // 5. Update local state — remove old, add new at front
+    // Pro/Agency: Delete old domain AFTER new one is verified
+    if (plan !== 'free') {
+      try {
+        await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
+      } catch { /* best-effort — old domain may remain but new one works */ }
+    }
+
+    // Update local state — remove old, add new at front
     setDomains((prev) => {
       const withoutOld = prev.filter((d) => d.id !== primary.id)
       return [{ id: crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
@@ -258,7 +277,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   async function addAdditionalPage() {
     if (!addUrl.trim()) return
 
-    const normalized = addUrl.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+    const normalized = normalize(addUrl)
     if (!normalized || !normalized.includes('.')) {
       setAddError('Please enter a valid domain (e.g. yoursite.com)')
       return
@@ -275,7 +294,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         body: JSON.stringify({ url: normalized }),
       })
       if (saveRes.status === 402) {
-        const data = await saveRes.json().catch(() => ({}))
+        const data = await saveRes.json().catch(() => ({ error: 'Domain limit reached.' }))
         setAddError(data.error || 'Domain limit reached.')
         setAddState('input')
         return
@@ -765,12 +784,15 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     We couldn&apos;t detect the variante snippet on <strong>{changeUrl.trim() || '(your URL)'}</strong>.
                     Add the snippet to your site&apos;s <code className="rounded-[3px] bg-white/[0.06] px-1 text-[11px]">&lt;head&gt;</code>, then try again.
                   </p>
+                  {changeError && (
+                    <p className="mt-2 text-[11px] text-err">{changeError}</p>
+                  )}
                   <div className="mt-3 flex gap-2">
                     <button
                       onClick={changeConnectedPage}
                       className="flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
                     >
-                      <Loader2 className="h-3 w-3" /> Retry
+                      Retry
                     </button>
                     <button
                       onClick={() => { setChangeState('input'); setChangeError('') }}

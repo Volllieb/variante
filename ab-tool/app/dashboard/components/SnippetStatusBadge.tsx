@@ -10,6 +10,7 @@ import { FrameworkExamples } from './FrameworkExamples'
 type SnippetStatusBadgeProps = {
   hasVerifiedDomain: boolean
   primaryDomain: string | null
+  verifiedAt?: string | null
   onDomainVerified: () => void
 }
 
@@ -25,6 +26,7 @@ type BannerState =
 export function SnippetStatusBadge({
   hasVerifiedDomain,
   primaryDomain,
+  verifiedAt,
   onDomainVerified,
 }: SnippetStatusBadgeProps) {
   const [banner, setBanner] = useState<BannerState>(() => {
@@ -32,7 +34,6 @@ export function SnippetStatusBadge({
     return { phase: 'input' }
   })
 
-  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
   const [expandedVerified, setExpandedVerified] = useState(false)
 
   // ── If domain changed externally, sync ──
@@ -40,16 +41,12 @@ export function SnippetStatusBadge({
     setBanner({ phase: 'verified', url: primaryDomain })
   }
 
-  const handleVerified = useCallback(() => {
-    onDomainVerified()
-  }, [onDomainVerified])
-
   // ── Compact verified badge ──
   if (banner.phase === 'verified') {
     return (
       <SnippetVerifiedBadge
         domain={banner.url}
-        lastCheckedAt={lastCheckedAt}
+        verifiedAt={verifiedAt}
         onRecheck={() => setBanner({ phase: 'input' })}
         expanded={expandedVerified}
         onToggle={() => setExpandedVerified((v) => !v)}
@@ -64,8 +61,7 @@ export function SnippetStatusBadge({
       onChange={setBanner}
       onVerified={(url) => {
         setBanner({ phase: 'verified', url })
-        setLastCheckedAt(new Date())
-        handleVerified()
+        onDomainVerified()
       }}
     />
   )
@@ -75,20 +71,20 @@ export function SnippetStatusBadge({
 
 function SnippetVerifiedBadge({
   domain,
-  lastCheckedAt,
+  verifiedAt,
   onRecheck,
   expanded,
   onToggle,
 }: {
   domain: string
-  lastCheckedAt: Date | null
+  verifiedAt?: string | null
   onRecheck: () => void
   expanded: boolean
   onToggle: () => void
 }) {
-  const ago = lastCheckedAt
+  const ago = verifiedAt
     ? (() => {
-        const diff = Math.floor((Date.now() - lastCheckedAt.getTime()) / 1000)
+        const diff = Math.floor((Date.now() - new Date(verifiedAt).getTime()) / 1000)
         if (diff < 60) return `${diff}s ago`
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
         return `${Math.floor(diff / 3600)}h ago`
@@ -178,7 +174,8 @@ function SnippetBanner({
         body: JSON.stringify({ url: normalized }),
       })
       if (saveRes.status === 402) {
-        onChange({ phase: 'input', error: 'Multiple websites require the Agency plan.' })
+        const d = await saveRes.json().catch(() => ({ error: 'Domain limit reached.' }))
+        onChange({ phase: 'input', error: d.error || 'Domain limit reached.' })
         return
       }
       if (!saveRes.ok && saveRes.status !== 409) {
