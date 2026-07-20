@@ -53,11 +53,14 @@ export function StepMetricPicker({
   // Listen for postMessage from ab.js goal picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      // SECURITY: Only accept messages from the user's own site
+      // SECURITY: Accept messages from the user's site OR from our own
+      // picker-bridge proxy (which serves the page from our origin).
       const userSiteOrigin = (() => {
         try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
       })()
-      if (userSiteOrigin && e.origin !== userSiteOrigin) return
+      const ourOrigin = window.location.origin
+      const isTrusted = (!userSiteOrigin) || e.origin === userSiteOrigin || e.origin === ourOrigin
+      if (!isTrusted) return
 
       if (!e.data || e.data.type !== 'ab-goal') return
       const { selector, text } = e.data
@@ -76,8 +79,9 @@ export function StepMetricPicker({
   function openGoalPicker() {
     if (!url) return
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    const pickerUrl = `${finalUrl}${finalUrl.includes('?') ? '&' : '?'}ab_pick=goal`
-    window.open(pickerUrl, 'ab-goal-picker', 'width=1200,height=800')
+    // Bridge-URL: unser Server proxied die Seite und injectet ab.js im goal-Modus
+    const bridgeUrl = `/api/picker-bridge?url=${encodeURIComponent(finalUrl)}&mode=goal`
+    window.open(bridgeUrl, 'ab-goal-picker', 'width=1200,height=800')
     setWaitingForPicker(true)
   }
 

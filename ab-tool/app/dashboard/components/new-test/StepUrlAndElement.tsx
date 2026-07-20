@@ -30,11 +30,14 @@ export function StepUrlAndElement({
   // Listen for postMessage from ab.js picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      // SECURITY: Only accept messages from the user's own site
+      // SECURITY: Accept messages from the user's site OR from our own
+      // picker-bridge proxy (which serves the page from our origin).
       const userSiteOrigin = (() => {
         try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
       })()
-      if (userSiteOrigin && e.origin !== userSiteOrigin) return
+      const ourOrigin = window.location.origin
+      const isTrusted = (!userSiteOrigin) || e.origin === userSiteOrigin || e.origin === ourOrigin
+      if (!isTrusted) return
 
       if (!e.data || e.data.type !== 'ab-pick') return
 
@@ -61,8 +64,9 @@ export function StepUrlAndElement({
   const openPicker = useCallback(() => {
     if (!url) return
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    const pickerUrl = `${finalUrl}${finalUrl.includes('?') ? '&' : '?'}ab_pick=new`
-    window.open(pickerUrl, 'ab-picker', 'width=1200,height=800')
+    // Bridge-URL: unser Server proxied die Seite und injectet ab.js
+    const bridgeUrl = `/api/picker-bridge?url=${encodeURIComponent(finalUrl)}&mode=element`
+    window.open(bridgeUrl, 'ab-picker', 'width=1200,height=800')
     setPickerOpen(true)
     setWaitingForPicker(true)
   }, [url])
