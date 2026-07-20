@@ -3,13 +3,12 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { PandaLogo } from '@/components/PandaLogo'
 import { HybridDemo } from '@/app/components/HybridDemo'
-import { detectLang } from '@/lib/detectLang'
-import { getCopy } from '@/lib/landingCopy'
+import { copy } from '@/lib/landingCopy'
 import { SkipButton } from '@/app/components/SkipButton'
 
 export const metadata: Metadata = {
   title: 'Onboarding — Variante',
-  description: 'Sieh in 30 Sekunden, wie deine Website mit A/B-Testing performt.',
+  description: 'See how your website performs with A/B testing in 30 seconds.',
   robots: { index: false },
 }
 
@@ -19,8 +18,6 @@ export default async function OnboardingPage({
   searchParams?: Promise<{ source?: string; url?: string; plan?: string }>
 }) {
   const { source, url, plan } = (await searchParams) ?? {}
-  const lang = await detectLang()
-  const cp = getCopy(lang)
 
   // Skip-Link: gleiche Query-Parameter wie Landingpage-CTAs + skip=1,
   // damit /signup nicht zurück zu /onboarding redirected.
@@ -49,17 +46,17 @@ export default async function OnboardingPage({
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
             >
               <ChevronLeft className="h-4 w-4" />
-              {lang === 'de' ? 'Zurück' : 'Back'}
+              Back
             </Link>
           </div>
-          <SkipButton href={skipHref} label={lang === 'de' ? 'Überspringen' : 'Skip'} />
+          <SkipButton href={skipHref} label="Skip" />
         </div>
       </header>
 
       {/* Onboarding nimmt den gesamten restlichen Viewport ein */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-5xl">
-          <HybridDemo cp={cp} source={source} prefillUrl={url} plan={plan} />
+          <HybridDemo cp={copy} source={source} prefillUrl={url} plan={plan} />
         </div>
       </main>
     </div>

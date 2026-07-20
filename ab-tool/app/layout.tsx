@@ -2,8 +2,6 @@ import './globals.css'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import { ToastProvider } from '@/app/components/Toast'
-import { headers } from 'next/headers'
-import { getLang } from '@/lib/landingCopy'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -50,12 +48,8 @@ export const metadata = {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const headersList = await headers()
-  const acceptLang = headersList.get('accept-language')
-  const lang = getLang(acceptLang, null)
-
   return (
-    <html lang={lang} className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable}`} style={{ '--font-display': inter.style.fontFamily } as React.CSSProperties} suppressHydrationWarning>
       <head>
         {/* variante A/B — paste in <head> on every page */}
         <link rel="preconnect" href="https://www.getvariante.com" />

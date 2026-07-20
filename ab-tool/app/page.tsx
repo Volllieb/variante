@@ -143,7 +143,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Works-With Logo Bar ── */}
       <section className="!py-10 sm:!py-12">
         <div className="container-wide text-center">
-          <span className="section-label">{cp.sectionWorks}</span>
+          <span className="section-label">{copy.sectionWorks}</span>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
             {techLogos.map((logo) => (
               <div key={logo.name} className="flex flex-col items-center gap-2">
@@ -153,7 +153,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             ))}
           </div>
           <p className="mt-5 text-xs text-text-3">
-            {cp.platformNote.replace('{platforms}', techLogoNames.join(', '))}
+            {copy.platformNote.replace('{platforms}', techLogoNames.join(', '))}
           </p>
         </div>
       </section>
@@ -163,10 +163,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── How it works ── */}
       <section className="section">
         <div className="container">
-          <span className="section-label">{cp.sectionHow}</span>
-          <h2 className="section-heading mt-1">{cp.sectionHow}</h2>
+          <span className="section-label">{copy.sectionHow}</span>
+          <h2 className="section-heading mt-1">{copy.sectionHow}</h2>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-            {cp.steps.map((s, i) => (
+            {copy.steps.map((s, i) => (
               <div key={s.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
                 <span className="step-number">{i + 1}</span>
                 <h3 className="mt-4 text-sm font-semibold text-white/85">{s.title}</h3>
@@ -182,9 +182,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── AI Agent Automation ── */}
       <section className="section">
         <div className="container">
-          <span className="section-label">{cp.sectionAgent}</span>
-          <h2 className="section-heading mt-1">{cp.agentH}</h2>
-          <p className="section-sub">{cp.agentSub}</p>
+          <span className="section-label">{copy.sectionAgent}</span>
+          <h2 className="section-heading mt-1">{copy.agentH}</h2>
+          <p className="section-sub">{copy.agentSub}</p>
 
           <div className="mx-auto mt-8 max-w-full">
             <div className="relative w-full overflow-hidden rounded-xl border border-border" style={{ aspectRatio: '960/540' }} aria-hidden="true">
@@ -195,11 +195,11 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               />
             </div>
           </div>
-          <p className="mt-3 text-center text-xs text-text-3 italic">{cp.agentLoopNote}</p>
+          <p className="mt-3 text-center text-xs text-text-3 italic">{copy.agentLoopNote}</p>
 
           {/* Agent Loop Cards */}
           <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {cp.agentLoop.map((item, i) => (
+            {copy.agentLoop.map((item, i) => (
               <div key={item.title} className="agent-loop-card rounded-xl border border-border bg-bg-1 p-4">
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-bg-2 text-[11px] font-semibold text-text-3">
                   {i + 1}
@@ -218,8 +218,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <section className="section">
         <div className="container-narrow text-center">
           <span className="section-label">Figma</span>
-          <h2 className="section-heading mt-1">{cp.figmaCommunityTitle}</h2>
-          <p className="section-sub">{cp.figmaCommunityText}</p>
+          <h2 className="section-heading mt-1">{copy.figmaCommunityTitle}</h2>
+          <p className="section-sub">{copy.figmaCommunityText}</p>
           <div className="mt-8">
             <a
               href="https://www.figma.com/community/plugin/1653734891132085565"
@@ -227,7 +227,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               rel="noopener noreferrer"
               className="inline-flex items-center rounded-full border border-border-strong px-5 py-2.5 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85"
             >
-              {cp.figmaCommunityLinkText}
+              {copy.figmaCommunityLinkText}
               <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
             </a>
           </div>
@@ -239,21 +239,21 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Pricing ── */}
       <section className="section">
         <div className="container">
-          <span className="section-label">{cp.sectionPricing}</span>
-          <h2 className="section-heading mt-1">{cp.sectionPricing}</h2>
-          <p className="section-sub">{cp.pricingSub}</p>
+          <span className="section-label">{copy.sectionPricing}</span>
+          <h2 className="section-heading mt-1">{copy.sectionPricing}</h2>
+          <p className="section-sub">{copy.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {/* Free */}
             <div className="card-lift flex flex-col rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                {cp.plans.free.label}
+                {copy.plans.free.label}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-3xl font-semibold text-white">{plan('free').price}</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">{cp.plans.free.sub}</p>
+              <p className="mt-1 text-xs text-text-3">{copy.plans.free.sub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {cp.plans.free.features.map((f) => (
+                {copy.plans.free.features.map((f) => (
                   <li key={f.label} className="flex items-start gap-2.5">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                     <span className="text-white/55 font-normal leading-relaxed break-words">{f.label}</span>
@@ -264,25 +264,25 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 href={signupUrl(plan('free').href)}
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
-                {cp.plans.free.cta}
+                {copy.plans.free.cta}
               </Link>
             </div>
 
             {/* Pro */}
             <div className="card-lift relative flex flex-col rounded-xl border border-pro/25 bg-bg-1 p-5 sm:p-6">
               <span className="absolute -top-3 right-6 rounded-full border border-pro bg-black px-3 py-1 text-[11px] font-semibold text-pro">
-                {cp.proBadge}
+                {copy.proBadge}
               </span>
               <p className="text-xs font-semibold uppercase tracking-wider text-pro">
-                {cp.plans.pro.label}
+                {copy.plans.pro.label}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-3xl font-semibold text-white">{plan('pro').price}</span>
-                <span className="text-sm text-text-3">{cp.period}</span>
+                <span className="text-sm text-text-3">{copy.period}</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">{cp.plans.pro.sub}</p>
+              <p className="mt-1 text-xs text-text-3">{copy.plans.pro.sub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {cp.plans.pro.features.map((f) => (
+                {copy.plans.pro.features.map((f) => (
                   <li key={f.label} className="flex items-start gap-2.5">
                     {f.exclusive ? (
                       <Zap className="mt-0.5 h-4 w-4 shrink-0 text-pro" />
@@ -299,22 +299,22 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 href={signupUrl(plan('pro').href)}
                 className="mt-auto inline-flex w-full justify-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90"
               >
-                {cp.plans.pro.cta}
+                {copy.plans.pro.cta}
               </Link>
             </div>
 
             {/* Agency */}
             <div className="card-lift flex flex-col rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                {cp.plans.agency.label}
+                {copy.plans.agency.label}
               </p>
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-3xl font-semibold text-white">{plan('agency').price}</span>
-                <span className="text-sm text-text-3">{cp.period}</span>
+                <span className="text-sm text-text-3">{copy.period}</span>
               </div>
-              <p className="mt-1 text-xs text-text-3">{cp.plans.agency.sub}</p>
+              <p className="mt-1 text-xs text-text-3">{copy.plans.agency.sub}</p>
               <ul className="mt-6 mb-10 space-y-2.5 text-sm">
-                {cp.plans.agency.features.map((f) => (
+                {copy.plans.agency.features.map((f) => (
                   <li key={f.label} className="flex items-start gap-2.5">
                     {f.exclusive ? (
                       <Zap className="mt-0.5 h-4 w-4 shrink-0 text-pro" />
@@ -331,21 +331,21 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 href={signupUrl(plan('agency').href)}
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
-                {cp.plans.agency.cta}
+                {copy.plans.agency.cta}
               </Link>
             </div>
           </div>
-          <p className="section-text">{cp.impliedUsersText}</p>
+          <p className="section-text">{copy.impliedUsersText}</p>
         </div>
       </section>
 
       {/* ── FAQ ── */}
       <section className="section">
         <div className="container-narrow">
-          <span className="section-label">{cp.sectionFaq}</span>
-          <h2 className="section-heading mt-1">{cp.sectionFaq}</h2>
+          <span className="section-label">{copy.sectionFaq}</span>
+          <h2 className="section-heading mt-1">{copy.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
-            {cp.faqs.map((item) => (
+            {copy.faqs.map((item) => (
               <details
                 key={item.q}
                 className="group rounded-xl border border-border bg-bg-1 transition-colors duration-150 hover:border-border-strong"
@@ -366,17 +366,17 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Closing CTA ── */}
       <section className="section !pb-16 sm:!pb-20">
         <div className="container-narrow text-center">
-          <h2 className="section-heading">{cp.closingH}</h2>
-          <p className="section-sub">{cp.closingSub}</p>
+          <h2 className="section-heading">{copy.closingH}</h2>
+          <p className="section-sub">{copy.closingSub}</p>
           <div className="mt-8">
             <Link
               href={signupUrl("/onboarding")}
               className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
             >
-              {cp.closingCta}
+              {copy.closingCta}
             </Link>
           </div>
-          <p className="cta-urgency">{cp.heroFootnote || cp.pricingSub}</p>
+          <p className="cta-urgency">{copy.heroFootnote || copy.pricingSub}</p>
         </div>
       </section>
 
@@ -388,33 +388,33 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         className="fixed bottom-3 right-3 z-50 badge-desktop-only rounded-md bg-bg-2 px-2.5 py-1 text-[10px] font-semibold text-white no-underline opacity-85 transition-opacity hover:opacity-100 sm:bottom-4 sm:right-4 sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{ borderRadius: '6px' }}
       >
-        {cp.badgeText}
+        {copy.badgeText}
       </Link>
 
       {/* ── Footer ── */}
       <footer className="border-t border-border px-4 py-5 sm:px-6 sm:py-6">
         <div className="container flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <p className="text-xs text-text-3">
-            {cp.footerLine}
+            {copy.footerLine}
           </p>
           <div className="flex items-center gap-4">
             <Link
               href="/docs"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
-              {cp.footerDocs}
+              {copy.footerDocs}
             </Link>
             <Link
               href="/privacy"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
-              {cp.footerPrivacy}
+              {copy.footerPrivacy}
             </Link>
             <Link
               href="/imprint"
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
-              {cp.footerImprint}
+              {copy.footerImprint}
             </Link>
           </div>
         </div>
@@ -431,20 +431,20 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             applicationCategory: 'DesignApplication',
             operatingSystem: 'Web',
             url: 'https://www.getvariante.com',
-            description: cp.jsonldDescription,
+            description: copy.jsonldDescription,
             offers: [
               {
                 '@type': 'Offer',
-                name: cp.plans.free.label,
+                name: copy.plans.free.label,
                 price: '0',
                 priceCurrency: 'EUR',
               },
               {
                 '@type': 'Offer',
-                name: cp.plans.pro.label,
+                name: copy.plans.pro.label,
                 price: '35',
                 priceCurrency: 'EUR',
-                description: cp.jsonldProDescription,
+                description: copy.jsonldProDescription,
               },
             ],
           }),

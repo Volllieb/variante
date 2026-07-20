@@ -2,8 +2,6 @@
 // ICP: Designers, indie hackers, founders (solopreneurs & small teams).
 // Agent-first: autonomous AI agent analyzes, generates variants, measures & rolls out.
 
-import { techLogoNames } from '@/components/TechLogos'
-
 export type PlanId = 'free' | 'pro' | 'agency'
 
 export interface PlanStructure {
