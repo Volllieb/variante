@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
-  HeartPulse,
-  LogIn,
+  Code,
   Globe,
-  Puzzle,
   Check,
   AlertTriangle,
   X,
@@ -15,14 +13,7 @@ import {
 } from 'lucide-react'
 import type { SetupData } from './page'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
-
-type StepId = 'login' | 'website' | 'plugin'
-
-type StepState = {
-  status: 'ok' | 'loading' | 'err' | 'pending'
-  label: string
-  summary: string
-}
+import { FrameworkExamples } from '../components/FrameworkExamples'
 
 type WebsiteState =
   | { phase: 'input'; error?: string }
@@ -32,38 +23,15 @@ type WebsiteState =
   | { phase: 'verified'; url: string }
 
 export function SetupClient({ data }: { data: SetupData }) {
-  const [expanded, setExpanded] = useState<StepId | null>(null)
-
   // ── Website state ──
   const [urlInput, setUrlInput] = useState('')
   const [website, setWebsite] = useState<WebsiteState>(() => {
     if (data.siteUrl) return { phase: 'verified', url: data.siteUrl }
-    if (data.hasAnyDomain) return { phase: 'input' } // has domain but not verified — let them re-enter
+    if (data.hasAnyDomain) return { phase: 'input' }
     return { phase: 'input' }
   })
   const [snippetCopied, setSnippetCopied] = useState(false)
   const [promptCopied, setPromptCopied] = useState(false)
-  const [tokenCopied, setTokenCopied] = useState(false)
-
-  // ── Derived step states ──
-  const steps: Record<StepId, StepState> = {
-    login: { status: 'ok', label: 'Login', summary: 'You\'re signed in.' },
-    website: website.phase === 'verified'
-      ? { status: 'ok', label: 'Connect Website', summary: `Snippet active on ${website.url}` }
-      : website.phase === 'checking'
-        ? { status: 'loading', label: 'Connect Website', summary: `Checking ${website.url}…` }
-        : website.phase === 'saving'
-          ? { status: 'loading', label: 'Connect Website', summary: 'Saving domain…' }
-          : website.phase === 'not-found'
-            ? { status: 'err', label: 'Connect Website', summary: `Snippet not found on ${website.url}` }
-            : { status: 'pending', label: 'Connect Website', summary: 'Add your website to run tests.' },
-    plugin: data.hasFigmaPlugin
-      ? { status: 'ok', label: 'Figma Plugin Connect', summary: 'Plugin is linked to your account.' }
-      : { status: 'pending', label: 'Figma Plugin Connect', summary: 'Install the Figma plugin and link it.' },
-  }
-
-  const allOk = Object.values(steps).every((s) => s.status === 'ok')
-  const issues = Object.values(steps).filter((s) => s.status === 'err' || s.status === 'pending').length
 
   // ── Normalize URL ──
   const normalize = (raw: string) =>
@@ -99,7 +67,6 @@ export function SetupClient({ data }: { data: SetupData }) {
       return
     }
 
-    // Step 2: snippet check
     setWebsite({ phase: 'checking', url: normalized })
     try {
       const checkRes = await fetch('/api/snippet-check', {
@@ -110,7 +77,6 @@ export function SetupClient({ data }: { data: SetupData }) {
       const json = await checkRes.json()
 
       if (json.detected) {
-        // Verify the domain
         const domainsRes = await fetch('/api/domains')
         const { domains } = await domainsRes.json()
         const domain = (domains || []).find((d: { url: string; id: string }) => d.url === normalized)
@@ -198,32 +164,9 @@ export function SetupClient({ data }: { data: SetupData }) {
     })
   }
 
-  function copyToken() {
-    navigator.clipboard.writeText(data.apiToken).then(() => {
-      setTokenCopied(true)
-      setTimeout(() => setTokenCopied(false), 2000)
-    })
-  }
-
-  const statusIcon = (status: StepState['status']) => {
-    if (status === 'loading') return <Loader2 className="h-4 w-4 animate-spin text-text-3" />
-    if (status === 'ok') return <Check className="h-4 w-4 text-ok" />
-    if (status === 'err') return <X className="h-4 w-4 text-err" />
-    return <div className="h-4 w-4 rounded-full border-2 border-text/10" />
-  }
-
-  const statusClasses = (status: StepState['status']) => {
-    if (status === 'ok') return { bg: 'bg-ok/[0.07]', border: 'border-ok/20' }
-    if (status === 'err') return { bg: 'bg-err/[0.07]', border: 'border-err/20' }
-    if (status === 'loading') return { bg: 'bg-text/[0.03]', border: 'border-text/10' }
-    return { bg: 'bg-transparent', border: 'border-text/10' }
-  }
-
-  const stepIcons: Record<StepId, React.ComponentType<{ className?: string }>> = {
-    login: LogIn,
-    website: Globe,
-    plugin: Puzzle,
-  }
+  const isVerified = website.phase === 'verified'
+  const isChecking = website.phase === 'checking' || website.phase === 'saving'
+  const isNotFound = website.phase === 'not-found'
 
   return (
     <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
@@ -231,360 +174,150 @@ export function SetupClient({ data }: { data: SetupData }) {
         {/* Header */}
         <div>
           <div className="flex items-center gap-2.5">
-            <HeartPulse className="h-4 w-4 text-text-3" />
-            <h1 className="text-[18px] font-semibold text-text">Setup health check</h1>
+            <Code className="h-4 w-4 text-text-3" />
+            <h1 className="text-[18px] font-semibold text-text">Snippet</h1>
           </div>
           <p className="mt-1.5 text-[12px] text-text-3">
-            {allOk
-              ? 'All systems go — your setup is healthy.'
-              : `${issues} step${issues !== 1 ? 's' : ''} remaining. Complete each one in order.`}
+            {isVerified
+              ? 'Your snippet is live — data is flowing.'
+              : 'Add the snippet to your site to start tracking.'}
           </p>
         </div>
 
-        {/* Overall status pill */}
+        {/* Status pill */}
         <div
           className={`flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 text-[12px] font-medium ${
-            allOk ? 'border border-ok/20 bg-ok/[0.06] text-ok' : 'border border-pro/20 bg-pro/[0.06] text-pro'
+            isVerified
+              ? 'border border-ok/20 bg-ok/[0.06] text-ok'
+              : isNotFound
+                ? 'border border-err/20 bg-err/[0.06] text-err'
+                : 'border border-pro/20 bg-pro/[0.06] text-pro'
           }`}
         >
-          {allOk ? <Check className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-          {allOk ? 'Healthy — no issues detected' : `${issues} step${issues !== 1 ? 's' : ''} need${issues === 1 ? 's' : ''} attention`}
+          {isVerified ? <Check className="h-3.5 w-3.5" /> : isNotFound ? <X className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+          {isVerified
+            ? 'Snippet active'
+            : isNotFound
+              ? 'Snippet not found'
+              : 'Not yet connected'}
         </div>
 
-        {/* Step cards */}
-        <div className="space-y-3">
-          {/* Step 1: Login */}
-          <StepCard
-            step={steps.login}
-            icon={LogIn}
-            expanded={expanded === 'login'}
-            onToggle={() => setExpanded(expanded === 'login' ? null : 'login')}
-            statusIcon={statusIcon(steps.login.status)}
-            statusClasses={statusClasses(steps.login.status)}
-            stepNumber={1}
-          >
-            <p className="text-[12px] leading-relaxed text-text-2">
-              You&apos;re signed in and authenticated. Your account is ready — no additional login steps needed.
-            </p>
-          </StepCard>
-
-          {/* Step 2: Connect Website */}
-          <StepCard
-            step={steps.website}
-            icon={Globe}
-            expanded={expanded === 'website'}
-            onToggle={() => setExpanded(expanded === 'website' ? null : 'website')}
-            statusIcon={statusIcon(steps.website.status)}
-            statusClasses={statusClasses(steps.website.status)}
-            stepNumber={2}
-          >
+        {/* Main content */}
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+          {isVerified ? (
+            /* ── Verified ── */
             <div className="space-y-4">
-              {website.phase === 'verified' ? (
-                <>
-                  <p className="text-[12px] leading-relaxed text-text-2">
-                    The snippet is live on <strong className="text-text-2">https://{website.url}</strong>. Data is flowing — visitors and conversions are being tracked.
-                  </p>
-                  <button
-                    onClick={() => recheckDomain(website.url)}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                  >
-                    Re-check snippet
-                  </button>
-                </>
-              ) : website.phase === 'not-found' ? (
-                <>
-                  <div className="flex items-start gap-3 rounded-[8px] border border-pro/20 bg-pro/[0.06] px-3 py-2.5">
-                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pro" />
-                    <p className="text-[12px] leading-relaxed text-pro/70">
-                      Snippet not detected on <strong className="text-text-2">https://{website.url}</strong>.
-                      Add it to your site&apos;s <code className="rounded-[4px] bg-bg-2 px-1 text-[11px]">&lt;head&gt;</code>, then retry.
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Universal snippet</span>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={copySnippet}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                        >
-                          {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
-                          {snippetCopied ? 'Copied!' : 'Copy'}
-                        </button>
-                        <button
-                          onClick={copyPrompt}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                        >
-                          {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
-                          {promptCopied ? 'Copied!' : 'Copy prompt'}
-                        </button>
-                      </div>
-                    </div>
-                    <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[10px] leading-relaxed text-text-3 ring-1 ring-border">
-{SNIPPET_CODE}
-                    </pre>
-                  </div>
-
-                  <FrameworkExamples />
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => recheckDomain(website.url)}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                    >
-                      Re-check snippet
-                    </button>
-                    <button
-                      onClick={() => setWebsite({ phase: 'input' })}
-                      className="cursor-pointer text-[11px] text-text-3 transition-colors hover:text-text-2"
-                    >
-                      Change URL
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="text-[12px] leading-relaxed text-text-2">
-                    Paste this snippet into the <code className="rounded-[5px] bg-bg-2 px-1.5 py-0.5 font-mono text-[11px] text-text-2">&lt;head&gt;</code> of every page you want to test. It&apos;s framework-agnostic — no build step, no npm.
-                  </p>
-
-                  <div className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-1 px-4 py-3">
-                    <Globe className="h-4 w-4 shrink-0 text-text-3" />
-                    <input
-                      type="text"
-                      value={urlInput}
-                      onChange={(e) => {
-                        setUrlInput(e.target.value)
-                        if (website.phase === 'input' && 'error' in website) setWebsite({ phase: 'input' })
-                      }}
-                      onKeyDown={(e) => e.key === 'Enter' && submitDomain()}
-                      placeholder="yoursite.com"
-                      disabled={website.phase === 'saving' || website.phase === 'checking'}
-                      autoFocus
-                      className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 outline-none"
-                    />
-                  </div>
-
-                  {website.phase === 'input' && 'error' in website && website.error && (
-                    <p className="text-[12px] text-err">{website.error}</p>
-                  )}
-
-                  <button
-                    onClick={submitDomain}
-                    disabled={website.phase !== 'input' || !urlInput.trim()}
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-fill-invert py-2.5 text-[14px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
-                  >
-                    {website.phase === 'saving' ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
-                    ) : website.phase === 'checking' ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Checking snippet…</>
-                    ) : (
-                      'Continue'
-                    )}
-                  </button>
-
-                  <p className="text-center text-[11px] text-text-3">
-                    We check if the snippet is installed on your site. You can skip and add it later.
-                  </p>
-                </>
-              )}
+              <p className="text-[12px] leading-relaxed text-text-2">
+                The snippet is live on <strong className="text-text">https://{website.url}</strong>. Data is flowing — visitors and conversions are being tracked.
+              </p>
+              <button
+                onClick={() => recheckDomain(website.url)}
+                className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+              >
+                Re-check snippet
+              </button>
             </div>
-          </StepCard>
-
-          {/* Step 3: Figma Plugin Connect */}
-          <StepCard
-            step={steps.plugin}
-            icon={Puzzle}
-            expanded={expanded === 'plugin'}
-            onToggle={() => setExpanded(expanded === 'plugin' ? null : 'plugin')}
-            statusIcon={statusIcon(steps.plugin.status)}
-            statusClasses={statusClasses(steps.plugin.status)}
-            stepNumber={3}
-          >
+          ) : isNotFound ? (
+            /* ── Not Found ── */
             <div className="space-y-4">
-              {data.hasFigmaPlugin ? (
-                <p className="text-[12px] leading-relaxed text-text-2">
-                  Plugin is linked. Variants created in Figma will appear in your dashboard automatically.
+              <div className="flex items-start gap-3 rounded-[8px] border border-err/20 bg-err/[0.06] px-3 py-2.5">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-err" />
+                <p className="text-[12px] leading-relaxed text-err/80">
+                  Snippet not detected on <strong className="text-text">https://{website.url}</strong>.
+                  Add it to your site&apos;s <code className="rounded-[4px] bg-bg-2 px-1 text-[11px]">&lt;head&gt;</code>, then retry.
                 </p>
-              ) : (
-                <>
-                  <p className="text-[12px] leading-relaxed text-text-2">
-                    The Figma plugin lets you create A/B variants directly from your designs.{' '}
-                    <a
-                      href="https://www.figma.com/community/plugin/1653734891132085565"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold underline transition-colors hover:opacity-80"
-                    >
-                      Install from Figma Community
-                    </a>
-                    , then paste the token below — it links the plugin to your account. No config, no API keys.
-                  </p>
+              </div>
 
-                  <div>
-                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Your plugin token</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 overflow-x-auto truncate rounded-[6px] border border-border bg-black px-3 py-2 font-mono text-[13px] text-text-2">
-                        {data.apiToken || 'No token yet'}
-                      </code>
-                      <button
-                        onClick={copyToken}
-                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-2 text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                      >
-                        {tokenCopied ? <Check className="h-4 w-4 text-ok" /> : <Copy className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    <p className="mt-2 text-[11px] text-text-3">
-                      After pasting the token into the Figma plugin, create a variant and push it here. The plugin status
-                      updates automatically.
-                    </p>
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Universal snippet</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={copySnippet}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                    >
+                      {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
+                      {snippetCopied ? 'Copied!' : 'Copy'}
+                    </button>
+                    <button
+                      onClick={copyPrompt}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                    >
+                      {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
+                      {promptCopied ? 'Copied!' : 'Copy prompt'}
+                    </button>
                   </div>
-                </>
-              )}
+                </div>
+                <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[10px] leading-relaxed text-text-3 ring-1 ring-border">
+{SNIPPET_CODE}
+                </pre>
+              </div>
+
+              <FrameworkExamples />
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => recheckDomain(website.url)}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                >
+                  Re-check snippet
+                </button>
+                <button
+                  onClick={() => setWebsite({ phase: 'input' })}
+                  className="cursor-pointer text-[11px] text-text-3 transition-colors hover:text-text-2"
+                >
+                  Change URL
+                </button>
+              </div>
             </div>
-          </StepCard>
+          ) : (
+            /* ── Input ── */
+            <div className="space-y-4">
+              <p className="text-[12px] leading-relaxed text-text-2">
+                Paste this snippet into the <code className="rounded-[5px] bg-bg-2 px-1.5 py-0.5 font-mono text-[11px] text-text-2">&lt;head&gt;</code> of every page you want to test. It&apos;s framework-agnostic — no build step, no npm.
+              </p>
+
+              <div className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-1 px-4 py-3">
+                <Globe className="h-4 w-4 shrink-0 text-text-3" />
+                <input
+                  type="text"
+                  value={urlInput}
+                  onChange={(e) => {
+                    setUrlInput(e.target.value)
+                    if (website.phase === 'input' && 'error' in website) setWebsite({ phase: 'input' })
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && submitDomain()}
+                  placeholder="yoursite.com"
+                  disabled={isChecking}
+                  autoFocus
+                  className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 outline-none"
+                />
+              </div>
+
+              {website.phase === 'input' && 'error' in website && website.error && (
+                <p className="text-[12px] text-err">{website.error}</p>
+              )}
+
+              <button
+                onClick={submitDomain}
+                disabled={website.phase !== 'input' || !urlInput.trim()}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-fill-invert py-2.5 text-[14px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+              >
+                {isChecking ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Checking…</>
+                ) : (
+                  'Check snippet'
+                )}
+              </button>
+
+              <p className="text-center text-[11px] text-text-3">
+                We check if the snippet is installed on your site. You can skip and add it later.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-/* ── StepCard ── */
-function StepCard({
-  step,
-  expanded,
-  onToggle,
-  icon: Icon,
-  statusIcon,
-  statusClasses,
-  children,
-  stepNumber,
-}: {
-  step: StepState
-  expanded: boolean
-  onToggle: () => void
-  icon: React.ComponentType<{ className?: string }>
-  statusIcon: React.ReactNode
-  statusClasses: { bg: string; border: string }
-  children: React.ReactNode
-  stepNumber?: number
-}) {
-  const summaryColor = step.status === 'ok' ? 'text-text-3' : step.status === 'err' ? 'text-err' : 'text-text-3/70'
-  return (
-    <div className={`overflow-hidden rounded-[10px] border bg-bg-1 ${statusClasses.border}`}>
-      <button
-        onClick={onToggle}
-        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-2"
-      >
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] ${statusClasses.bg}`}>
-          {statusIcon}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {stepNumber && (
-              <span className="text-[10px] font-semibold text-text-3">{stepNumber}</span>
-            )}
-            <p className="truncate text-[13px] font-medium text-text">{step.label}</p>
-          </div>
-          <p className={`mt-0.5 truncate text-[11px] ${summaryColor}`}>
-            {step.summary}
-          </p>
-        </div>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-text-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      {expanded && (
-        <div className="border-t border-border px-4 py-3.5">
-          {children}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ── Framework snippet examples ── */
-function FrameworkExamples() {
-  const examples = [
-    {
-      label: 'Next.js App Router',
-      file: 'app/layout.tsx',
-      code: `// app/layout.tsx
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://www.getvariante.com" crossorigin />
-        <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
-        <script dangerouslySetInnerHTML={{
-          __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
-        }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"></script>
-      </head>
-      <body>{children}</body>
-    </html>
-  )
-}`,
-    },
-    {
-      label: 'Next.js Pages Router',
-      file: 'pages/_document.tsx',
-      code: `// pages/_document.tsx
-import { Html, Head, Main, NextScript } from 'next/document'
-
-export default function Document() {
-  return (
-    <Html>
-      <Head>
-        <link rel="preconnect" href="https://www.getvariante.com" crossorigin />
-        <style id="__ab_hide">{\`html.__ab_pending{opacity:0!important}\`}</style>
-        <script dangerouslySetInnerHTML={{
-          __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
-        }} />
-        <script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"></script>
-      </Head>
-      <body><Main /><NextScript /></body>
-    </Html>
-  )
-}`,
-    },
-    {
-      label: 'Plain HTML',
-      file: '<head>',
-      code: `<!DOCTYPE html>
-<html>
-<head>
-  <link rel="preconnect" href="https://www.getvariante.com" crossorigin>
-  <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
-  <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
-  <script async src="https://www.getvariante.com/ab.js" integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW" crossorigin="anonymous"><\/script>
-</head>
-<body><!-- your content --></body>
-</html>`,
-    },
-  ]
-
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Framework examples</p>
-      {examples.map(({ label, file, code }) => (
-        <details key={label} className="group rounded-[6px] border border-border [&_summary]:list-none">
-          <summary className="flex cursor-pointer select-none items-center justify-between px-3 py-2.5 text-[11px] font-semibold text-text-2 transition-colors hover:text-text">
-            <span>{label}</span>
-            <span className="flex items-center gap-2">
-              <code className="rounded-[5px] bg-bg-2 px-2 py-0.5 font-mono text-[11px] text-text-3">
-                {file}
-              </code>
-              <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
-            </span>
-          </summary>
-          <pre className="overflow-x-auto border-t border-border px-3 py-3 text-[10px] leading-relaxed text-text-3">
-{code}
-          </pre>
-        </details>
-      ))}
-    </div>
-  )
-}

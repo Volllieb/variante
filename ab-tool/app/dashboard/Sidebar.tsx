@@ -11,7 +11,7 @@ import {
   LayoutGrid,
   CreditCard,
   FlaskConical,
-  HeartPulse,
+  Code,
   ChevronDown,
   LogOut,
   User,
@@ -96,11 +96,11 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           active={isInSection('/dashboard/tests')}
         />
 
-        {/* Health */}
+        {/* Snippet */}
         <SidebarLink
           href="/dashboard/health"
-          icon={HeartPulse}
-          label="Health"
+          icon={Code}
+          label="Snippet"
           active={isActive('/dashboard/health')}
         />
 
