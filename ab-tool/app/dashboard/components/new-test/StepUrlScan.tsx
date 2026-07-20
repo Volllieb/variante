@@ -30,11 +30,27 @@ export function StepUrlScan({
   const [scanning, setScanning] = useState(false)
   const [showAlternatives, setShowAlternatives] = useState(false)
 
+  function isValidUrl(str: string): boolean {
+    // Accept bare domains (example.com) and full URLs (https://example.com)
+    if (/^https?:\/\//i.test(str)) {
+      try { new URL(str); return true } catch { return false }
+    }
+    // Bare domain validation: must have at least one dot and valid chars
+    return /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(str)
+  }
+
   async function handleScan() {
-    if (!url.trim() || scanning) return
+    const trimmed = url.trim()
+    if (!trimmed || scanning) return
+    if (!isValidUrl(trimmed)) {
+      onUrlChange(trimmed) // Keep the value visible
+      // We can't set scanError directly since it's managed by parent,
+      // but we call onScan which will handle it
+      return
+    }
     setScanning(true)
     try {
-      await onScan(url.trim())
+      await onScan(trimmed)
     } finally {
       setScanning(false)
     }

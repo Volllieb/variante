@@ -7,7 +7,7 @@
  * Sonst: Quick-Select aus vordefinierten Typen oder Picker auf Live-Site.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   MousePointerClick, FileText, ShoppingCart, Gauge,
   PlusCircle, ExternalLink, Check, Loader2,
@@ -28,16 +28,19 @@ const GOAL_TYPES: Array<{ type: GoalSelection['type']; icon: typeof MousePointer
   { type: 'form_submit', icon: FileText, label: 'Form Submit', desc: 'Track form submissions' },
   { type: 'page_view', icon: Gauge, label: 'Page View', desc: 'Track visits to a specific page' },
   { type: 'purchase', icon: ShoppingCart, label: 'Purchase', desc: 'Track completed purchases' },
+  { type: 'custom', icon: PlusCircle, label: 'Custom', desc: 'Define your own conversion goal' },
 ]
 
 export function StepMetricPicker({
   elementType, elementName, url, selectedGoal, onGoalSelected, onConfirm,
 }: StepMetricPickerProps) {
   const [waitingForPicker, setWaitingForPicker] = useState(false)
+  const autoSelected = useRef(false)
 
-  // Auto-select: if element is a button, pre-select click goal
+  // Auto-select: if element is a button, pre-select click goal (only once)
   useEffect(() => {
-    if (!selectedGoal && elementType === 'button') {
+    if (!selectedGoal && elementType === 'button' && !autoSelected.current) {
+      autoSelected.current = true
       onGoalSelected({
         type: 'click',
         label: `Clicks on "${elementName}"`,
@@ -120,6 +123,28 @@ export function StepMetricPicker({
           )
         })}
       </div>
+
+      {/* Custom goal label input */}
+      {selectedGoal?.type === 'custom' && (
+        <div className="rounded-[8px] border border-border bg-bg-1 p-3">
+          <label className="mb-1.5 block text-[11px] font-medium text-text-2">
+            Conversion description
+          </label>
+          <input
+            type="text"
+            value={selectedGoal.label === 'Custom' ? '' : selectedGoal.label}
+            onChange={(e) => onGoalSelected({
+              type: 'custom',
+              label: e.target.value || 'Custom conversion',
+            })}
+            placeholder="e.g. User clicks 'Buy Now', form submitted, etc."
+            className="w-full rounded-[6px] border border-border bg-bg-0 px-3 py-2 text-[12px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
+          />
+          <p className="mt-1 text-[10px] text-text-3">
+            Describe what counts as a conversion in plain language.
+          </p>
+        </div>
+      )}
 
       {/* Custom selector (for click-type goals) */}
       {selectedGoal?.type === 'click' && (

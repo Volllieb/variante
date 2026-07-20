@@ -187,7 +187,10 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
   // ─── Create Test ───
 
   const handleCreate = useCallback(async (status: 'active' | 'paused') => {
-    if (!state.url || !state.selectedElement || !state.selectedGoal || !state.variantResult) return
+    if (!state.url || !state.selectedElement || !state.selectedGoal || !state.variantResult) {
+      setCreateError('Please complete all steps before creating the test.')
+      return
+    }
     setCreating(true)
     setCreateError('')
 
@@ -198,9 +201,12 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
           ? state.selectedGoal.label
           : state.selectedGoal.type
 
+      // Fallback: use element name as selector if no CSS selector is available
+      const selector = state.selectedElement.selector || state.selectedElement.elementName
+
       const body: Record<string, unknown> = {
         site_url: state.url,
-        selector: state.selectedElement.selector,
+        selector,
         goal,
         goal_selector: state.selectedGoal.selector ?? undefined,
         variant_b_html: state.variantResult?.variant_html ?? undefined,
@@ -335,9 +341,20 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               scanResult={state.scanResult}
               scanError={state.scanError}
               onScan={async (url) => {
+                // Validate URL before scanning
+                if (!url.trim()) {
+                  updateState({ scanError: 'Please enter a URL.' })
+                  return
+                }
+                const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
+                try {
+                  new URL(finalUrl)
+                } catch {
+                  updateState({ scanError: 'Invalid URL. Please enter a valid website address (e.g. example.com).' })
+                  return
+                }
                 updateState({ url, scanError: '', scanResult: null })
                 try {
-                  const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
                   const res = await fetch('/api/test-wizard/scan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -361,9 +378,11 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
               onSelectPrimary={() => {
                 const prim = state.scanResult?.primarySuggestion
                 if (!prim) return
+                // Fallback: use element name as selector if no CSS selector available
+                const selector = prim.selector ?? prim.element
                 updateState({
                   selectedElement: {
-                    selector: prim.selector ?? '',
+                    selector,
                     originalHtml: '',
                     elementType: prim.elementType,
                     elementName: prim.element,
@@ -418,6 +437,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated }: NewTes
                 }
                 const data: VariantResult = await res.json()
                 updateState({ variantResult: data })
+              }}
+              onSkip={() => {
+                // Create a minimal fallback variant so user can proceed
+                updateState({
+                  variantResult: {
+                    variant: state.selectedElement!.elementName,
+                    explanation: 'Original element — no variant generated',
+                  },
+                })
               }}
             />
           )}

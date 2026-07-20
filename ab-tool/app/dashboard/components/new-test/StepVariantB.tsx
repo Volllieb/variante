@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { Sparkles, Loader2, RefreshCw, Eye, Image, AlertTriangle, Wand2 } from 'lucide-react'
+import { Sparkles, Loader2, RefreshCw, Eye, Image, AlertTriangle, Wand2, ArrowRight } from 'lucide-react'
 import type { ElementSelection, VariantResult } from '../NewTestDrawer'
 
 interface StepVariantBProps {
@@ -18,14 +18,16 @@ interface StepVariantBProps {
   url: string
   variantResult: VariantResult | null
   onGenerate: () => Promise<void>
+  onSkip?: () => void
 }
 
-export function StepVariantB({ element, url, variantResult, onGenerate }: StepVariantBProps) {
+export function StepVariantB({ element, url, variantResult, onGenerate, onSkip }: StepVariantBProps) {
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
   const [screenshots, setScreenshots] = useState<{ original?: string; variant?: string }>({})
   const [showVariant, setShowVariant] = useState(false)
   const autoFired = useRef(false)
+  const generateAttempted = useRef(false)
 
   // Auto-generate on mount if no variant yet (only once, even with Strict Mode double-mount)
   useEffect(() => {
@@ -38,6 +40,7 @@ export function StepVariantB({ element, url, variantResult, onGenerate }: StepVa
   async function handleGenerate() {
     setGenerating(true)
     setError('')
+    generateAttempted.current = true
     try {
       await onGenerate()
     } catch (err) {
@@ -88,14 +91,26 @@ export function StepVariantB({ element, url, variantResult, onGenerate }: StepVa
       {error && (
         <div className="flex items-start gap-2 rounded-[7px] border border-err/20 bg-err/5 px-3 py-2.5">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-err/70" />
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-[12px] text-err/70">{error}</p>
-            <button
-              onClick={handleGenerate}
-              className="mt-1 text-[11px] text-accent hover:underline cursor-pointer"
-            >
-              Try again
-            </button>
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="text-[11px] text-accent hover:underline disabled:opacity-50 cursor-pointer"
+              >
+                {generating ? 'Retrying…' : 'Try again'}
+              </button>
+              {onSkip && (
+                <button
+                  onClick={onSkip}
+                  className="flex items-center gap-1 text-[11px] text-text-3 hover:text-text transition-colors cursor-pointer"
+                >
+                  Skip variant generation
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

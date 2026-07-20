@@ -8,7 +8,7 @@
  */
 
 import { Globe, MousePointerClick, Sparkles, Target, Edit3 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
 
 interface StepReviewProps {
@@ -24,10 +24,12 @@ export function StepReview({
   url, element, variantResult, goal, autoName, onAutoNameChange,
 }: StepReviewProps) {
   const displayUrl = /^https?:\/\//i.test(url) ? url.replace(/^https?:\/\//, '') : url
+  const nameInitialized = useRef(false)
 
-  // Set a sensible default name if none yet
+  // Set a sensible default name only once (not on re-renders or re-mounts)
   useEffect(() => {
-    if (!autoName && element.elementName) {
+    if (!autoName && element.elementName && !nameInitialized.current) {
+      nameInitialized.current = true
       onAutoNameChange(`${element.elementName} — AI Variant`)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
