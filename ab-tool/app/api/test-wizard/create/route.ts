@@ -104,10 +104,9 @@ export async function POST(req: Request) {
   // ─── Test erstellen (Name vom Client, kein KI-Auto-Name) ───
   const testName = normalizedName || `Test on ${site_url.replace(/^https?:\/\//, '').slice(0, 60)}`
 
-  const testRow = {
+  const testRow: Record<string, unknown> = {
     user_id: user.id,
     name: testName,
-    auto_generated_name: testName,
     site_url,
     selector: normalizedSelector,
     goal,
@@ -123,7 +122,7 @@ export async function POST(req: Request) {
   const { data: test, error: insertErr } = await supabase
     .from('tests')
     .insert(testRow)
-    .select('id, name, auto_generated_name, status, site_url, snippet_key, created_at')
+    .select('id, name, status, site_url, snippet_key, created_at')
     .single()
 
   if (insertErr || !test) {
