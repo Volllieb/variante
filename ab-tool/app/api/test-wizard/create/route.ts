@@ -127,7 +127,13 @@ export async function POST(req: Request) {
 
   if (insertErr || !test) {
     safeError('test-wizard-create-failed', insertErr)
-    return Response.json({ error: 'Failed to create test' }, { status: 500, headers })
+    const message = insertErr?.message ?? 'Unknown database error'
+    const code = insertErr?.code ?? null
+    return Response.json({
+      error: 'Failed to create test',
+      detail: message,
+      code,
+    }, { status: 500, headers })
   }
 
   // ─── Wizard-Draft löschen ───
