@@ -19,7 +19,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight } from 'lucide-react'
 import { StepUrlAndElement } from './new-test/StepUrlAndElement'
 import { StepVariantB } from './new-test/StepVariantB'
-import { StepMetricPicker } from './new-test/StepMetricPicker'
+import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
 
 
@@ -43,6 +43,7 @@ export interface GoalSelection {
   type: 'click' | 'form_submit' | 'page_view' | 'purchase' | 'custom'
   selector?: string
   label: string
+  targetUrl?: string
 }
 
 interface WizardState {
@@ -134,11 +135,33 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               variant_css: draft.variant_b_css ?? undefined,
               explanation: '',
             } : null,
-            selectedGoal: draft.goal ? {
-              type: (draft.goal?.startsWith('click:') ? 'click' : draft.goal as GoalSelection['type']) || 'click',
-              selector: draft.goal_selector ?? undefined,
-              label: draft.goal ?? '',
-            } : null,
+            selectedGoal: draft.goal ? (() => {
+              // Parse encoded goal formats:
+              //   'click:div.selector' → type=click, selector=div.selector
+              //   'page_view:/thank-you' → type=page_view, targetUrl=/thank-you
+              //   'click' → type=click
+              const goalStr = draft.goal
+              let type: GoalSelection['type'] = 'click'
+              let selector: string | undefined
+              let targetUrl: string | undefined
+              if (goalStr.startsWith('click:')) {
+                type = 'click'
+                selector = goalStr.slice(6)
+              } else if (goalStr.startsWith('page_view:')) {
+                type = 'page_view'
+                targetUrl = goalStr.slice(10)
+              } else if (goalStr.startsWith('form_submit:') || goalStr.startsWith('purchase:') || goalStr.startsWith('custom:')) {
+                type = goalStr.split(':')[0] as GoalSelection['type']
+              } else if (['click', 'form_submit', 'page_view', 'purchase', 'custom'].includes(goalStr)) {
+                type = goalStr as GoalSelection['type']
+              }
+              return {
+                type,
+                selector: selector ?? draft.goal_selector ?? undefined,
+                label: draft.goal ?? '',
+                targetUrl,
+              }
+            })() : null,
             goalConfirmed: !!draft.goal,
             testName: draft.auto_name ?? '',
           }))
@@ -164,7 +187,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             variant_b_html: s.variantResult?.variant_html ?? null,
             variant_b_css: s.variantResult?.variant_css ?? null,
             variant_text: s.variantResult?.variant ?? null,
-            goal: s.selectedGoal ? (s.selectedGoal.type === 'click' && s.selectedGoal.selector ? `click:${s.selectedGoal.selector}` : s.selectedGoal.type) : null,
+            goal: s.selectedGoal ? (s.selectedGoal.type === 'click' && s.selectedGoal.selector ? `click:${s.selectedGoal.selector}` : s.selectedGoal.targetUrl ? `${s.selectedGoal.type}:${s.selectedGoal.targetUrl}` : s.selectedGoal.type) : null,
             goal_selector: s.selectedGoal?.selector ?? null,
             auto_name: s.testName || null,
           }),
@@ -194,9 +217,11 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
     try {
       const goal = state.selectedGoal.type === 'click' && state.selectedGoal.selector
         ? `click:${state.selectedGoal.selector}`
-        : state.selectedGoal.type === 'custom'
-          ? state.selectedGoal.label
-          : state.selectedGoal.type
+        : state.selectedGoal.targetUrl
+          ? `${state.selectedGoal.type}:${state.selectedGoal.targetUrl}`
+          : state.selectedGoal.type === 'custom'
+            ? state.selectedGoal.label
+            : state.selectedGoal.type
 
       // Fallback: use element name as selector if no CSS selector is available
       const selector = state.selectedElement.selector || state.selectedElement.elementName
@@ -360,7 +385,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
           {/* Step 2: Goal/Metric */}
           {state.step === 2 && (
-            <StepMetricPicker
+            <StepGoal
               elementType={state.selectedElement?.elementType ?? 'element'}
               elementName={state.selectedElement?.elementName ?? ''}
               url={state.url}
