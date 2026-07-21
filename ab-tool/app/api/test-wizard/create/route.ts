@@ -104,16 +104,16 @@ export async function POST(req: Request) {
   // ─── Test erstellen (Name vom Client, kein KI-Auto-Name) ───
   const testName = normalizedName || `Test on ${site_url.replace(/^https?:\/\//, '').slice(0, 60)}`
 
+  // ponytail: Nur Spalten inserted, die in der DB existieren.
+  // goal_selector und variant_text wurden nie per Migration angelegt.
   const testRow: Record<string, unknown> = {
     user_id: user.id,
     name: testName,
     site_url,
     selector: normalizedSelector,
     goal,
-    goal_selector: normalizedGoalSelector,
     variant_b_html: normalizedVariantHtml,
     variant_b_css: normalizedVariantCss,
-    variant_text: normalizedVariantText,
     original_html: normalizedOriginalHtml,
     status,
     traffic_split: 50,
