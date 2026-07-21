@@ -8,6 +8,7 @@ import { useTestUpdate } from '@/lib/useRealtime'
 import { Breadcrumbs } from '@/app/components/Breadcrumbs'
 import { Tooltip } from '@/app/components/Tooltip'
 import { useToast } from '@/app/components/Toast'
+import { calcSignificance } from '@/lib/significance'
 import {
   RefreshCw,
   Users,
@@ -21,6 +22,7 @@ import {
   BarChart3,
   Table2,
   TrendingUp,
+  Download,
 } from 'lucide-react'
 import {
   LineChart,
@@ -49,6 +51,35 @@ function formatCreatedAt(iso: string): string {
   if (h > 0) return `${h}h ago`
   if (m > 0) return `${m}m ago`
   return 'just now'
+}
+
+function exportCsv(daily: DailyRow[], testName: string) {
+  const rows = [['Date', 'Visitors A', 'Visitors B', 'Conversions A', 'Conversions B', 'CR A', 'CR B', 'Lift']]
+  for (const d of daily) {
+    const crA = d.visitors_a > 0 ? ((d.conversions_a / d.visitors_a) * 100).toFixed(1) : '—'
+    const crB = d.visitors_b > 0 ? ((d.conversions_b / d.visitors_b) * 100).toFixed(1) : '—'
+    const lift = d.visitors_a > 0 && d.conversions_a > 0 && d.visitors_b > 0
+      ? (((d.conversions_b / d.visitors_b) - (d.conversions_a / d.visitors_a)) / (d.conversions_a / d.visitors_a) * 100).toFixed(1)
+      : '—'
+    rows.push([
+      new Date(d.date).toISOString().slice(0, 10),
+      String(d.visitors_a),
+      String(d.visitors_b),
+      String(d.conversions_a),
+      String(d.conversions_b),
+      crA,
+      crB,
+      lift,
+    ])
+  }
+  const csv = rows.map(r => r.join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_data.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 type DailyRow = {
@@ -416,6 +447,181 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </div>
         ) : null}
 
+        {/* ── Cumulative Conversions over Time ── */}
+        {analytics && analytics.daily.length >= 2 ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Cumulative Conversions
+              </span>
+            </div>
+            <div className="h-[180px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={(() => {
+                    let cumA = 0, cumB = 0
+                    return analytics.daily.map((d) => {
+                      cumA += d.conversions_a
+                      cumB += d.conversions_b
+                      return {
+                        date: new Date(d.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                        A: cumA,
+                        B: cumB,
+                      }
+                    })
+                  })()}
+                  margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+                >
+                  <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={40}
+                  />
+                  <RechartsTooltip
+                    contentStyle={{
+                      background: '#1a1a1a',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      color: '#ededed',
+                    }}
+                    labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="A"
+                    stroke="rgba(255,255,255,0.35)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, fill: 'rgba(255,255,255,0.5)' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="B"
+                    stroke={C.ok}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, fill: C.ok }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: C.ok }} /> Variant B
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.35)' }} /> Variant A
+              </span>
+            </div>
+          </div>
+        ) : analyticsLoaded ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2">
+              <Target className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Cumulative Conversions
+              </span>
+              <span className="ml-auto text-[11px] text-[#ededed]/50">Not enough data yet</span>
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── Significance over Time ── */}
+        {analytics && analytics.daily.length >= 2 ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Significance over Time
+              </span>
+            </div>
+            <div className="h-[180px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={(() => {
+                    let cumVA = 0, cumCA = 0, cumVB = 0, cumCB = 0
+                    return analytics.daily.map((d) => {
+                      cumVA += d.visitors_a; cumCA += d.conversions_a
+                      cumVB += d.visitors_b; cumCB += d.conversions_b
+                      const sig = calcSignificance(cumVA, cumCA, cumVB, cumCB)
+                      return {
+                        date: new Date(d.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                        significance: Math.round(sig * 100),
+                      }
+                    })
+                  })()}
+                  margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+                >
+                  <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={40}
+                  />
+                  <RechartsTooltip
+                    contentStyle={{
+                      background: '#1a1a1a',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      color: '#ededed',
+                    }}
+                    labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}
+                    formatter={(value) => [`${value}%`, 'Confidence']}
+                  />
+                  {/* 95% significance threshold line */}
+                  <Line
+                    type="monotone"
+                    dataKey="significance"
+                    stroke={C.ok}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, fill: C.ok }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: C.ok }} /> Confidence
+              </span>
+              <span className="flex items-center gap-1.5 text-[#ededed]/30">
+                <span className="inline-block h-0.5 w-4 rounded-full border-t border-dashed border-[#ededed]/20" /> 95% threshold
+              </span>
+            </div>
+          </div>
+        ) : analyticsLoaded ? (
+          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                Significance over Time
+              </span>
+              <span className="ml-auto text-[11px] text-[#ededed]/50">Not enough data yet</span>
+            </div>
+          </div>
+        ) : null}
+
         {/* Significance donut */}
         <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
           <div className="flex items-center gap-2 mb-4">
@@ -602,21 +808,29 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </div>
         </div>
 
-        {/* Raw data table (Pro only) */}
-        {pro && analytics && analytics.daily.length > 0 && (
+        {/* Raw data table */}
+        {analytics && analytics.daily.length > 0 && (
           <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-            <button
-              onClick={() => setShowRawData(!showRawData)}
-              className="flex w-full items-center gap-2 cursor-pointer"
-            >
-              <Table2 className="h-3.5 w-3.5 text-[#ededed]/40" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Raw Data
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowRawData(!showRawData)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Table2 className="h-3.5 w-3.5 text-[#ededed]/40" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                  Raw Data
+                </span>
+              </button>
+              <span className="text-[11px] text-[#ededed]/40">
+                · {analytics.daily.length} days
               </span>
-              <span className="ml-auto text-[11px] text-[#ededed]/40">
-                {analytics.daily.length} days
-              </span>
-            </button>
+              <button
+                onClick={() => exportCsv(analytics!.daily, name)}
+                className="ml-auto flex cursor-pointer items-center gap-1 rounded-[6px] border border-white/10 px-2.5 py-1 text-[10px] text-[#ededed]/50 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+              >
+                <Download className="h-3 w-3" /> CSV
+              </button>
+            </div>
             {showRawData && (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-xs">

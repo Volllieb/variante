@@ -203,7 +203,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       <div className="section-divider" />
 
-      {/* ── AI Agent Automation ── */}
+      {/* ── How A/B Testing Works ── */}
       <section className="section">
         <div className="container">
           <span className="section-label">{copy.sectionAgent}</span>

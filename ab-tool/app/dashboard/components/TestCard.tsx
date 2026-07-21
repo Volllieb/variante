@@ -254,8 +254,33 @@ export function TestCard({
         </div>
       </div>
 
+      {/* ── Row 1b: CR + Lift (nur bei aktiven/pausierten Tests mit Daten) ── */}
+      {isLive && totalV > 0 && (
+        <div className="mt-2 flex items-center gap-2 text-[11px]">
+          <span className="text-text-3">
+            A <strong className="text-text-2">{(crA * 100).toFixed(1)}%</strong>
+          </span>
+          <span className="text-text-3">·</span>
+          <span className="text-text-3">
+            B <strong className="text-text-2">{(crB * 100).toFixed(1)}%</strong>
+          </span>
+          {crA > 0 && (() => {
+            const l = ((crB - crA) / crA) * 100
+            if (Math.abs(l) < 0.1) return null
+            return (
+              <>
+                <span className="text-text-3">·</span>
+                <span className={l > 0 ? 'text-ok' : 'text-err'}>
+                  {l > 0 ? '+' : ''}{l.toFixed(1)}%
+                </span>
+              </>
+            )
+          })()}
+        </div>
+      )}
+
       {/* ── Row 2: status pill | health | duration | leader | winner ── */}
-      <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
+      <div className="mt-2 flex items-center gap-1.5 flex-wrap">
         {/* Status pill */}
         <span
           className={[

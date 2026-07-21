@@ -1,6 +1,6 @@
 // Landingpage-Copy — English only (since July 2026).
 // ICP: Designers, indie hackers, founders (solopreneurs & small teams).
-// Agent-first: autonomous AI agent analyzes, generates variants, measures & rolls out.
+// A/B testing made simple — AI-powered under the hood, no dev needed.
 
 export type PlanId = 'free' | 'pro' | 'agency'
 
@@ -86,15 +86,12 @@ export interface LandingCopy {
   sectionWorks: string
   worksLabel: string
 
-  // AI Agent Automation (+ Demo-Animation)
+  // How A/B Testing Works (section)
   sectionAgent: string
   agentH: string
   agentSub: string
-  /** Kicker-Zeile über der Animation, z. B. "Total Control. Minimum Effort." */
   agentMotto: string
-  /** Tagline direkt darunter, z. B. "Pick the one you want. AI does the rest." */
   agentMottoSub: string
-  /** Pill-Text auf jeder der 4 Schritt-Karten — signalisiert manuell ODER automatisch. */
   agentModePill: string
   agentLoop: Tuple4<{ title: string; body: string }>
   agentLoopNote: string
@@ -161,10 +158,10 @@ const copy: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Start free',
 
-  heroPill: 'AI Agents improve your conversion autonomously',
+  heroPill: 'A/B testing — without the dev ticket',
   heroH1: 'CRO best practice. In 5 minutes.',
   heroSub:
-    'Total control, minimum effort. You decide what to optimize — hero, pricing, CTAs. Your AI analyzes, writes variants, measures conversions, and suggests the winner. You choose what goes live.',
+    'Total control, minimum effort. You decide what to optimize — hero, pricing, CTAs. Variante analyzes your page, generates variants, measures conversions, and suggests the winner. You choose what goes live.',
   heroCta: 'See your site transformed',
   heroFootnote: '',
 
@@ -200,27 +197,27 @@ const copy: LandingCopy = {
     { label: 'Live in 5 minutes', text: 'Paste the snippet, the agent starts. No setup, no dev.' },
     { label: '5 KB snippet', text: 'Loads async. Zero performance impact.' },
     { label: 'GDPR-compliant', text: 'EU hosting. No third-country data.' },
-    { label: 'AI agent', text: 'Autonomous. No briefing. No dev ticket.' },
+    { label: 'A/B testing', text: 'No dev ticket. No tracking plan.' },
   ],
 
   sectionWorks: 'Works with your stack',
   worksLabel: 'One snippet — anywhere you can paste a script tag',
 
-  sectionAgent: 'AI agent automation',
+  sectionAgent: 'How A/B testing works',
   agentH: 'Total control. Minimum effort.',
   agentSub:
-    'Classic A/B tools hand you a result and wait for your next idea. The Variante agent runs a loop: analyze, test, ship, start over. You set the goal, it does the laps.',
+    'Classic A/B tools hand you a result and wait for your next idea. Variante runs a continuous loop: analyze, test, ship, start over. You set the goal, it does the laps.',
   agentMotto: 'Total control. Minimum effort.',
-  agentMottoSub: 'Pick the one you want — AI does the rest.',
-  agentModePill: 'You or AI',
+  agentMottoSub: 'Pick the variant you want — ship it.',
+  agentModePill: 'Automated',
   agentLoop: [
     {
       title: 'Analyze the page',
-      body: 'The agent reads your page, finds the weakest conversion points, and ranks them by expected impact.',
+      body: 'Variante reads your page, finds the weakest conversion points, and ranks them by expected impact.',
     },
     {
       title: 'Create a hypothesis',
-      body: 'It drafts a variant and writes it itself — copy, hierarchy, CTAs. All you do is review what ships.',
+      body: 'It drafts a variant — copy, hierarchy, CTAs. All you do is review what ships.',
     },
     {
       title: 'Test it',
@@ -228,10 +225,10 @@ const copy: LandingCopy = {
     },
     {
       title: 'Choose the winner',
-      body: 'The winner goes live automatically. The agent moves straight on to the next hypothesis.',
+      body: 'The winner goes live automatically. Variante moves straight on to the next hypothesis.',
     },
   ],
-  agentLoopNote: 'Every loop improves your site\'s conversion.',
+  agentLoopNote: 'Every test improves your site\'s conversion.',
 
   figmaCommunityTitle: 'Figma Community Plugin',
   figmaCommunityText:
@@ -247,16 +244,16 @@ const copy: LandingCopy = {
   sectionHow: 'How it works',
   steps: [
     {
-      title: 'Your site. Your rules. Your agent.',
-      body: 'Tell the agent which page to optimize. It automatically analyzes structure, conversion paths, and UX — WordPress, Next.js, Shopify, custom, doesn’t matter.',
+      title: 'Your site. Your rules.',
+      body: 'Tell Variante which page to optimize. It automatically analyzes structure, conversion paths, and UX — WordPress, Next.js, Shopify, custom, doesn\'t matter.',
     },
     {
       title: 'Variants generate themselves.',
-      body: 'The agent writes variants based on what it learned — better CTAs, clearer hierarchy, optimized copy. You review what ships. Everything else is automatic.',
+      body: 'Variante writes variants based on what it learned — better CTAs, clearer hierarchy, optimized copy. You review what ships. Everything else is automatic.',
     },
     {
       title: 'Data over gut feel. Days, not weeks.',
-      body: 'One snippet into your site — done. The agent serves variants, tracks conversions, computes significance, and rolls out the winner. Without touching a pipeline.',
+      body: 'One snippet into your site — done. Variante serves variants, tracks conversions, computes significance, and rolls out the winner. Without touching a pipeline.',
     },
   ],
   platformNote: 'One snippet. Works with {platforms} — anywhere you can paste a script tag.',
@@ -272,8 +269,8 @@ const copy: LandingCopy = {
       cta: 'Start free',
       features: [
         { label: '1 active experiment', exclusive: false },
-        { label: 'AI agent analyzes your site', exclusive: false },
-        { label: 'Autonomous variant generation', exclusive: false },
+        { label: 'AI-powered page analysis', exclusive: false },
+        { label: 'Automated variant generation', exclusive: false },
         { label: 'Test full sections — hero, pricing, CTAs', exclusive: false },
         { label: 'Conversion tracking, built in', exclusive: false },
         { label: '“Powered by Variante” badge on your site', exclusive: false },
@@ -316,8 +313,8 @@ const copy: LandingCopy = {
       a: 'No. Under 5 KB, loads async, never blocks rendering. Your Core Web Vitals stay untouched.',
     },
     {
-      q: 'Do I need to tell the agent exactly what to do?',
-      a: 'Just roughly. “Optimize my pricing page” is enough. The agent analyzes independently, writes variants, you review — done. No prompt engineering needed.',
+      q: 'Do I need to tell Variante exactly what to do?',
+      a: 'Just roughly. "Optimize my pricing page" is enough. Variante analyzes independently, writes variants, you review — done. No prompt engineering needed.',
     },
     {
       q: 'Does this work with my stack?',
@@ -325,16 +322,16 @@ const copy: LandingCopy = {
     },
     {
       q: 'How is this different from Optimizely or VWO?',
-      a: 'You’d need a developer and a tracking plan for those. Variante: turn on the agent, review variants, ship the winner. No dev. No enterprise sales call.',
+      a: 'You\'d need a developer and a tracking plan for those. Variante: pick an element, review variants, ship the winner. No dev. No enterprise sales call.',
     },
     {
       q: 'I’m a solo founder — is this worth it?',
-      a: 'Especially then. Your time is too valuable for manual A/B testing. The agent works while you build, sell, or sleep. One experiment can tell you if your pricing page converts 20% better — that’s an afternoon’s ROI.',
+      a: 'Especially then. Your time is too valuable for manual A/B testing. Variante works while you build, sell, or sleep. One experiment can tell you if your pricing page converts 20% better — that\'s an afternoon\'s ROI.',
     },
   ],
 
   closingH: 'Your site can start improving today.',
-  closingSub: 'One snippet, one experiment, no developer. The agent takes it from there.',
+  closingSub: 'One snippet, one experiment, no developer. Variante takes it from there.',
   closingCta: 'Start free',
 
   footerLine: '© 2026 Variante · Made in Bavaria',
@@ -345,18 +342,18 @@ const copy: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'AI agent for A/B testing — for designers, indie hackers & founders. No developer, no pipeline.',
+    'A/B testing for designers, indie hackers & founders. No developer, no pipeline.',
   jsonldProDescription: 'Unlimited experiments, significance analysis, auto-winner detection',
 
-  metaTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
+  metaTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
   metaDescription:
-    'Autonomous AI agent for A/B testing. Analyze your site, generate variants, track conversions — no developer needed. Works with WordPress, Next.js, Shopify.',
-  ogTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
+    'A/B testing made simple. Analyze your page, generate variants, track conversions — no developer needed. Works with WordPress, Next.js, Shopify.',
+  ogTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
   ogDescription:
-    'Your AI agent optimizes your site. Generate variants, run tests, ship winners — autonomously.',
-  twitterTitle: 'AI Agent for A/B Testing — For Designers, Indie Hackers & Founders | Variante',
-  twitterDescription: 'Autonomous AI agent for A/B testing. No developer needed.',
-  ogImageAlt: 'Variante — AI Agent for A/B Testing',
+    'A/B testing made simple. Generate variants, run tests, ship winners — no dev needed.',
+  twitterTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
+  twitterDescription: 'A/B testing made simple. No developer needed.',
+  ogImageAlt: 'Variante — A/B Testing for your site',
 }
 
 export { copy }
