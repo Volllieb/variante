@@ -13,6 +13,8 @@ interface ColorPickerProps {
   value: string
   onChange: (color: string) => void
   label: string
+  originalColor?: string
+  onReset?: () => void
 }
 
 const PRESETS = [
@@ -30,7 +32,7 @@ function isValidHex(hex: string): boolean {
   return /^#[0-9a-fA-F]{6}$/.test(hex)
 }
 
-export function ColorPicker({ value, onChange, label }: ColorPickerProps) {
+export function ColorPicker({ value, onChange, label, originalColor, onReset }: ColorPickerProps) {
   const [inputValue, setInputValue] = useState(value)
   const [showPresets, setShowPresets] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -54,7 +56,19 @@ export function ColorPicker({ value, onChange, label }: ColorPickerProps) {
 
   return (
     <div className="relative" ref={ref}>
-      <label className="mb-1.5 block text-[11px] font-medium text-text-2">{label}</label>
+      <div className="mb-1.5 flex items-center justify-between">
+        <label className="text-[11px] font-medium text-text-2">{label}</label>
+        {originalColor && onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="flex cursor-pointer items-center gap-1 text-[10px] text-text-3 transition-colors hover:text-text"
+            title={`Reset to original (${originalColor})`}
+          >
+            ↺ Reset
+          </button>
+        )}
+      </div>
       <div className="flex items-center gap-2">
         {/* Native Color Input */}
         <input

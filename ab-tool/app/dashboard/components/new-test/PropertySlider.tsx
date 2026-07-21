@@ -32,9 +32,20 @@ export function PropertySlider({
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-medium text-text-2">{label}</label>
-        <span className="text-[11px] font-mono text-text-3">
-          {value}{unit && <span className="text-text-3">{unit}</span>}
-        </span>
+        <div className="flex items-center gap-1">
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => {
+              const v = parseInt(e.target.value, 10)
+              if (!isNaN(v)) onChange(Math.min(max, Math.max(min, v)))
+            }}
+            min={min}
+            max={max}
+            className="w-14 rounded-[4px] border border-border bg-bg-0 px-2 py-0.5 text-[11px] font-mono text-text text-right outline-none focus:border-border-strong"
+          />
+          {unit && <span className="text-[11px] text-text-3">{unit}</span>}
+        </div>
       </div>
       <div className="relative">
         <input
