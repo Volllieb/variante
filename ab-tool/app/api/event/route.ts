@@ -23,9 +23,11 @@ type TestRow = {
 }
 
 export async function POST(req: Request) {
-  // Security: Rate-Limiting — maximal 30 Event-Calls pro Minute pro IP
+  // Security: Rate-Limiting pro IP. Wie bei /api/resolve war 30/min zu eng
+  // fuer geteilte IPs (Plan BUG-01b). Conversions sind zusaetzlich pro Session
+  // dedupliziert (ab.js sendConversion), das Limit ist reiner Missbrauchsschutz.
   const ip = getClientIp(req)
-  if (!loadtestBypass(req) && !await checkRateLimit(`event:${ip}`, 30, 60_000)) {
+  if (!loadtestBypass(req) && !await checkRateLimit(`event:${ip}`, 300, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('POST, OPTIONS') })
   }
 

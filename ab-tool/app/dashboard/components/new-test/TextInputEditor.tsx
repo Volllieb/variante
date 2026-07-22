@@ -93,7 +93,7 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
           <button
             type="button"
             onClick={handleApply}
-            className="cursor-pointer rounded-[6px] bg-accent px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
           >
             Apply
           </button>

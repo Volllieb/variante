@@ -420,7 +420,9 @@
         'background:#111;color:#fff;font:600 11px -apple-system,Segoe UI,sans-serif;' +
         'padding:6px 10px;border-radius:8px;text-decoration:none;' +
         'box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.9'
+      beginApply()
       document.body.appendChild(a)
+      endApply()
     } catch (_) {}
   }
 
@@ -528,6 +530,17 @@
   // -- CSS-Injection: Layout/Reorder-Tests ohne DOM-Mutation.            --
   // -- Kein replaceWith, kein Hydration-Kollateralschaden. Funktioniert  --
   // -- unabhängig vom Element — injected <style> in <head>.              --
+  // Guard gegen selbst verursachte Mutationen: applyDom/applyCss veraendern den
+  // DOM, was den MutationObserver ausloest, der wieder run() aufruft — eine
+  // Endlosschleife aus /api/resolve-Requests (siehe unten, Plan BUG-01).
+  var applying = false
+  function beginApply() { applying = true }
+  function endApply() {
+    // Erst im naechsten Task freigeben: MutationObserver-Callbacks laufen als
+    // Microtask NACH der Mutation, aber vor einem setTimeout(0).
+    setTimeout(function () { applying = false }, 0)
+  }
+
   var injectedStyles = {} // key → style-element, für SPA-Cleanup
   function applyCss(key, css) {
     if (!css) return
@@ -535,11 +548,13 @@
     if (injectedStyles[key]) {
       try { injectedStyles[key].remove() } catch (_) {}
     }
+    beginApply()
     var style = document.createElement('style')
     style.setAttribute('data-ab-css', key)
     style.textContent = css
     document.head.appendChild(style)
     injectedStyles[key] = style
+    endApply()
   }
 
   // --- Variante auf den DOM anwenden -----------------------------------------
@@ -550,6 +565,7 @@
     if (variant !== 'B' || !html) return false
     var el = document.querySelector(selector)
     if (!el) return false
+    beginApply()
     try {
       // Plain-Text (keine HTML-Tags): textContent statt DOM-Tausch.
       // Verhindert, dass z.B. <button> durch "Neuer Text" ersetzt wird.
@@ -573,6 +589,8 @@
       return true
     } catch (_) {
       return false
+    } finally {
+      endApply()
     }
   }
 
@@ -725,9 +743,38 @@
   // idempotent (schlägt still fehl, wenn das Element nicht mehr existiert).
   window.addEventListener('popstate', reobserve)
   if (typeof MutationObserver !== 'undefined') {
+    // ============================================================
+    // Plan BUG-01: Diese Stelle war eine Request-Schleife.
+    //
+    // Vorher rief JEDE DOM-Mutation sofort reobserve() -> run() ->
+    // fetch('/api/resolve'). Auf jeder realen Website mutiert das DOM
+    // permanent (Karussells, Chat-Widgets, Lazy-Loading, React-Re-Renders,
+    // Cookie-Banner). Dazu kam, dass applyDom() selbst mutiert und den
+    // Observer damit erneut ausloeste.
+    //
+    // Folge: hunderte Requests pro Sekunde aus dem Browser jedes Besuchers,
+    // das 30/min-Rate-Limit riss nach ~2 Sekunden -> 429 -> der Test lief fuer
+    // diesen Besucher gar nicht mehr. Plus Vercel-Invocations und
+    // Supabase-Reads auf unsere Rechnung.
+    //
+    // Jetzt: Guard gegen selbst verursachte Mutationen + 500 ms Debounce +
+    // Mindestabstand zwischen zwei Resolve-Runden.
+    // ============================================================
+    var moTimer = null
+    var MO_DEBOUNCE_MS = 500
+    var MO_MIN_INTERVAL_MS = 5000
+    var lastRun = Date.now()
+
     var mo = new MutationObserver(function () {
-      // Nur triggern, wenn active-Tests existieren (sonst kein Grund).
-      if (active.length > 0) reobserve()
+      if (applying) return                 // eigene Mutation
+      if (active.length === 0) return      // nichts anzuwenden
+      if (moTimer) return                  // Debounce laeuft bereits
+      var wait = Math.max(MO_DEBOUNCE_MS, MO_MIN_INTERVAL_MS - (Date.now() - lastRun))
+      moTimer = setTimeout(function () {
+        moTimer = null
+        lastRun = Date.now()
+        reobserve()
+      }, wait)
     })
     if (document.body) {
       mo.observe(document.body, { childList: true, subtree: true })

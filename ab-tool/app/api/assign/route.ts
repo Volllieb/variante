@@ -13,7 +13,7 @@ export async function OPTIONS() {
 export async function GET(req: Request) {
   // Security: Rate-Limiting — maximal 60 Assign-Calls pro Minute pro IP
   const ip = getClientIp(req)
-  if (!await checkRateLimit(`assign:${ip}`, 60, 60_000)) {
+  if (!await checkRateLimit(`assign:${ip}`, 600, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeaders('GET, OPTIONS'), 'Retry-After': '60' } })
   }
 

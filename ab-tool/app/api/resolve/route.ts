@@ -25,11 +25,15 @@ function pathOf(u: string | null | undefined): string {
 }
 
 export async function GET(req: Request) {
-  // Security: Rate-Limiting — maximal 30 Resolve-Calls pro Minute pro IP.
-  // Resolve wird bei jedem Seitenaufruf von ab.js aufgerufen, daher das
-  // gleiche Limit wie /api/event (das ebenfalls pro Seitenaufruf feuert).
+  // Security: Rate-Limiting pro IP.
+  // ponytail: Das Limit lag bei 30/min. Resolve feuert bei JEDEM Seitenaufruf,
+  // und hinter einem Firmen-NAT oder Mobilfunk-CGNAT teilen sich hunderte
+  // Besucher eine IP — die rissen das Limit sofort und sahen dann gar keine
+  // Variante mehr (Plan BUG-01b). Eine IP-Bremse ist fuer diesen Endpunkt das
+  // falsche Werkzeug; die eigentliche Entlastung ist der Edge-Cache
+  // (s-maxage=30, unten). Das Limit bleibt nur als Missbrauchs-Backstop.
   const ip = getClientIp(req)
-  if (!loadtestBypass(req) && !await checkRateLimit(`resolve:${ip}`, 30, 60_000)) {
+  if (!loadtestBypass(req) && !await checkRateLimit(`resolve:${ip}`, 600, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeaders('GET, OPTIONS'), 'Retry-After': '60' } })
   }
 

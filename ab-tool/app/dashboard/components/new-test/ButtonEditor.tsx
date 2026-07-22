@@ -239,7 +239,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
                 onClick={() => handleChange({ borderStyle: bs.value })}
                 className={`flex-1 cursor-pointer rounded-[6px] px-2 py-1.5 text-[11px] font-medium transition-all ${
                   (edits.borderStyle ?? 'solid') === bs.value
-                    ? 'bg-accent/15 text-accent'
+                    ? 'bg-bg-2 text-text'
                     : 'bg-bg-1 text-text-3 hover:text-text'
                 }`}
               >
@@ -267,7 +267,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
             id="hover-enabled"
             checked={edits.hoverEnabled ?? false}
             onChange={(e) => handleChange({ hoverEnabled: e.target.checked })}
-            className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
+            className="h-4 w-4 cursor-pointer rounded border-border accent-[var(--color-text)]"
           />
           <label htmlFor="hover-enabled" className="text-[11px] font-medium text-text-2 cursor-pointer">
             Hover Effect
@@ -298,7 +298,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
                 id="hover-shadow"
                 checked={edits.hoverShadow ?? false}
                 onChange={(e) => handleChange({ hoverShadow: e.target.checked })}
-                className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
+                className="h-4 w-4 cursor-pointer rounded border-border accent-[var(--color-text)]"
               />
               <label htmlFor="hover-shadow" className="text-[11px] font-medium text-text-2 cursor-pointer">
                 Shadow
@@ -329,7 +329,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
           <button
             type="button"
             onClick={handleApply}
-            className="cursor-pointer rounded-[6px] bg-accent px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
           >
             Apply
           </button>

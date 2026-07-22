@@ -1,6 +1,5 @@
 import { supabase } from '@/lib/supabase'
 import { stripe } from '@/lib/stripe'
-import { revalidateTag } from 'next/cache'
 import type Stripe from 'stripe'
 
 // ponytail: Idempotenz via stripe_webhook_events (Event-ID als PK).
@@ -87,28 +86,20 @@ export async function POST(req: Request) {
       }
     }
 
-    // Invalidate cached profile for this user after any plan change
-    // (checkout.session.completed and subscription.* both update profiles.plan)
-    const customerIds = new Set<string>()
-    if (event.type === 'checkout.session.completed') {
-      const s = event.data.object as Stripe.Checkout.Session
-      const cid = typeof s.customer === 'string' ? s.customer : s.customer?.id
-      if (cid) customerIds.add(cid)
-    } else if (event.type.startsWith('customer.subscription')) {
-      const sub = event.data.object as Stripe.Subscription
-      const cid = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id
-      if (cid) customerIds.add(cid)
-    }
-    for (const cid of customerIds) {
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('stripe_customer_id', cid)
-        .maybeSingle()
-      if (prof) {
-        revalidateTag('profile', `user-${prof.user_id}`)
-      }
-    }
+    // ponytail: Hier stand revalidateTag('profile', `user-<id>`).
+    // In Next.js 16 ist der zweite Parameter ein Cache-Life-PROFILNAME, kein
+    // zweiter Tag — 'user-<uuid>' ist kein definiertes Profil. Zudem ruft die
+    // Codebase nirgends cacheTag('profile') auf und nutzt kein 'use cache',
+    // es gab also gar nichts zu invalidieren.
+    //
+    // Der Aufruf stand im try-Block VOR dem Idempotenz-Insert: warf er, griff
+    // der catch, die Route antwortete 500 und stripe_webhook_events bekam nie
+    // einen Eintrag. Stripe wiederholte das Event drei Tage lang und haette den
+    // Endpunkt am Ende deaktiviert (Plan BILL-02).
+    //
+    // Die Profil-Daten werden ohnehin bei jedem Request frisch aus Supabase
+    // gelesen; wird spaeter gecached, gehoert hier ein korrektes
+    // cacheTag()/revalidateTag()-Paar hin.
 
     // Erst nach erfolgreicher Verarbeitung als processed markieren,
     // damit Fehler zu einem Retry führen.

@@ -36,8 +36,8 @@ export function StepReview({
       <div className="rounded-[10px] border border-border bg-bg-1 p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-accent/15">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-bg-2">
+            <Sparkles className="h-3.5 w-3.5 text-text" />
           </div>
           <p className="text-[14px] font-semibold text-text">Test Summary</p>
         </div>

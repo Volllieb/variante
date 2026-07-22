@@ -161,8 +161,8 @@ export function StepUrlAndElement({
 
       {/* Waiting for picker */}
       {waitingForPicker && (
-        <div className="flex items-center gap-2 rounded-[7px] border border-accent/15 bg-accent/5 px-3 py-2.5">
-          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+        <div className="flex items-center gap-2 rounded-[7px] border border-border-strong bg-bg-2 px-3 py-2.5">
+          <Loader2 className="h-4 w-4 animate-spin text-text" />
           <p className="text-[12px] text-text-2">
             Waiting for element selection… Click any element on the opened page.
           </p>
