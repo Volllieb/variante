@@ -15,7 +15,7 @@ export interface PlanStructure {
 export const PLANS: readonly PlanStructure[] = [
   { id: 'free', price: '0 €', perMonth: false, href: '/signup', featured: false },
   { id: 'pro', price: '35 €', perMonth: true, href: '/signup?plan=pro', featured: true },
-  { id: 'agency', price: '99 €', perMonth: true, href: 'mailto:valentin@variante.dev?subject=Agency%20Plan', featured: false },
+  { id: 'agency', price: '99 €', perMonth: true, href: 'mailto:hello@getvariante.com?subject=Agency%20Plan', featured: false },
 ]
 
 type Tuple4<T> = readonly [T, T, T, T]
