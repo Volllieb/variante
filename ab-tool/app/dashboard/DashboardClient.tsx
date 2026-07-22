@@ -31,11 +31,12 @@ import {
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
 
+// ponytail: apiToken/hasFigmaPlugin/email waren tote Props — nie im Body
+// verwendet, aber vom Server in den HTML-Payload serialisiert. Bei apiToken
+// war das ein Secret ohne Grund im Client-Markup (Plan SEC-10/CODE-01).
 export function DashboardClient({
   plan,
-  apiToken,
   tests,
-  hasFigmaPlugin,
   hasVerifiedDomain,
   primaryDomain,
   verifiedAt,
@@ -43,13 +44,10 @@ export function DashboardClient({
   highlightNew,
   upgraded,
   openNewTest,
-  email,
   userId,
 }: {
   plan: string
-  apiToken: string
   tests: TestRow[]
-  hasFigmaPlugin: boolean
   hasVerifiedDomain: boolean
   primaryDomain: string | null
   verifiedAt: string | null
@@ -57,12 +55,10 @@ export function DashboardClient({
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
-  email: string
   userId: string
 }) {
   const router = useRouter()
   const { toast } = useToast()
-  const [busy, setBusy] = useState(false)
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [drawerOpenCount, setDrawerOpenCount] = useState(0)
   const isPro = plan === 'pro' || plan === 'agency'
@@ -93,7 +89,6 @@ export function DashboardClient({
 
   const {
     testList,
-    setTestList,
     query,
     setQuery,
     filter,
@@ -128,24 +123,6 @@ export function DashboardClient({
     })
     return () => subscription.unsubscribe()
   }, [router])
-
-  async function billing(path: 'checkout' | 'portal') {
-    setBusy(true)
-    try {
-      const res = await fetch(`/api/billing/${path}`, { method: 'POST' })
-      if (res.status === 401) {
-        router.push('/login')
-        return
-      }
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else toast('error', data.error || 'Something went wrong. Please try again.')
-    } catch {
-      toast('error', 'Connection failed. Check your internet and try again.')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   /* ── Aggregate stats (scoped) ── */
   const activeTests = scopedTests.filter((t) => t.status === 'active').length
