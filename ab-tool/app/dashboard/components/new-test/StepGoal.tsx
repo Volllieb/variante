@@ -3,17 +3,13 @@
 /**
  * StepGoal — Step 2: Conversion-Ziel wählen.
  *
- * Redesign mit klarer Hierarchie:
- * - Primäre Goals (Click, Page View) als Radio-Cards
- * - Advanced Goals (Form Submit, Purchase, Custom) im Accordion
- * - Preselect "Click on element" bei Button-Elementen
- * - Vorschau nach Element-Pick
+ * Click-only: User pickt das Element auf der Live-Site, das für
+ * die Conversion geklickt werden muss. Keine alternativen Goal-Typen mehr.
  */
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  MousePointerClick, FileText, ShoppingCart, Gauge,
-  PlusCircle, ExternalLink, Check, Loader2, ChevronDown,
+  MousePointerClick, ExternalLink, Check, Loader2,
 } from 'lucide-react'
 import type { GoalSelection } from '../NewTestDrawer'
 
@@ -38,13 +34,6 @@ interface GoalOption {
 
 const PRIMARY_GOALS: GoalOption[] = [
   { type: 'click', icon: MousePointerClick, label: 'Click on element', desc: 'Pick the element users click to convert', emoji: '🎯' },
-  { type: 'page_view', icon: Gauge, label: 'Visit a page', desc: 'Users reach a specific URL after converting', emoji: '📄' },
-]
-
-const ADVANCED_GOALS: GoalOption[] = [
-  { type: 'form_submit', icon: FileText, label: 'Form Submit', desc: 'Track form submissions', emoji: '📝' },
-  { type: 'purchase', icon: ShoppingCart, label: 'Purchase / Checkout', desc: 'Track completed purchases', emoji: '🛒' },
-  { type: 'custom', icon: PlusCircle, label: 'Custom event', desc: 'Define your own conversion goal', emoji: '✚' },
 ]
 
 export function StepGoal({
@@ -52,10 +41,7 @@ export function StepGoal({
 }: StepGoalProps) {
   const [waitingForPicker, setWaitingForPicker] = useState(false)
   const [pickerBlocked, setPickerBlocked] = useState(false)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [pickedElement, setPickedElement] = useState<{ selector: string; text: string } | null>(null)
-  const [targetUrl, setTargetUrl] = useState('')
-  const [customLabel, setCustomLabel] = useState('')
   const autoSelected = useRef(false)
   const autoOpenedPicker = useRef(false)
   const pickerTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -135,62 +121,11 @@ export function StepGoal({
     }, 30000)
   }
 
-  function handleTypeSelect(type: GoalType) {
-    if (type === 'click') {
-      onGoalSelected({
-        type: 'click',
-        label: elementType === 'button' ? `Clicks on "${elementName}"` : 'Clicks on element',
-      })
-    } else if (type === 'page_view') {
-      onGoalSelected({
-        type: 'page_view',
-        label: targetUrl ? `Visits ${targetUrl}` : 'Page view',
-        targetUrl: targetUrl || undefined,
-      })
-    } else if (type === 'custom') {
-      onGoalSelected({
-        type: 'custom',
-        label: customLabel || 'Custom conversion',
-      })
-    } else {
-      onGoalSelected({
-        type,
-        label: ADVANCED_GOALS.find(g => g.type === type)?.label ?? type,
-      })
-    }
-  }
-
-  function handleTargetUrlChange(val: string) {
-    // Strip protocol/domain if user pastes an absolute URL
-    let cleaned = val.trim()
-    if (/^https?:\/\//i.test(cleaned)) {
-      try {
-        const parsed = new URL(cleaned)
-        cleaned = parsed.pathname + parsed.search + parsed.hash
-      } catch { /* keep as-is */ }
-    }
-    // Ensure it starts with /
-    if (cleaned && !cleaned.startsWith('/')) {
-      cleaned = '/' + cleaned
-    }
-    setTargetUrl(cleaned)
-    if (selectedType === 'page_view') {
-      onGoalSelected({
-        type: 'page_view',
-        label: cleaned ? `Visits ${cleaned}` : 'Page view',
-        targetUrl: cleaned || undefined,
-      })
-    }
-  }
-
-  function handleCustomLabelChange(val: string) {
-    setCustomLabel(val)
-    if (selectedType === 'custom') {
-      onGoalSelected({
-        type: 'custom',
-        label: val || 'Custom conversion',
-      })
-    }
+  function handleTypeSelect(_type: GoalType) {
+    onGoalSelected({
+      type: 'click',
+      label: elementType === 'button' ? `Clicks on "${elementName}"` : 'Clicks on element',
+    })
   }
 
   function handleChangePicker() {
@@ -201,8 +136,7 @@ export function StepGoal({
 
   const isConfirmDisabled = (() => {
     if (!selectedType) return true
-    if (selectedType === 'custom' && (!customLabel || customLabel === 'Custom conversion')) return true
-    if (selectedType === 'click' && !pickedElement && !selectedGoal?.selector) return true
+    if (!pickedElement && !selectedGoal?.selector) return true
     return false
   })()
 
@@ -299,86 +233,9 @@ export function StepGoal({
                   )}
                 </div>
               )}
-
-              {/* Page View: URL input */}
-              {isSelected && g.type === 'page_view' && (
-                <div className="mt-2 ml-8 rounded-[8px] border border-border bg-bg-0 p-3">
-                  <label className="mb-1.5 block text-[11px] font-medium text-text-2">
-                    Target URL
-                  </label>
-                  <input
-                    type="text"
-                    value={targetUrl || selectedGoal?.targetUrl || ''}
-                    onChange={(e) => handleTargetUrlChange(e.target.value)}
-                    placeholder="/thank-you"
-                    className="w-full rounded-[6px] border border-border bg-bg-1 px-3 py-2 text-[12px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
-                  />
-                  <p className="mt-1 text-[10px] text-text-3">
-                    Relative to your site, e.g. /thank-you
-                  </p>
-                </div>
-              )}
             </div>
           )
         })}
-      </div>
-
-      {/* Advanced Accordion */}
-      <div className="rounded-[10px] border border-border overflow-hidden">
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-bg-1"
-        >
-          <span className="text-[12px] font-medium text-text-2">Advanced</span>
-          <ChevronDown className={`h-4 w-4 text-text-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-        </button>
-
-        {showAdvanced && (
-          <div className="border-t border-border px-4 py-3 space-y-2">
-            {ADVANCED_GOALS.map((g) => {
-              const isSelected = selectedType === g.type
-              const Icon = g.icon
-              return (
-                <div key={g.type}>
-                  <button
-                    onClick={() => handleTypeSelect(g.type)}
-                    className={`flex w-full cursor-pointer items-start gap-3 rounded-[8px] px-3 py-2.5 text-left transition-all ${
-                      isSelected
-                        ? 'border border-accent/30 bg-accent/5 ring-1 ring-accent/20'
-                        : 'border border-transparent hover:bg-bg-1'
-                    }`}
-                  >
-                    <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                      isSelected ? 'border-accent bg-accent' : 'border-border'
-                    }`}>
-                      {isSelected && <Check className="h-2.5 w-2.5 text-black" />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px]">{g.emoji}</span>
-                        <p className="text-[12px] font-medium text-text">{g.label}</p>
-                      </div>
-                      <p className="mt-0.5 text-[10px] text-text-3">{g.desc}</p>
-                    </div>
-                  </button>
-
-                  {/* Custom: text input */}
-                  {isSelected && g.type === 'custom' && (
-                    <div className="mt-2 ml-7">
-                      <input
-                        type="text"
-                        value={customLabel || (selectedGoal?.label && selectedGoal.label !== 'Custom event' ? selectedGoal.label : '')}
-                        onChange={(e) => handleCustomLabelChange(e.target.value)}
-                        placeholder="Describe your goal..."
-                        className="w-full rounded-[6px] border border-border bg-bg-1 px-3 py-2 text-[12px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
-                      />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
 
       {/* Confirm button */}

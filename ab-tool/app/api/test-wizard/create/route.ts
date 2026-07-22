@@ -71,6 +71,14 @@ export async function POST(req: Request) {
   if (goal.length > 256) return Response.json({ error: 'goal too long' }, { status: 400, headers })
   if (goal_selector && goal_selector.length > 512) return Response.json({ error: 'goal_selector too long' }, { status: 400, headers })
 
+  // Validate: click-goals must have a selector.
+  // "click" alone is not a valid CSS selector → ab.js would throw SyntaxError
+  // and 0 conversions would be tracked. Requires either click:<selector> format
+  // or a separate goal_selector field.
+  if (goal === 'click' || goal === 'click:') {
+    return Response.json({ error: 'Click goal requires a CSS selector (e.g. click:#my-button). Pick a goal element in Step 2.' }, { status: 400, headers })
+  }
+
   // Normalize: empty string → null for optional fields
   const normalizedSelector = selector?.trim() || null
   const normalizedGoalSelector = goal_selector?.trim() || null
@@ -84,6 +92,9 @@ export async function POST(req: Request) {
   if (normalizedSelector && normalizedSelector.length > 512) {
     return Response.json({ error: 'selector too long' }, { status: 400, headers })
   }
+
+  // Normalize site_url: prepend https:// if no protocol present (Bug 4)
+  const normalizedSiteUrl = /^https?:\/\//i.test(site_url) ? site_url : `https://${site_url}`
 
   // ─── Plan-Limit: Active Tests (Free = 1) ───
   // ponytail: Drafts sind immer kostenlos — kein Limit-Check nötig.
@@ -110,14 +121,14 @@ export async function POST(req: Request) {
   }
 
   // ─── Test erstellen (Name vom Client, kein KI-Auto-Name) ───
-  const testName = normalizedName || `Test on ${site_url.replace(/^https?:\/\//, '').slice(0, 60)}`
+  const testName = normalizedName || `Test on ${normalizedSiteUrl.replace(/^https?:\/\//, '').slice(0, 60)}`
 
   // ponytail: Nur Spalten inserted, die in der DB existieren.
   // goal_selector und variant_text wurden nie per Migration angelegt.
   const testRow: Record<string, unknown> = {
     user_id: user.id,
     name: testName,
-    site_url,
+    site_url: normalizedSiteUrl,
     selector: normalizedSelector,
     goal,
     variant_b_html: normalizedVariantHtml,

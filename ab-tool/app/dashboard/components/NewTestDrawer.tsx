@@ -40,10 +40,9 @@ export interface VariantResult {
 }
 
 export interface GoalSelection {
-  type: 'click' | 'form_submit' | 'page_view' | 'purchase' | 'custom'
+  type: 'click'
   selector?: string
   label: string
-  targetUrl?: string
 }
 
 interface WizardState {
@@ -76,7 +75,7 @@ interface NewTestDrawerProps {
   isOpen: boolean
   onClose: () => void
   userId: string
-  onTestCreated: () => void
+  onTestCreated: (createdTest: { id: string; name: string; site_url: string; status: string }) => void
   verifiedDomains: { url: string; verifiedAt: string | null }[]
 }
 
@@ -138,28 +137,23 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             selectedGoal: draft.goal ? (() => {
               // Parse encoded goal formats:
               //   'click:div.selector' → type=click, selector=div.selector
-              //   'page_view:/thank-you' → type=page_view, targetUrl=/thank-you
-              //   'click' → type=click
+              // Non-click goals from old drafts are ignored (click-only since 07/2026)
               const goalStr = draft.goal
-              let type: GoalSelection['type'] = 'click'
               let selector: string | undefined
-              let targetUrl: string | undefined
               if (goalStr.startsWith('click:')) {
-                type = 'click'
                 selector = goalStr.slice(6)
-              } else if (goalStr.startsWith('page_view:')) {
-                type = 'page_view'
-                targetUrl = goalStr.slice(10)
-              } else if (goalStr.startsWith('form_submit:') || goalStr.startsWith('purchase:') || goalStr.startsWith('custom:')) {
-                type = goalStr.split(':')[0] as GoalSelection['type']
-              } else if (['click', 'form_submit', 'page_view', 'purchase', 'custom'].includes(goalStr)) {
-                type = goalStr as GoalSelection['type']
+              } else if (!['click', 'form_submit', 'page_view', 'purchase', 'custom'].includes(goalStr) && !goalStr.includes(':')) {
+                // Unknown format — ignore
+                return null
+              }
+              // For non-click legacy goals, treat as no goal (user must re-select)
+              if (!goalStr.startsWith('click:') && goalStr !== 'click') {
+                return null
               }
               return {
-                type,
+                type: 'click' as const,
                 selector: selector ?? draft.goal_selector ?? undefined,
                 label: draft.goal ?? '',
-                targetUrl,
               }
             })() : null,
             goalConfirmed: !!draft.goal,
@@ -187,7 +181,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             variant_b_html: s.variantResult?.variant_html ?? null,
             variant_b_css: s.variantResult?.variant_css ?? null,
             variant_text: s.variantResult?.variant ?? null,
-            goal: s.selectedGoal ? (s.selectedGoal.type === 'click' && s.selectedGoal.selector ? `click:${s.selectedGoal.selector}` : s.selectedGoal.targetUrl ? `${s.selectedGoal.type}:${s.selectedGoal.targetUrl}` : s.selectedGoal.type) : null,
+            goal: s.selectedGoal ? (s.selectedGoal.selector ? `click:${s.selectedGoal.selector}` : 'click') : null,
             goal_selector: s.selectedGoal?.selector ?? null,
             auto_name: s.testName || null,
           }),
@@ -215,16 +209,17 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
     setCreateError('')
 
     try {
-      const goal = state.selectedGoal.type === 'click' && state.selectedGoal.selector
+      const goal = state.selectedGoal.selector
         ? `click:${state.selectedGoal.selector}`
-        : state.selectedGoal.targetUrl
-          ? `${state.selectedGoal.type}:${state.selectedGoal.targetUrl}`
-          : state.selectedGoal.type === 'custom'
-            ? state.selectedGoal.label
-            : state.selectedGoal.type
+        : 'click'
 
-      // Fallback: use element name as selector if no CSS selector is available
-      const selector = state.selectedElement.selector || state.selectedElement.elementName
+      // Bug 3: selector must be a valid CSS selector, not element name
+      if (!state.selectedElement.selector) {
+        setCreateError('No CSS selector — please re-select the element in Step 1.')
+        setCreating(false)
+        return
+      }
+      const selector = state.selectedElement.selector
 
       const body: Record<string, unknown> = {
         site_url: state.url,
@@ -253,7 +248,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
       const { test } = await res.json()
       setCreatedTestId(test.id)
-      onTestCreated()
+      onTestCreated({ id: test.id, name: test.name, site_url: test.site_url, status: test.status })
       // Keep drawer open briefly to show success, then close
       setTimeout(() => {
         if (mountedRef.current) {
