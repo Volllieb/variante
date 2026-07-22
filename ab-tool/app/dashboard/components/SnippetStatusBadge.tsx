@@ -189,7 +189,6 @@ function SnippetBanner({
 }) {
   const [urlInput, setUrlInput] = useState('')
   const [snippetCopied, setSnippetCopied] = useState(false)
-  const [promptCopied, setPromptCopied] = useState(false)
 
   const normalize = (raw: string) =>
     raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
@@ -297,78 +296,6 @@ function SnippetBanner({
     })
   }
 
-  const [promptMode, setPromptMode] = useState<'dev' | 'guide'>('dev')
-
-  function copyPrompt(mode: 'dev' | 'guide') {
-    const url = state.phase === 'not-found' || state.phase === 'checking' ? state.url : urlInput || '(your site URL)'
-
-    if (mode === 'guide') {
-      const guide = [
-        `How to add the variante A/B testing snippet to https://${url}`,
-        '',
-        '1. Open your website project in your code editor',
-        '2. Find the file that contains the <head> tag:',
-        '   - Next.js: app/layout.tsx or pages/_document.tsx',
-        '   - Plain HTML: index.html or the main template file',
-        '   - WordPress: header.php (via Appearance → Theme File Editor)',
-        '   - Shopify: theme.liquid (via Online Store → Themes → Edit Code)',
-        '   - Webflow: Site Settings → Custom Code → Head Code',
-        '   - Squarespace: Settings → Advanced → Code Injection → Header',
-        '3. Copy this snippet and paste it inside <head>:',
-        '```html',
-        SNIPPET_CODE,
-        '```',
-        '4. Save the file and publish/deploy your site',
-        '5. Come back here and click "Re-check" to confirm it\'s live',
-        '',
-        'That\'s it! No build step, no npm install needed.',
-      ].join('\n')
-      navigator.clipboard.writeText(guide).then(() => {
-        setPromptCopied(true)
-        setTimeout(() => setPromptCopied(false), 2000)
-      })
-      return
-    }
-
-    const prompt = [
-      `Add the variante A/B testing snippet below to https://${url}.`,
-      '',
-      '## 1. Check if already installed',
-      'Search the codebase for `id="__ab_hide"` or `ab.js`. If found, confirm the snippet is already present and skip the rest.',
-      '',
-      '## 2. Where to insert',
-      'Hardcode the snippet directly into the `<head>` at source level — before all stylesheets, font loaders, and analytics. Never inject via Google Tag Manager or behind a cookie consent banner.',
-      '',
-      '## 3. Detect framework and insert',
-      '- **Next.js**: `app/layout.tsx` or `pages/_document.tsx` (inside `<Head>`)',
-      '- **Nuxt**: `nuxt.config.ts` → `app.head.script`',
-      '- **Astro**: base layout in `src/layouts/`',
-      '- **WordPress**: `header.php` or via `wp_head` hook in `functions.php`',
-      '- **Shopify**: `theme.liquid`, inside `<head>`',
-      '- **Webflow**: Site settings → Custom Code → Head Code',
-      '- **Squarespace**: Settings → Advanced → Code Injection → Header',
-      '- **Wix**: Settings → Custom Code → Head (load on each page)',
-      '- **Static HTML / no framework**: the root file(s) with `<head>`',
-      '- **Unknown or no shared layout**: tell me what you detected and ask where to place the snippet.',
-      '',
-      '## 4. The snippet (do not modify)',
-      '```html',
-      SNIPPET_CODE,
-      '```',
-      '',
-      '## 5. Verify',
-      'Check the live page source (view-source:) — the snippet must appear in the rendered `<head>`. Purge CDN caches (Cloudflare, Vercel, etc.) if the site uses one.',
-      '',
-      '## 6. Your response',
-      'When the snippet is inserted, respond ONLY with this short confirmation — no analysis, no caveats:',
-      `✅ variante snippet added to https://${url}. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard`,
-    ].join('\n')
-    navigator.clipboard.writeText(prompt).then(() => {
-      setPromptCopied(true)
-      setTimeout(() => setPromptCopied(false), 2000)
-    })
-  }
-
   // ── Input state ──
   if (state.phase === 'input' || state.phase === 'saving' || state.phase === 'checking') {
     return (
@@ -426,29 +353,9 @@ function SnippetBanner({
                 {snippetCopied ? <Check className="h-3 w-3 text-ok" /> : <Copy className="h-3 w-3" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => copyPrompt(promptMode)}
-                  className="inline-flex cursor-pointer items-center gap-1 text-text-3 transition-colors hover:text-text"
-                >
-                  {promptCopied ? <Check className="h-3 w-3 text-ok" /> : <Copy className="h-3 w-3" />}
-                  {promptCopied ? 'Copied!' : promptMode === 'dev' ? 'Copy prompt' : 'Quick guide'}
-                </button>
-                <div className="absolute left-0 top-full z-10 mt-1 flex rounded-[6px] border border-border bg-bg-1 shadow-lg">
-                  <button
-                    onClick={() => { setPromptMode('dev'); copyPrompt('dev') }}
-                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'dev' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
-                  >
-                    For developers
-                  </button>
-                  <button
-                    onClick={() => { setPromptMode('guide'); copyPrompt('guide') }}
-                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'guide' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
-                  >
-                    Quick guide
-                  </button>
-                </div>
-              </div>
+              <a href="/dashboard/health" className="inline-flex cursor-pointer items-center gap-1 text-text-3 transition-colors hover:text-text">
+                Setup Guide →
+              </a>
             </div>
           </div>
         </div>
@@ -491,29 +398,12 @@ function SnippetBanner({
                 {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => copyPrompt(promptMode)}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                >
-                  {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
-                  {promptCopied ? 'Copied!' : promptMode === 'dev' ? 'Copy prompt' : 'Quick guide'}
-                </button>
-                <div className="absolute left-0 top-full z-10 mt-1 flex rounded-[6px] border border-border bg-bg-1 shadow-lg">
-                  <button
-                    onClick={() => { setPromptMode('dev'); copyPrompt('dev') }}
-                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'dev' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
-                  >
-                    For developers
-                  </button>
-                  <button
-                    onClick={() => { setPromptMode('guide'); copyPrompt('guide') }}
-                    className={`whitespace-nowrap px-3 py-1.5 text-[11px] transition-colors cursor-pointer ${promptMode === 'guide' ? 'font-semibold text-text' : 'text-text-3 hover:text-text'}`}
-                  >
-                    Quick guide
-                  </button>
-                </div>
-              </div>
+              <a
+                href="/dashboard/health"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+              >
+                Setup Guide →
+              </a>
               <button
                 onClick={() => recheckDomain(state.url)}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
@@ -532,7 +422,7 @@ function SnippetBanner({
 
             <div className="pt-1">
               <a
-                href="/dashboard/account"
+                href="/dashboard/health"
                 className="inline-flex items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text"
               >
                 Need help? See setup guide →

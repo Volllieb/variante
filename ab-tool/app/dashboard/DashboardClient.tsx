@@ -236,7 +236,6 @@ export function DashboardClient({
       </div>
 
       {/* Overview cards */}
-      {scopedTests.length > 0 && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <OverviewCard
             icon={FlaskConical}
@@ -267,7 +266,7 @@ export function DashboardClient({
             tone={avgUplift !== null && avgUplift > 0 ? 'ok' : avgUplift !== null && avgUplift < 0 ? 'err' : undefined}
           />
         </div>
-      )}
+
 
       {/* Health warnings */}
       {hasHealthWarnings && (

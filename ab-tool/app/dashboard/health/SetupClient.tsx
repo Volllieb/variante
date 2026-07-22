@@ -42,7 +42,6 @@ export function SetupClient({ data }: { data: SetupData }) {
     return { phase: 'input' }
   })
   const [snippetCopied, setSnippetCopied] = useState(false)
-  const [promptCopied, setPromptCopied] = useState(false)
   const [tokenCopied, setTokenCopied] = useState(false)
 
   // ── Derived step states ──
@@ -154,47 +153,6 @@ export function SetupClient({ data }: { data: SetupData }) {
     navigator.clipboard.writeText(SNIPPET_CODE).then(() => {
       setSnippetCopied(true)
       setTimeout(() => setSnippetCopied(false), 2000)
-    })
-  }
-
-  function copyPrompt() {
-    const url = website.phase === 'not-found' || website.phase === 'checking' ? website.url : urlInput || '(your site URL)'
-    const prompt = [
-      `Add the variante A/B testing snippet below to https://${url}.`,
-      '',
-      '## 1. Check if already installed',
-      'Search the codebase for `id="__ab_hide"` or `ab.js`. If found, confirm the snippet is already present and skip the rest.',
-      '',
-      '## 2. Where to insert',
-      'Hardcode the snippet directly into the `<head>` at source level — before all stylesheets, font loaders, and analytics. Never inject via Google Tag Manager or behind a cookie consent banner.',
-      '',
-      '## 3. Detect framework and insert',
-      '- **Next.js**: `app/layout.tsx` or `pages/_document.tsx` (inside `<Head>`)',
-      '- **Nuxt**: `nuxt.config.ts` → `app.head.script`',
-      '- **Astro**: base layout in `src/layouts/`',
-      '- **WordPress**: `header.php` or via `wp_head` hook in `functions.php`',
-      '- **Shopify**: `theme.liquid`, inside `<head>`',
-      '- **Webflow**: Site settings → Custom Code → Head Code',
-      '- **Squarespace**: Settings → Advanced → Code Injection → Header',
-      '- **Wix**: Settings → Custom Code → Head (load on each page)',
-      '- **Static HTML / no framework**: the root file(s) with `<head>`',
-      '- **Unknown or no shared layout**: tell me what you detected and ask where to place the snippet.',
-      '',
-      '## 4. The snippet (do not modify)',
-      '```html',
-      SNIPPET_CODE,
-      '```',
-      '',
-      '## 5. Verify',
-      'Check the live page source (view-source:) — the snippet must appear in the rendered `<head>`. Purge CDN caches (Cloudflare, Vercel, etc.) if the site uses one.',
-      '',
-      '## 6. Your response',
-      'When the snippet is inserted, respond ONLY with this short confirmation — no analysis, no caveats:',
-      `✅ variante snippet added to https://${url}. Open the site and refresh — your variant should be live. Dashboard: https://www.getvariante.com/dashboard`,
-    ].join('\n')
-    navigator.clipboard.writeText(prompt).then(() => {
-      setPromptCopied(true)
-      setTimeout(() => setPromptCopied(false), 2000)
     })
   }
 
@@ -311,13 +269,6 @@ export function SetupClient({ data }: { data: SetupData }) {
                         >
                           {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                           {snippetCopied ? 'Copied!' : 'Copy'}
-                        </button>
-                        <button
-                          onClick={copyPrompt}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-2.5 py-1 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
-                        >
-                          {promptCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
-                          {promptCopied ? 'Copied!' : 'Copy prompt'}
                         </button>
                       </div>
                     </div>
