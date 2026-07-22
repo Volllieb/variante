@@ -49,6 +49,7 @@ export function TestsClient({
     setFilter,
     filteredTests,
     handleDeleteTest,
+    addTest,
   } = useTestList({ initial: tests })
 
   // Sync when server re-renders with fresh data
@@ -92,9 +93,20 @@ export function TestsClient({
         isOpen={newTestOpen}
         onClose={() => setNewTestOpen(false)}
         userId={userId}
-        onTestCreated={() => {
+        onTestCreated={(createdTest) => {
+          addTest({
+            id: createdTest.id,
+            name: createdTest.name,
+            site_url: createdTest.site_url,
+            status: createdTest.status,
+            visitors_a: 0,
+            visitors_b: 0,
+            conversions_a: 0,
+            conversions_b: 0,
+            winner: null,
+            created_at: new Date().toISOString(),
+          })
           setNewTestOpen(false)
-          router.refresh()
         }}
         verifiedDomains={verifiedDomains}
       />

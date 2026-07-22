@@ -383,18 +383,3 @@ export function TestCard({
   )
 }
 
-export function StatusDot({ status, winner }: { status: string; winner?: string | null }) {
-  if (winner === 'B' && status === 'done') {
-    return <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-ok" title="Winner" />
-  }
-  return (
-    <span
-      className={[
-        'inline-block h-2 w-2 shrink-0 rounded-full',
-        status === 'active' ? 'bg-ok' :
-        status === 'paused' ? 'bg-pro' : 'bg-text-3',
-      ].join(' ')}
-      title={status}
-    />
-  )
-}

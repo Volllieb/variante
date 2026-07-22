@@ -11,6 +11,7 @@ import { NewTestDrawer } from './components/NewTestDrawer'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
+import { AgentPanel } from './components/AgentPanel'
 import {
   FilterDropdown,
 } from './components/FilterDropdown'
@@ -374,6 +375,16 @@ export function DashboardClient({
         </div>
       </div>
 
+      {/* Auto-Optimize Agent — available for all users */}
+      {hasVerifiedDomain && (
+        <div className="mt-6">
+          <AgentPanel
+            domain={primaryDomain}
+            hasVerifiedDomain={hasVerifiedDomain}
+          />
+        </div>
+      )}
+
       {/* What to test next — AI suggestions for Pro users */}
       {scopedTests.length > 0 && (
         <div className="mt-6">
@@ -410,7 +421,7 @@ function PreviewReadyBanner({ test }: { test: TestRow }) {
         </p>
       </div>
       <a
-        href="/dashboard/health"
+        href="/dashboard"
         className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
       >
         <Globe className="h-3.5 w-3.5" />

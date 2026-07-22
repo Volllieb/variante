@@ -304,6 +304,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     setAddUrl('')
     setAddState('input')
     setAddError('')
+    setDomainError('')
   }
 
   function resetChangeFlow() {
@@ -311,6 +312,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     setChangeUrl('')
     setChangeState('input')
     setChangeError('')
+    setDomainError('')
   }
 
   async function deleteAccount() {
@@ -517,7 +519,9 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-[11px] text-text-3">Snippet-tested on every health check</p>
+                      {domains[0].verified && (
+                        <p className="mt-0.5 text-[11px] text-text-3">Snippet-tested on every health check</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -595,12 +599,19 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
 
                   {/* Add page button or inline form */}
                   {!addingPage ? (
+                    plan === 'free' ? (
+                      <div className="flex items-center gap-2 rounded-[6px] border border-dashed border-pro/20 bg-pro/[0.02] px-3 py-2">
+                        <span className="text-[10px] font-medium text-pro/80">Need more pages?</span>
+                        <a href="/dashboard/account?upgrade=1" className="text-[10px] font-semibold text-pro underline hover:text-pro/80 transition-colors">Upgrade to Pro →</a>
+                      </div>
+                    ) : (
                     <button
                       onClick={() => { setAddingPage(true); setAddState('input'); setAddError(''); setAddUrl('') }}
                       className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[6px] border border-dashed border-border py-2 text-[10px] font-semibold text-text-3 transition-colors hover:border-border-strong hover:text-text-2"
                     >
                       + Add page
                     </button>
+                    )
                   ) : (
                     <div className="space-y-2 rounded-[6px] bg-bg-2 p-3">
                       {(addState === 'input' || addState === 'saving') && (
