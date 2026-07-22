@@ -124,7 +124,6 @@ export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
                         const state = part.state as string
                         const done = state === 'output-available'
                         const failed = state === 'output-error'
-                        const Icon = info.icon
                         const label = done ? info.done : info.running
                         return (
                           <p

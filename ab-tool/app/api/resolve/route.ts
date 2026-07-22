@@ -17,10 +17,10 @@ function hostOf(u: string | null | undefined): string {
 
 function pathOf(u: string | null | undefined): string {
   if (!u) return ''
-  let s = u.trim().replace(/^https?:\/\//, '')
+  const s = u.trim().replace(/^https?:\/\//, '')
   const slash = s.indexOf('/')
   if (slash === -1) return ''
-  let p = s.slice(slash).split('?')[0].split('#')[0].replace(/\/+$/, '')
+  const p = s.slice(slash).split('?')[0].split('#')[0].replace(/\/+$/, '')
   return p === '' ? '' : p
 }
 

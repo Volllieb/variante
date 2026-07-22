@@ -30,6 +30,29 @@ npm run build:all   # alle Pakete bauen
 `db/migrations/` in aufsteigender Reihenfolge im
 [Supabase SQL-Editor](https://supabase.com/dashboard/project/_/sql/new) ausführen.
 
+**Was auf einer Datenbank schon gelaufen ist, steht in `schema_migrations`** (Migration 029):
+
+```sql
+select version, applied_at from schema_migrations order by version;
+```
+
+Jede neue Migration trägt sich am Ende selbst dort ein:
+
+```sql
+insert into schema_migrations (version) values ('030_beispiel') on conflict do nothing;
+```
+
+Zwei Dateien liegen bewusst **außerhalb** der Kette und dürfen nicht mitlaufen:
+
+| Datei | Grund |
+|---|---|
+| `db/migrations/archive/002_migrate_v1_to_v2.sql` | Droppt `events cascade` — Migration 010 legt eine gleichnamige, produktive Tabelle an. Ein Re-Run löscht den Activity-Log. |
+| `db/seeds/dogfooding.sql` | Enthält den Platzhalter `'DEINE_USER_ID_HIER'` und brach jeden vollständigen Durchlauf ab. Kein Schema-Change, sondern ein einmaliger Insert. |
+
+`012b_usage_tracking.sql` enthält eine veraltete `increment_gen_cost`-Definition ohne
+`search_path`. Die gültige Fassung steht in `027_recreate_increment_gen_cost.sql` —
+012b niemals nach 027 erneut ausführen.
+
 ## Security
 
 ### Subresource Integrity (SRI)

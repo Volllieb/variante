@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { classifyAuthError } from '@/lib/authErrors'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
@@ -11,16 +12,6 @@ function norm(s: string): string {
   return s.trim().toLowerCase()
 }
 
-type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
-
-function classify(error: any): ErrKind {
-  const msg = (typeof error === 'string' ? error : error?.message || JSON.stringify(error)).toLowerCase()
-  if (!msg) return 'generic'
-  if (msg.includes('not confirmed') || msg.includes('email not confirmed')) return 'not-confirmed'
-  if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
-  if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
-  return 'generic'
-}
 
 function signupParams(): { source: string; plan: string } {
   if (typeof window === 'undefined') return { source: '', plan: '' }
@@ -88,7 +79,7 @@ export default function SignupPage() {
       })
       setLoading(false)
       if (error) {
-        const kind = classify(error)
+        const kind = classifyAuthError(error)
         if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); return }
         if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); return }
         const msgStr = typeof error === 'string' ? error : error.message || JSON.stringify(error)

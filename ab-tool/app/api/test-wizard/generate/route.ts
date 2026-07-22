@@ -13,7 +13,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits } from '@/lib/planLimits'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit } from '@/lib/rateLimit'
 import { generateVariantText, generateBestPracticeVariant, type VariantType, type GenerateVariantInput } from '@/lib/generateVariantText'
 
 export const maxDuration = 30
@@ -32,7 +32,6 @@ export async function POST(req: Request) {
   }
 
   // ─── Rate-Limit ───
-  const ip = getClientIp(req)
   if (!(await checkRateLimit(`gen:${user.id}`, 10, 60_000))) {
     return Response.json({ error: 'rate limit', message: 'Max 10 variant generations per minute.' }, { status: 429, headers })
   }

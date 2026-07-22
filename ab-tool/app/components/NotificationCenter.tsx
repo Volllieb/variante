@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Bell, Check, FlaskConical, Award, AlertTriangle, X } from 'lucide-react'
+import { Bell, Check, FlaskConical, Award, AlertTriangle } from 'lucide-react'
 import { Tooltip } from './Tooltip'
 
 /* ── Types ── */

@@ -12,7 +12,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { Pencil, X, Check } from 'lucide-react'
+import { Pencil, Check } from 'lucide-react'
 import { ButtonEditor } from './ButtonEditor'
 import { TextInputEditor } from './TextInputEditor'
 import { getEditorCategory } from './types'
@@ -20,13 +20,12 @@ import type { ElementSelection, VariantResult } from '../NewTestDrawer'
 
 interface StepVariantBProps {
   element: ElementSelection
-  url: string
   variantResult: VariantResult | null
   onVariantUpdate: (patch: Partial<VariantResult>) => void
 }
 
 export function StepVariantB({
-  element, url, variantResult, onVariantUpdate,
+  element, variantResult, onVariantUpdate,
 }: StepVariantBProps) {
   const [showEditor, setShowEditor] = useState(!variantResult)
   const category = getEditorCategory(element.elementType)

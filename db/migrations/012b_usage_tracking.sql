@@ -3,7 +3,12 @@
 -- /api/generate prüft das Limit und inkrementiert atomar via RPC.
 -- Idempotent. Ausführen im Supabase SQL-Editor:
 --   https://supabase.com/dashboard/project/_/sql/new
--- ⚠️ RE-RUN nach 2026-07-06: increment_gen_cost Signatur geändert (p_limit-Parameter).
+-- ⚠️ NICHT ERNEUT AUSFÜHREN. Diese Datei enthält ein `create or replace function
+--    increment_gen_cost` OHNE `set search_path`. Migration 027 hat genau das
+--    repariert (Privilege-Escalation-Härtung). Ein Re-Run von 012b nach 027
+--    würde den Fix lautlos zurücksetzen.
+--    Die Funktionsdefinition unten ist deshalb nur noch historisch — die
+--    gültige Version steht in 027_recreate_increment_gen_cost.sql.
 
 alter table profiles add column if not exists monthly_gen_cost numeric not null default 0;
 alter table profiles add column if not exists monthly_gen_reset date; -- z. B. '2026-07-01' = Juli-Zähler

@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           // Request-Cookies für nachfolgende Handler im selben Request
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           // Response neu bauen mit aktualisierten Request-Cookies

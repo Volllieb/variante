@@ -25,8 +25,13 @@ export function StepUrlAndElement({
 }: StepUrlAndElementProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
+  // Ref haelt den aktuellen Callback, ohne den postMessage-Listener bei jeder
+  // neuen Callback-Identitaet neu aufzubauen. Schreiben MUSS im Effect passieren:
+  // im Render ist es ein Seiteneffekt, den React 19 verwerfen darf.
   const onElementSelectedRef = useRef(onElementSelected)
-  onElementSelectedRef.current = onElementSelected
+  useEffect(() => {
+    onElementSelectedRef.current = onElementSelected
+  })
 
   // Listen for postMessage from ab.js picker
   useEffect(() => {

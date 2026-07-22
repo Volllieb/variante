@@ -13,9 +13,9 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits } from '@/lib/planLimits'
-import { analyzePageWithPrimary, stripForCRO, extractStructure, type CROSuggestion } from '@/lib/croAnalyze'
+import { analyzePageWithPrimary, stripForCRO, extractStructure } from '@/lib/croAnalyze'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 60
 
@@ -33,7 +33,6 @@ export async function POST(req: Request) {
   }
 
   // ─── Rate-Limit ───
-  const ip = getClientIp(req)
   if (!(await checkRateLimit(`scan:${user.id}`, 5, 60_000))) {
     return Response.json({ error: 'rate limit', message: 'Max 5 scans per minute.' }, { status: 429, headers })
   }

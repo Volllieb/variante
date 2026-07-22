@@ -1,3 +1,15 @@
+-- ============================================================================
+-- SEED — KEINE MIGRATION.
+--
+-- Lag vorher als db/migrations/007_dogfooding.sql in der Migrationskette und
+-- brach jeden vollständigen Durchlauf ab: der Platzhalter 'DEINE_USER_ID_HIER'
+-- ist keine gültige UUID (`invalid input syntax for type uuid`). Zusätzlich ist
+-- es ein einmaliger Daten-Insert ohne `on conflict` — bei jedem Re-Run entsteht
+-- ein Duplikat.
+--
+-- Manuell ausführen, wenn ein Dogfooding-Test gewünscht ist.
+-- ============================================================================
+
 -- 007_dogfooding.sql — variante auf eigener Landing-Page (Dogfooding)
 -- In Supabase SQL-Editor ausführen: https://supabase.com/dashboard/project/_/sql/new
 --

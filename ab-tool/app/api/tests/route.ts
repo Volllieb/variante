@@ -12,33 +12,19 @@ export async function GET(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, POST, OPTIONS')
 
-  const query = supabase
-    .from('tests')
-    .select(
-      'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
-    )
-    .order('created_at', { ascending: false })
-    .limit(50)
+  // ponytail: Die Spaltenliste stand dreimal in dieser Funktion, einmal davon
+  // in einer Query, deren Ergebnis nie verwendet wurde.
+  const COLUMNS =
+    'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
 
   // Temp-User: Tests per temp_session_id holen, regulärer User per user_id
   const isTemp = user.plan === 'temp'
-  const { data, error } = isTemp
-    ? await supabase
-        .from('tests')
-        .select(
-          'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
-        )
-        .eq('temp_session_id', user.userId)
-        .order('created_at', { ascending: false })
-        .limit(50)
-    : await supabase
-        .from('tests')
-        .select(
-          'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
-        )
-        .eq('user_id', user.userId)
-        .order('created_at', { ascending: false })
-        .limit(50)
+  const { data, error } = await supabase
+    .from('tests')
+    .select(COLUMNS)
+    .eq(isTemp ? 'temp_session_id' : 'user_id', user.userId)
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   if (error) {
     safeError('tests', error)

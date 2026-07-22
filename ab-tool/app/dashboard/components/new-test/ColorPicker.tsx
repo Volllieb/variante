@@ -37,7 +37,13 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
   const [showPresets, setShowPresets] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { setInputValue(value) }, [value])
+  // Externer Wertwechsel (Reset, anderes Element) uebernehmen — im Render
+  // statt per Effect, sonst zeigt das Feld einen Frame lang den alten Hex.
+  const [prevValue, setPrevValue] = useState(value)
+  if (prevValue !== value) {
+    setPrevValue(value)
+    setInputValue(value)
+  }
 
   useEffect(() => {
     if (!showPresets) return

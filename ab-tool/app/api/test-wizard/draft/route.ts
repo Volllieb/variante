@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 // ─── Types ───
 
@@ -34,7 +34,7 @@ export async function OPTIONS() {
   return preflight('GET, PUT, DELETE, OPTIONS')
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   const headers = corsHeaders('GET, PUT, DELETE, OPTIONS')
 
   const user = await getSessionUser()
@@ -64,7 +64,6 @@ export async function PUT(req: Request) {
     return Response.json({ error: 'unauthorized' }, { status: 401, headers })
   }
 
-  const ip = getClientIp(req)
   if (!(await checkRateLimit(`draft:${user.id}`, 30, 60_000))) {
     return Response.json({ error: 'rate limit' }, { status: 429, headers })
   }
@@ -106,7 +105,7 @@ export async function PUT(req: Request) {
   return Response.json({ ok: true }, { headers })
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE() {
   const headers = corsHeaders('GET, PUT, DELETE, OPTIONS')
 
   const user = await getSessionUser()

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { classifyAuthError } from '@/lib/authErrors'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
@@ -17,16 +18,6 @@ function loginParams(): { source: string; plan: string } {
   return { source: p.get('source') || '', plan: p.get('plan') || '' }
 }
 
-type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
-
-function classify(error: any): ErrKind {
-  const msg = (typeof error === 'string' ? error : error?.message || JSON.stringify(error)).toLowerCase()
-  if (!msg) return 'generic'
-  if (msg.includes('not confirmed') || msg.includes('email not confirmed')) return 'not-confirmed'
-  if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
-  if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
-  return 'generic'
-}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,7 +25,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [err, setErr] = useState('')
+  // Fehler aus dem Query-Param (z. B. vom /auth/callback-Redirect) als
+  // Initialwert lesen — vorher setzte ihn ein Effect nach dem ersten Render.
+  const [err, setErr] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    const q = new URLSearchParams(window.location.search).get('error')
+    return q ? decodeURIComponent(q) : ''
+  })
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
@@ -62,12 +59,8 @@ export default function LoginPage() {
         router.push('/update-password')
       }
     })
-    // Error aus Query-Param (z. B. vom /auth/callback redirect)
-    const p = new URLSearchParams(window.location.search)
-    const errorParam = p.get('error')
-    if (errorParam) setErr(decodeURIComponent(errorParam))
     return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [router])
 
   async function submit(e: React.FormEvent) {
@@ -80,7 +73,7 @@ export default function LoginPage() {
       const supabase = getBrowserSupabase()
       const { error } = await supabase.auth.signInWithPassword({ email: norm(email), password })
       if (error) {
-        const kind = classify(error)
+        const kind = classifyAuthError(error)
         if (kind === 'not-confirmed') { setNotConfirmed(true); setLoading(false); return }
         if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); setLoading(false); return }
         if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); setLoading(false); return }
@@ -281,7 +274,7 @@ export default function LoginPage() {
             )}
             {notConfirmed && (
               <div className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
-                <p>Your email isn't confirmed yet — check your inbox or resend the confirmation link.</p>
+                <p>Your email isn&rsquo;t confirmed yet — check your inbox or resend the confirmation link.</p>
                 <button
                   type="button"
                   onClick={handleResendConfirmation}

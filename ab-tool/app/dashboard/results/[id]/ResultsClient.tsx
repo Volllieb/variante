@@ -37,6 +37,10 @@ import {
   BarChart,
   Bar,
 } from 'recharts'
+// ponytail: echte Recharts-Typen statt `as any`-Kaskaden. Bricht ein
+// Major-Update die Signatur, meldet das jetzt der Typecheck und nicht der
+// zahlende Pro-Kunde, der auf ein leeres Chart schaut.
+import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
 const C = {
   ok: '#2fd76c',
@@ -801,15 +805,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         fontSize: 12,
                         color: '#ededed',
                       }}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      formatter={((value: any) => [Number(value).toLocaleString(), 'Visitors']) as any}
+                      formatter={(value: ValueType | undefined) => [Number(value ?? 0).toLocaleString(), 'Visitors'] as [string, string]}
                     />
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
                       fill="rgba(255,255,255,0.15)"
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? v.toLocaleString() : v) as any } as any}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: (v: unknown) => (typeof v === 'number' ? v.toLocaleString() : String(v ?? '')) }}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -837,15 +840,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         fontSize: 12,
                         color: '#ededed',
                       }}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      formatter={((value: any) => [`${Number(value)}%`, 'Conv. Rate']) as any}
+                      formatter={(value: ValueType | undefined) => [`${Number(value ?? 0)}%`, 'Conv. Rate'] as [string, string]}
                     />
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
                       fill={C.pro}
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? `${v}%` : v) as any } as any}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: unknown) => (typeof v === 'number' ? `${v}%` : String(v ?? '')) }}
                     />
                   </BarChart>
                 </ResponsiveContainer>

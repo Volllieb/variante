@@ -2,16 +2,29 @@
 
 import { useEffect, useRef } from 'react'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+
+// ponytail: Die Callback-Refs wurden vorher WÄHREND des Renders geschrieben
+// (`onInsertRef.current = onInsert`). Das ist ein Seiteneffekt im Render-Pfad —
+// unter React 19 Concurrent Rendering kann derselbe Render mehrfach laufen oder
+// verworfen werden, und der Ref hält dann einen Callback aus einem Render, der
+// nie committed wurde. Der dokumentierte Weg ist ein Effect ohne Dependency-Array:
+// er läuft nach JEDEM committeten Render und hält den Ref zuverlässig aktuell.
+// Zweck bleibt derselbe: die Subscription soll nicht bei jeder neuen
+// Callback-Identität neu aufgebaut werden.
+function useLatest<T>(value: T) {
+  const ref = useRef(value)
+  useEffect(() => {
+    ref.current = value
+  })
+  return ref
+}
 
 /**
  * Hook: Reagiert auf neue Test-INSERTs für den aktuellen User.
  * Ersetzt Polling in NewTestFlow.
  */
 export function useTestsInsert(userId: string | null, onInsert: (name: string) => void) {
-  const channelRef = useRef<RealtimeChannel | null>(null)
-  const onInsertRef = useRef(onInsert)
-  onInsertRef.current = onInsert
+  const onInsertRef = useLatest(onInsert)
 
   useEffect(() => {
     if (!userId) return
@@ -23,21 +36,21 @@ export function useTestsInsert(userId: string | null, onInsert: (name: string) =
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'tests', filter: `user_id=eq.${userId}` },
         (payload) => {
-          onInsertRef.current(payload.new?.name ?? 'New test')
+          onInsertRef.current(
+            (payload.new as { name?: string } | null)?.name ?? 'New test'
+          )
         }
       )
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR') {
-          console.warn('[realtime] tests insert channel error, falling back to polling not implemented')
+          console.warn('[realtime] tests insert channel error')
         }
       })
-
-    channelRef.current = channel
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [userId])
+  }, [userId, onInsertRef])
 }
 
 /**
@@ -45,9 +58,7 @@ export function useTestsInsert(userId: string | null, onInsert: (name: string) =
  * Ersetzt Polling in ResultsClient.
  */
 export function useTestUpdate(testId: string, onUpdate: () => void) {
-  const channelRef = useRef<RealtimeChannel | null>(null)
-  const onUpdateRef = useRef(onUpdate)
-  onUpdateRef.current = onUpdate
+  const onUpdateRef = useLatest(onUpdate)
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
@@ -66,10 +77,8 @@ export function useTestUpdate(testId: string, onUpdate: () => void) {
         }
       })
 
-    channelRef.current = channel
-
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [testId])
+  }, [testId, onUpdateRef])
 }

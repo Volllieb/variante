@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PandaLogo } from '@/components/PandaLogo'
 import { NotificationCenter } from '@/app/components/NotificationCenter'
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import {

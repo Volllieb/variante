@@ -148,8 +148,8 @@ async function runUnitTests() {
   await check('sessionStorage.setItem wirft → fängt gracefully, sendet trotzdem', () => {
     beaconCalls.length = 0
     const throwingStorage = {
-      getItem(k) { return null },
-      setItem(k, v) { throw new Error('QuotaExceeded') },
+      getItem(_k) { return null },
+      setItem(_k, _v) { throw new Error('QuotaExceeded') },
     }
     const result = sendConversion(KEY, 'A', ORIGIN, throwingStorage, mockNavigator, [])
     assert.equal(result, true, 'Muss trotz setItem-Fehler senden')

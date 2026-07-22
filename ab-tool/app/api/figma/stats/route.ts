@@ -41,12 +41,12 @@ export async function GET(req: NextRequest) {
       .from('tests')
       .select('name, status, visitors_a, visitors_b, conversions_a, conversions_b')
       .eq('user_id', profile.user_id)
-      .in('status', ['live', 'paused'])
+      .in('status', ['active', 'paused'])
       .order('created_at', { ascending: false })
       .limit(10)
 
     return Response.json({ tests: tests ?? [] }, { headers })
-  } catch (err) {
+  } catch {
     return Response.json({ error: 'server_error' }, { status: 500, headers })
   }
 }

@@ -96,14 +96,22 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   }, [])
 
   // ─── Reset state when drawer opens ───
-  useEffect(() => {
+  // Im Render statt per Effect: sonst rendert der frisch geoeffnete Drawer
+  // einen Frame lang noch den Zustand des vorigen Durchlaufs.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) {
       setState(INITIAL_STATE)
       setCreating(false)
       setCreateError('')
       setCreatedTestId(null)
-      draftLoadedRef.current = false
     }
+  }
+
+  // Der Draft-Load-Guard ist ein Ref und darf nur im Effect zurueckgesetzt werden.
+  useEffect(() => {
+    if (isOpen) draftLoadedRef.current = false
   }, [isOpen])
 
   // ─── Draft: Load on open (only once per open) ───
@@ -366,7 +374,6 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           {state.step === 1 && state.selectedElement && (
             <StepVariantB
               element={state.selectedElement}
-              url={state.url}
               variantResult={state.variantResult}
               onVariantUpdate={(patch) => {
                 updateState({

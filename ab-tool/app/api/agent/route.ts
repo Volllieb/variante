@@ -5,7 +5,7 @@
 import { streamText, stepCountIs } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { corsHeaders, preflight } from '@/lib/cors'
-import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
+import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { makeAgentTools } from '@/lib/agentTools'
 import { getCachedInsights } from '@/lib/croAnalyze'

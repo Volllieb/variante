@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { useTestList } from '@/lib/useTestList'
-import { useToast } from '@/app/components/Toast'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
 import { NewTestDrawer } from './components/NewTestDrawer'
@@ -17,16 +16,13 @@ import {
 } from './components/FilterDropdown'
 import {
   FlaskConical,
-  Users,
-  TrendingUp,
-  Percent,
   Search,
   ArrowUpDown,
   RefreshCw,
   Plus,
   Check,
   Globe,
-  ArrowRight,
+
   ChevronDown,
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
@@ -58,14 +54,13 @@ export function DashboardClient({
   userId: string
 }) {
   const router = useRouter()
-  const { toast } = useToast()
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [drawerOpenCount, setDrawerOpenCount] = useState(0)
   const isPro = plan === 'pro' || plan === 'agency'
 
   // ── Scope selector (localStorage-persisted) ──
   const scopeKey = `dashboard-scope:${userId}`
-  const [scope, setScope] = useState<string>(() => {
+  const [storedScope, setScope] = useState<string>(() => {
     if (typeof window === 'undefined') return 'all'
     return localStorage.getItem(scopeKey) ?? 'all'
   })
@@ -80,12 +75,10 @@ export function DashboardClient({
     try { localStorage.setItem(scopeKey, val) } catch { /* noop */ }
   }
 
-  // Reset scope if current selection no longer valid
-  useEffect(() => {
-    if (scope !== 'all' && !domainOptions.includes(scope)) {
-      setScopeAndPersist('all')
-    }
-  }, [domainOptions, scope])
+  // ponytail: Eine geloeschte Domain machte den gespeicherten Scope ungueltig.
+  // Vorher korrigierte das ein Effect — also ein Render mit ungueltigem Scope
+  // (leeres Dashboard), dann ein zweiter mit 'all'. Jetzt abgeleitet: ein Render.
+  const scope = domainOptions.includes(storedScope) ? storedScope : 'all'
 
   const {
     testList,
@@ -105,9 +98,13 @@ export function DashboardClient({
     return testList.filter((t) => t.site_url === scope || t.site_url?.includes(scope))
   }, [testList, scope])
 
-  useEffect(() => {
+  // Deep-Link ?newTest=1 waehrend Client-Navigation: Prop-Wechsel im Render
+  // auswerten statt per Effect (sonst blitzt das Dashboard ohne Drawer auf).
+  const [prevOpenNewTest, setPrevOpenNewTest] = useState(openNewTest)
+  if (prevOpenNewTest !== openNewTest) {
+    setPrevOpenNewTest(openNewTest)
     if (openNewTest) setNewTestOpen(true)
-  }, [openNewTest])
+  }
 
   /* ── Aggregate stats (scoped) ── */
 
@@ -217,29 +214,24 @@ export function DashboardClient({
       {/* Overview cards */}
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <OverviewCard
-            icon={FlaskConical}
             label="Active Tests"
             value={activeTests.toString()}
             tone={activeTests > 0 ? 'ok' : undefined}
           />
           <OverviewCard
-            icon={Users}
             label="Visitors"
             value={totalVisitors.toLocaleString()}
           />
           <OverviewCard
-            icon={TrendingUp}
             label="Winning Tests"
             value={winningTests.toString()}
             tone={winningTests > 0 ? 'ok' : undefined}
           />
           <OverviewCard
-            icon={Percent}
             label="Avg Conv Rate"
             value={`${overallCR.toFixed(1)}%`}
           />
           <OverviewCard
-            icon={TrendingUp}
             label="Avg Uplift"
             value={avgUplift !== null ? `${avgUplift > 0 ? '+' : ''}${avgUplift.toFixed(1)}%` : '—'}
             tone={avgUplift !== null && avgUplift > 0 ? 'ok' : avgUplift !== null && avgUplift < 0 ? 'err' : undefined}
@@ -408,13 +400,12 @@ function PreviewReadyBanner({ test }: { test: TestRow }) {
   )
 }
 
+// ponytail: Die `icon`-Prop wurde durchgereicht, aber im Markup nie gerendert.
 function OverviewCard({
-  icon: Icon,
   label,
   value,
   tone,
 }: {
-  icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
   tone?: 'ok' | 'pro' | 'err'

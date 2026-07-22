@@ -12,7 +12,7 @@
 import { test, expect } from '@playwright/test'
 
 const TEST_EMAIL = process.env.E2E_TEST_EMAIL
-const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || 'E2eTest123!'
+const _TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || 'E2eTest123!'
 
 test.describe('Signup Page (@auth)', () => {
   test('Signup-Seite lädt — Formular sichtbar', async ({ page }) => {

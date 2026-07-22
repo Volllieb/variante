@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
-import { scanPII, PII_PATTERNS, type PIIFindings, type PIIKey } from '@/lib/pii'
+import { scanPII, PII_PATTERNS } from '@/lib/pii'
 
 export const maxDuration = 60
 
@@ -126,7 +126,7 @@ const CSS_DELIM_START = '<<<VARIANT_CSS>>>'
 const CSS_DELIM_END = '<</VARIANT_CSS>>>'
 
 function parseStructuredOutput(text: string): string {
-  let html = text.trim()
+  const html = text.trim()
   // Primär: Delimiter-Extraktion
   const start = html.indexOf(DELIM_START)
   const end = html.indexOf(DELIM_END)
@@ -140,7 +140,7 @@ function parseStructuredOutput(text: string): string {
 }
 
 function parseCssOutput(text: string): string {
-  let css = text.trim()
+  const css = text.trim()
   const start = css.indexOf(CSS_DELIM_START)
   const end = css.indexOf(CSS_DELIM_END)
   if (start !== -1 && end !== -1 && end > start) {

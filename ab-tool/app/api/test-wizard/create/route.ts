@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 30
 
@@ -46,7 +46,6 @@ export async function POST(req: Request) {
   }
 
   // ─── Rate-Limit ───
-  const ip = getClientIp(req)
   if (!(await checkRateLimit(`create-test:${user.id}`, 5, 60_000))) {
     return Response.json({ error: 'rate limit', message: 'Max 5 test creations per minute.' }, { status: 429, headers })
   }
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers })
   }
 
-  const { site_url, selector, goal, goal_selector, variant_b_html, variant_b_css, variant_text, original_html, status, name } = body
+  const { site_url, selector, goal, goal_selector, variant_b_html, variant_b_css, original_html, status, name } = body
 
   if (!site_url || !goal) {
     return Response.json({ error: 'site_url and goal are required' }, { status: 400, headers })
@@ -81,10 +80,8 @@ export async function POST(req: Request) {
 
   // Normalize: empty string → null for optional fields
   const normalizedSelector = selector?.trim() || null
-  const normalizedGoalSelector = goal_selector?.trim() || null
   const normalizedVariantHtml = variant_b_html?.trim() || null
   const normalizedVariantCss = variant_b_css?.trim() || null
-  const normalizedVariantText = variant_text?.trim() || null
   const normalizedOriginalHtml = original_html?.trim() || null
   const normalizedName = name?.trim() || null
 

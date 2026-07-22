@@ -144,7 +144,7 @@ export function StepGoal({
     <div className="space-y-4">
       <div>
         <p className="text-[13px] leading-relaxed text-text-2">
-          What's your conversion goal?
+          What&rsquo;s your conversion goal?
         </p>
       </div>
 
@@ -152,7 +152,6 @@ export function StepGoal({
       <div className="space-y-2">
         {PRIMARY_GOALS.map((g) => {
           const isSelected = selectedType === g.type
-          const Icon = g.icon
           return (
             <div key={g.type}>
               <button
@@ -196,7 +195,7 @@ export function StepGoal({
                       <div className="rounded-[6px] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
                         <span className="text-text-3">Selector: </span>{pickedElement?.selector ?? selectedGoal?.selector}
                         {pickedElement?.text && (
-                          <><br /><span className="text-text-3">Text: </span>"{pickedElement.text}"</>
+                          <><br /><span className="text-text-3">Text: </span>&ldquo;{pickedElement.text}&rdquo;</>
                         )}
                       </div>
                       <button

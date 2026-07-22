@@ -32,16 +32,15 @@ function generateTextCss(selector: string): string {
 }
 
 export function TextInputEditor({ element, originalHtml, onApply, onCancel }: TextInputEditorProps) {
+  // ponytail: handleApply hatte dieselbe CSS-Regel nochmal inline stehen,
+  // während generateTextCss ungenutzt danebenlag.
   const originalText = extractTextFromHtml(originalHtml)
   const [text, setText] = useState(originalText)
 
   function handleApply() {
     const selector = element.selector || element.elementName
     const html = generateTextHtml(text || originalText)
-    const css = `${selector} {
-  transition: all 0.2s ease;
-}`
-    onApply(html, css)
+    onApply(html, generateTextCss(selector))
   }
 
   function handleReset() {
