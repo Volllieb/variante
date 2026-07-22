@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { MoreHorizontal, Pause, Play, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
 
 // SVG-Farben (dynamisch, nicht über Tailwind abbildbar)
@@ -105,6 +105,9 @@ export function TestCard({
   const [busy, setBusy] = useState(false)
   const [localStatus, setLocalStatus] = useState(t.status)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [renameValue, setRenameValue] = useState(t.name)
+  const [localName, setLocalName] = useState(t.name)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -150,6 +153,25 @@ export function TestCard({
     setMenuOpen(false)
   }
 
+  async function handleRename(e: React.SyntheticEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed === localName) return
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/tests/${t.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      })
+      if (res.ok) setLocalName(trimmed)
+    } catch { /* silently fail */ }
+    setBusy(false)
+    setRenameOpen(false)
+    setMenuOpen(false)
+  }
+
   async function handleDelete(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -176,7 +198,7 @@ export function TestCard({
   return (
     <Link
       href={`/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
-      className="group/card relative block rounded-[10px] border border-border bg-bg-1 p-3.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+      className="group/card relative block rounded-[10px] border border-border bg-bg-1 p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
       {/* Live-Pulse: subtile Signatur für aktive Tests */}
@@ -202,11 +224,32 @@ export function TestCard({
           </div>
         )}
 
-        {/* Name + URL */}
+        {/* Name + URL (or rename input) */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] font-medium text-text">{t.name}</p>
-          {t.site_url && (
-            <p className="mt-0.5 truncate text-[11px] text-text-3">{t.site_url}</p>
+          {renameOpen ? (
+            <div className="flex items-center gap-1" onClick={(e) => { e.preventDefault(); e.stopPropagation() }}>
+              <input
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
+                autoFocus
+                className="flex-1 rounded-[4px] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text outline-none focus:border-border-strong"
+              />
+              <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[4px] p-1 text-text-3 hover:text-text">
+                <Check className="h-3 w-3" />
+              </button>
+              <button onClick={() => { setRenameOpen(false); setRenameValue(localName) }} className="cursor-pointer rounded-[4px] p-1 text-text-3 hover:text-text">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="truncate text-[13px] font-medium text-text">{localName}</p>
+              {t.site_url && (
+                <p className="mt-0.5 truncate text-[10px] text-text-3">{t.site_url}</p>
+              )}
+            </>
           )}
         </div>
 
@@ -226,6 +269,13 @@ export function TestCard({
 
             {menuOpen && (
               <div className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameOpen(true); setMenuOpen(false) }}
+                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Rename
+                </button>
+
                 {(status === 'active' || status === 'paused') && (
                   <button
                     onClick={togglePause}
@@ -256,7 +306,7 @@ export function TestCard({
 
       {/* ── Row 1b: CR + Lift (nur bei aktiven/pausierten Tests mit Daten) ── */}
       {isLive && totalV > 0 && (
-        <div className="mt-2 flex items-center gap-2 text-[11px]">
+        <div className="mt-1.5 flex items-center gap-2 text-[10px]">
           <span className="text-text-3">
             A <strong className="text-text-2">{(crA * 100).toFixed(1)}%</strong>
           </span>
@@ -280,7 +330,7 @@ export function TestCard({
       )}
 
       {/* ── Row 2: status pill | health | duration | leader | winner ── */}
-      <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+      <div className="mt-1.5 flex items-center gap-1 flex-wrap">
         {/* Status pill */}
         <span
           className={[

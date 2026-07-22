@@ -101,6 +101,7 @@ export function DashboardClient({
     setSortAsc,
     filteredTests,
     handleDeleteTest,
+    addTest,
   } = useTestList({ initial: tests, sort: true })
 
   const scopedTests = useMemo(() => {
@@ -319,10 +320,21 @@ export function DashboardClient({
             isOpen={newTestOpen}
             onClose={() => setNewTestOpen(false)}
             userId={userId}
-            onTestCreated={() => {
+            onTestCreated={(createdTest) => {
               setNewTestOpen(false)
               setDrawerOpenCount((c) => c + 1)
-              router.refresh()
+              addTest({
+                id: createdTest.id,
+                name: createdTest.name,
+                site_url: createdTest.site_url,
+                status: createdTest.status,
+                visitors_a: 0,
+                visitors_b: 0,
+                conversions_a: 0,
+                conversions_b: 0,
+                winner: null,
+                created_at: new Date().toISOString(),
+              })
             }}
             verifiedDomains={allVerifiedDomains}
           />

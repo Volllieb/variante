@@ -43,7 +43,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     variant_b_css?: string | null
   } = {}
   if (typeof body.name === 'string' && body.name.trim().length > 0 && body.name.trim().length <= 256) patch.name = body.name.trim()
-  if (typeof body.goal === 'string') patch.goal = body.goal
+  if (typeof body.goal === 'string') {
+    // Validate: click-goals must have a selector (see test-wizard/create).
+    if (body.goal === 'click' || body.goal === 'click:') {
+      return Response.json({ error: 'Click goal requires a CSS selector (e.g. click:#my-button).' }, { status: 400, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
+    }
+    patch.goal = body.goal
+  }
   if (body.status === 'draft' || body.status === 'active' || body.status === 'done' || body.status === 'paused') patch.status = body.status
   if (typeof body.selector === 'string' || body.selector === null) patch.selector = body.selector
   if (typeof body.min_visitors === 'number') patch.min_visitors = body.min_visitors

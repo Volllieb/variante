@@ -25,6 +25,7 @@ export type UseTestListReturn = {
   setSortAsc: React.Dispatch<React.SetStateAction<boolean>>
   filteredTests: TestRow[]
   handleDeleteTest: (id: string) => void
+  addTest: (test: TestRow) => void
 }
 
 export function useTestList({ initial, sort = false }: UseTestListOptions): UseTestListReturn {
@@ -35,6 +36,10 @@ export function useTestList({ initial, sort = false }: UseTestListOptions): UseT
 
   const handleDeleteTest = useCallback((id: string) => {
     setTestList((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  const addTest = useCallback((test: TestRow) => {
+    setTestList((prev) => [test, ...prev])
   }, [])
 
   const filteredTests = useMemo(() => {
@@ -92,5 +97,6 @@ export function useTestList({ initial, sort = false }: UseTestListOptions): UseT
     setSortAsc,
     filteredTests,
     handleDeleteTest,
+    addTest,
   }
 }

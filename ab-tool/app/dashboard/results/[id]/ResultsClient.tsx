@@ -23,6 +23,8 @@ import {
   Table2,
   TrendingUp,
   Download,
+  MousePointerClick,
+  Globe,
 } from 'lucide-react'
 import {
   LineChart,
@@ -102,6 +104,22 @@ type AnalyticsData = {
   daily: DailyRow[]
 }
 
+/** Parse DB goal format into UI state. Format: null=element is goal, "click:sel"=click goal, "url:/path"=URL goal */
+function parseGoal(dbGoal: string | null): { type: 'element' | 'click' | 'url'; value: string } {
+  if (!dbGoal) return { type: 'element', value: '' }
+  if (dbGoal.startsWith('click:')) return { type: 'click', value: dbGoal.slice(6) }
+  if (dbGoal.startsWith('url:')) return { type: 'url', value: dbGoal.slice(4) }
+  return { type: 'element', value: dbGoal }
+}
+
+/** Format UI state back into DB goal format */
+function formatGoal(type: 'element' | 'click' | 'url', value: string): string | null {
+  if (type === 'element') return null
+  if (type === 'click') return value ? `click:${value}` : null
+  if (type === 'url') return value ? `url:${value}` : null
+  return null
+}
+
 export function ResultsClient({ initial, experimentId, pro }: { initial: ExperimentData; experimentId: string; pro: boolean }) {
   const [data, setData] = useState(initial)
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
@@ -117,6 +135,11 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showRawData, setShowRawData] = useState(false)
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [goalType, setGoalType] = useState<'element' | 'click' | 'url'>(() => parseGoal(initial.goal).type)
+  const [goalValue, setGoalValue] = useState(() => parseGoal(initial.goal).value)
+  const [goalSaving, setGoalSaving] = useState(false)
+  const [goalSaved, setGoalSaved] = useState(false)
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
   const { toast } = useToast()
@@ -221,6 +244,23 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     } catch {}
   }
 
+  async function saveGoal() {
+    setGoalSaving(true)
+    try {
+      await fetch(`/api/tests/${experimentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goal: formatGoal(goalType, goalValue) }),
+      })
+      setEditingGoal(false)
+      setGoalSaved(true)
+      setTimeout(() => setGoalSaved(false), 2000)
+      await refresh()
+    } catch {} finally {
+      setGoalSaving(false)
+    }
+  }
+
   async function toggleStatus(next: 'active' | 'paused') {
     await fetch(`/api/tests/${experimentId}`, {
       method: 'PATCH',
@@ -306,7 +346,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl px-6 py-8 space-y-5">
+      <div className="mx-auto max-w-6xl px-6 py-8 space-y-5">
 
         {/* Hero stat */}
         <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6 text-center">
@@ -364,6 +404,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </div>
         </div>
 
+        {/* ── Charts Row: Visitors + Conversions side-by-side ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Visitors over time — available for all plans */}
         {analytics && analytics.daily.length >= 2 ? (
           <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
@@ -536,6 +578,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
           </div>
         ) : null}
+        </div>{/* end charts grid */}
 
         {/* ── Significance over Time ── */}
         {analytics && analytics.daily.length >= 2 ? (
@@ -622,6 +665,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </div>
         ) : null}
 
+        {/* ── Significance + A/B Stats row ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Significance donut */}
         <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
           <div className="flex items-center gap-2 mb-4">
@@ -665,8 +710,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </p>
         </div>
 
-        {/* A/B Stats cards */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* A/B Stats cards — spans 2 cols in the 3-col grid */}
+        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           {[a, b].map((v, i) => {
             const isWinner = winner === v.id
             const isVariantB = i === 1
@@ -723,6 +768,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             )
           })}
         </div>
+        </div>{/* end significance + stats row */}
 
         {/* Variant comparison bar chart — available for all plans */}
         <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
@@ -806,6 +852,144 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Conversion Goal */} 
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          {!editingGoal ? (
+            <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {goalType === 'element' ? (
+                  <MousePointerClick className="h-3.5 w-3.5 text-[#ededed]/40" />
+                ) : goalType === 'click' ? (
+                  <MousePointerClick className="h-3.5 w-3.5 text-pro" />
+                ) : (
+                  <Globe className="h-3.5 w-3.5 text-ok" />
+                )}
+                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                  Conversion Goal
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  const p = parseGoal(data.goal)
+                  setGoalType(p.type)
+                  setGoalValue(p.value)
+                  setEditingGoal(true)
+                }}
+                className="flex cursor-pointer items-center gap-1.5 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]"
+              >
+                <Pencil className="h-3 w-3" /> Edit
+              </button>
+            </div>
+            <p className="mt-2 text-[13px] text-[#ededed]/62">
+              {goalType === 'element' && data.selector ? (
+                <>Clicks on the replaced element <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{data.selector}</code></>
+              ) : goalType === 'element' && !data.selector ? (
+                'No conversion goal set — conversions can’t be tracked yet.'
+              ) : goalType === 'click' ? (
+                <>Clicks on <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{goalValue}</code></>
+              ) : (
+                <>Page view: <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{goalValue}</code></>
+              )}
+            </p>
+            </>
+          ) : (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="h-3.5 w-3.5 text-[#ededed]/40" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                  Conversion Goal
+                </span>
+              </div>
+
+              <div className="flex gap-1 mb-3">
+                {([
+                  { type: 'element' as const, label: 'Replaced element', icon: MousePointerClick, desc: 'Click on the original element is the conversion' },
+                  { type: 'click' as const, label: 'Click selector', icon: MousePointerClick, desc: 'Pick a CSS selector users click' },
+                  { type: 'url' as const, label: 'URL goal', icon: Globe, desc: 'Users visit a specific page after converting' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.type}
+                    onClick={() => { setGoalType(opt.type); setGoalSaved(false) }}
+                    className={`flex-1 cursor-pointer rounded-[6px] border px-3 py-2 text-left transition-colors ${
+                      goalType === opt.type
+                        ? 'border-white/20 bg-white/[0.06]'
+                        : 'border-white/10 bg-transparent hover:border-white/[0.14]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <opt.icon className={`h-3 w-3 ${goalType === opt.type ? 'text-white' : 'text-[#ededed]/40'}`} />
+                      <span className={`text-[11px] font-semibold ${goalType === opt.type ? 'text-white' : 'text-[#ededed]/50'}`}>
+                        {opt.label}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-[#ededed]/40 hidden sm:block">{opt.desc}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Value input for click / url */}
+              {goalType === 'click' && (
+                <div className="mb-3">
+                  <label className="text-[10px] font-semibold text-[#ededed]/50 uppercase tracking-wider">CSS Selector</label>
+                  <input
+                    type="text"
+                    placeholder=".cta-button, #signup-link, a.btn-primary"
+                    value={goalValue}
+                    onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
+                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                  />
+                </div>
+              )}
+
+              {goalType === 'url' && (
+                <div className="mb-3">
+                  <label className="text-[10px] font-semibold text-[#ededed]/50 uppercase tracking-wider">Target URL</label>
+                  <input
+                    type="text"
+                    placeholder="/thank-you, /checkout/success"
+                    value={goalValue}
+                    onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
+                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                  />
+                </div>
+              )}
+
+              {goalType === 'element' && data.selector && (
+                <p className="mb-3 text-[12px] text-[#ededed]/50">
+                  The element <code className="text-[11px] font-mono bg-[#111111] px-1 py-0.5 rounded">{data.selector}</code> is the conversion goal. Users who click it convert.
+                </p>
+              )}
+              {goalType === 'element' && !data.selector && (
+                <p className="mb-3 text-[12px] text-pro">
+                  No element selector stored. Set a click or URL goal instead.
+                </p>
+              )}
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={saveGoal}
+                  disabled={goalSaving || (goalType !== 'element' && !goalValue.trim())}
+                  className="cursor-pointer rounded-[6px] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-40"
+                >
+                  {goalSaving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  onClick={() => setEditingGoal(false)}
+                  className="cursor-pointer rounded-[6px] border border-white/10 px-3 py-2 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]"
+                >
+                  Cancel
+                </button>
+                {goalSaved && (
+                  <span className="flex items-center gap-1 text-xs text-ok">
+                    <Check className="h-3.5 w-3.5" /> Saved
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Raw data table */}

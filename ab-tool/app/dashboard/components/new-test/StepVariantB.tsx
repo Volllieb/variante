@@ -12,6 +12,7 @@
  */
 
 import { useState, useCallback } from 'react'
+import { Pencil, X, Check } from 'lucide-react'
 import { ButtonEditor } from './ButtonEditor'
 import { TextInputEditor } from './TextInputEditor'
 import { getEditorCategory } from './types'
@@ -29,6 +30,12 @@ export function StepVariantB({
 }: StepVariantBProps) {
   const [showEditor, setShowEditor] = useState(!variantResult)
   const category = getEditorCategory(element.elementType)
+
+  // Inline CSS/HTML editing
+  const [editingCss, setEditingCss] = useState(false)
+  const [editingHtml, setEditingHtml] = useState(false)
+  const [editCss, setEditCss] = useState('')
+  const [editHtml, setEditHtml] = useState('')
 
   const handleApply = useCallback(
     (html: string, css: string) => {
@@ -93,20 +100,95 @@ export function StepVariantB({
               </div>
             </div>
 
-            {variantResult.variant_css && (
+            {/* CSS section */}
+            {variantResult.variant_css !== undefined && (
               <div className="mt-3">
-                <code className="block rounded-[6px] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
-                  {variantResult.variant_css}
-                </code>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-text-3">CSS</p>
+                  {!editingCss && (
+                    <button
+                      onClick={() => { setEditCss(variantResult.variant_css ?? ''); setEditingCss(true) }}
+                      className="flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                    >
+                      <Pencil className="h-2.5 w-2.5" /> Edit
+                    </button>
+                  )}
+                </div>
+                {editingCss ? (
+                  <div className="space-y-1.5">
+                    <textarea
+                      value={editCss}
+                      onChange={(e) => setEditCss(e.target.value)}
+                      rows={6}
+                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus:outline-none"
+                      spellCheck={false}
+                    />
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => { onVariantUpdate({ variant_css: editCss }); setEditingCss(false) }}
+                        className="flex items-center gap-1 rounded-[4px] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
+                      >
+                        <Check className="h-2.5 w-2.5" /> Apply
+                      </button>
+                      <button
+                        onClick={() => setEditingCss(false)}
+                        className="rounded-[4px] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <code className="block rounded-[6px] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
+                    {variantResult.variant_css}
+                  </code>
+                )}
               </div>
             )}
 
-            {variantResult.variant_html && (
+            {/* HTML section */}
+            {variantResult.variant_html !== undefined && (
               <div className="mt-2">
-                <p className="mb-1 text-[10px] text-text-3">HTML:</p>
-                <code className="block rounded-[6px] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
-                  {variantResult.variant_html}
-                </code>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-text-3">HTML</p>
+                  {!editingHtml && (
+                    <button
+                      onClick={() => { setEditHtml(variantResult.variant_html ?? ''); setEditingHtml(true) }}
+                      className="flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                    >
+                      <Pencil className="h-2.5 w-2.5" /> Edit
+                    </button>
+                  )}
+                </div>
+                {editingHtml ? (
+                  <div className="space-y-1.5">
+                    <textarea
+                      value={editHtml}
+                      onChange={(e) => setEditHtml(e.target.value)}
+                      rows={6}
+                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus:outline-none"
+                      spellCheck={false}
+                    />
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => { onVariantUpdate({ variant_html: editHtml }); setEditingHtml(false) }}
+                        className="flex items-center gap-1 rounded-[4px] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
+                      >
+                        <Check className="h-2.5 w-2.5" /> Apply
+                      </button>
+                      <button
+                        onClick={() => setEditingHtml(false)}
+                        className="rounded-[4px] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <code className="block rounded-[6px] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
+                    {variantResult.variant_html}
+                  </code>
+                )}
               </div>
             )}
           </div>
