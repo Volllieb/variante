@@ -351,12 +351,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                   </li>
                 ))}
               </ul>
-              <Link
-                href={signupUrl(plan('agency').href)}
+              <a
+                href={plan('agency').href}
                 className="mt-auto inline-flex w-full justify-center rounded-full border border-border-strong px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:border-white/30"
               >
                 {copy.plans.agency.cta}
-              </Link>
+              </a>
             </div>
           </div>
           <p className="section-text">{copy.impliedUsersText}</p>

@@ -15,7 +15,7 @@ export interface PlanStructure {
 export const PLANS: readonly PlanStructure[] = [
   { id: 'free', price: '0 €', perMonth: false, href: '/signup', featured: false },
   { id: 'pro', price: '35 €', perMonth: true, href: '/signup?plan=pro', featured: true },
-  { id: 'agency', price: '99 €', perMonth: true, href: '/signup?plan=agency', featured: false },
+  { id: 'agency', price: '99 €', perMonth: true, href: 'mailto:valentin@variante.dev?subject=Agency%20Plan', featured: false },
 ]
 
 type Tuple4<T> = readonly [T, T, T, T]
@@ -293,7 +293,7 @@ const copy: LandingCopy = {
     agency: {
       label: 'Agency',
       sub: 'Everything in Pro, plus:',
-      cta: 'Start Agency',
+      cta: 'Get a Quote',
       features: [
         { label: 'Up to 100 domains — manage every client site', exclusive: true },
         { label: 'White-label — no Variante mention anywhere', exclusive: true },
