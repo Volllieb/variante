@@ -89,6 +89,35 @@ export async function getApiUser(req: Request): Promise<ApiUser | null> {
   return null
 }
 
+/**
+ * Plan eines Users aus `profiles` lesen.
+ *
+ * ============================================================================
+ * KRITISCH (Plan SEC-05).
+ * ============================================================================
+ * /api/test-wizard/scan und /api/test-wizard/generate lasen den Plan vorher aus
+ * `user.user_metadata?.plan`. Dieses Feld ist vom Nutzer SELBST beschreibbar —
+ * `supabase.auth.updateUser({ data: { plan: 'agency' } })` ist ein einzeiliger
+ * Aufruf mit dem oeffentlichen Anon-Key.
+ *
+ * Der Fehler wirkte in beide Richtungen:
+ *   - Privilege Escalation: jeder Free-User konnte sich auf 'agency' setzen und
+ *     damit unbegrenzte KI-Scans und $60 OpenAI-Budget freischalten.
+ *   - Zahlende Kunden wurden benachteiligt: bei regulaeren Accounts ist
+ *     user_metadata.plan nie gesetzt, also griff immer der Fallback 'free' —
+ *     ein Pro-Kunde bekam 1 Scan/Monat und $5 Budget statt 10/$20.
+ *
+ * Die Quelle der Wahrheit ist `profiles.plan`, gesetzt vom Stripe-Webhook.
+ */
+export async function getPlanForUser(userId: string): Promise<string> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('plan')
+    .eq('user_id', userId)
+    .single()
+  return data?.plan ?? 'free'
+}
+
 // Standard-401 mit CORS-Headern.
 export function unauthorized(methods: string): Response {
   return Response.json(

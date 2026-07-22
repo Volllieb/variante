@@ -3,6 +3,10 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { revalidatePath } from 'next/cache'
+import { assertOwnedDomain } from '@/lib/domainGate'
+
+// Maximale Anzahl Tests pro anonymer Temp-Session (Figma-Onboarding-Vorschau).
+const TEMP_SESSION_TEST_LIMIT = 3
 
 export async function OPTIONS() {
   return preflight('GET, POST, OPTIONS')
@@ -85,50 +89,34 @@ export async function POST(req: Request) {
     }
   }
 
-  // Domain-Gate: site_url muss zu einer verified Domain des Users passen.
-  // Temp-User: keine Domain-Verifikation nötig (Site-Eingabe im Wizard).
+  // Temp-Sessions: hartes Test-Limit pro Session (Plan SEC-06). Vorher stand
+  // hier "Temp-User: kein Limit" — eine unauthentifiziert erzeugte Session
+  // konnte beliebig viele Tests anlegen und damit beliebig viele kostenlose
+  // KI-Generierungen auslösen.
+  if (isTemp) {
+    const { data: allowed } = await supabase.rpc('consume_temp_session_test', {
+      p_session_id: user.userId,
+      p_limit: TEMP_SESSION_TEST_LIMIT,
+    })
+    if (allowed !== true) {
+      return paymentRequired(
+        'POST, OPTIONS',
+        'Preview limit reached. Sign up for a free account to keep going.'
+      )
+    }
+  }
+
+  // Domain-Gate: site_url muss zu einer verifizierten Domain des Users passen.
+  // Temp-Sessions brauchen ihn nicht — ihre Tests werden von /api/resolve
+  // grundsätzlich nicht ausgeliefert (dort: user_id is not null).
   let effectiveUrl = site_url || ''
 
   if (!isTemp) {
-    const { data: verifiedDomains } = await supabase
-      .from('domains')
-      .select('url')
-      .eq('user_id', user.userId)
-      .eq('verified', true)
-
-    const verifiedUrls = verifiedDomains?.map(d => d.url) ?? []
-
-    function hostOf(u: string) {
-      return u.trim().toLowerCase()
-        .replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
-        .replace(/^www\./, '')
+    const gate = await assertOwnedDomain(user.userId, site_url)
+    if (!gate.ok) {
+      return Response.json({ error: gate.error }, { status: gate.status, headers: corsHeaders('POST, OPTIONS') })
     }
-
-    if (!site_url) {
-      if (verifiedUrls.length === 0) {
-        return Response.json(
-          { error: 'No verified website. Add your website in the dashboard first.' },
-          { status: 400, headers: corsHeaders('POST, OPTIONS') }
-        )
-      }
-      effectiveUrl = verifiedUrls[0]!
-    } else {
-      if (verifiedUrls.length === 0) {
-        return Response.json(
-          { error: 'No verified website. Add your website in the dashboard first.' },
-          { status: 400, headers: corsHeaders('POST, OPTIONS') }
-        )
-      }
-
-      const testHost = hostOf(site_url)
-      const allowedHosts = verifiedUrls.map(u => hostOf(u))
-      if (!allowedHosts.includes(testHost)) {
-        return Response.json(
-          { error: `site_url must match a verified website. Allowed: ${allowedHosts.join(', ')}. Got: ${testHost}` },
-          { status: 400, headers: corsHeaders('POST, OPTIONS') }
-        )
-      }
-    }
+    effectiveUrl = gate.siteUrl
   }
 
   const insert: Record<string, unknown> = {

@@ -77,12 +77,18 @@ export function StepGoal({
   // Listen for postMessage from ab.js goal picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      const userSiteOrigin = (() => {
-        try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
-      })()
-      const ourOrigin = window.location.origin
-      const isTrusted = (!userSiteOrigin) || e.origin === userSiteOrigin || e.origin === ourOrigin
-      if (!isTrusted) return
+      // SECURITY: Nur Nachrichten von der Seite des Users akzeptieren.
+      // ponytail: Vorher galt `(!userSiteOrigin) || … || e.origin === ourOrigin`.
+      // Der erste Zweig vertraute JEDER Origin, sobald die eingegebene URL nicht
+      // parsebar war; der letzte war nur für den entfernten picker-bridge-Proxy
+      // nötig (Plan SEC-02). Jetzt: exakter Origin-Match, sonst verwerfen.
+      let userSiteOrigin: string | null = null
+      try {
+        userSiteOrigin = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin
+      } catch {
+        userSiteOrigin = null
+      }
+      if (!userSiteOrigin || e.origin !== userSiteOrigin) return
 
       if (!e.data || e.data.type !== 'ab-goal') return
       const { selector, text } = e.data
@@ -104,8 +110,11 @@ export function StepGoal({
   function openGoalPicker() {
     if (!url) return
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    const bridgeUrl = `/api/picker-bridge?url=${encodeURIComponent(finalUrl)}&mode=goal`
-    const popup = window.open(bridgeUrl, 'ab-goal-picker', 'width=1200,height=800')
+    // ponytail: kein /api/picker-bridge mehr (Plan SEC-02) — direkt auf die
+    // Kundenseite, ab.js erkennt ?ab_goal= und startet den Goal-Picker.
+    const target = new URL(finalUrl)
+    target.searchParams.set('ab_goal', '1')
+    const popup = window.open(target.toString(), 'ab-goal-picker', 'width=1200,height=800')
     if (!popup || popup.closed) {
       // Popup was blocked — show fallback hint
       setPickerBlocked(true)

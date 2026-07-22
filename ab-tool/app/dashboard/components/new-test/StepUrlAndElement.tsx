@@ -36,14 +36,18 @@ export function StepUrlAndElement({
   // Listen for postMessage from ab.js picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      // SECURITY: Accept messages from the user's site OR from our own
-      // picker-bridge proxy (which serves the page from our origin).
-      const userSiteOrigin = (() => {
-        try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
-      })()
-      const ourOrigin = window.location.origin
-      const isTrusted = (!userSiteOrigin) || e.origin === userSiteOrigin || e.origin === ourOrigin
-      if (!isTrusted) return
+      // SECURITY: Nur Nachrichten von der Seite des Users akzeptieren.
+      // ponytail: Vorher galt `(!userSiteOrigin) || … || e.origin === ourOrigin`.
+      // Der erste Zweig vertraute JEDER Origin, sobald die eingegebene URL nicht
+      // parsebar war; der letzte war nur für den entfernten picker-bridge-Proxy
+      // nötig (Plan SEC-02). Jetzt: exakter Origin-Match, sonst verwerfen.
+      let userSiteOrigin: string | null = null
+      try {
+        userSiteOrigin = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin
+      } catch {
+        userSiteOrigin = null
+      }
+      if (!userSiteOrigin || e.origin !== userSiteOrigin) return
 
       if (!e.data || e.data.type !== 'ab-pick') return
 
@@ -70,9 +74,14 @@ export function StepUrlAndElement({
   const openPicker = useCallback(() => {
     if (!url) return
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    // Bridge-URL: unser Server proxied die Seite und injectet ab.js
-    const bridgeUrl = `/api/picker-bridge?url=${encodeURIComponent(finalUrl)}&mode=element`
-    window.open(bridgeUrl, 'ab-picker', 'width=1200,height=800')
+    // ponytail: Vorher lief das über /api/picker-bridge — einen Proxy, der die
+    // fremde Seite unter UNSERER Origin auslieferte (Plan SEC-02). Jetzt wird
+    // die Kundenseite direkt geöffnet; ab.js erkennt ?ab_pick= und startet den
+    // Picker. Setzt voraus, dass das Snippet installiert ist — genau das ist
+    // ohnehin Voraussetzung dafür, dass der Test später ausgeliefert wird.
+    const target = new URL(finalUrl)
+    target.searchParams.set('ab_pick', '1')
+    window.open(target.toString(), 'ab-picker', 'width=1200,height=800')
     setPickerOpen(true)
     setWaitingForPicker(true)
   }, [url])

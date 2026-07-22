@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
-import { sanitizeHtml } from '@/lib/sanitize'
+import { sanitizeHtml, sanitizeCss } from '@/lib/sanitize'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 
@@ -53,6 +53,13 @@ export async function GET(req: Request) {
     .eq('site_host', host)
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
+    // Security: NUR Tests mit echtem Besitzer ausliefern (Plan SEC-01, DB-04).
+    // Temp-Sessions (/api/temp-session) sind unauthentifiziert erzeugbar und
+    // durchlaufen keinen Domain-Gate — ihre Tests sind reine Vorschauen für
+    // das Figma-Onboarding und dürfen niemals auf einer echten Website landen.
+    // Deckt zugleich verwaiste Rows ab (user_id und temp_session_id beide NULL),
+    // die über keine API mehr erreichbar, aber weiterhin auslieferbar wären.
+    .not('user_id', 'is', null)
     .limit(200)
 
   if (error) {
@@ -95,9 +102,11 @@ export async function GET(req: Request) {
     goal: t.goal,
     status: t.status,
     traffic_split: t.traffic_split,
-    // Security: XSS-Sanitization vor Auslieferung an ab.js
+    // Security: XSS-Sanitization vor Auslieferung an ab.js.
+    // ponytail: variant_b_css ging vorher ROH raus — sanitizeCss existierte,
+    // wurde aber nur in lib/previewAnalyze.ts verwendet (Plan SEC-01c).
     variant_b_html: sanitizeHtml(t.variant_b_html),
-    variant_b_css: t.variant_b_css || null,
+    variant_b_css: sanitizeCss(t.variant_b_css) || null,
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
     // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
     // Extrahiert aus site_url, damit der Client filtern kann, ohne

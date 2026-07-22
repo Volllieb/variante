@@ -3,6 +3,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { scanPII, PII_PATTERNS } from '@/lib/pii'
+import { getAIMonthlyBudget } from '@/lib/planLimits'
 
 export const maxDuration = 60
 
@@ -11,7 +12,10 @@ export const maxDuration = 60
 // (Figma-JSON + CSS + System-Prompt) runden wir auf $0.005 pro Call — bewusst
 // überschätzt, damit das Limit nie unterschritten wird.
 const ESTIMATED_COST_PER_GEN = 0.005
-const MAX_MONTHLY_COST = Number(process.env.OPENAI_MAX_MONTHLY_COST) || 20
+// ponytail: Vorher galt dieses eine Limit fuer ALLE Plaene — ein Free-User
+// bekam hier $20 statt der in planLimits.ts dokumentierten $5, waehrend
+// /api/agent korrekt nach Plan unterschied. Jetzt eine Quelle: planLimits.ts.
+const TEMP_SESSION_GEN_LIMIT = 3
 
 // =============================================================================
 // PII-Scanner: importiert aus lib/pii.ts (DSGVO/GDPR).
@@ -375,16 +379,31 @@ export async function POST(req: Request) {
     return Response.json({ error: 'test not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
   }
 
-  // Temp-User: maximal 1 kostenlose Generation. Danach Signup-Prompt.
-  if (isTemp && test.variant_b_html) {
-    return Response.json(
-      {
-        error: 'free_gen_limit',
-        message: 'Sign up to generate more variants for this test.',
-        signup_url: '/signup?source=figma-plugin&temp_token=' + encodeURIComponent(user.userId),
-      },
-      { status: 402, headers: corsHeaders('POST, OPTIONS') }
-    )
+  // Temp-Sessions: hartes Budget pro SESSION (Plan SEC-06).
+  //
+  // Vorher stand hier nur `if (isTemp && test.variant_b_html)` — also eine
+  // Gratis-Generierung pro TEST. In Kombination mit "Temp-User: kein Limit" in
+  // /api/tests ergab das: 1 unauthentifiziert erzeugte Session -> beliebig viele
+  // Tests -> beliebig viele kostenlose OpenAI-Calls. OPENAI_MAX_MONTHLY_COST
+  // greift dort nicht, weil es an profiles.monthly_gen_cost haengt und
+  // Temp-Sessions kein Profil haben.
+  //
+  // consume_temp_session_gen (Migration 031) prueft und bucht atomar.
+  if (isTemp) {
+    const { data: allowed } = await supabase.rpc('consume_temp_session_gen', {
+      p_session_id: user.userId,
+      p_limit: TEMP_SESSION_GEN_LIMIT,
+    })
+    if (allowed !== true) {
+      return Response.json(
+        {
+          error: 'free_gen_limit',
+          message: 'Sign up to generate more variants.',
+          signup_url: '/signup?source=figma-plugin&temp_token=' + encodeURIComponent(user.userId),
+        },
+        { status: 402, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
   }
 
   // DSGVO: PII-Scan vor OpenAI-Sendung. original_html kann personenbezogene
@@ -413,15 +432,16 @@ export async function POST(req: Request) {
   // ($0.005) verloren — bei diesem Volumen akzeptabel. Upgrade-Pfad: Refund-RPC.
   // Temp-User: überspringen (1-Free-Gen-Limit oben greift stattdessen).
   if (!isTemp) {
+    const monthlyBudget = getAIMonthlyBudget(user.plan)
     const { data: withinLimit, error: limitErr } = await supabase.rpc('increment_gen_cost', {
       p_user_id: user.userId,
       p_amount: ESTIMATED_COST_PER_GEN,
-      p_limit: MAX_MONTHLY_COST,
+      p_limit: monthlyBudget,
     })
 
     if (limitErr || withinLimit === false) {
       return Response.json(
-        { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${MAX_MONTHLY_COST}/mo). Resets on the 1st.` },
+        { error: 'monthly generation limit reached', message: `OpenAI budget exhausted ($${monthlyBudget}/mo). Resets on the 1st.` },
         { status: 429, headers: corsHeaders('POST, OPTIONS') }
       )
     }

@@ -11,6 +11,7 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
+import { getPlanForUser } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits } from '@/lib/planLimits'
 import { checkRateLimit } from '@/lib/rateLimit'
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
   }
 
   // ─── Plan-Limit: AI Variant Gens ───
-  const plan = user.user_metadata?.plan ?? 'free'
+  const plan = await getPlanForUser(user.id)
   const limits = getPlanAiLimits(plan)
 
   if (limits.variantGens !== Infinity) {

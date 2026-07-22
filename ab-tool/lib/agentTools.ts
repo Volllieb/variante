@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
 import { safeError } from '@/lib/safeLog'
 import type { ApiUser } from '@/lib/auth'
+import { assertOwnedDomain } from '@/lib/domainGate'
 import { stripForCRO, extractStructure, extractStyleContext, analyzePage } from '@/lib/croAnalyze'
 import { generateVariantText } from '@/lib/generateVariantText'
 import { redactPII } from '@/lib/pii'
@@ -172,30 +173,9 @@ export function makeAgentTools(user: ApiUser) {
       variant_css: z.string().optional().describe('CSS der Variante B (bei type=color/css/layout)'),
     }),
     execute: async ({ name, site_url, selector, goal, variant_html, variant_css }) => {
-      // ─── Domain-Gate (gleiche Logik wie /api/tests) ───
-      const { data: verifiedDomains } = await supabase
-        .from('domains')
-        .select('url')
-        .eq('user_id', user.userId)
-        .eq('verified', true)
-
-      const verifiedUrls = verifiedDomains?.map(d => d.url) ?? []
-
-      function hostOf(u: string) {
-        return u.trim().toLowerCase()
-          .replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
-          .replace(/^www\./, '')
-      }
-
-      if (verifiedUrls.length === 0) {
-        throw new Error('No verified domain. The user must verify their website in the dashboard first.')
-      }
-
-      const testHost = hostOf(site_url)
-      const allowedHosts = verifiedUrls.map(u => hostOf(u))
-      if (!allowedHosts.includes(testHost)) {
-        throw new Error(`site_url must match a verified domain. Allowed: ${allowedHosts.join(', ')}. Got: ${testHost}`)
-      }
+      // ─── Domain-Gate (zentral in lib/domainGate.ts) ───
+      const gate = await assertOwnedDomain(user.userId, site_url)
+      if (!gate.ok) throw new Error(gate.error)
 
       // ─── Free-Gating: max 1 aktiver Test ───
       // ponytail: Nur active+paused zählen — draft-Tests blockieren nicht.

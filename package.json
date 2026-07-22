@@ -6,5 +6,8 @@
     "build:tool": "cd ab-tool && npm run build",
     "build:plugin": "cd figma-plugin && npm run build",
     "build:all": "npm run build:tool && npm run build:plugin"
+  },
+  "dependencies": {
+    "isomorphic-dompurify": "^3.19.0"
   }
 }

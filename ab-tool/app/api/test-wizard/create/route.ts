@@ -12,6 +12,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit } from '@/lib/rateLimit'
+import { assertOwnedDomain } from '@/lib/domainGate'
 
 export const maxDuration = 30
 
@@ -93,6 +94,17 @@ export async function POST(req: Request) {
   // Normalize site_url: prepend https:// if no protocol present (Bug 4)
   const normalizedSiteUrl = /^https?:\/\//i.test(site_url) ? site_url : `https://${site_url}`
 
+  // ─── Domain-Gate ───
+  // KRITISCH (Plan SEC-01): Dieser Endpunkt hatte KEINEN Domain-Gate, obwohl
+  // /api/tests einen hat — und er ist der Pfad, den das Dashboard tatsächlich
+  // benutzt. Jeder registrierte Free-User konnte damit einen aktiven Test für
+  // eine BELIEBIGE Domain anlegen (fremde Kundenseiten, www.getvariante.com)
+  // und über variant_b_html/css beliebiges Markup dorthin ausliefern.
+  const gate = await assertOwnedDomain(user.id, normalizedSiteUrl)
+  if (!gate.ok) {
+    return Response.json({ error: gate.error }, { status: gate.status, headers })
+  }
+
   // ─── Plan-Limit: Active Tests (Free = 1) ───
   // ponytail: Drafts sind immer kostenlos — kein Limit-Check nötig.
   if (status !== 'draft') {
@@ -142,14 +154,11 @@ export async function POST(req: Request) {
     .single()
 
   if (insertErr || !test) {
+    // ponytail: message und code gingen vorher an den Client — rohe
+    // Postgres-Fehlertexte samt Spalten-/Constraint-Namen. Widerspricht der
+    // safeLog-Politik; ins Log gehören sie, nicht in die Response.
     safeError('test-wizard-create-failed', insertErr)
-    const message = insertErr?.message ?? 'Unknown database error'
-    const code = insertErr?.code ?? null
-    return Response.json({
-      error: 'Failed to create test',
-      detail: message,
-      code,
-    }, { status: 500, headers })
+    return Response.json({ error: 'Failed to create test' }, { status: 500, headers })
   }
 
   // ─── Wizard-Draft löschen ───
