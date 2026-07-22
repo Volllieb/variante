@@ -61,9 +61,16 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   } else {
-    // Nicht eingeloggt: /dashboard/* → Login
-    if (path.startsWith('/dashboard')) {
-      return NextResponse.redirect(new URL('/login', request.url))
+    // Nicht eingeloggt: geschützte Routen → Login
+    const protectedPaths = ['/dashboard', '/onboarding', '/update-password']
+    const isProtected = protectedPaths.some((p) => path === p || path.startsWith(p + '/'))
+    if (isProtected) {
+      const url = new URL('/login', request.url)
+      // Nur bei explizitem Logout keinen error-Param setzen
+      if (!request.nextUrl.searchParams.has('logout')) {
+        url.searchParams.set('error', 'Please log in to continue.')
+      }
+      return NextResponse.redirect(url)
     }
   }
 
@@ -75,5 +82,8 @@ export const config = {
     '/login',
     '/signup',
     '/dashboard/:path*',
+    '/onboarding',
+    '/onboarding/:path*',
+    '/update-password',
   ],
 }

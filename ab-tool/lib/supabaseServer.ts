@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { cache } from 'react'
+
+// ponytail: Kein React.cache() mehr — in Next.js 16 mit Turbopack verursacht
+// cache() + async sporadische "Cannot read properties of undefined"-Fehler.
+// Die Middleware refresht die Session bereits, getUser() ist günstig genug
+// für den einmaligen Aufruf pro Request (Layout + Page teilen sich den
+// Request-Kontext, aber das ist ein vernachlässigbarer Overhead).
+// Upgrade-Pfad: Sollte das zum Performance-Problem werden → request-level
+// WeakMap oder AsyncLocalStorage statt cache().
 
 // Supabase-Client für den Dashboard-Pfad (Server Components + Billing-Routen),
 // der die eingeloggte Session aus den Cookies liest. Anon-Key + RLS.
@@ -30,12 +37,12 @@ export async function getServerSupabase() {
 }
 
 // Eingeloggten User der aktuellen Session zurückgeben (oder null).
-// React.cache() dedupliziert innerhalb eines Requests — Layout + Page
-// teilen sich denselben Aufruf statt 2× cookies() + getUser().
-export const getSessionUser = cache(async () => {
+// Die Middleware refresht den Token vorher, sodass getUser() zuverlässig
+// die aktuelle Session sieht.
+export async function getSessionUser() {
   const supabase = await getServerSupabase()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   return user
-})
+}

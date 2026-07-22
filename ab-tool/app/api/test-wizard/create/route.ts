@@ -26,7 +26,7 @@ interface CreateTestBody {
   variant_b_css?: string
   variant_text?: string
   original_html?: string
-  status: 'active' | 'paused'
+  status: 'active' | 'paused' | 'draft'
   name?: string
 }
 
@@ -62,8 +62,8 @@ export async function POST(req: Request) {
   if (!site_url || !goal) {
     return Response.json({ error: 'site_url and goal are required' }, { status: 400, headers })
   }
-  if (!['active', 'paused'].includes(status)) {
-    return Response.json({ error: 'status must be active or paused' }, { status: 400, headers })
+  if (!['active', 'paused', 'draft'].includes(status)) {
+    return Response.json({ error: 'status must be active, paused, or draft' }, { status: 400, headers })
   }
 
   // Input-Längenlimits
@@ -86,18 +86,26 @@ export async function POST(req: Request) {
   }
 
   // ─── Plan-Limit: Active Tests (Free = 1) ───
-  const plan = (user.user_metadata?.plan as string) ?? 'free'
-  if (plan === 'free') {
-    const { count } = await supabase
-      .from('tests')
-      .select('id', { count: 'exact', head: true })
+  // ponytail: Drafts sind immer kostenlos — kein Limit-Check nötig.
+  if (status !== 'draft') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
       .eq('user_id', user.id)
-      .neq('status', 'done')
-    if ((count ?? 0) >= 1) {
-      return Response.json({
-        error: 'limit reached',
-        message: 'Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.',
-      }, { status: 402, headers })
+      .single()
+    const plan = profile?.plan ?? 'free'
+    if (plan === 'free') {
+      const { count } = await supabase
+        .from('tests')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .in('status', ['active', 'paused'])
+      if ((count ?? 0) >= 1) {
+        return Response.json({
+          error: 'limit reached',
+          message: 'Free plan allows 1 active experiment. Upgrade to Pro for unlimited tests.',
+        }, { status: 402, headers })
+      }
     }
   }
 

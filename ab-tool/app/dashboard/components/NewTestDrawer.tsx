@@ -206,7 +206,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
   // ─── Create Test ───
 
-  const handleCreate = useCallback(async (status: 'active' | 'paused') => {
+  const handleCreate = useCallback(async (status: 'active' | 'paused' | 'draft') => {
     if (!state.url || !state.selectedElement || !state.selectedGoal || !state.variantResult) {
       setCreateError('Please complete all steps before creating the test.')
       return
@@ -434,11 +434,11 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             ) : (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleCreate('paused')}
+                  onClick={() => handleCreate('draft')}
                   disabled={creating}
                   className="rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Paused'}
+                  {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Draft'}
                 </button>
                 <button
                   onClick={() => handleCreate('active')}

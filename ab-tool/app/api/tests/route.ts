@@ -82,14 +82,15 @@ export async function POST(req: Request) {
 
   const isTemp = user.plan === 'temp'
 
-  // Gating: Free-Tier erlaubt nur 1 laufenden Test (status != 'done').
+  // Gating: Free-Tier erlaubt nur 1 laufenden Test.
+  // ponytail: Nur active+paused zählen — draft-Tests blockieren nicht.
   // Temp-User: kein Limit (es gibt nur einen Test im Wizard).
   if (!isTemp && user.plan === 'free') {
     const { count } = await supabase
       .from('tests')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.userId)
-      .neq('status', 'done')
+      .in('status', ['active', 'paused'])
     if ((count ?? 0) >= 1) {
       return paymentRequired(
         'POST, OPTIONS',

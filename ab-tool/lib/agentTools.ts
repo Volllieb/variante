@@ -198,12 +198,13 @@ export function makeAgentTools(user: ApiUser) {
       }
 
       // ─── Free-Gating: max 1 aktiver Test ───
+      // ponytail: Nur active+paused zählen — draft-Tests blockieren nicht.
       if (user.plan !== 'pro' && user.plan !== 'agency') {
         const { count } = await supabase
           .from('tests')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.userId)
-          .neq('status', 'done')
+          .in('status', ['active', 'paused'])
         if ((count ?? 0) >= 1) {
           throw new Error('Free plan allows only 1 active test. Skip remaining test creation.')
         }
