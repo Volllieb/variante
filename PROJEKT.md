@@ -14,7 +14,7 @@
 | **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 20.07.2026 — 🎨 **Web-UI Controls + Inspiration Gallery**: VariantEditor mit Live-Preview + PropertyControls, InspirationGallery mit 5 CRO-Patterns, ColorPicker, PropertySlider, mergeVariantEdits-Logik, 3-Tab-Layout in StepVariantB. |
+| **Stand** | 22.07.2026 — 🎨 **Web-UI Controls + Inspiration Gallery** + 🧹 **Wrapup**: Tote Komponenten (TestCreationPanel, ConnectWebsite, OnboardingIllustrations) verschoben, Ponytail-Review dokumentiert (P1-Bug AccountClient Fake-IDs, P2-Duplikation Domain-Flows). Build grün. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -34,7 +34,7 @@
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, claim-tests, cron, domains, event, events, figma, generate, preview, profile, resolve, results, snippet-check, stripe, suggestions, temp-session, test-wizard, tests, token
-├── app/components/     # HybridDemo, SkipButton (Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview → docs/future-features/components/)
+├── app/components/     # HybridDemo, SkipButton (Breadcrumbs, ConnectWebsite, EmptyState, NotificationCenter, OnboardingIllustrations, Skeleton, TestCreationPanel, Toast, Tooltip, VariantPreview → docs/future-features/components/)
 ├── components/         # LandingIcons, PandaLogo, TechLogos
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # agentTools, auth, claimTests, cors, croAnalyze, croHeuristics, detectLang, email, extractPageCode, generateVariantText, getExperimentStats, landingCopy, pii, planLimits, previewAnalyze, rateLimit, safeLog, sanitize, screenshot, significance, snippetCode, ssrf, stripe, supabase, supabaseBrowser, supabaseServer, useRealtime, useTestList
@@ -97,6 +97,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 
 | Datum | Eintrag |
 |---|---|
+| 22.07.2026 | **Wrapup: Tote Komponenten + Ponytail-Review.** 3 ungenutzte Komponenten (TestCreationPanel, ConnectWebsite, OnboardingIllustrations) nach `docs/future-features/components/` verschoben. Ponytail-Review (HEAD~5..HEAD): P1-Bug in `AccountClient.tsx:260:330` — Fake-Domain-IDs (`crypto.randomUUID()`) statt Server-IDs, macht Delete/Verify auf neuen Domains kaputt. P2: `changeConnectedPage()` und `addAdditionalPage()` ~70% Duplikation (~60 Zeilen). P3: Zwei parallele State-Machines in AccountClient (8 State-Variablen, ~900 Zeilen). Positiv: `seedNotifications()` entfernt, `captureToStorage()` Dead Code, `extractPageCode.ts` Performance-Win (Promise.all). Build grün. |
 | 20.07.2026 | **Wrapup: Onboarding-Redesign.** Ponytail-Review: Hero-CTA-Fix (primär → #demo-hybrid statt /onboarding). Tote Komponenten (7 Stück, 21KB) nach `docs/future-features/components/` verschoben: Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview. TODO: `TestCreationPanel.tsx:210` (pageContext aus ab.js picker). Build grün. |
 | 20.07.2026 | **Web-UI Controls + Inspiration Gallery.** StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration). Neue Komponenten: `VariantEditor.tsx` (Live-Preview + PropertyControls), `InspirationGallery.tsx` (5 CRO-Patterns: SocialProof, Urgency, TrustSignals, Clarity, VisualHierarchy), `ColorPicker.tsx`, `PropertySlider.tsx`. Neue Libs: `mergeVariantEdits.ts` (UserEdits-Typ + merge-Logik), `inspirationPatterns.ts` (Pattern-Definitionen), `generatePatternVariant.ts` (Pattern→CSS-Generierung), `types.ts` (Shared Types). Alle Dateien in `new-test/`. Build grün. |
 | 18.07.2026 | **Leadgen-Pipeline (Sprint 1).** `npm run leadgen` → `ab-tool/scripts/leadgen/pipeline.ts` orchestriert Enrichment, Analyse + Draft. Plan: `docs/future-features/leadgen-pipeline.md`. |
@@ -181,7 +182,10 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 - **Design-Partner:** 1 von 5 angefragt
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
 - **E2E:** ✅ M1 abgeschlossen
-- **Offen:** `TestCreationPanel.tsx:210` — `pageContext` aus ab.js picker anreichern (TODO im Code)
+- **Offen:** `TestCreationPanel.tsx:210` — `pageContext` aus ab.js picker anreichern (TODO im Code, File liegt in `docs/future-features/components/`)
+- **Offen (Ponytail 22.07.):** `AccountClient.tsx:260:330` — P1-Bug: Fake-Domain-IDs (`crypto.randomUUID()`) statt Server-IDs → Delete/Verify schlägt fehl. Fix: `newDomain.id` vom Server verwenden.
+- **Offen (Ponytail 22.07.):** `AccountClient.tsx` — P2-Duplikation: `changeConnectedPage()`/`addAdditionalPage()` ~70% identisch → Shared Helper extrahieren.
+- **Offen (Ponytail 22.07.):** `AccountClient.tsx` — P3-Over-Engineering: 8 State-Variablen für 2 quasi-identische Flows → `useReducer` oder `<DomainForm>` Sub-Component.
 - **Nächster Schritt:** §9.1 Quick-Wins (Figma-SEO, X-Profil, Pain-Suchen) → Week-1 X-Outreach → Pain-Interviews
 
 ### Meilensteine
