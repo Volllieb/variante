@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { determineWinner, calcSignificance } from '@/lib/significance'
+import { calcSignificance, evaluateWinner, hasSampleRatioMismatch } from '@/lib/significance'
 import { safeError } from '@/lib/safeLog'
 import { sendEmail } from '@/lib/email'
 
@@ -32,7 +32,7 @@ async function run(req: Request) {
   // Alle aktiven Tests ohne Winner laden
   const { data: tests, error } = await supabase
     .from('tests')
-    .select('id, name, user_id, site_url, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
+    .select('id, name, user_id, site_url, created_at, traffic_split, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
     .in('status', ['active', 'paused'])
     .is('winner', null)
 
@@ -43,9 +43,41 @@ async function run(req: Request) {
 
   const notified: string[] = []
 
+  // ponytail: Die Gewinner-Entscheidung fällt AUSSCHLIESSLICH hier — einmal pro
+  // Tag. Vorher wurde sie zusätzlich in /api/event bei jeder Conversion neu
+  // getroffen, also potenziell tausendfach am selben Datensatz (Plan STAT-01).
+  const skipped: { id: string; reason: string }[] = []
+
   for (const t of tests ?? []) {
     const sig = calcSignificance(t.visitors_a, t.conversions_a, t.visitors_b, t.conversions_b)
-    const winner = determineWinner(sig, t.conversions_a, t.conversions_b, t.visitors_a, t.visitors_b, t.min_visitors ?? 100, t.min_uplift ?? 0.05, t.significance_level ?? 0.95)
+
+    // Sample Ratio Mismatch: weicht die Traffic-Verteilung stark von der
+    // konfigurierten ab, ist die Datenbasis kaputt — dann darf kein Gewinner
+    // deklariert werden, egal wie gut die Zahlen aussehen.
+    if (hasSampleRatioMismatch(t.visitors_a, t.visitors_b, t.traffic_split ?? 50)) {
+      skipped.push({ id: t.id, reason: 'sample-ratio-mismatch' })
+      await supabase.rpc('log_event', {
+        p_test_id: t.id,
+        p_user_id: t.user_id,
+        p_type: 'health',
+        p_message: `Sample ratio mismatch (A=${t.visitors_a}, B=${t.visitors_b}, split=${t.traffic_split ?? 50}%). Ergebnisse sind nicht belastbar.`,
+      })
+      continue
+    }
+
+    const verdict = evaluateWinner({
+      significance: sig,
+      cA: t.conversions_a,
+      cB: t.conversions_b,
+      vA: t.visitors_a,
+      vB: t.visitors_b,
+      createdAt: t.created_at,
+      minVisitorsPerArm: t.min_visitors ?? undefined,
+      minUplift: t.min_uplift ?? 0.05,
+      significanceLevel: t.significance_level ?? 0.95,
+    })
+    const winner = verdict.winner
+    if (!winner) skipped.push({ id: t.id, reason: verdict.reason })
 
     if (winner) {
       // Winner persistieren
@@ -134,10 +166,9 @@ async function run(req: Request) {
     }
   }
 
-  return Response.json({ checked: tests?.length ?? 0, notified })
+  return Response.json({ checked: tests?.length ?? 0, notified, skipped })
 }
 
-// GET /api/cron/check-winners — Health-Check (kein Cron-Trigger)
 // Vercel Cron ruft den Pfad per GET auf — die Methode ist in vercel.json
 // nicht konfigurierbar. Vorher lag die Arbeit ausschliesslich in POST und
 // GET gab nur einen Hinweistext zurueck: KEIN Cron-Job lief jemals

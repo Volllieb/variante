@@ -69,6 +69,16 @@ export async function POST(req: Request) {
   if (site_url && site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   if (selector && selector.length > 512) return Response.json({ error: 'selector too long (max 512)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   if (goal && goal.length > 256) return Response.json({ error: 'goal too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  // ponytail: traffic_split ging ungeprüft aus dem Body in den Insert, während
+  // die vier Felder darüber längenvalidiert wurden. 500 hier bedeutet in
+  // ab_assign `random()*100 < 500` — also 100 % Traffic auf B und ein Test,
+  // der keiner mehr ist (Plan DB-03).
+  if (traffic_split !== undefined && (typeof traffic_split !== 'number' || !Number.isFinite(traffic_split) || traffic_split < 0 || traffic_split > 100)) {
+    return Response.json({ error: 'traffic_split must be a number between 0 and 100' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
+  if (min_visitors !== undefined && (typeof min_visitors !== 'number' || min_visitors < 0)) {
+    return Response.json({ error: 'min_visitors must be a non-negative number' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
 
   const isTemp = user.plan === 'temp'
 
