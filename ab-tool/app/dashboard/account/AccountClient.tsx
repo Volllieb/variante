@@ -245,12 +245,14 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    // Verify new domain
+    // Verify new domain + capture server ID
+    let newDomainId: string | undefined
     try {
       const domainsRes = await fetch('/api/domains')
       const { domains: freshDomains } = await domainsRes.json()
       const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
       if (newDomain?.id) {
+        newDomainId = newDomain.id
         await fetch('/api/domains/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -267,9 +269,10 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     }
 
     // Update local state — remove old, add new at front
+    // ponytail: use server ID, not crypto.randomUUID() — fake IDs break delete/verify
     setDomains((prev) => {
       const withoutOld = prev.filter((d) => d.id !== primary.id)
-      return [{ id: crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
+      return [{ id: newDomainId ?? crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
     })
     setChangeState('verified')
   }
@@ -329,12 +332,14 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       return
     }
 
-    // 3. Verify
+    // 3. Verify + capture server ID
+    let newDomainId: string | undefined
     try {
       const domainsRes = await fetch('/api/domains')
       const { domains: freshDomains } = await domainsRes.json()
       const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
       if (newDomain?.id) {
+        newDomainId = newDomain.id
         await fetch('/api/domains/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -344,7 +349,8 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     } catch { /* best-effort */ }
 
     // 4. Update local state
-    setDomains((prev) => [...prev, { id: crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }])
+    // ponytail: use server ID, not crypto.randomUUID() — fake IDs break delete/verify
+    setDomains((prev) => [...prev, { id: newDomainId ?? crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }])
     setAddState('verified')
   }
 
