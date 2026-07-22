@@ -1,6 +1,6 @@
 # Multi-Agent-Plan: New Test Flow
 
-> Stand: 18.07.2026 · Status: **Planung** · Aufwand: groß (Drawer-Wizard, 5 neue Components, 3 API-Routen, Figma-Plugin-Radikalkur)
+> Stand: 22.07.2026 · Status: **Umgesetzt** · Aufwand: groß (Drawer-Wizard, 5 neue Components, 3 API-Routen, Figma-Plugin-Radikalkur)
 >
 > **Fragebogen-Antworten:** `web-test-creation-fragebogen.md`
 > **Pattern-Katalog:** `../architektur.md`

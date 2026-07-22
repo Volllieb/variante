@@ -1,7 +1,7 @@
 # Plan: Goal-Step UI/UX Redesign — New Test Flow
 
 > **Datum:** 2026-07-21
-> **Status:** Geplant
+> **Status:** Umgesetzt
 > **Betroffene Bereiche:** Step 2 (Goal), NewTestDrawer, Picker-Bridge, Types
 > **Abhängigkeit:** Sollte NACH dem Button-Editor-Redesign (`plan-button-editor-ui.md`) umgesetzt werden, da Step 1 und Step 2 denselben Picker-Mechanismus teilen.
 

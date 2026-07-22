@@ -1,7 +1,7 @@
 # Plan: Button-Editor UI — Neuer Variante-B-Erstellungs-Flow
 
 > **Datum:** 2026-07-21
-> **Status:** Geplant
+> **Status:** Umgesetzt
 > **Betroffene Bereiche:** Test-Wizard (Step 1), API, Types, Editor-Komponenten
 
 ## 1. Ziel
