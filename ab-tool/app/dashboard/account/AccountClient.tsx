@@ -22,17 +22,60 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   // ── Change connected page inline flow ──
   const [changingPage, setChangingPage] = useState(false)
   const [changeUrl, setChangeUrl] = useState('')
-  const [changeState, setChangeState] = useState<'input' | 'deleting' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
+  const [changeState, setChangeState] = useState<'input' | 'deleting' | 'saving' | 'not-found' | 'verified'>('input')
   const [changeError, setChangeError] = useState('')
   // ── Add additional page inline flow ──
   const [addingPage, setAddingPage] = useState(false)
   const [addUrl, setAddUrl] = useState('')
-  const [addState, setAddState] = useState<'input' | 'saving' | 'checking' | 'not-found' | 'verified'>('input')
+  const [addState, setAddState] = useState<'input' | 'saving' | 'not-found' | 'verified'>('input')
   const [addError, setAddError] = useState('')
 
-  // ── Helper ──
+  // ── Helpers ──
   const normalize = (raw: string) =>
     raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+
+  /** Shared pipeline: save domain → snippet-check → verify. Returns server domain ID on success. */
+  async function saveDomainAndVerify(normalized: string): Promise<
+    | { ok: true; domainId: string }
+    | { ok: false; reason: 'limit-reached' | 'save-failed' | 'not-found'; error?: string }
+  > {
+    // 1. Save domain
+    const saveRes = await fetch('/api/domains', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: normalized }),
+    })
+    if (saveRes.status === 402) {
+      const data = await saveRes.json().catch(() => ({}))
+      return { ok: false, reason: 'limit-reached', error: data.error || 'Domain limit reached.' }
+    }
+    if (!saveRes.ok && saveRes.status !== 409) {
+      const data = await saveRes.json().catch(() => ({}))
+      return { ok: false, reason: 'save-failed', error: data.error || 'Failed to save domain.' }
+    }
+
+    // 2. Snippet check
+    const checkRes = await fetch('/api/snippet-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_url: normalized }),
+    })
+    const json = await checkRes.json()
+    if (!json.detected) return { ok: false, reason: 'not-found' }
+
+    // 3. Verify + capture server ID
+    const domainsRes = await fetch('/api/domains')
+    const { domains: freshDomains } = await domainsRes.json()
+    const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
+    if (newDomain?.id) {
+      await fetch('/api/domains/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domainId: newDomain.id }),
+      }).catch(() => { /* best-effort */ })
+    }
+    return { ok: true, domainId: newDomain?.id ?? crypto.randomUUID() }
+  }
 
   const [newEmail, setNewEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -168,8 +211,6 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       setChangeError('Please enter a valid domain (e.g. yoursite.com)')
       return
     }
-
-    // Don't replace with the same URL
     if (normalized === primary.url) {
       setChangeError('That already is your connected page.')
       return
@@ -195,84 +236,35 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
       }
     }
 
-    // Save new domain
+    // Save + snippet-check + verify
     setChangeState('saving')
-    try {
-      const saveRes = await fetch('/api/domains', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: normalized }),
-      })
-      if (saveRes.status === 402) {
-        const data = await saveRes.json().catch(() => ({}))
-        setChangeError(data.error || 'Domain limit reached.')
+    const result = await saveDomainAndVerify(normalized)
+    if (!result.ok) {
+      if (result.reason === 'limit-reached') {
+        setChangeError(result.error ?? 'Domain limit reached.')
         setChangeState('input')
-        return
-      }
-      if (!saveRes.ok && saveRes.status !== 409) {
-        const data = await saveRes.json().catch(() => ({}))
-        setChangeError(data.error || 'Failed to save domain. Refresh the page and try again.')
+      } else if (result.reason === 'save-failed') {
+        setChangeError(result.error ?? 'Failed to save domain.')
         setChangeState('input')
-        return
-      }
-    } catch {
-      setChangeError('Connection failed.')
-      setChangeState('input')
-      return
-    }
-
-    // Snippet check
-    setChangeState('checking')
-    try {
-      const checkRes = await fetch('/api/snippet-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_url: normalized }),
-      })
-      const json = await checkRes.json()
-
-      if (!json.detected) {
-        // If snippet not found and we already deleted the old domain (Free plan),
-        // the user is in a broken state — show error with recovery option
+      } else {
         if (plan === 'free') {
           setChangeError('Snippet not found on the new domain, and the old domain was removed. Re-add your previous domain or install the snippet first.')
         }
         setChangeState('not-found')
-        return
       }
-    } catch {
-      setChangeState('not-found')
       return
     }
-
-    // Verify new domain + capture server ID
-    let newDomainId: string | undefined
-    try {
-      const domainsRes = await fetch('/api/domains')
-      const { domains: freshDomains } = await domainsRes.json()
-      const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
-      if (newDomain?.id) {
-        newDomainId = newDomain.id
-        await fetch('/api/domains/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domainId: newDomain.id }),
-        })
-      }
-    } catch { /* Verify is best-effort */ }
 
     // Pro/Agency: Delete old domain AFTER new one is verified
     if (plan !== 'free') {
       try {
         await fetch(`/api/domains?id=${primary.id}`, { method: 'DELETE' })
-      } catch { /* best-effort — old domain may remain but new one works */ }
+      } catch { /* best-effort */ }
     }
 
-    // Update local state — remove old, add new at front
-    // ponytail: use server ID, not crypto.randomUUID() — fake IDs break delete/verify
     setDomains((prev) => {
       const withoutOld = prev.filter((d) => d.id !== primary.id)
-      return [{ id: newDomainId ?? crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
+      return [{ id: result.domainId, url: normalized, verified: true, verified_at: new Date().toISOString() }, ...withoutOld]
     })
     setChangeState('verified')
   }
@@ -289,68 +281,21 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     setAddError('')
     setAddState('saving')
 
-    // 1. Save domain
-    try {
-      const saveRes = await fetch('/api/domains', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: normalized }),
-      })
-      if (saveRes.status === 402) {
-        const data = await saveRes.json().catch(() => ({ error: 'Domain limit reached.' }))
-        setAddError(data.error || 'Domain limit reached.')
+    const result = await saveDomainAndVerify(normalized)
+    if (!result.ok) {
+      if (result.reason === 'limit-reached') {
+        setAddError(result.error ?? 'Domain limit reached.')
         setAddState('input')
-        return
-      }
-      if (!saveRes.ok && saveRes.status !== 409) {
-        const data = await saveRes.json().catch(() => ({}))
-        setAddError(data.error || 'Failed to save domain.')
+      } else if (result.reason === 'save-failed') {
+        setAddError(result.error ?? 'Failed to save domain.')
         setAddState('input')
-        return
-      }
-    } catch {
-      setAddError('Connection failed.')
-      setAddState('input')
-      return
-    }
-
-    // 2. Snippet check
-    setAddState('checking')
-    try {
-      const checkRes = await fetch('/api/snippet-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_url: normalized }),
-      })
-      const json = await checkRes.json()
-      if (!json.detected) {
+      } else {
         setAddState('not-found')
-        return
       }
-    } catch {
-      setAddState('not-found')
       return
     }
 
-    // 3. Verify + capture server ID
-    let newDomainId: string | undefined
-    try {
-      const domainsRes = await fetch('/api/domains')
-      const { domains: freshDomains } = await domainsRes.json()
-      const newDomain = (freshDomains || []).find((d: Domain) => d.url === normalized)
-      if (newDomain?.id) {
-        newDomainId = newDomain.id
-        await fetch('/api/domains/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domainId: newDomain.id }),
-        })
-      }
-    } catch { /* best-effort */ }
-
-    // 4. Update local state
-    // ponytail: use server ID, not crypto.randomUUID() — fake IDs break delete/verify
-    setDomains((prev) => [...prev, { id: newDomainId ?? crypto.randomUUID(), url: normalized, verified: true, verified_at: new Date().toISOString() }])
+    setDomains((prev) => [...prev, { id: result.domainId, url: normalized, verified: true, verified_at: new Date().toISOString() }])
     setAddState('verified')
   }
 
@@ -658,7 +603,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     </button>
                   ) : (
                     <div className="space-y-2 rounded-[6px] bg-bg-2 p-3">
-                      {(addState === 'input' || addState === 'saving' || addState === 'checking') && (
+                      {(addState === 'input' || addState === 'saving') && (
                         <>
                           <div className="flex items-center gap-2 rounded-[4px] border border-border bg-bg-1 px-2.5 py-2">
                             <Globe className="h-3.5 w-3.5 shrink-0 text-text-3" />
@@ -680,10 +625,10 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                               disabled={addState !== 'input' || !addUrl.trim()}
                               className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[4px] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                             >
-                              {addState === 'saving' || addState === 'checking' ? (
+                              {addState === 'saving' ? (
                                 <>
                                   <Loader2 className="h-3 w-3 animate-spin" />
-                                  {addState === 'saving' ? 'Saving…' : 'Checking snippet…'}
+                                  Saving & checking…
                                 </>
                               ) : (
                                 'Add'
@@ -736,8 +681,8 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 </button>
               )}
 
-              {/* Input / Saving / Checking */}
-              {(changeState === 'input' || changeState === 'deleting' || changeState === 'saving' || changeState === 'checking') && (
+              {/* Input / Saving */}
+              {(changeState === 'input' || changeState === 'deleting' || changeState === 'saving') && (
                 <>
                   <div className="flex items-center gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2.5">
                     <Globe className="h-4 w-4 shrink-0 text-text-3" />
@@ -761,10 +706,10 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       disabled={changeState !== 'input' || !changeUrl.trim()}
                       className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-fill-invert py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                     >
-                      {changeState === 'deleting' || changeState === 'saving' || changeState === 'checking' ? (
+                      {changeState === 'deleting' || changeState === 'saving' ? (
                         <>
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          {changeState === 'deleting' ? 'Removing current…' : changeState === 'saving' ? 'Saving…' : 'Checking snippet…'}
+                          {changeState === 'deleting' ? 'Removing current…' : 'Saving & checking…'}
                         </>
                       ) : (
                         domains.length > 0 ? 'Replace connected page' : 'Connect page'
