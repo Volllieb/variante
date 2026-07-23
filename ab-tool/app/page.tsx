@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Zap, Rocket, Gauge, Shield, Sparkles, ChevronDown, ArrowUpRight, Code2, MousePointer2, FlaskConical } from '@/components/LandingIcons'
-import { techLogos, techLogoNames, TechLogoMark } from '@/components/TechLogos'
+import { Check, Zap, ChevronDown, ArrowUpRight, Code2, MousePointer2, FlaskConical } from '@/components/LandingIcons'
+import { techLogos, TechLogoMark } from '@/components/TechLogos'
 import { copy, PLANS } from '@/lib/landingCopy'
+import { LandingDemo } from './LandingDemo'
+import { LandingTrySite } from './LandingTrySite'
 import type { PlanId } from '@/lib/landingCopy'
 
 /* ── Metadata (dynamic by language) ── */
@@ -104,35 +106,26 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </div>
           </div>
 
-          {/* Right: Hero Animation — first on mobile */}
+          {/* Right: Hero Demo — first on mobile */}
           <div id="demo" className="order-1 lg:order-2 px-0">
-            <div className="relative w-full overflow-hidden rounded-xl border border-border" style={{ aspectRatio: '820/480' }} aria-hidden="true">
-              <iframe
-                src="/ab-test-hero-animation.html"
-                className="absolute inset-0 w-full h-full border-0"
-                title="A/B test demo showing variant A vs variant B"
-                loading="eager"
-                sandbox="allow-scripts allow-same-origin"
-              />
-            </div>
+            <LandingDemo />
           </div>
         </div>
 
-        {/* Trust Bar */}
+        {/* Works-with logos — Social-Proof-Ersatz im Hero */}
         <div className="container-wide mt-8 sm:mt-10">
-          <div className="stat-bar rounded-xl border border-border bg-bg-1/50 px-6 py-5">
-            {[
-              { icon: Rocket, label: copy.trustItems[0].label, text: copy.trustItems[0].text },
-              { icon: Gauge, label: copy.trustItems[1].label, text: copy.trustItems[1].text },
-              { icon: Shield, label: copy.trustItems[2].label, text: copy.trustItems[2].text },
-              { icon: Sparkles, label: copy.trustItems[3].label, text: copy.trustItems[3].text },
-            ].map((item) => (
-              <div key={item.label} className="stat-item">
-                <item.icon className="mb-0.5 h-4 w-4 text-white/25" />
-                <span className="stat-label">{item.label}</span>
-                <span className="stat-text">{item.text}</span>
-              </div>
-            ))}
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-bg-1/50 px-6 py-5">
+            <span className="text-[11px] font-medium text-text-3 tracking-wide uppercase">
+              {copy.sectionWorks}
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+              {techLogos.map((logo) => (
+                <div key={logo.name} className="flex items-center gap-2.5">
+                  <TechLogoMark logo={logo} className="h-5 w-5 text-white/30" />
+                  <span className="text-xs text-white/45">{logo.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -184,25 +177,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </div>
       </section>
 
-      {/* ── Works-With Logo Bar ── */}
-      <section className="!py-10 sm:!py-12">
-        <div className="container-wide text-center">
-          <span className="section-label">{copy.sectionWorks}</span>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-5">
-            {techLogos.map((logo) => (
-              <div key={logo.name} className="flex flex-col items-center gap-2">
-                <TechLogoMark logo={logo} className="h-8 w-8 text-white/25" />
-                <span className="text-[11px] text-text-3">{logo.name}</span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 text-xs text-text-3">
-            {copy.platformNote.replace('{platforms}', techLogoNames.join(', '))}
-          </p>
-        </div>
-      </section>
+      {/* ── Try your site (demo → signup flow) ── */}
+      <LandingTrySite />
 
-      <div className="section-divider" />
 
       {/* ── How A/B Testing Works ── */}
       <section className="section">
