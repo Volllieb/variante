@@ -37,6 +37,10 @@ import {
   BarChart,
   Bar,
 } from 'recharts'
+// ponytail: echte Recharts-Typen statt `as any`-Kaskaden. Bricht ein
+// Major-Update die Signatur, meldet das jetzt der Typecheck und nicht der
+// zahlende Pro-Kunde, der auf ein leeres Chart schaut.
+import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
 const C = {
   ok: '#2fd76c',
@@ -220,7 +224,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     ? ((b.cr - a.cr) / a.cr) * 100
     : null
 
+  // UX-07: Diese drei Handler hatten keinen Busy-Guard — die Buttons blieben
+  // klickbar. Ungeduldiges Mehrfachklicken feuerte mehrere PATCHes; bei
+  // toggleStatus konnte ein Race den Test im falschen Zustand hinterlassen.
   async function saveConfig() {
+    if (busy) return
+    setBusy(true)
     try {
       await fetch(`/api/tests/${experimentId}`, {
         method: 'PATCH',
@@ -229,10 +238,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch {}
+    } catch {} finally {
+      setBusy(false)
+    }
   }
 
   async function saveVariantB() {
+    if (busy) return
+    setBusy(true)
     try {
       await fetch(`/api/tests/${experimentId}`, {
         method: 'PATCH',
@@ -241,7 +254,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       })
       setEditingB(false)
       await refresh()
-    } catch {}
+    } catch {} finally {
+      setBusy(false)
+    }
   }
 
   async function saveGoal() {
@@ -262,12 +277,18 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   }
 
   async function toggleStatus(next: 'active' | 'paused') {
-    await fetch(`/api/tests/${experimentId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: next }),
-    })
-    refresh()
+    if (busy) return
+    setBusy(true)
+    try {
+      await fetch(`/api/tests/${experimentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: next }),
+      })
+      await refresh()
+    } catch {} finally {
+      setBusy(false)
+    }
   }
 
   const statusColor =
@@ -279,6 +300,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
   return (
     <div className="text-[#ededed] antialiased">
+      {/* A11Y-05: Die Seite hatte kein h1 — höchste Überschrift war <h2>Preview</h2>,
+          der Testname stand nur im Breadcrumb. */}
+      <h1 className="sr-only">{name} — Results</h1>
       {/* Test toolbar */}
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
         <div className="flex items-center gap-3">
@@ -294,7 +318,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           {status === 'active' && (
             <button
               onClick={() => toggleStatus('paused')}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-pro/20 bg-pro-bg px-3 py-1.5 text-xs text-pro transition-colors hover:bg-pro/10"
+              disabled={busy}
+              className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-pro/20 bg-pro-bg px-3 py-1.5 text-xs text-pro transition-colors hover:bg-pro/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Pause className="h-3 w-3" /> Pause
             </button>
@@ -302,7 +327,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           {status === 'paused' && (
             <button
               onClick={() => toggleStatus('active')}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-ok/20 bg-ok-bg px-3 py-1.5 text-xs text-ok transition-colors hover:bg-ok/10"
+              disabled={busy}
+              className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-ok/20 bg-ok-bg px-3 py-1.5 text-xs text-ok transition-colors hover:bg-ok/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play className="h-3 w-3" /> Resume
             </button>
@@ -419,7 +445,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={analytics.daily.map((d) => ({
-                    date: new Date(d.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                    date: new Date(d.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
                     A: d.visitors_a,
                     B: d.visitors_b,
                   }))}
@@ -507,7 +533,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       cumA += d.conversions_a
                       cumB += d.conversions_b
                       return {
-                        date: new Date(d.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                        date: new Date(d.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
                         A: cumA,
                         B: cumB,
                       }
@@ -599,7 +625,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       cumVB += d.visitors_b; cumCB += d.conversions_b
                       const sig = calcSignificance(cumVA, cumCA, cumVB, cumCB)
                       return {
-                        date: new Date(d.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                        date: new Date(d.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
                         significance: Math.round(sig * 100),
                       }
                     })
@@ -801,15 +827,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         fontSize: 12,
                         color: '#ededed',
                       }}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      formatter={((value: any) => [Number(value).toLocaleString(), 'Visitors']) as any}
+                      formatter={(value: ValueType | undefined) => [Number(value ?? 0).toLocaleString(), 'Visitors'] as [string, string]}
                     />
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
                       fill="rgba(255,255,255,0.15)"
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? v.toLocaleString() : v) as any } as any}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10, formatter: (v: unknown) => (typeof v === 'number' ? v.toLocaleString() : String(v ?? '')) }}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -837,15 +862,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         fontSize: 12,
                         color: '#ededed',
                       }}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      formatter={((value: any) => [`${Number(value)}%`, 'Conv. Rate']) as any}
+                      formatter={(value: ValueType | undefined) => [`${Number(value ?? 0)}%`, 'Conv. Rate'] as [string, string]}
                     />
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
                       fill={C.pro}
                       maxBarSize={48}
-                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: ((v: string | number) => typeof v === 'number' ? `${v}%` : v) as any } as any}
+                      label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: unknown) => (typeof v === 'number' ? `${v}%` : String(v ?? '')) }}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -939,7 +963,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     placeholder=".cta-button, #signup-link, a.btn-primary"
                     value={goalValue}
                     onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                   />
                 </div>
               )}
@@ -952,7 +976,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     placeholder="/thank-you, /checkout/success"
                     value={goalValue}
                     onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                   />
                 </div>
               )}
@@ -1037,7 +1061,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         : null
                       return (
                         <tr key={row.date} className="border-b border-white/5 text-[#ededed]/50 hover:text-[#ededed]/80">
-                          <td className="py-1.5 pr-3">{new Date(row.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</td>
+                          <td className="py-1.5 pr-3">{new Date(row.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}</td>
                           <td className="py-1.5 pr-3 text-right">{row.visitors_a.toLocaleString()}</td>
                           <td className="py-1.5 pr-3 text-right">{row.visitors_b.toLocaleString()}</td>
                           <td className="py-1.5 pr-3 text-right">{crA}%</td>
@@ -1103,13 +1127,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <textarea
                     value={draftB}
                     onChange={e => setDraftB(e.target.value)}
-                    className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] px-3 py-2 font-mono text-xs text-ok focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                    className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] px-3 py-2 font-mono text-xs text-ok focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                     rows={10}
                   />
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={saveVariantB}
-                      className="cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90"
+                      disabled={busy}
+                      className="cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Save
                     </button>
@@ -1150,7 +1175,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       min={1}
                       value={minVisitors}
                       onChange={e => setMinVisitors(Number(e.target.value))}
-                      className="w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] focus:border-[#ededed]/30 focus:outline-none focus:ring-1 focus:ring-[#ededed]/10"
+                      className="w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                     />
                   </label>
                   <label className="block space-y-1.5">
@@ -1212,7 +1237,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <div className="mt-4 flex items-center gap-3">
                   <button
                     onClick={saveConfig}
-                    className="cursor-pointer rounded-[6px] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90"
+                    disabled={busy}
+                    className="cursor-pointer rounded-[6px] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Save
                   </button>

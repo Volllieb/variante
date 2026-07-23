@@ -37,7 +37,13 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
   const [showPresets, setShowPresets] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { setInputValue(value) }, [value])
+  // Externer Wertwechsel (Reset, anderes Element) uebernehmen — im Render
+  // statt per Effect, sonst zeigt das Feld einen Frame lang den alten Hex.
+  const [prevValue, setPrevValue] = useState(value)
+  if (prevValue !== value) {
+    setPrevValue(value)
+    setInputValue(value)
+  }
 
   useEffect(() => {
     if (!showPresets) return
@@ -86,7 +92,7 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
             onFocus={() => setShowPresets(true)}
             placeholder="#000000"
             maxLength={7}
-            className="w-full rounded-[6px] border border-border bg-bg-0 py-2 pl-3 pr-2.5 text-[12px] font-mono text-text outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
+            className="w-full rounded-[6px] border border-border bg-bg-0 py-2 pl-3 pr-2.5 text-[12px] font-mono text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
           />
         </div>
       </div>

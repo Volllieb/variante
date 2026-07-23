@@ -12,7 +12,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { Pencil, X, Check } from 'lucide-react'
+import { Pencil, Check } from 'lucide-react'
 import { ButtonEditor } from './ButtonEditor'
 import { TextInputEditor } from './TextInputEditor'
 import { getEditorCategory } from './types'
@@ -20,13 +20,12 @@ import type { ElementSelection, VariantResult } from '../NewTestDrawer'
 
 interface StepVariantBProps {
   element: ElementSelection
-  url: string
   variantResult: VariantResult | null
   onVariantUpdate: (patch: Partial<VariantResult>) => void
 }
 
 export function StepVariantB({
-  element, url, variantResult, onVariantUpdate,
+  element, variantResult, onVariantUpdate,
 }: StepVariantBProps) {
   const [showEditor, setShowEditor] = useState(!variantResult)
   const category = getEditorCategory(element.elementType)
@@ -120,7 +119,7 @@ export function StepVariantB({
                       value={editCss}
                       onChange={(e) => setEditCss(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus:outline-none"
+                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">
@@ -166,7 +165,7 @@ export function StepVariantB({
                       value={editHtml}
                       onChange={(e) => setEditHtml(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus:outline-none"
+                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">

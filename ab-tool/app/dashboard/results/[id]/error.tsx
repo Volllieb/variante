@@ -1,9 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+  // Der Fehler wurde vorher verschluckt: keine Meldung, kein Log, kein Sentry.
+  // captureException ist ohne DSN ein No-op, sodass Dev-Runs unveraendert bleiben.
+  useEffect(() => {
+    console.error('[dashboard:error-boundary]', error)
+    Sentry.captureException(error)
+  }, [error])
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-0">
       <div className="text-center">

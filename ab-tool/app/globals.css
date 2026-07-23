@@ -8,8 +8,12 @@
   --color-border: rgba(255, 255, 255, 0.10);
   --color-border-strong: rgba(255, 255, 255, 0.18);
   --color-text: #ededed;
-  --color-text-2: rgba(237, 237, 237, 0.62);
-  --color-text-3: rgba(237, 237, 237, 0.40);
+  --color-text-2: rgba(237, 237, 237, 0.72);
+  /* ponytail: war 0.40 → gegen bg-1 (#0a0a0a) effektiv #656565, ca. 3.4:1.
+     WCAG 1.4.3 AA verlangt 4.5:1 für Text unter 18.66px — und genau darauf wird
+     dieses Token durchgängig angewandt (10–12px Meta-Labels, Hilfetexte,
+     Onboarding-Hinweise, 224 Vorkommen). 0.58 ergibt ca. 4.6:1. */
+  --color-text-3: rgba(237, 237, 237, 0.58);
   /* Inverted primary buttons (brandguidelines §2.2) — flips with the theme so a
      "white pill, black label" in dark mode becomes "black pill, white label" in light. */
   --color-fill-invert: #ffffff;
@@ -24,27 +28,10 @@
   color-scheme: dark;
 }
 
-/* ── Light mode ── */
-html.light {
-  --color-bg-0: #ffffff;
-  --color-bg-1: #f8f9fa;
-  --color-bg-2: #f0f1f3;
-  --color-border: rgba(0, 0, 0, 0.10);
-  --color-border-strong: rgba(0, 0, 0, 0.18);
-  --color-text: #1a1a1a;
-  --color-text-2: rgba(26, 26, 26, 0.62);
-  --color-text-3: rgba(26, 26, 26, 0.40);
-  --color-fill-invert: #1a1a1a;
-  --color-fill-invert-hover: rgba(26, 26, 26, 0.85);
-  --color-text-on-invert: #ffffff;
-  --color-ok: #1a9e4b;
-  --color-ok-bg: rgba(26, 158, 75, 0.10);
-  --color-pro: #c6860e;
-  --color-pro-bg: rgba(198, 134, 14, 0.10);
-  --color-err: #d63031;
-  --color-err-bg: rgba(214, 48, 49, 0.10);
-  color-scheme: light;
-}
+/* ponytail (Plan UX-06): Der html.light-Block ist entfernt. Es gab keinen
+   Theme-Toggle, und die Landingpage nutzt durchgehend hartkodiertes white —
+   Light Mode war unfertig und produzierte weiß-auf-weiß. Dark-only, bis das
+   Light-Theme vollständig gebaut ist. */
 
 @theme {
   --color-bg-0: var(--color-bg-0);

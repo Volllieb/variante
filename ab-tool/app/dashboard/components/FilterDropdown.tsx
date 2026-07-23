@@ -113,6 +113,9 @@ export function FilterDropdown({
     <div ref={ref} className="relative shrink-0">
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="filter-dropdown-panel"
+        aria-haspopup="true"
         aria-label={`Filter${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
         className="relative flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
       >
@@ -125,7 +128,7 @@ export function FilterDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[40px] z-50 w-[220px] rounded-[8px] border border-border bg-bg-1 p-3">
+        <div id="filter-dropdown-panel" className="absolute right-0 top-[40px] z-50 w-[220px] rounded-[8px] border border-border bg-bg-1 p-3">
           {/* Header */}
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[11px] font-semibold text-text-2">Filters</span>

@@ -5,7 +5,7 @@ import { safeError } from '@/lib/safeLog'
 // Wird von Vercel Cron wöchentlich aufgerufen.
 //
 // Security: Authorization-Header mit CRON_SECRET erforderlich.
-export async function POST(req: Request) {
+async function run(req: Request) {
   const secret = req.headers.get('authorization')?.replace('Bearer ', '')
   const expected = process.env.CRON_SECRET
   if (!expected || secret !== expected) {
@@ -27,6 +27,10 @@ export async function POST(req: Request) {
   return Response.json({ deleted: count ?? 0, cutoff })
 }
 
-export async function GET() {
-  return Response.json({ status: 'ok', hint: 'Trigger via POST with CRON_SECRET' })
-}
+// Vercel Cron ruft den Pfad per GET auf — die Methode ist in vercel.json
+// nicht konfigurierbar. Vorher lag die Arbeit ausschliesslich in POST und
+// GET gab nur einen Hinweistext zurueck: KEIN Cron-Job lief jemals
+// (Plan OPS-01). Der Authorization: Bearer $CRON_SECRET wird von Vercel
+// automatisch mitgeschickt.
+export const GET = run
+export const POST = run

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import {
   CreditCard,
   FlaskConical,
@@ -12,22 +11,29 @@ import {
   Check,
   Loader2,
 } from 'lucide-react'
+import { useToast } from '@/app/components/Toast'
 import type { BillingData } from './page'
 
 export function BillingClient({ data }: { data: BillingData }) {
   const [busy, setBusy] = useState(false)
+  const { toast } = useToast()
   const isPro = data.plan === 'pro' || data.plan === 'agency'
   const isAgency = data.plan === 'agency'
 
   async function billing(path: 'checkout' | 'portal') {
+    // ponytail: Vorher blockierendes alert() mit dem Rohfehler bzw. dem Text
+    // 'Error' — im Checkout-Pfad, dem Moment der Kaufentscheidung (Plan UX-04).
     setBusy(true)
     try {
       const res = await fetch(`/api/billing/${path}`, { method: 'POST' })
       const json = await res.json()
-      if (json.url) window.location.href = json.url
-      else alert(json.error || 'Error')
+      if (json.url) {
+        window.location.href = json.url
+      } else {
+        toast('error', 'Checkout could not be started. Please try again or contact support.')
+      }
     } catch {
-      alert('Connection failed.')
+      toast('error', 'Connection failed. Check your internet and try again.')
     } finally {
       setBusy(false)
     }

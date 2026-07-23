@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Lightbulb, Sparkles, Globe, Lock, Loader2, RefreshCw, Bot, CheckCircle2, XCircle, Search, FlaskConical, Wand2 } from 'lucide-react'
+import { Sparkles, Globe, Lock, Loader2, RefreshCw, Bot, CheckCircle2, XCircle, Search, FlaskConical, Wand2 } from 'lucide-react'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, type UIMessage } from 'ai'
+import { DefaultChatTransport } from 'ai'
 
 interface Suggestion {
   element: string
@@ -24,10 +24,10 @@ interface Props {
 // Statische Vorschlaege als Teaser-Inhalt (wird im Free-Tier geblurred).
 // Werden nie live angezeigt — nur als Silhouette hinter dem Blur.
 const TEASER_SUGGESTIONS: Suggestion[] = [
-  { element: 'Hero Headline', original: 'Welcome to Acme', variant: 'Double Your Revenue in 30 Days — or It\'s Free', why: 'Nutzenorientierte Headlines konvertieren bis zu 40% besser als willkommensorientierte.' },
-  { element: 'CTA Button', original: 'Sign Up', variant: 'Start Free Trial — No Credit Card', why: 'Die Risikofreiheit-Botschaft senkt die Einstiegshürde. Kein "kostenlos" ohne Garantie.' },
-  { element: 'Pricing Section', original: 'Monthly billing default', variant: 'Annual billing default + 20% savings badge', why: 'Jährliche Abrechnung verdreifacht den Customer Lifetime Value. Der Badge macht den Vorteil sichtbar.' },
-  { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social Proof ist der stärkste Vertrauenstreiber. Logos + Zahl schaffen Glaubwürdigkeit in Millisekunden.' },
+  { element: 'Hero Headline', original: 'Welcome to Acme', variant: 'Double Your Revenue in 30 Days — or It\'s Free', why: 'Benefit-driven headlines convert up to 40% better than welcome-oriented ones.' },
+  { element: 'CTA Button', original: 'Sign Up', variant: 'Start Free Trial — No Credit Card', why: 'A no-risk message lowers the barrier to entry.' },
+  { element: 'Pricing Section', original: 'Monthly billing default', variant: 'Annual billing default + 20% savings badge', why: 'Annual billing roughly triples customer lifetime value; the badge makes the saving visible.' },
+  { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social proof is the strongest trust driver — logos plus a number build credibility in milliseconds.' },
 ]
 
 export function WhatToTestNext({ siteUrl, plan, setupComplete, domain }: Props) {
@@ -43,7 +43,7 @@ export function WhatToTestNext({ siteUrl, plan, setupComplete, domain }: Props) 
 
   // Ohne siteUrl können wir nicht analysieren
   if (!siteUrl) {
-    return <NoUrlPrompt domain={domain} />
+    return <NoUrlPrompt />
   }
 
   return <ProSuggestions siteUrl={siteUrl} domain={domain} />
@@ -68,8 +68,8 @@ function FreeTeaser({ domain }: { domain: string | null }) {
             <div key={tip.element} className="flex items-start gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2">
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] leading-relaxed text-text-2">
-                  Test <span className="font-medium text-text/90">"{tip.original}"</span> vs{' '}
-                  <span className="font-medium text-pro">"{tip.variant}"</span>
+                  Test <span className="font-medium text-text/90">&ldquo;{tip.original}&rdquo;</span> vs{' '}
+                  <span className="font-medium text-pro">&ldquo;{tip.variant}&rdquo;</span>
                 </p>
                 <p className="mt-0.5 text-[10px] text-text-3">{tip.why}</p>
               </div>
@@ -108,7 +108,7 @@ function FreeTeaser({ domain }: { domain: string | null }) {
 
 /* ── Keine URL vorhanden ── */
 
-function NoUrlPrompt({ domain }: { domain: string | null }) {
+function NoUrlPrompt() {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
@@ -244,9 +244,9 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
                   </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-text-2">
                     Test{' '}
-                    <span className="font-medium text-text/90 line-through decoration-err/40">"{s.original}"</span>
+                    <span className="font-medium text-text/90 line-through decoration-err/40">&ldquo;{s.original}&rdquo;</span>
                     {' '}vs{' '}
-                    <span className="font-medium text-ok">"{s.variant}"</span>
+                    <span className="font-medium text-ok">&ldquo;{s.variant}&rdquo;</span>
                   </p>
                   <p className="mt-0.5 text-[10px] leading-relaxed text-text-3">{s.why}</p>
                 </div>
@@ -364,7 +364,6 @@ function MiniAgent({ domain }: { domain: string }) {
                     const state = part.state as string
                     const done = state === 'output-available'
                     const failed = state === 'output-error'
-                    const Icon = info.icon
                     const label = done ? info.done : info.running
                     return (
                       <p

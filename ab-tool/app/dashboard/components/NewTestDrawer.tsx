@@ -21,6 +21,7 @@ import { StepUrlAndElement } from './new-test/StepUrlAndElement'
 import { StepVariantB } from './new-test/StepVariantB'
 import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
+import { useFocusTrap } from '@/lib/useFocusTrap'
 
 
 // ─── Types ───
@@ -86,6 +87,10 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
   const [createdTestId, setCreatedTestId] = useState<string | null>(null)
+  // A11Y-02: Focus-Trap, Escape, Focus-Restore und Scroll-Lock. Der Drawer
+  // hatte davon nichts — ein Tastaturnutzer tabbte direkt in das Dashboard
+  // dahinter, ohne zu merken, dass er das Modal verlassen hat.
+  const drawerRef = useFocusTrap<HTMLDivElement>(isOpen, onClose)
   const draftTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const mountedRef = useRef(true)
   const draftLoadedRef = useRef(false)
@@ -96,14 +101,22 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   }, [])
 
   // ─── Reset state when drawer opens ───
-  useEffect(() => {
+  // Im Render statt per Effect: sonst rendert der frisch geoeffnete Drawer
+  // einen Frame lang noch den Zustand des vorigen Durchlaufs.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) {
       setState(INITIAL_STATE)
       setCreating(false)
       setCreateError('')
       setCreatedTestId(null)
-      draftLoadedRef.current = false
     }
+  }
+
+  // Der Draft-Load-Guard ist ein Ref und darf nur im Effect zurueckgesetzt werden.
+  useEffect(() => {
+    if (isOpen) draftLoadedRef.current = false
   }, [isOpen])
 
   // ─── Draft: Load on open (only once per open) ───
@@ -283,14 +296,24 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — rein dekorativ. Schliessen per Escape oder X-Button; das
+          Klick-Ziel bleibt als Bequemlichkeit erhalten, ist aber aria-hidden,
+          damit Screenreader keinen sinnlosen Knopf ansagen. */}
       <div
         className="fixed inset-0 z-40 bg-black/60 transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 z-50 h-screen w-full sm:w-[50vw] animate-slide-in-right border-l border-border bg-bg-0 shadow-2xl">
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-test-drawer-title"
+        tabIndex={-1}
+        className="fixed right-0 top-0 z-50 h-dvh w-full sm:w-[50vw] animate-slide-in-right border-l border-border bg-bg-0 shadow-2xl focus:outline-none"
+      >
         {/* Success overlay */}
         {createdTestId && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-0/90">
@@ -311,7 +334,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               <FlaskConical className="h-4 w-4 text-text-on-invert" />
             </div>
             <div>
-              <p className="text-[14px] font-semibold text-text">New Test</p>
+              <h2 id="new-test-drawer-title" className="text-[14px] font-semibold text-text">New Test</h2>
               <p className="text-[11px] text-text-3">
                 Step {state.step + 1} of 4 — {stepLabels[state.step]}
               </p>
@@ -319,9 +342,10 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           </div>
           <button
             onClick={onClose}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text"
+            aria-label="Close new test wizard"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -366,7 +390,6 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           {state.step === 1 && state.selectedElement && (
             <StepVariantB
               element={state.selectedElement}
-              url={state.url}
               variantResult={state.variantResult}
               onVariantUpdate={(patch) => {
                 updateState({

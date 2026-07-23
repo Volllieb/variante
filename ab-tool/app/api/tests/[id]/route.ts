@@ -52,8 +52,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   if (body.status === 'draft' || body.status === 'active' || body.status === 'done' || body.status === 'paused') patch.status = body.status
   if (typeof body.selector === 'string' || body.selector === null) patch.selector = body.selector
-  if (typeof body.min_visitors === 'number') patch.min_visitors = body.min_visitors
-  if (typeof body.min_uplift === 'number') patch.min_uplift = body.min_uplift
+  if (typeof body.min_visitors === 'number' && body.min_visitors >= 0) patch.min_visitors = body.min_visitors
+  if (typeof body.min_uplift === 'number' && body.min_uplift >= 0 && body.min_uplift <= 100) patch.min_uplift = body.min_uplift
   if (typeof body.significance_level === 'number' && [0.9, 0.95, 0.99].includes(body.significance_level)) patch.significance_level = body.significance_level
   if (typeof body.variant_b_html === 'string' || body.variant_b_html === null) patch.variant_b_html = body.variant_b_html
   if (typeof body.variant_b_css === 'string' || body.variant_b_css === null) patch.variant_b_css = body.variant_b_css

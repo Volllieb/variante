@@ -72,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </nav>
       </header>
 
-      <main>
+      <main id="main">
 
       {/* ── Hero ── */}
       <section className="px-0 pt-8 pb-6 sm:pt-10 sm:pb-8">
@@ -160,7 +160,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 title: 'Create a variant & test',
                 body: 'Write the new version — or let the AI draft one. Variante splits traffic and measures conversions.',
               },
-            ].map((step, i) => (
+            ].map((step) => (
               <div key={step.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/70 mb-4">
                   <step.icon className="h-5 w-5" />

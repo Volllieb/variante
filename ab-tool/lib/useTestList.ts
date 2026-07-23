@@ -34,6 +34,18 @@ export function useTestList({ initial, sort = false }: UseTestListOptions): UseT
   const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
   const [sortAsc, setSortAsc] = useState(false)
 
+  // ponytail: Server-Daten übernehmen, wenn `router.refresh()` neue Props liefert.
+  // Vorher stand dafür ein `useEffect(() => setTestList(tests), [tests])` in
+  // DashboardClient/TestsClient — das rendert erst mit veralteten Daten und
+  // triggert dann einen zweiten Render (react-hooks/set-state-in-effect).
+  // Der dokumentierte React-Weg ist das Anpassen während des Renders anhand
+  // der vorigen Props: ein Render, kein Flash der alten Liste.
+  const [prevInitial, setPrevInitial] = useState(initial)
+  if (prevInitial !== initial) {
+    setPrevInitial(initial)
+    setTestList(initial)
+  }
+
   const handleDeleteTest = useCallback((id: string) => {
     setTestList((prev) => prev.filter((t) => t.id !== id))
   }, [])
@@ -65,7 +77,7 @@ export function useTestList({ initial, sort = false }: UseTestListOptions): UseT
     // Status filter
     if (filter.status !== 'all') {
       if (filter.status === 'health-issues') {
-        result = result.filter((t) => (t as any).health_status === 'issues')
+        result = result.filter((t) => t.health_status === 'issues')
       } else {
         result = result.filter((t) => t.status === filter.status)
       }

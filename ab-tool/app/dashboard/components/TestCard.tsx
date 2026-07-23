@@ -208,21 +208,18 @@ export function TestCard({
 
       {/* ── Row 1: favicon | name+url | pie chart ── */}
       <div className="flex items-center gap-2.5">
-        {/* Favicon */}
-        {domain ? (
-          <img
-            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=48`}
-            alt=""
-            width={18}
-            height={18}
-            className="shrink-0 rounded-[4px]"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-          />
-        ) : (
-          <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
-            <span className="text-[10px] text-text-3/60">WWW</span>
-          </div>
-        )}
+        {/* Domain-Monogramm.
+            ponytail (Plan LEGAL-01): Vorher lud jede Test-Karte
+            google.com/s2/favicons — bei 20 Tests 20 Cross-Origin-Requests an
+            Google, die IP + Referrer des eingeloggten Kunden übertragen. Google
+            steht nicht in der Sub-Prozessor-Tabelle, und die Docs behaupten
+            ausdrücklich "No third-party analytics or CDNs". Jetzt ein lokal
+            gerendertes Monogramm, kein externer Request. */}
+        <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
+          <span className="text-[10px] font-semibold uppercase text-text-3">
+            {domain ? domain.replace(/^www\./, '').charAt(0) : 'W'}
+          </span>
+        </div>
 
         {/* Name + URL (or rename input) */}
         <div className="min-w-0 flex-1">
@@ -234,7 +231,7 @@ export function TestCard({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
                 autoFocus
-                className="flex-1 rounded-[4px] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text outline-none focus:border-border-strong"
+                className="flex-1 rounded-[4px] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
               />
               <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[4px] p-1 text-text-3 hover:text-text">
                 <Check className="h-3 w-3" />
@@ -261,6 +258,8 @@ export function TestCard({
           <div ref={menuRef} className="relative">
             <button
               onClick={openMenu}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
               aria-label="Test actions"
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             >
@@ -268,7 +267,7 @@ export function TestCard({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
+              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameOpen(true); setMenuOpen(false) }}
                   className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"

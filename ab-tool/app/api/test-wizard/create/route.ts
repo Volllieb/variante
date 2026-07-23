@@ -11,7 +11,8 @@ import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { checkRateLimit } from '@/lib/rateLimit'
+import { assertOwnedDomain } from '@/lib/domainGate'
 
 export const maxDuration = 30
 
@@ -46,7 +47,6 @@ export async function POST(req: Request) {
   }
 
   // ─── Rate-Limit ───
-  const ip = getClientIp(req)
   if (!(await checkRateLimit(`create-test:${user.id}`, 5, 60_000))) {
     return Response.json({ error: 'rate limit', message: 'Max 5 test creations per minute.' }, { status: 429, headers })
   }
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers })
   }
 
-  const { site_url, selector, goal, goal_selector, variant_b_html, variant_b_css, variant_text, original_html, status, name } = body
+  const { site_url, selector, goal, goal_selector, variant_b_html, variant_b_css, original_html, status, name } = body
 
   if (!site_url || !goal) {
     return Response.json({ error: 'site_url and goal are required' }, { status: 400, headers })
@@ -81,10 +81,8 @@ export async function POST(req: Request) {
 
   // Normalize: empty string → null for optional fields
   const normalizedSelector = selector?.trim() || null
-  const normalizedGoalSelector = goal_selector?.trim() || null
   const normalizedVariantHtml = variant_b_html?.trim() || null
   const normalizedVariantCss = variant_b_css?.trim() || null
-  const normalizedVariantText = variant_text?.trim() || null
   const normalizedOriginalHtml = original_html?.trim() || null
   const normalizedName = name?.trim() || null
 
@@ -95,6 +93,17 @@ export async function POST(req: Request) {
 
   // Normalize site_url: prepend https:// if no protocol present (Bug 4)
   const normalizedSiteUrl = /^https?:\/\//i.test(site_url) ? site_url : `https://${site_url}`
+
+  // ─── Domain-Gate ───
+  // KRITISCH (Plan SEC-01): Dieser Endpunkt hatte KEINEN Domain-Gate, obwohl
+  // /api/tests einen hat — und er ist der Pfad, den das Dashboard tatsächlich
+  // benutzt. Jeder registrierte Free-User konnte damit einen aktiven Test für
+  // eine BELIEBIGE Domain anlegen (fremde Kundenseiten, www.getvariante.com)
+  // und über variant_b_html/css beliebiges Markup dorthin ausliefern.
+  const gate = await assertOwnedDomain(user.id, normalizedSiteUrl)
+  if (!gate.ok) {
+    return Response.json({ error: gate.error }, { status: gate.status, headers })
+  }
 
   // ─── Plan-Limit: Active Tests (Free = 1) ───
   // ponytail: Drafts sind immer kostenlos — kein Limit-Check nötig.
@@ -145,14 +154,11 @@ export async function POST(req: Request) {
     .single()
 
   if (insertErr || !test) {
+    // ponytail: message und code gingen vorher an den Client — rohe
+    // Postgres-Fehlertexte samt Spalten-/Constraint-Namen. Widerspricht der
+    // safeLog-Politik; ins Log gehören sie, nicht in die Response.
     safeError('test-wizard-create-failed', insertErr)
-    const message = insertErr?.message ?? 'Unknown database error'
-    const code = insertErr?.code ?? null
-    return Response.json({
-      error: 'Failed to create test',
-      detail: message,
-      code,
-    }, { status: 500, headers })
+    return Response.json({ error: 'Failed to create test' }, { status: 500, headers })
   }
 
   // ─── Wizard-Draft löschen ───

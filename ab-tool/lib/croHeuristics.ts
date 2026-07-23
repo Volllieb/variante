@@ -140,7 +140,6 @@ function checkNavSimplicity(html: string): HeuristicResult {
 function checkVisualHierarchy(html: string): HeuristicResult {
   const h1 = countTags(html, 'h1')
   const h2 = countTags(html, 'h2')
-  const h3 = countTags(html, 'h3')
 
   if (h1 === 0 && h2 === 0) return { id: 'visual-hierarchy', label: 'Hierarchie', score: 15, gap: 'Keine Überschriften-Struktur', suggestion: 'Strukturiere mit H1 (Hauptversprechen), H2 (Sektionen), H3 (Details).' }
   if (h1 === 0) return { id: 'visual-hierarchy', label: 'Hierarchie', score: 30, gap: 'Keine H1, nur H2/H3', suggestion: 'Füge EINE H1 als Hauptüberschrift ein.' }

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
-import { sanitizeHtml } from '@/lib/sanitize'
+import { sanitizeHtml, sanitizeCss } from '@/lib/sanitize'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 
@@ -17,19 +17,23 @@ function hostOf(u: string | null | undefined): string {
 
 function pathOf(u: string | null | undefined): string {
   if (!u) return ''
-  let s = u.trim().replace(/^https?:\/\//, '')
+  const s = u.trim().replace(/^https?:\/\//, '')
   const slash = s.indexOf('/')
   if (slash === -1) return ''
-  let p = s.slice(slash).split('?')[0].split('#')[0].replace(/\/+$/, '')
+  const p = s.slice(slash).split('?')[0].split('#')[0].replace(/\/+$/, '')
   return p === '' ? '' : p
 }
 
 export async function GET(req: Request) {
-  // Security: Rate-Limiting — maximal 30 Resolve-Calls pro Minute pro IP.
-  // Resolve wird bei jedem Seitenaufruf von ab.js aufgerufen, daher das
-  // gleiche Limit wie /api/event (das ebenfalls pro Seitenaufruf feuert).
+  // Security: Rate-Limiting pro IP.
+  // ponytail: Das Limit lag bei 30/min. Resolve feuert bei JEDEM Seitenaufruf,
+  // und hinter einem Firmen-NAT oder Mobilfunk-CGNAT teilen sich hunderte
+  // Besucher eine IP — die rissen das Limit sofort und sahen dann gar keine
+  // Variante mehr (Plan BUG-01b). Eine IP-Bremse ist fuer diesen Endpunkt das
+  // falsche Werkzeug; die eigentliche Entlastung ist der Edge-Cache
+  // (s-maxage=30, unten). Das Limit bleibt nur als Missbrauchs-Backstop.
   const ip = getClientIp(req)
-  if (!loadtestBypass(req) && !await checkRateLimit(`resolve:${ip}`, 30, 60_000)) {
+  if (!loadtestBypass(req) && !await checkRateLimit(`resolve:${ip}`, 600, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeaders('GET, OPTIONS'), 'Retry-After': '60' } })
   }
 
@@ -53,6 +57,13 @@ export async function GET(req: Request) {
     .eq('site_host', host)
     .not('selector', 'is', null)
     .not('status', 'eq', 'paused')
+    // Security: NUR Tests mit echtem Besitzer ausliefern (Plan SEC-01, DB-04).
+    // Temp-Sessions (/api/temp-session) sind unauthentifiziert erzeugbar und
+    // durchlaufen keinen Domain-Gate — ihre Tests sind reine Vorschauen für
+    // das Figma-Onboarding und dürfen niemals auf einer echten Website landen.
+    // Deckt zugleich verwaiste Rows ab (user_id und temp_session_id beide NULL),
+    // die über keine API mehr erreichbar, aber weiterhin auslieferbar wären.
+    .not('user_id', 'is', null)
     .limit(200)
 
   if (error) {
@@ -95,9 +106,11 @@ export async function GET(req: Request) {
     goal: t.goal,
     status: t.status,
     traffic_split: t.traffic_split,
-    // Security: XSS-Sanitization vor Auslieferung an ab.js
+    // Security: XSS-Sanitization vor Auslieferung an ab.js.
+    // ponytail: variant_b_css ging vorher ROH raus — sanitizeCss existierte,
+    // wurde aber nur in lib/previewAnalyze.ts verwendet (Plan SEC-01c).
     variant_b_html: sanitizeHtml(t.variant_b_html),
-    variant_b_css: t.variant_b_css || null,
+    variant_b_css: sanitizeCss(t.variant_b_css) || null,
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
     // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
     // Extrahiert aus site_url, damit der Client filtern kann, ohne

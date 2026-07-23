@@ -36,16 +36,14 @@ export default async function TestsPage() {
 
   if (!profile) {
     await ensureProfile(user.id)
-    return <TestsClient apiToken="" tests={[]} hasFigmaPlugin={false} userId={user.id} plan="free" verifiedDomains={[]} />
+    return <TestsClient tests={[]} hasFigmaPlugin={false} userId={user.id} verifiedDomains={[]} />
   }
 
   return (
     <TestsClient
-      apiToken={profile.api_token ?? ''}
       tests={tests ?? []}
       hasFigmaPlugin={profile.has_figma_plugin ?? false}
       userId={user.id}
-      plan={profile.plan ?? 'free'}
       verifiedDomains={verifiedDomains}
     />
   )

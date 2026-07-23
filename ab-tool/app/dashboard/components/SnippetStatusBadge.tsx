@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Globe, Check, X, Loader2, Copy, ChevronDown, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Globe, Check, X, Loader2, Copy, ChevronDown } from 'lucide-react'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
 import { FrameworkExamples } from './FrameworkExamples'
 
@@ -41,8 +41,17 @@ export function SnippetStatusBadge({
   const [expandedVerified, setExpandedVerified] = useState(false)
 
   // ── If domain changed externally, sync ──
-  if (hasVerifiedDomain && primaryDomain && banner.phase !== 'verified') {
-    setBanner({ phase: 'verified', url: primaryDomain })
+  // ponytail: Diese Bedingung lief vorher bei JEDEM Render. Ein Klick auf
+  // "Re-check" setzte phase auf 'input', der unmittelbar folgende Render setzte
+  // sie sofort wieder auf 'verified' zurueck — der Button war funktionslos
+  // (Plan UX-03). Jetzt greift der Sync nur, wenn sich die verifizierte Domain
+  // tatsaechlich geaendert hat, nicht bei jedem Render.
+  const [syncedDomain, setSyncedDomain] = useState(primaryDomain)
+  if (syncedDomain !== primaryDomain) {
+    setSyncedDomain(primaryDomain)
+    if (hasVerifiedDomain && primaryDomain) {
+      setBanner({ phase: 'verified', url: primaryDomain })
+    }
   }
 
   // ── Compact verified badge ──
@@ -89,14 +98,26 @@ function SnippetVerifiedBadge({
   expanded: boolean
   onToggle: () => void
 }) {
-  const ago = verifiedAt
-    ? (() => {
-        const diff = Math.floor((Date.now() - new Date(verifiedAt).getTime()) / 1000)
-        if (diff < 60) return `${diff}s ago`
-        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-        return `${Math.floor(diff / 3600)}h ago`
-      })()
-    : null
+  // Date.now() im Render ist unrein: Server- und Client-Render liefern
+  // unterschiedliche Werte (Hydration-Mismatch). Erst nach dem Mount berechnen.
+  const [ago, setAgo] = useState<string | null>(null)
+  useEffect(() => {
+    if (!verifiedAt) return
+    const format = () => {
+      const diff = Math.floor((Date.now() - new Date(verifiedAt).getTime()) / 1000)
+      if (diff < 60) return `${diff}s ago`
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+      return `${Math.floor(diff / 3600)}h ago`
+    }
+    // Erster Wert asynchron: ein synchrones setState im Effect-Body erzwingt
+    // einen zweiten Render-Durchlauf direkt nach dem Commit.
+    const first = setTimeout(() => setAgo(format()), 0)
+    const id = setInterval(() => setAgo(format()), 30_000)
+    return () => {
+      clearTimeout(first)
+      clearInterval(id)
+    }
+  }, [verifiedAt])
 
   const otherDomains = (allVerifiedDomains ?? []).filter((d) => d.url !== domain)
 

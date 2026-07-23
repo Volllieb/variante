@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTestList } from '@/lib/useTestList'
 import { Tooltip } from '@/app/components/Tooltip'
@@ -22,27 +22,24 @@ import {
 
 /* ── Component ── */
 
+// ponytail: apiToken/plan waren tote Props (Plan SEC-10/CODE-01).
 export function TestsClient({
-  apiToken,
   tests,
   hasFigmaPlugin,
   userId,
-  plan,
   verifiedDomains,
 }: {
-  apiToken: string
   tests: TestRow[]
   hasFigmaPlugin: boolean
   userId: string
-  plan: string
   verifiedDomains: { url: string; verifiedAt: string | null }[]
 }) {
   const router = useRouter()
   const [newTestOpen, setNewTestOpen] = useState(false)
 
+  // Sync mit frischen Server-Daten passiert in useTestList selbst.
   const {
     testList,
-    setTestList,
     query,
     setQuery,
     filter,
@@ -51,9 +48,6 @@ export function TestsClient({
     handleDeleteTest,
     addTest,
   } = useTestList({ initial: tests })
-
-  // Sync when server re-renders with fresh data
-  useEffect(() => { setTestList(tests) }, [tests])
 
   return (
     <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
@@ -65,7 +59,7 @@ export function TestsClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find test…"
-            className="w-full h-[30px] rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus:outline-none"
+            className="w-full h-[30px] rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
           />
         </div>
         <FilterDropdown filter={filter} onChange={setFilter} />

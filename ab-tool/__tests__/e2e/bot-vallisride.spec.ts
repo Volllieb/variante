@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test'
 const SITE = 'https://vallisride.com'
 const SNIPPET_KEY = '5fefdc64-288a-4b52-bd5e-26e8d3fecc32'
 const SELECTOR = "#hero-meta-right > div.hero-actions > a.hover-btn.hover-btn--white:nth-of-type(2)"
-const GOAL = 'click' // ACHTUNG: 'click' ist kein gültiger CSS-Selektor → Bug!
+const _GOAL = 'click' // ACHTUNG: 'click' ist kein gültiger CSS-Selektor → Bug!
 
 test.describe('vallisride.com — A/B-Test (@bot)', () => {
   test('ab.js wird geladen', async ({ page }) => {

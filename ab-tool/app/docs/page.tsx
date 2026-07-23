@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PandaLogo } from '@/components/PandaLogo'
 
@@ -338,13 +339,13 @@ export default function DocsPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-bg-0/95">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3">
-          <a
+          <Link
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
             <PandaLogo size="md" />
             variante
-          </a>
+          </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <a
               href="/login"

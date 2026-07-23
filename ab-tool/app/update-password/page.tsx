@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react'
 
 export default function UpdatePasswordPage() {
   return (
@@ -139,7 +139,7 @@ function UpdatePasswordForm() {
                       placeholder="Min. 6 characters"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full rounded-[6px] border border-border bg-bg-2 px-4 py-3 pr-11 text-sm text-text placeholder:text-text-3 transition-colors duration-200 focus:border-text/30 focus:outline-none focus:ring-1 focus:ring-text/10"
+                      className="w-full rounded-[6px] border border-border bg-bg-2 px-4 py-3 pr-11 text-sm text-text placeholder:text-text-3 transition-colors duration-200 focus:border-text/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-text/10"
                     />
                     <button
                       type="button"

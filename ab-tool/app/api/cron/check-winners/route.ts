@@ -1,7 +1,11 @@
 import { supabase } from '@/lib/supabase'
-import { determineWinner, calcSignificance } from '@/lib/significance'
+import { calcSignificance, evaluateWinner, hasSampleRatioMismatch } from '@/lib/significance'
 import { safeError } from '@/lib/safeLog'
 import { sendEmail } from '@/lib/email'
+
+// Der erste Lauf nach dem GET-Fix (Plan OPS-01) arbeitet einen aufgestauten
+// Bestand ab — E-Mail-Versand pro Test kostet Zeit.
+export const maxDuration = 300
 
 // Extrahiert Domain aus einer URL (ohne Protokoll, Pfad, Port).
 // "https://www.example.com/page?q=1" → "example.com"
@@ -18,7 +22,7 @@ function extractDomain(url: string | null | undefined): string | null {
 // E-Mail-Benachrichtigungen via Resend.
 //
 // Security: Authorization-Header mit CRON_SECRET erforderlich.
-export async function POST(req: Request) {
+async function run(req: Request) {
   const secret = req.headers.get('authorization')?.replace('Bearer ', '')
   const expected = process.env.CRON_SECRET
   if (!expected || secret !== expected) {
@@ -28,7 +32,7 @@ export async function POST(req: Request) {
   // Alle aktiven Tests ohne Winner laden
   const { data: tests, error } = await supabase
     .from('tests')
-    .select('id, name, user_id, site_url, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
+    .select('id, name, user_id, site_url, created_at, traffic_split, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
     .in('status', ['active', 'paused'])
     .is('winner', null)
 
@@ -39,9 +43,41 @@ export async function POST(req: Request) {
 
   const notified: string[] = []
 
+  // ponytail: Die Gewinner-Entscheidung fällt AUSSCHLIESSLICH hier — einmal pro
+  // Tag. Vorher wurde sie zusätzlich in /api/event bei jeder Conversion neu
+  // getroffen, also potenziell tausendfach am selben Datensatz (Plan STAT-01).
+  const skipped: { id: string; reason: string }[] = []
+
   for (const t of tests ?? []) {
     const sig = calcSignificance(t.visitors_a, t.conversions_a, t.visitors_b, t.conversions_b)
-    const winner = determineWinner(sig, t.conversions_a, t.conversions_b, t.visitors_a, t.visitors_b, t.min_visitors ?? 100, t.min_uplift ?? 0.05, t.significance_level ?? 0.95)
+
+    // Sample Ratio Mismatch: weicht die Traffic-Verteilung stark von der
+    // konfigurierten ab, ist die Datenbasis kaputt — dann darf kein Gewinner
+    // deklariert werden, egal wie gut die Zahlen aussehen.
+    if (hasSampleRatioMismatch(t.visitors_a, t.visitors_b, t.traffic_split ?? 50)) {
+      skipped.push({ id: t.id, reason: 'sample-ratio-mismatch' })
+      await supabase.rpc('log_event', {
+        p_test_id: t.id,
+        p_user_id: t.user_id,
+        p_type: 'health',
+        p_message: `Sample ratio mismatch (A=${t.visitors_a}, B=${t.visitors_b}, split=${t.traffic_split ?? 50}%). Ergebnisse sind nicht belastbar.`,
+      })
+      continue
+    }
+
+    const verdict = evaluateWinner({
+      significance: sig,
+      cA: t.conversions_a,
+      cB: t.conversions_b,
+      vA: t.visitors_a,
+      vB: t.visitors_b,
+      createdAt: t.created_at,
+      minVisitorsPerArm: t.min_visitors ?? undefined,
+      minUplift: t.min_uplift ?? 0.05,
+      significanceLevel: t.significance_level ?? 0.95,
+    })
+    const winner = verdict.winner
+    if (!winner) skipped.push({ id: t.id, reason: verdict.reason })
 
     if (winner) {
       // Winner persistieren
@@ -130,10 +166,13 @@ export async function POST(req: Request) {
     }
   }
 
-  return Response.json({ checked: tests?.length ?? 0, notified })
+  return Response.json({ checked: tests?.length ?? 0, notified, skipped })
 }
 
-// GET /api/cron/check-winners — Health-Check (kein Cron-Trigger)
-export async function GET() {
-  return Response.json({ status: 'ok', hint: 'Trigger via POST with CRON_SECRET' })
-}
+// Vercel Cron ruft den Pfad per GET auf — die Methode ist in vercel.json
+// nicht konfigurierbar. Vorher lag die Arbeit ausschliesslich in POST und
+// GET gab nur einen Hinweistext zurueck: KEIN Cron-Job lief jemals
+// (Plan OPS-01). Der Authorization: Bearer $CRON_SECRET wird von Vercel
+// automatisch mitgeschickt.
+export const GET = run
+export const POST = run

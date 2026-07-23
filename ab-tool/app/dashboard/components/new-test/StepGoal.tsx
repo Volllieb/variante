@@ -77,12 +77,18 @@ export function StepGoal({
   // Listen for postMessage from ab.js goal picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      const userSiteOrigin = (() => {
-        try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
-      })()
-      const ourOrigin = window.location.origin
-      const isTrusted = (!userSiteOrigin) || e.origin === userSiteOrigin || e.origin === ourOrigin
-      if (!isTrusted) return
+      // SECURITY: Nur Nachrichten von der Seite des Users akzeptieren.
+      // ponytail: Vorher galt `(!userSiteOrigin) || … || e.origin === ourOrigin`.
+      // Der erste Zweig vertraute JEDER Origin, sobald die eingegebene URL nicht
+      // parsebar war; der letzte war nur für den entfernten picker-bridge-Proxy
+      // nötig (Plan SEC-02). Jetzt: exakter Origin-Match, sonst verwerfen.
+      let userSiteOrigin: string | null = null
+      try {
+        userSiteOrigin = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin
+      } catch {
+        userSiteOrigin = null
+      }
+      if (!userSiteOrigin || e.origin !== userSiteOrigin) return
 
       if (!e.data || e.data.type !== 'ab-goal') return
       const { selector, text } = e.data
@@ -104,8 +110,11 @@ export function StepGoal({
   function openGoalPicker() {
     if (!url) return
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    const bridgeUrl = `/api/picker-bridge?url=${encodeURIComponent(finalUrl)}&mode=goal`
-    const popup = window.open(bridgeUrl, 'ab-goal-picker', 'width=1200,height=800')
+    // ponytail: kein /api/picker-bridge mehr (Plan SEC-02) — direkt auf die
+    // Kundenseite, ab.js erkennt ?ab_goal= und startet den Goal-Picker.
+    const target = new URL(finalUrl)
+    target.searchParams.set('ab_goal', '1')
+    const popup = window.open(target.toString(), 'ab-goal-picker', 'width=1200,height=800')
     if (!popup || popup.closed) {
       // Popup was blocked — show fallback hint
       setPickerBlocked(true)
@@ -144,7 +153,7 @@ export function StepGoal({
     <div className="space-y-4">
       <div>
         <p className="text-[13px] leading-relaxed text-text-2">
-          What's your conversion goal?
+          What&rsquo;s your conversion goal?
         </p>
       </div>
 
@@ -152,19 +161,18 @@ export function StepGoal({
       <div className="space-y-2">
         {PRIMARY_GOALS.map((g) => {
           const isSelected = selectedType === g.type
-          const Icon = g.icon
           return (
             <div key={g.type}>
               <button
                 onClick={() => handleTypeSelect(g.type)}
                 className={`flex w-full cursor-pointer items-start gap-3 rounded-[10px] px-4 py-3.5 text-left transition-all ${
                   isSelected
-                    ? 'border border-accent/30 bg-accent/5 ring-1 ring-accent/20'
+                    ? 'border border-border-strong bg-bg-2 ring-1 ring-border-strong'
                     : 'border border-border bg-bg-1 hover:border-border-strong'
                 }`}
               >
                 <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                  isSelected ? 'border-accent bg-accent' : 'border-border'
+                  isSelected ? 'border-border-strong bg-fill-invert' : 'border-border'
                 }`}>
                   {isSelected && <Check className="h-3 w-3 text-black" />}
                 </div>
@@ -173,7 +181,7 @@ export function StepGoal({
                     <span className="text-[14px]">{g.emoji}</span>
                     <p className="text-[13px] font-medium text-text">{g.label}</p>
                     {g.type === 'click' && elementType === 'button' && (
-                      <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[9px] font-medium text-accent">
+                      <span className="rounded-full bg-bg-2 px-2 py-0.5 text-[9px] font-medium text-text">
                         Recommended
                       </span>
                     )}
@@ -196,12 +204,12 @@ export function StepGoal({
                       <div className="rounded-[6px] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
                         <span className="text-text-3">Selector: </span>{pickedElement?.selector ?? selectedGoal?.selector}
                         {pickedElement?.text && (
-                          <><br /><span className="text-text-3">Text: </span>"{pickedElement.text}"</>
+                          <><br /><span className="text-text-3">Text: </span>&ldquo;{pickedElement.text}&rdquo;</>
                         )}
                       </div>
                       <button
                         onClick={handleChangePicker}
-                        className="mt-2 text-[11px] text-accent hover:text-accent/80 transition-colors cursor-pointer"
+                        className="mt-2 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
                       >
                         Change element
                       </button>
@@ -219,7 +227,7 @@ export function StepGoal({
                         Pick on site
                       </button>
                       {waitingForPicker && (
-                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-accent">
+                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-text">
                           <Loader2 className="h-3 w-3 animate-spin" />
                           Waiting for element selection…
                         </div>

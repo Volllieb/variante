@@ -2,12 +2,12 @@ name: E2E Tests
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'ab-tool/**'
       - '.github/workflows/e2e.yml'
   pull_request:
-    branches: [main]
+    branches: [master]
     paths:
       - 'ab-tool/**'
   workflow_dispatch:
@@ -46,6 +46,28 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install chromium --with-deps
+        working-directory: ab-tool
+
+      # Statische Analyse zuerst: Typfehler und Lint-Verstöße kosten keine
+      # Browser-Zeit. Beide Schritte sind blockierend — ein roter Typecheck
+      # darf nicht bis in die E2E-Phase durchrutschen.
+      - name: Typecheck
+        run: npx tsc --noEmit
+        working-directory: ab-tool
+
+      - name: Lint
+        run: npm run lint
+        working-directory: ab-tool
+
+      # Guard gegen nicht-existente Tailwind-Utilities: `accent` wurde beim
+      # Monochrom-Pivot aus dem Theme entfernt, blieb aber in 6 Dateien stehen.
+      # Tailwind v4 meldet unbekannte Utilities nicht — nur ein Grep findet das.
+      - name: Guard against removed design tokens
+        run: |
+          if grep -rnE '\b(bg|text|border|ring|accent|from|to|via)-accent\b' app components; then
+            echo "::error::'accent' ist kein definiertes Theme-Token mehr (siehe docs/brandguidelines.md)."
+            exit 1
+          fi
         working-directory: ab-tool
 
       # Node-Tests vor dem Build: schnelles Feedback, keine Browser nötig.

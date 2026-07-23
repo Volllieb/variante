@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { classifyAuthError } from '@/lib/authErrors'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
@@ -11,16 +12,6 @@ function norm(s: string): string {
   return s.trim().toLowerCase()
 }
 
-type ErrKind = 'not-confirmed' | 'rate-limit' | 'network' | 'generic'
-
-function classify(error: any): ErrKind {
-  const msg = (typeof error === 'string' ? error : error?.message || JSON.stringify(error)).toLowerCase()
-  if (!msg) return 'generic'
-  if (msg.includes('not confirmed') || msg.includes('email not confirmed')) return 'not-confirmed'
-  if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('security purposes') || msg.includes('try again later')) return 'rate-limit'
-  if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('abort') || msg.includes('load failed')) return 'network'
-  return 'generic'
-}
 
 function signupParams(): { source: string; plan: string } {
   if (typeof window === 'undefined') return { source: '', plan: '' }
@@ -88,7 +79,7 @@ export default function SignupPage() {
       })
       setLoading(false)
       if (error) {
-        const kind = classify(error)
+        const kind = classifyAuthError(error)
         if (kind === 'rate-limit') { setErr('Too many attempts. Wait a moment and try again.'); return }
         if (kind === 'network') { setErr('Connection failed. Check your internet and try again.'); return }
         const msgStr = typeof error === 'string' ? error : error.message || JSON.stringify(error)
@@ -241,7 +232,7 @@ export default function SignupPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus:outline-none"
+                className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
             </div>
 
@@ -258,7 +249,7 @@ export default function SignupPage() {
                   placeholder="Min. 6 characters"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus:outline-none"
+                  className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                 />
                 <button
                   type="button"
@@ -324,6 +315,17 @@ export default function SignupPage() {
               </button>
             </div>
           </form>
+
+          {/* Plan LEGAL-01: DSGVO Art. 13 verlangt Information zum Zeitpunkt der
+              Erhebung. Ein Datenschutzlink erst im Footer der Landingpage ist
+              angreifbar — hier direkt an der Registrierung. */}
+          <p className="mt-4 text-center text-[12px] leading-relaxed text-text-3">
+            By signing up you agree to our{' '}
+            <Link href="/privacy" className="underline transition-colors hover:text-text">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
 
         <p className="mt-5 text-center text-sm text-text-3">

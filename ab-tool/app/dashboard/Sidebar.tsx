@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PandaLogo } from '@/components/PandaLogo'
 import { NotificationCenter } from '@/app/components/NotificationCenter'
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import {
@@ -15,6 +15,8 @@ import {
   LogOut,
   User,
   BookOpen,
+  Menu,
+  X,
 } from 'lucide-react'
 
 function avatarColor(email: string): string {
@@ -51,6 +53,32 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
   const [popoverOpen, setPopoverOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
 
+  // UX-02: Auf Mobile ist die Sidebar ein Off-Canvas-Drawer. Vorher war sie
+  // fest fixed w-[220px] ohne Breakpoint — auf 375px blieben 155px fuer den
+  // gesamten Content, mit horizontalem Overflow.
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Bei jedem Routenwechsel den mobilen Drawer schliessen — im Render anhand
+  // des vorigen Pfads abgeleitet statt per Effect (sonst ein Extra-Render und
+  // die react-hooks/set-state-in-effect-Warnung).
+  const [prevPath, setPrevPath] = useState(pathname)
+  if (prevPath !== pathname) {
+    setPrevPath(pathname)
+    if (mobileOpen) setMobileOpen(false)
+  }
+
+  // Escape schliesst den mobilen Drawer.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
+
   // Click outside closes popover
   useEffect(() => {
     if (!popoverOpen) return
@@ -67,7 +95,47 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
   const isInSection = (href: string) => pathname.startsWith(href)
 
   return (
-    <aside className="fixed left-0 top-0 z-30 flex h-screen w-[220px] flex-col border-r border-border bg-bg-0">
+    <>
+      {/* Mobile-Topbar mit Hamburger — nur unter md */}
+      <div className="fixed left-0 right-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-border bg-bg-0 px-3 md:hidden">
+        <button
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open navigation"
+          aria-expanded={mobileOpen}
+          aria-controls="dashboard-sidebar"
+          className="flex h-8 w-8 items-center justify-center rounded-[6px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <PandaLogo size="sm" />
+          <span className="text-[14px] font-semibold text-text">variante</span>
+        </Link>
+      </div>
+
+      {/* Backdrop — nur mobil, wenn offen */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        id="dashboard-sidebar"
+        className={`fixed left-0 top-0 z-50 flex h-dvh w-[220px] flex-col border-r border-border bg-bg-0 transition-transform duration-200 md:z-30 md:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Close-Button im Drawer — nur mobil */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close navigation"
+          className="absolute right-2 top-3 flex h-7 w-7 items-center justify-center rounded-[6px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
       {/* Logo */}
       <Link
         href="/dashboard"
@@ -78,7 +146,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
       </Link>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-0.5 px-2">
+      <nav aria-label="Main" className="flex flex-col gap-0.5 px-2">
         {/* Overview */}
         <SidebarLink
           href="/dashboard"
@@ -115,6 +183,9 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         </div>
         <button
           onClick={() => setPopoverOpen((v) => !v)}
+          aria-expanded={popoverOpen}
+          aria-controls="sidebar-account-popover"
+          aria-haspopup="menu"
           className="flex w-full items-center gap-2.5 rounded-[6px] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer"
         >
           {avatarUrl && !avatarLoadFailed ? (
@@ -156,7 +227,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
 
         {/* Popover */}
         {popoverOpen && (
-          <div className="absolute bottom-full left-3 right-3 mb-1 rounded-[8px] border border-border bg-bg-1 p-1">
+          <div id="sidebar-account-popover" role="menu" className="absolute bottom-full left-3 right-3 mb-1 rounded-[8px] border border-border bg-bg-1 p-1">
             <Link
               href="/dashboard/account"
               onClick={() => setPopoverOpen(false)}
@@ -186,7 +257,8 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           </div>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }
 

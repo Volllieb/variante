@@ -32,16 +32,15 @@ function generateTextCss(selector: string): string {
 }
 
 export function TextInputEditor({ element, originalHtml, onApply, onCancel }: TextInputEditorProps) {
+  // ponytail: handleApply hatte dieselbe CSS-Regel nochmal inline stehen,
+  // während generateTextCss ungenutzt danebenlag.
   const originalText = extractTextFromHtml(originalHtml)
   const [text, setText] = useState(originalText)
 
   function handleApply() {
     const selector = element.selector || element.elementName
     const html = generateTextHtml(text || originalText)
-    const css = `${selector} {
-  transition: all 0.2s ease;
-}`
-    onApply(html, css)
+    onApply(html, generateTextCss(selector))
   }
 
   function handleReset() {
@@ -69,7 +68,7 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text"
           maxLength={200}
-          className="w-full rounded-[6px] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10"
+          className="w-full rounded-[6px] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
         />
       </div>
 
@@ -94,7 +93,7 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
           <button
             type="button"
             onClick={handleApply}
-            className="cursor-pointer rounded-[6px] bg-accent px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
           >
             Apply
           </button>

@@ -25,20 +25,29 @@ export function StepUrlAndElement({
 }: StepUrlAndElementProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
+  // Ref haelt den aktuellen Callback, ohne den postMessage-Listener bei jeder
+  // neuen Callback-Identitaet neu aufzubauen. Schreiben MUSS im Effect passieren:
+  // im Render ist es ein Seiteneffekt, den React 19 verwerfen darf.
   const onElementSelectedRef = useRef(onElementSelected)
-  onElementSelectedRef.current = onElementSelected
+  useEffect(() => {
+    onElementSelectedRef.current = onElementSelected
+  })
 
   // Listen for postMessage from ab.js picker
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      // SECURITY: Accept messages from the user's site OR from our own
-      // picker-bridge proxy (which serves the page from our origin).
-      const userSiteOrigin = (() => {
-        try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin } catch { return null }
-      })()
-      const ourOrigin = window.location.origin
-      const isTrusted = (!userSiteOrigin) || e.origin === userSiteOrigin || e.origin === ourOrigin
-      if (!isTrusted) return
+      // SECURITY: Nur Nachrichten von der Seite des Users akzeptieren.
+      // ponytail: Vorher galt `(!userSiteOrigin) || … || e.origin === ourOrigin`.
+      // Der erste Zweig vertraute JEDER Origin, sobald die eingegebene URL nicht
+      // parsebar war; der letzte war nur für den entfernten picker-bridge-Proxy
+      // nötig (Plan SEC-02). Jetzt: exakter Origin-Match, sonst verwerfen.
+      let userSiteOrigin: string | null = null
+      try {
+        userSiteOrigin = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin
+      } catch {
+        userSiteOrigin = null
+      }
+      if (!userSiteOrigin || e.origin !== userSiteOrigin) return
 
       if (!e.data || e.data.type !== 'ab-pick') return
 
@@ -65,9 +74,14 @@ export function StepUrlAndElement({
   const openPicker = useCallback(() => {
     if (!url) return
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-    // Bridge-URL: unser Server proxied die Seite und injectet ab.js
-    const bridgeUrl = `/api/picker-bridge?url=${encodeURIComponent(finalUrl)}&mode=element`
-    window.open(bridgeUrl, 'ab-picker', 'width=1200,height=800')
+    // ponytail: Vorher lief das über /api/picker-bridge — einen Proxy, der die
+    // fremde Seite unter UNSERER Origin auslieferte (Plan SEC-02). Jetzt wird
+    // die Kundenseite direkt geöffnet; ab.js erkennt ?ab_pick= und startet den
+    // Picker. Setzt voraus, dass das Snippet installiert ist — genau das ist
+    // ohnehin Voraussetzung dafür, dass der Test später ausgeliefert wird.
+    const target = new URL(finalUrl)
+    target.searchParams.set('ab_pick', '1')
+    window.open(target.toString(), 'ab-picker', 'width=1200,height=800')
     setPickerOpen(true)
     setWaitingForPicker(true)
   }, [url])
@@ -104,7 +118,7 @@ export function StepUrlAndElement({
                   onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
                 }
               }}
-              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
             >
               <option value="">Enter custom URL…</option>
               {verifiedDomains.map((d) => (
@@ -130,7 +144,7 @@ export function StepUrlAndElement({
             onChange={(e) => onUrlChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && urlValid && openPicker()}
             placeholder="https://example.com/landing"
-            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
+            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
               verifiedDomains.length > 0 ? 'pl-3 pr-3' : 'pl-9 pr-3'
             }`}
           />
@@ -147,8 +161,8 @@ export function StepUrlAndElement({
 
       {/* Waiting for picker */}
       {waitingForPicker && (
-        <div className="flex items-center gap-2 rounded-[7px] border border-accent/15 bg-accent/5 px-3 py-2.5">
-          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+        <div className="flex items-center gap-2 rounded-[7px] border border-border-strong bg-bg-2 px-3 py-2.5">
+          <Loader2 className="h-4 w-4 animate-spin text-text" />
           <p className="text-[12px] text-text-2">
             Waiting for element selection… Click any element on the opened page.
           </p>

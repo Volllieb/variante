@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL('/auth/checkout', req.url))
       }
       return NextResponse.redirect(new URL(next, req.url))
-    } catch (e: any) {
+    } catch (e: unknown) {
       // PKCE exchange kann fehlschlagen, wenn die Session bereits via
       // OAuth-Implicit-Flow gesetzt wurde (Supabase setzt Cookies direkt).
       // Dann prüfen wir ob trotzdem eine Session da ist.
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL('/dashboard', req.url))
       }
       return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(e?.message || 'auth-failed')}`, req.url)
+        new URL(`/login?error=${encodeURIComponent(e instanceof Error ? e.message : 'auth-failed')}`, req.url)
       )
     }
   }

@@ -85,11 +85,28 @@ export function loadtestBypass(req: Request): boolean {
   return req.headers.get('x-loadtest-secret') === secret
 }
 
-// Client-IP aus Vercel-Headern extrahieren (x-forwarded-for oder x-real-ip).
+// Client-IP aus Vercel-Headern extrahieren und HASHEN.
+//
+// Plan LEGAL-01: Die IP ist ein personenbezogenes Datum und landete vorher im
+// Klartext als Upstash-Redis-Key (`rl:resolve:203.0.113.5`). In der DB wird
+// bewusst keine IP gespeichert — im Rate-Limiter dann doch, bei einem weiteren
+// Auftragsverarbeiter. Es sind zudem die IPs der BESUCHER der Kundenseiten, für
+// die variante Auftragsverarbeiter ist. Der Hash entfernt den Klartext-
+// Personenbezug aus dem Drittsystem; als Rate-Limit-Schlüssel ist er
+// gleichwertig (kollisionsarm, deterministisch).
+//
+// IP_HASH_SALT ist optional — ohne Salt wird trotzdem gehasht (weniger ideal,
+// aber nie Klartext). Mit Salt ist der Hash nicht per Rainbow-Table umkehrbar.
+import { createHash } from 'crypto'
+
 export function getClientIp(req: Request): string {
-  return (
+  const raw =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     req.headers.get('x-real-ip') ||
     'unknown'
-  )
+  if (raw === 'unknown') return 'unknown'
+  return createHash('sha256')
+    .update(raw + (process.env.IP_HASH_SALT || 'variante-rl'))
+    .digest('hex')
+    .slice(0, 24)
 }

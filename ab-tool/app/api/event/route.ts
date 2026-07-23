@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeaders, preflight } from '@/lib/cors'
-import { calcSignificance, determineWinner } from '@/lib/significance'
+import { calcSignificance } from '@/lib/significance'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 import { safeError } from '@/lib/safeLog'
 
@@ -11,21 +11,23 @@ export async function OPTIONS() {
   return preflight('POST, OPTIONS')
 }
 
+// Rückgabe der RPC ab_convert. Die Winner-Schwellen (min_visitors,
+// min_uplift, significance_level) werden hier nicht mehr gebraucht — die
+// Entscheidung fällt im Tages-Cron (Plan STAT-01).
 type TestRow = {
   id: string
   visitors_a: number
   visitors_b: number
   conversions_a: number
   conversions_b: number
-  min_visitors: number
-  min_uplift: number
-  significance_level: number
 }
 
 export async function POST(req: Request) {
-  // Security: Rate-Limiting — maximal 30 Event-Calls pro Minute pro IP
+  // Security: Rate-Limiting pro IP. Wie bei /api/resolve war 30/min zu eng
+  // fuer geteilte IPs (Plan BUG-01b). Conversions sind zusaetzlich pro Session
+  // dedupliziert (ab.js sendConversion), das Limit ist reiner Missbrauchsschutz.
   const ip = getClientIp(req)
-  if (!loadtestBypass(req) && !await checkRateLimit(`event:${ip}`, 30, 60_000)) {
+  if (!loadtestBypass(req) && !await checkRateLimit(`event:${ip}`, 300, 60_000)) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('POST, OPTIONS') })
   }
 
@@ -74,46 +76,29 @@ export async function POST(req: Request) {
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  // Signifikanz mitschreiben, damit das Dashboard einen aktuellen Wert zeigt.
+  //
+  // ponytail: Hier stand vorher ZUSÄTZLICH determineWinner() plus
+  // `status: winner ? 'done' : undefined`. Damit wurde bei JEDER Conversion neu
+  // getestet und der Test bei Erfolg sofort beendet — klassisches Peeking, das
+  // die reale Falsch-Positiv-Rate weit über die beworbenen 5 % treibt
+  // (Plan STAT-01). Die Gewinner-Entscheidung liegt jetzt ausschließlich im
+  // Tages-Cron /api/cron/check-winners, wo sie einmal pro Tag und mit
+  // Mindestlaufzeit-, Stichproben- und Conversion-Schwellen fällt.
   const significance = calcSignificance(
     row.visitors_a,
     row.conversions_a,
     row.visitors_b,
     row.conversions_b
   )
-  const winner = determineWinner(
-    significance,
-    row.conversions_a,
-    row.conversions_b,
-    row.visitors_a,
-    row.visitors_b,
-    row.min_visitors,
-    row.min_uplift,
-    row.significance_level ?? 0.95
-  )
 
   const { error: updateError } = await supabase
     .from('tests')
-    .update({ significance, winner, status: winner ? 'done' : undefined })
+    .update({ significance })
     .eq('id', row.id)
 
   if (updateError) {
     safeError('event', updateError)
-  }
-
-  // Event: Winner erkannt
-  if (winner) {
-    const { data: testOwner } = await supabase
-      .from('tests')
-      .select('user_id, name')
-      .eq('id', row.id)
-      .single()
-
-    await supabase.rpc('log_event', {
-      p_test_id: row.id,
-      p_user_id: testOwner?.user_id ?? null,
-      p_type: 'winner_detected',
-      p_message: `Winner ${winner} detected for "${testOwner?.name || row.id}" (sig=${significance.toFixed(4)})`,
-    })
   }
 
   return Response.json({ ok: true }, { headers: corsHeaders('POST, OPTIONS') })

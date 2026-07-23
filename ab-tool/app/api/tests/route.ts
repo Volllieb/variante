@@ -3,6 +3,10 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { revalidatePath } from 'next/cache'
+import { assertOwnedDomain } from '@/lib/domainGate'
+
+// Maximale Anzahl Tests pro anonymer Temp-Session (Figma-Onboarding-Vorschau).
+const TEMP_SESSION_TEST_LIMIT = 3
 
 export async function OPTIONS() {
   return preflight('GET, POST, OPTIONS')
@@ -12,33 +16,19 @@ export async function GET(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, POST, OPTIONS')
 
-  const query = supabase
-    .from('tests')
-    .select(
-      'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
-    )
-    .order('created_at', { ascending: false })
-    .limit(50)
+  // ponytail: Die Spaltenliste stand dreimal in dieser Funktion, einmal davon
+  // in einer Query, deren Ergebnis nie verwendet wurde.
+  const COLUMNS =
+    'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
 
   // Temp-User: Tests per temp_session_id holen, regulärer User per user_id
   const isTemp = user.plan === 'temp'
-  const { data, error } = isTemp
-    ? await supabase
-        .from('tests')
-        .select(
-          'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
-        )
-        .eq('temp_session_id', user.userId)
-        .order('created_at', { ascending: false })
-        .limit(50)
-    : await supabase
-        .from('tests')
-        .select(
-          'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
-        )
-        .eq('user_id', user.userId)
-        .order('created_at', { ascending: false })
-        .limit(50)
+  const { data, error } = await supabase
+    .from('tests')
+    .select(COLUMNS)
+    .eq(isTemp ? 'temp_session_id' : 'user_id', user.userId)
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   if (error) {
     safeError('tests', error)
@@ -79,6 +69,16 @@ export async function POST(req: Request) {
   if (site_url && site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   if (selector && selector.length > 512) return Response.json({ error: 'selector too long (max 512)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   if (goal && goal.length > 256) return Response.json({ error: 'goal too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  // ponytail: traffic_split ging ungeprüft aus dem Body in den Insert, während
+  // die vier Felder darüber längenvalidiert wurden. 500 hier bedeutet in
+  // ab_assign `random()*100 < 500` — also 100 % Traffic auf B und ein Test,
+  // der keiner mehr ist (Plan DB-03).
+  if (traffic_split !== undefined && (typeof traffic_split !== 'number' || !Number.isFinite(traffic_split) || traffic_split < 0 || traffic_split > 100)) {
+    return Response.json({ error: 'traffic_split must be a number between 0 and 100' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
+  if (min_visitors !== undefined && (typeof min_visitors !== 'number' || min_visitors < 0)) {
+    return Response.json({ error: 'min_visitors must be a non-negative number' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
 
   const isTemp = user.plan === 'temp'
 
@@ -99,50 +99,34 @@ export async function POST(req: Request) {
     }
   }
 
-  // Domain-Gate: site_url muss zu einer verified Domain des Users passen.
-  // Temp-User: keine Domain-Verifikation nötig (Site-Eingabe im Wizard).
+  // Temp-Sessions: hartes Test-Limit pro Session (Plan SEC-06). Vorher stand
+  // hier "Temp-User: kein Limit" — eine unauthentifiziert erzeugte Session
+  // konnte beliebig viele Tests anlegen und damit beliebig viele kostenlose
+  // KI-Generierungen auslösen.
+  if (isTemp) {
+    const { data: allowed } = await supabase.rpc('consume_temp_session_test', {
+      p_session_id: user.userId,
+      p_limit: TEMP_SESSION_TEST_LIMIT,
+    })
+    if (allowed !== true) {
+      return paymentRequired(
+        'POST, OPTIONS',
+        'Preview limit reached. Sign up for a free account to keep going.'
+      )
+    }
+  }
+
+  // Domain-Gate: site_url muss zu einer verifizierten Domain des Users passen.
+  // Temp-Sessions brauchen ihn nicht — ihre Tests werden von /api/resolve
+  // grundsätzlich nicht ausgeliefert (dort: user_id is not null).
   let effectiveUrl = site_url || ''
 
   if (!isTemp) {
-    const { data: verifiedDomains } = await supabase
-      .from('domains')
-      .select('url')
-      .eq('user_id', user.userId)
-      .eq('verified', true)
-
-    const verifiedUrls = verifiedDomains?.map(d => d.url) ?? []
-
-    function hostOf(u: string) {
-      return u.trim().toLowerCase()
-        .replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
-        .replace(/^www\./, '')
+    const gate = await assertOwnedDomain(user.userId, site_url)
+    if (!gate.ok) {
+      return Response.json({ error: gate.error }, { status: gate.status, headers: corsHeaders('POST, OPTIONS') })
     }
-
-    if (!site_url) {
-      if (verifiedUrls.length === 0) {
-        return Response.json(
-          { error: 'No verified website. Add your website in the dashboard first.' },
-          { status: 400, headers: corsHeaders('POST, OPTIONS') }
-        )
-      }
-      effectiveUrl = verifiedUrls[0]!
-    } else {
-      if (verifiedUrls.length === 0) {
-        return Response.json(
-          { error: 'No verified website. Add your website in the dashboard first.' },
-          { status: 400, headers: corsHeaders('POST, OPTIONS') }
-        )
-      }
-
-      const testHost = hostOf(site_url)
-      const allowedHosts = verifiedUrls.map(u => hostOf(u))
-      if (!allowedHosts.includes(testHost)) {
-        return Response.json(
-          { error: `site_url must match a verified website. Allowed: ${allowedHosts.join(', ')}. Got: ${testHost}` },
-          { status: 400, headers: corsHeaders('POST, OPTIONS') }
-        )
-      }
-    }
+    effectiveUrl = gate.siteUrl
   }
 
   const insert: Record<string, unknown> = {

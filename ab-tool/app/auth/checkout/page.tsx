@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from 'react'
 
+// ponytail: Diese Seite war komplett deutsch (Plan UX-05) — mitten im sonst
+// durchgehend englischen Produkt und genau im Moment der Kaufentscheidung.
+// Zusätzlich Inline-Styles statt Design-Tokens und ein Orange-Spinner (#f97316),
+// eine Farbe, die es in der Monochrom-Palette gar nicht mehr gibt. Jetzt
+// Englisch und auf den Token-Klassen.
+
 export default function CheckoutRedirectPage() {
   const [error, setError] = useState<string | null>(null)
 
@@ -17,11 +23,11 @@ export default function CheckoutRedirectPage() {
         if (json.url) {
           window.location.href = json.url
         } else {
-          throw new Error(json.error || 'Keine Checkout-URL erhalten')
+          throw new Error(json.error || 'No checkout URL received')
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
-        // Fallback: nach 3 s ins Dashboard, damit der User nicht hängt
+      } catch {
+        // Rohen Fehler nicht anzeigen (kann Serverdetails enthalten).
+        setError('We could not start the checkout. Redirecting you to the dashboard…')
         setTimeout(() => {
           window.location.href = '/dashboard'
         }, 3000)
@@ -31,41 +37,23 @@ export default function CheckoutRedirectPage() {
   }, [])
 
   return (
-    <main style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      padding: '2rem',
-      textAlign: 'center',
-      fontFamily: 'system-ui, sans-serif',
-    }}>
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-bg-0 px-8 text-center">
       {error ? (
         <>
-          <p style={{ color: '#ef4444', fontSize: '1.125rem', marginBottom: '0.5rem' }}>
-            Checkout konnte nicht gestartet werden: {error}
+          <p className="mb-2 text-[18px] text-err" role="alert">
+            {error}
           </p>
-          <p style={{ color: '#6b7280' }}>Du wirst zum Dashboard weitergeleitet …</p>
+          <p className="text-text-3">Redirecting to your dashboard…</p>
         </>
       ) : (
         <>
-          <div style={{
-            width: 40,
-            height: 40,
-            border: '3px solid #e5e7eb',
-            borderTopColor: '#f97316',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
-            marginBottom: '1rem',
-          }} />
-          <p style={{ fontSize: '1.125rem', fontWeight: 500 }}>
-            Pro-Account wird eingerichtet …
-          </p>
-          <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
-            Du wirst in Kürze zu Stripe weitergeleitet.
-          </p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <div
+            className="mb-4 h-10 w-10 animate-spin rounded-full border-[3px] border-border border-t-text"
+            role="status"
+            aria-label="Setting up your Pro account"
+          />
+          <p className="text-[18px] font-medium text-text">Setting up your Pro account…</p>
+          <p className="mt-2 text-text-3">You&rsquo;ll be redirected to Stripe in a moment.</p>
         </>
       )}
     </main>

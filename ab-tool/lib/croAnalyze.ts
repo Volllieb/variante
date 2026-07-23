@@ -52,8 +52,6 @@ export function stripForCRO(html: string): string {
 // DOM-Baum als strukturierte Page-Map: Hierarchie, CSS-Klassen, IDs, interaktive Elemente.
 // Format: SECTION/HEADER/NAV/... mit eingerückten Kindern. CSS-Klassen nach Tag-Name.
 // Max 3 Ebenen tief, ~5000 Zeichen. Gibt dem LLM visuellen und semantischen Kontext.
-const SECTION_TAGS = /<\/(?:header|main|footer|nav|section|article|aside|form|div)(?:\s[^>]*)?>/gi
-const BLOCK_TAGS = /<(header|main|footer|nav|section|article|aside|form|div)(\s[^>]*)?>/gi
 const MAX_STRUCTURE_CHARS = 5000
 
 function attrVal(tag: string, attr: string): string {
