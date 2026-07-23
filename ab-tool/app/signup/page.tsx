@@ -315,6 +315,17 @@ export default function SignupPage() {
               </button>
             </div>
           </form>
+
+          {/* Plan LEGAL-01: DSGVO Art. 13 verlangt Information zum Zeitpunkt der
+              Erhebung. Ein Datenschutzlink erst im Footer der Landingpage ist
+              angreifbar — hier direkt an der Registrierung. */}
+          <p className="mt-4 text-center text-[12px] leading-relaxed text-text-3">
+            By signing up you agree to our{' '}
+            <Link href="/privacy" className="underline transition-colors hover:text-text">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
 
         <p className="mt-5 text-center text-sm text-text-3">

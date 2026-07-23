@@ -153,9 +153,8 @@ export default function PrivacyPage() {
                       {[
                         ['sb-*-auth-token', 'Cookie', 'Session auth', '1 year'],
                         ['_vercel_insights', '—', 'Vercel Analytics & Speed Insights are cookieless. No cookies or local storage are used for analytics.', '—'],
-                        ['__ab_visitor_id', 'localStorage', 'Anonymous visitor ID', 'Persistent'],
-                        ['ab_<test_id>', 'localStorage', 'Variant assignment (sticky)', 'Per experiment'],
-                        ['ab_conv_<test_id>', 'sessionStorage', 'Conversion deduplication', 'Session'],
+                        ['ab_<test_id>', 'localStorage', 'Variant assignment (sticky). Only set with consent (window.varianteConsent); cookieless / in-memory otherwise.', 'Per experiment'],
+                        ['ab_conv_<test_id>', 'sessionStorage', 'Conversion deduplication. Only set with consent; in-memory otherwise.', 'Session'],
                       ].map(([name, type, purpose, duration], i, arr) => (
                         <tr key={name} className={i < arr.length - 1 ? 'border-b border-border' : ''}>
                           <td className="px-4 py-3"><code className="rounded bg-bg-2 px-1.5 py-0.5 font-mono text-xs text-text">{name}</code></td>

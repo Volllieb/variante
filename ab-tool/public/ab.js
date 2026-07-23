@@ -426,8 +426,31 @@
     } catch (_) {}
   }
 
-  // --- Hilfsfunktionen -------------------------------------------------------
+  // --- Consent & Storage -----------------------------------------------------
+  // Plan LEGAL-01 (TTDSG/DDG §25, DSGVO): ab.js schrieb bisher bedingungslos
+  // localStorage['ab_<key>'] und sessionStorage['ab_conv_<key>'] auf jeder
+  // Kundenseite — ohne Consent-Prüfung und ohne API für das Consent-Tool des
+  // Kunden. Der Kunde ist Verantwortlicher und trägt das Bußgeldrisiko.
+  //
+  // Zwei Wege für den Kunden, beide über ein globales Flag:
+  //   window.varianteConsent = true    → persistentes Storage erlaubt (Opt-in)
+  //   window.varianteConsent = false   → cookieless: kein Storage, nur In-Memory
+  //
+  // Default (Flag nicht gesetzt) ist der rechtssichere COOKIELESS-Modus: die
+  // Zuweisung ist innerhalb des Seitenaufrufs stabil (In-Memory), persistiert
+  // aber nicht über Reloads. Wer Cross-Visit-Stickiness braucht, holt Consent
+  // ein und setzt das Flag. Integration in TCF/Google Consent Mode kann der
+  // Kunde über dasselbe Flag verdrahten.
+  function hasConsent() {
+    try { return window.varianteConsent === true } catch (_) { return false }
+  }
+
+  // In-Memory-Fallback für den cookieless Default. Lebt nur für diesen
+  // Seitenaufruf — kein Zugriff auf Endeinrichtungen im Sinne des §25 TTDSG.
+  var __memStore = {}
+
   function lsGet(k) {
+    if (!hasConsent()) return Object.prototype.hasOwnProperty.call(__memStore, k) ? __memStore[k] : null
     try {
       return localStorage.getItem(k)
     } catch (_) {
@@ -435,9 +458,20 @@
     }
   }
   function lsSet(k, v) {
+    if (!hasConsent()) { __memStore[k] = v; return }
     try {
       localStorage.setItem(k, v)
     } catch (_) {}
+  }
+  // Conversion-Dedup: ohne Consent im In-Memory-Set (reicht, weil eine
+  // Conversion ohnehin nur einmal pro Seitenaufruf gesendet werden soll).
+  function convGet(k) {
+    if (!hasConsent()) return __memStore[k] === '1'
+    try { return sessionStorage.getItem(k) === '1' } catch (_) { return false }
+  }
+  function convSet(k) {
+    if (!hasConsent()) { __memStore[k] = '1'; return }
+    try { sessionStorage.setItem(k, '1') } catch (_) {}
   }
 
   // fetch mit Timeout (5s). Verhindert, dass ab.js blockiert, wenn der
@@ -472,12 +506,8 @@
 
   function sendConversion(key, variant) {
     var ck = 'ab_conv_' + key
-    try {
-      if (sessionStorage.getItem(ck) === '1') return
-    } catch (_) {}
-    try {
-      sessionStorage.setItem(ck, '1')
-    } catch (_) {}
+    if (convGet(ck)) return
+    convSet(ck)
 
     var payload = JSON.stringify({ testId: key, variant: variant, event: 'conversion' })
     try {

@@ -208,21 +208,18 @@ export function TestCard({
 
       {/* ── Row 1: favicon | name+url | pie chart ── */}
       <div className="flex items-center gap-2.5">
-        {/* Favicon */}
-        {domain ? (
-          <img
-            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=48`}
-            alt=""
-            width={18}
-            height={18}
-            className="shrink-0 rounded-[4px]"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-          />
-        ) : (
-          <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
-            <span className="text-[10px] text-text-3/60">WWW</span>
-          </div>
-        )}
+        {/* Domain-Monogramm.
+            ponytail (Plan LEGAL-01): Vorher lud jede Test-Karte
+            google.com/s2/favicons — bei 20 Tests 20 Cross-Origin-Requests an
+            Google, die IP + Referrer des eingeloggten Kunden übertragen. Google
+            steht nicht in der Sub-Prozessor-Tabelle, und die Docs behaupten
+            ausdrücklich "No third-party analytics or CDNs". Jetzt ein lokal
+            gerendertes Monogramm, kein externer Request. */}
+        <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
+          <span className="text-[10px] font-semibold uppercase text-text-3">
+            {domain ? domain.replace(/^www\./, '').charAt(0) : 'W'}
+          </span>
+        </div>
 
         {/* Name + URL (or rename input) */}
         <div className="min-w-0 flex-1">

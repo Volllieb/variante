@@ -27,7 +27,10 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  // Sentry-Ingest (Client-Error-Tracking im Dashboard, Plan OPS-03) muss hier
+  // stehen, sonst blockt die CSP die Beacons still. *.sentry.io deckt die
+  // Standard- und EU-Ingest-Hosts ab.
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io",
   "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

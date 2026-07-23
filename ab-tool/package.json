@@ -15,7 +15,7 @@
     "test:conversion": "playwright test --project=chromium --grep \"@conversion\"",
     "test:ci": "playwright test --project=chromium-ci",
     "test:ci:smoke": "playwright test --project=chromium-ci --grep \"@smoke\"",
-    "test:node": "node --import tsx __tests__/sanitize.mjs && node --import tsx __tests__/winner-guards.mjs && node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs && node __tests__/resolve-host-parity.mjs",
+    "test:node": "node --import tsx __tests__/sanitize.mjs && node --import tsx __tests__/winner-guards.mjs && node --import tsx __tests__/domain-gate.mjs && node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs && node __tests__/resolve-host-parity.mjs",
     "test:report": "playwright show-report",
     "loadtest": "k6 run __tests__/load/main.k6.js",
     "loadtest:smoke": "k6 run __tests__/load/main.k6.js -e STAGE=smoke",
