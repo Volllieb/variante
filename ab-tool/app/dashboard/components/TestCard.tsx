@@ -234,7 +234,7 @@ export function TestCard({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
                 autoFocus
-                className="flex-1 rounded-[4px] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text outline-none focus:border-border-strong"
+                className="flex-1 rounded-[4px] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
               />
               <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[4px] p-1 text-text-3 hover:text-text">
                 <Check className="h-3 w-3" />
@@ -261,6 +261,8 @@ export function TestCard({
           <div ref={menuRef} className="relative">
             <button
               onClick={openMenu}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
               aria-label="Test actions"
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             >
@@ -268,7 +270,7 @@ export function TestCard({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
+              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameOpen(true); setMenuOpen(false) }}
                   className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"

@@ -259,6 +259,12 @@
 
 <script>
 (function(){
+  // A11Y (Plan A11Y-05): prefers-reduced-motion respektieren. Dieses HTML läuft
+  // in einem eigenen iframe-Dokument — der globals.css-Block des Parents greift
+  // hier nicht, und GSAP-JS-Tweens sind ohnehin nicht per CSS abschaltbar.
+  // Bei reduzierter Bewegung: GSAP-Timeline pausieren, Endzustand direkt setzen.
+  var __reduceMotion = false;
+  try { __reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){}
   const $ = id => document.querySelector('[data-el="' + id + '"]');
   const stage = $("stage"), scaler = document.getElementById("scaler");
   const segs = [$("seg1"),$("seg2"),$("seg3"),$("seg4")];
@@ -563,6 +569,8 @@
     if (started) return;
     started = true;
     buildTimeline();
+    // Reduced Motion: keine ablaufende Animation, direkt den Endzustand zeigen.
+    if (__reduceMotion && tl) { tl.progress(1).pause(); }
   }
 
   if (typeof IntersectionObserver !== 'undefined') {

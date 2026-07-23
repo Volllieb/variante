@@ -119,7 +119,7 @@ export function StepVariantB({
                       value={editCss}
                       onChange={(e) => setEditCss(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus:outline-none"
+                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">
@@ -165,7 +165,7 @@ export function StepVariantB({
                       value={editHtml}
                       onChange={(e) => setEditHtml(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus:outline-none"
+                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">

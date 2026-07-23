@@ -72,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         </nav>
       </header>
 
-      <main>
+      <main id="main">
 
       {/* ── Hero ── */}
       <section className="px-0 pt-8 pb-6 sm:pt-10 sm:pb-8">

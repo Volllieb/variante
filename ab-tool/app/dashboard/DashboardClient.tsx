@@ -172,13 +172,18 @@ export function DashboardClient({
       {pendingPreviewTest && <PreviewReadyBanner test={pendingPreviewTest} />}
 
       {/* Content header: scope selector + CTA */}
+      {/* A11Y-05: Bei mehreren Domains ersetzte das <select> das <h1> — die Seite
+          hatte dann gar keine Überschrift. sr-only-h1 sorgt für einen stabilen
+          Einstiegspunkt, unabhängig von der Domain-Zahl. */}
+      <h1 className="sr-only">Dashboard</h1>
       <div className="mb-5 flex items-center justify-between">
         <div className="relative">
           {domainOptions.length > 1 ? (
             <select
               value={scope}
               onChange={(e) => setScopeAndPersist(e.target.value)}
-              className="appearance-none bg-transparent text-[15px] font-semibold text-text pr-5 cursor-pointer outline-none"
+              aria-label="Filter by site"
+              className="appearance-none bg-transparent text-[15px] font-semibold text-text pr-5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
             >
               <option value="all">All sites</option>
               {domainOptions.filter((d) => d !== 'all').map((url) => (
@@ -186,9 +191,9 @@ export function DashboardClient({
               ))}
             </select>
           ) : (
-            <h1 className="text-[15px] font-semibold text-text">
+            <p className="text-[15px] font-semibold text-text">
               {primaryDomain ? primaryDomain : 'All sites'}
-            </h1>
+            </p>
           )}
           {domainOptions.length > 1 && (
             <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />

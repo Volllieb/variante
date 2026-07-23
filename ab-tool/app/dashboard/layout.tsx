@@ -19,7 +19,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-bg-0 font-[family-name:var(--font-sans)] text-[13px] antialiased">
       <Sidebar email={user.email ?? ''} plan={plan} avatarUrl={avatarUrl} />
-      <main className="pl-[220px]">
+      {/* UX-02: pt-12 macht Platz für die mobile Topbar, md:pt-0 + md:pl-[220px]
+          für die feste Sidebar ab Tablet. */}
+      <main id="main" className="pt-12 md:pt-0 md:pl-[220px]">
         {children}
       </main>
     </div>

@@ -42,7 +42,7 @@ export function PropertySlider({
             }}
             min={min}
             max={max}
-            className="w-14 rounded-[4px] border border-border bg-bg-0 px-2 py-0.5 text-[11px] font-mono text-text text-right outline-none focus:border-border-strong"
+            className="w-14 rounded-[4px] border border-border bg-bg-0 px-2 py-0.5 text-[11px] font-mono text-text text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
           />
           {unit && <span className="text-[11px] text-text-3">{unit}</span>}
         </div>
@@ -55,7 +55,7 @@ export function PropertySlider({
           min={min}
           max={max}
           step={step}
-          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-bg-2 outline-none
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-bg-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0
             [&::-webkit-slider-thumb]:h-4
             [&::-webkit-slider-thumb]:w-4
             [&::-webkit-slider-thumb]:appearance-none

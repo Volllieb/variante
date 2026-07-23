@@ -326,6 +326,12 @@
 
 <script>
 (function(){
+  // A11Y (Plan A11Y-05): prefers-reduced-motion respektieren. Dieses HTML läuft
+  // in einem eigenen iframe-Dokument — der globals.css-Block des Parents greift
+  // hier nicht, und GSAP-JS-Tweens sind ohnehin nicht per CSS abschaltbar.
+  // Bei reduzierter Bewegung: GSAP-Timeline pausieren, Endzustand direkt setzen.
+  var __reduceMotion = false;
+  try { __reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){}
   const $ = id => document.getElementById(id);
   const stage = $("stage"), scaler = $("scaler");
   const cardA = $("cardA"), cardB = $("cardB");
@@ -412,6 +418,8 @@
     onRepeat: resetState
   });
   resetState();
+  // Reduced Motion: keine Endlos-Animation. Statischer Frame (Variante A).
+  if (__reduceMotion) { tl.pause(); }
 
   function click(t, pressTarget){
     tl.fromTo(ripple, {scale:.2, opacity:.5}, {scale:1, opacity:0, duration:.45, ease:"power1.out"}, t);

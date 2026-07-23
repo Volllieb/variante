@@ -24,10 +24,10 @@ interface Props {
 // Statische Vorschlaege als Teaser-Inhalt (wird im Free-Tier geblurred).
 // Werden nie live angezeigt — nur als Silhouette hinter dem Blur.
 const TEASER_SUGGESTIONS: Suggestion[] = [
-  { element: 'Hero Headline', original: 'Welcome to Acme', variant: 'Double Your Revenue in 30 Days — or It\'s Free', why: 'Nutzenorientierte Headlines konvertieren bis zu 40% besser als willkommensorientierte.' },
-  { element: 'CTA Button', original: 'Sign Up', variant: 'Start Free Trial — No Credit Card', why: 'Die Risikofreiheit-Botschaft senkt die Einstiegshürde. Kein "kostenlos" ohne Garantie.' },
-  { element: 'Pricing Section', original: 'Monthly billing default', variant: 'Annual billing default + 20% savings badge', why: 'Jährliche Abrechnung verdreifacht den Customer Lifetime Value. Der Badge macht den Vorteil sichtbar.' },
-  { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social Proof ist der stärkste Vertrauenstreiber. Logos + Zahl schaffen Glaubwürdigkeit in Millisekunden.' },
+  { element: 'Hero Headline', original: 'Welcome to Acme', variant: 'Double Your Revenue in 30 Days — or It\'s Free', why: 'Benefit-driven headlines convert up to 40% better than welcome-oriented ones.' },
+  { element: 'CTA Button', original: 'Sign Up', variant: 'Start Free Trial — No Credit Card', why: 'A no-risk message lowers the barrier to entry.' },
+  { element: 'Pricing Section', original: 'Monthly billing default', variant: 'Annual billing default + 20% savings badge', why: 'Annual billing roughly triples customer lifetime value; the badge makes the saving visible.' },
+  { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social proof is the strongest trust driver — logos plus a number build credibility in milliseconds.' },
 ]
 
 export function WhatToTestNext({ siteUrl, plan, setupComplete, domain }: Props) {

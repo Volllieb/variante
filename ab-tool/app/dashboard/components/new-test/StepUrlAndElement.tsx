@@ -118,7 +118,7 @@ export function StepUrlAndElement({
                   onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
                 }
               }}
-              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
             >
               <option value="">Enter custom URL…</option>
               {verifiedDomains.map((d) => (
@@ -144,7 +144,7 @@ export function StepUrlAndElement({
             onChange={(e) => onUrlChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && urlValid && openPicker()}
             placeholder="https://example.com/landing"
-            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 outline-none focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
+            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
               verifiedDomains.length > 0 ? 'pl-3 pr-3' : 'pl-9 pr-3'
             }`}
           />

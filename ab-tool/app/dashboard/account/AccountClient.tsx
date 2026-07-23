@@ -447,7 +447,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-[6px] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus:outline-none"
+                className="flex-1 rounded-[6px] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <button
                 onClick={changeEmail}
@@ -626,7 +626,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                               placeholder="another-site.com"
                               disabled={addState !== 'input'}
                               autoFocus
-                              className="flex-1 bg-transparent text-[12px] text-text placeholder:text-text-3/50 outline-none"
+                              className="flex-1 bg-transparent text-[12px] text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                             />
                           </div>
                           {addError && <p className="text-[11px] text-err">{addError}</p>}
@@ -705,7 +705,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       placeholder={domains.length > 0 ? 'new-domain.com' : 'yoursite.com'}
                       disabled={changeState !== 'input'}
                       autoFocus
-                      className="flex-1 bg-transparent text-[14px] text-text placeholder:text-text-3/50 outline-none"
+                      className="flex-1 bg-transparent text-[14px] text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                     />
                   </div>
 
@@ -842,7 +842,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-[6px] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus:outline-none"
+                className="w-full rounded-[6px] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <div className="flex items-center gap-2">
                 <button

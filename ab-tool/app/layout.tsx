@@ -94,12 +94,22 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-bg-0 text-[#ededed]/80 antialiased" suppressHydrationWarning>
-        {/* Inline theme script — prevents flash of wrong mode */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('variante-theme')||'dark';document.documentElement.classList.toggle('light',t==='light')})()`,
-          }}
-        />
+        {/* ponytail (Plan UX-06): Hier stand ein render-blockierendes Inline-Script,
+            das html.light aus localStorage['variante-theme'] setzte — für ein
+            Light-Theme, das kein Nutzer erreichen konnte (es gibt keinen Toggle)
+            und das die Landingpage wegen hartkodierter white-Werte unlesbar machte.
+            Wer den Key aus einer alten Session hatte, sah eine leere Seite.
+            Script und der html.light-Block in globals.css sind entfernt; die App
+            ist bewusst Dark-only, bis Light Mode vollständig gebaut wird. */}
+        {/* A11Y-05: Skip-Link (WCAG 2.4.1). Erstes fokussierbares Element, führt
+            an der Navigation vorbei zum Hauptinhalt. Zielanker #main sitzt auf den
+            <main>-Elementen (Dashboard-Layout, Landingpage). */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[100] focus:rounded focus:bg-fill-invert focus:px-4 focus:py-2 focus:text-text-on-invert focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+        >
+          Skip to content
+        </a>
         <ToastProvider>{children}</ToastProvider>
         {/* Plain script tags — zero client JS (React wrappers force hydration of the entire tree).
             Vercel scripts use History API for SPA navigation detection, no React needed. */}

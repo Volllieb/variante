@@ -204,7 +204,7 @@ export default function OnboardingPage() {
                       placeholder="https://mysite.com"
                       value={domainUrl}
                       onChange={(e) => setDomainUrl(e.target.value)}
-                      className="flex-1 rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus:outline-none"
+                      className="flex-1 rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                     />
                     <button
                       type="submit"
