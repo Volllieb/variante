@@ -46,20 +46,28 @@ export async function checkRateLimit(
 ): Promise<boolean> {
   // Redis-Pfad (Production)
   if (redis) {
-    const redisKey = `rl:${key}`
-    const now = Date.now()
-    const windowStart = now - windowMs
+    try {
+      const redisKey = `rl:${key}`
+      const now = Date.now()
+      const windowStart = now - windowMs
 
-    // ZSET: füge aktuellen Timestamp hinzu, entferne alte Einträge, zähle.
-    const multi = redis.multi()
-    multi.zadd(redisKey, { score: now, member: `${now}-${Math.random()}` })
-    multi.zremrangebyscore(redisKey, 0, windowStart)
-    multi.zcard(redisKey)
-    multi.expire(redisKey, Math.ceil(windowMs / 1000) + 1)
-    const results = await multi.exec()
-    // results: [zaddResult, zremResult, zcardResult, expireResult]
-    const count = (results?.[2] as number) ?? 0
-    return count <= maxRequests
+      // ZSET: füge aktuellen Timestamp hinzu, entferne alte Einträge, zähle.
+      const multi = redis.multi()
+      multi.zadd(redisKey, { score: now, member: `${now}-${Math.random()}` })
+      multi.zremrangebyscore(redisKey, 0, windowStart)
+      multi.zcard(redisKey)
+      multi.expire(redisKey, Math.ceil(windowMs / 1000) + 1)
+      const results = await multi.exec()
+      // results: [zaddResult, zremResult, zcardResult, expireResult]
+      const count = (results?.[2] as number) ?? 0
+      return count <= maxRequests
+    } catch (err) {
+      // Plan SEC-11: Redis-Ausfall (Netzwerk, Upstash-Kontingent, Timeout) darf
+      // nicht zum 500er auf /api/resolve, /api/event und /api/assign führen.
+      // Fallback auf In-Memory — ein einmaliger Log reicht.
+      console.error('[rateLimit] Redis-Error, fallback to in-memory:', String(err))
+      redis = null // einmalig — nachfolgende Requests nehmen sofort In-Memory
+    }
   }
 
   // In-Memory-Pfad (Dev)
@@ -71,6 +79,27 @@ export async function checkRateLimit(
   recent.push(now)
   buckets.set(key, recent)
   return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Globaler Tages-Circuit-Breaker für unauthentifizierte KI-Generierungen
+// (Plan NEW-01 / SEC-06). Redis-basierter Zähler mit 24h-Expiry.
+// Verhindert, dass ein Botnetz mit verteilten IPs Per-Session-Limits umgeht.
+// ─────────────────────────────────────────────────────────────────────────
+const DAILY_GEN_DEFAULT = 500
+
+export async function checkDailyGlobalLimit(): Promise<boolean> {
+  if (!redis) return true // kein Redis → kein globaler Breaker (Per-IP reicht)
+  const limit = parseInt(process.env.TEMP_GEN_DAILY_GLOBAL_LIMIT || '', 10) || DAILY_GEN_DEFAULT
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const key = `temp-gen:daily:${today}`
+  try {
+    const count = await redis.incr(key)
+    if (count === 1) await redis.expire(key, 86_400) // 24h ab erstem INCR
+    return (count as unknown as number) <= limit
+  } catch {
+    return true // Fail open: Redis aus → Breaker inaktiv, Per-IP fängt
+  }
 }
 
 // Loadtest-Bypass: k6 läuft von EINER IP — ohne Bypass misst der Test nur

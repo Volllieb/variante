@@ -56,9 +56,14 @@ export function NotificationCenter() {
   const ref = useRef<HTMLDivElement>(null)
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  // Persist
+  // Persist — try/catch für Safari Private Mode (QuotaExceededError, Plan CODE-04).
   useEffect(() => {
-    localStorage.setItem('variante-notifications', JSON.stringify(notifications))
+    try {
+      localStorage.setItem('variante-notifications', JSON.stringify(notifications))
+    } catch {
+      // Safari Private Mode wirft QuotaExceededError. Ignorieren — Notifications
+      // leben dann nur für die Session (State).
+    }
   }, [notifications])
 
   // Close on outside click
@@ -129,7 +134,7 @@ export function NotificationCenter() {
                 <p className="text-[12px] text-[#ededed]/40">All caught up!</p>
               </div>
             ) : (
-              notifications
+              [...notifications]
                 .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
                 .map((n) => {
                   const Icon = iconMap[n.type]

@@ -74,7 +74,7 @@ export default function OnboardingPage() {
     setDomainLoading(false)
   }
 
-  if (!sessionChecked) return null
+  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-text-3 text-sm">Loading…</p></div>
 
   return (
     <div className="min-h-screen bg-bg-0 text-white/80 antialiased flex flex-col">

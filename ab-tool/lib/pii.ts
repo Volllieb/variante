@@ -16,7 +16,10 @@ export type PIIKey = keyof PIIFindings
 
 export const PII_PATTERNS: Array<{ key: PIIKey; re: RegExp; label: string }> = [
   { key: 'emails', re: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, label: 'email addresses' },
-  { key: 'phones', re: /(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{3,8}/g, label: 'phone numbers' },
+  // Die Regex ist bewusst konservativ, um False Positives zu vermeiden (Plan PII-01).
+  // Ohne die Guards (filterMatch) trifft jede Zahlengruppe. Mit Guards: mindestens
+  // 7 Ziffern, optionales + oder Klammern als starke Telefon-Indikatoren.
+  { key: 'phones', re: /(?:\+[\d]{1,3}[\s.-]?|\(\d{2,4}\)[\s.-]?)?\d{2,4}[\s.-]?\d{2,4}[\s.-]?\d{3,8}/g, label: 'phone numbers' },
   { key: 'ibans', re: /\b[A-Z]{2}\d{2}[A-Z0-9]{1,30}\b/g, label: 'IBANs' },
   { key: 'cards', re: /\b(?:\d[ -]*?){13,19}\b/g, label: 'credit card numbers' },
   { key: 'ips', re: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, label: 'IP addresses' },

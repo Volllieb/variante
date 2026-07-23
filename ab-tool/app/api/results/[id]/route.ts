@@ -14,8 +14,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const data = await getExperimentStats(id)
   if (!data) return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, OPTIONS') })
 
-  // Security: nur Owner darf Results sehen
-  if (data.userId !== user.userId) return unauthorized('GET, OPTIONS')
+  // Security: nur Owner darf Results sehen. 404 statt 401, um die Existenz
+  // einer fremden Test-ID nicht preiszugeben.
+  if (data.userId !== user.userId) return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, OPTIONS') })
 
   const pro = user.plan === 'pro' || user.plan === 'agency'
   return Response.json({ ...data, pro }, { headers: corsHeaders('GET, OPTIONS') })

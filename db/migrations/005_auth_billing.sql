@@ -22,7 +22,7 @@ create or replace function handle_new_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 begin
   insert into profiles (user_id) values (new.id) on conflict (user_id) do nothing;

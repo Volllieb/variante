@@ -36,7 +36,7 @@ create policy "users_own_drafts" on wizard_drafts
 create or replace function update_wizard_draft_timestamp()
 returns trigger
 language plpgsql
-set search_path = 'public'
+set search_path = ''
 as $$
 begin
   new.updated_at = now();

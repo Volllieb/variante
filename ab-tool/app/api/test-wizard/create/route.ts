@@ -22,10 +22,8 @@ interface CreateTestBody {
   site_url: string
   selector?: string
   goal: string
-  goal_selector?: string
   variant_b_html?: string
   variant_b_css?: string
-  variant_text?: string
   original_html?: string
   status: 'active' | 'paused' | 'draft'
   name?: string
@@ -57,7 +55,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers })
   }
 
-  const { site_url, selector, goal, goal_selector, variant_b_html, variant_b_css, original_html, status, name } = body
+  const { site_url, selector, goal, variant_b_html, variant_b_css, original_html, status, name } = body
 
   if (!site_url || !goal) {
     return Response.json({ error: 'site_url and goal are required' }, { status: 400, headers })
@@ -69,7 +67,6 @@ export async function POST(req: Request) {
   // Input-Längenlimits
   if (site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers })
   if (goal.length > 256) return Response.json({ error: 'goal too long' }, { status: 400, headers })
-  if (goal_selector && goal_selector.length > 512) return Response.json({ error: 'goal_selector too long' }, { status: 400, headers })
 
   // Validate: click-goals must have a selector.
   // "click" alone is not a valid CSS selector → ab.js would throw SyntaxError
@@ -133,7 +130,6 @@ export async function POST(req: Request) {
   const testName = normalizedName || `Test on ${normalizedSiteUrl.replace(/^https?:\/\//, '').slice(0, 60)}`
 
   // ponytail: Nur Spalten inserted, die in der DB existieren.
-  // goal_selector und variant_text wurden nie per Migration angelegt.
   const testRow: Record<string, unknown> = {
     user_id: user.id,
     name: testName,

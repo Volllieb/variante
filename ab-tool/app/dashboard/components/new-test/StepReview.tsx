@@ -97,7 +97,7 @@ export function StepReview({
           <strong className="text-text">Go Live:</strong> Test starts immediately. Visitors will be split 50/50 between original and variant.
         </p>
         <p className="mt-1 text-[11px] text-text-2">
-          <strong className="text-text">Save Paused:</strong> Test is created but not active yet. Start it anytime from the dashboard.
+          <strong className="text-text">Save Draft:</strong> Test is created but not active yet. Publish it anytime from the dashboard.
         </p>
       </div>
     </div>

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   // Globaler Circuit-Breaker gegen Massen-Erzeugung (DB-basiert, Redis-unabhängig).
   const { count } = await supabase
     .from('temp_sessions')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'planned', head: true })
     .gte('created_at', new Date(Date.now() - 60_000).toISOString())
 
   if ((count ?? 0) >= 100) {

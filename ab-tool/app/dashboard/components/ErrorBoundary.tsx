@@ -23,7 +23,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="mb-4 rounded-[10px] border border-[#f5455c]/20 bg-[#f5455c]/05 px-4 py-3.5">
+        <div className="mb-4 rounded-[10px] border border-[#f5455c]/20 bg-[#f5455c]/5 px-4 py-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className="flex h-5 w-5 items-center justify-center rounded-[4px] text-[11px] font-bold text-white"

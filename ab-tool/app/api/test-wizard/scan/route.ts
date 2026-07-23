@@ -15,7 +15,7 @@ import { getPlanForUser } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits } from '@/lib/planLimits'
 import { analyzePageWithPrimary, stripForCRO, extractStructure } from '@/lib/croAnalyze'
-import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
+import { safeFetch } from '@/lib/safeFetch'
 import { checkRateLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 60
@@ -58,10 +58,7 @@ export async function POST(req: Request) {
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     return Response.json({ error: 'only http/https allowed' }, { status: 400, headers })
   }
-  const hostname = parsed.hostname.toLowerCase()
-  if (BLOCKED_HOSTS.test(hostname) || BLOCKED_HOSTNAMES.includes(hostname)) {
-    return Response.json({ error: 'URL not allowed' }, { status: 400, headers })
-  }
+  // safeFetch prüft Hostname + DNS + private IPs intern (Plan SEC-08).
 
   // ─── Plan-Limit: AI Scans ───
   const plan = await getPlanForUser(user.id)
@@ -103,19 +100,22 @@ export async function POST(req: Request) {
   }
 
   // ─── Scan: HTML holen + analysieren ───
+  // Plan SEC-08: safeFetch mit DNS-Prüfung statt rohem fetch().
   try {
-    const pageRes = await fetch(url, {
-      headers: { 'User-Agent': 'variante-cro-scanner/1.0', 'Accept': 'text/html' },
-      signal: AbortSignal.timeout(25_000),
+    const pageRes = await safeFetch(url, {
+      timeoutMs: 25_000,
+      maxSize: 2_000_000, // 2 MB für HTML-Seiten
     })
     if (!pageRes.ok) {
-      const msg = pageRes.status === 404 ? 'Page not found (404)'
+      const msg = pageRes.error || (
+        pageRes.status === 404 ? 'Page not found (404)'
         : pageRes.status >= 500 ? 'Server error on target page'
         : `Page returned status ${pageRes.status}`
+      )
       return Response.json({ error: 'page not reachable', message: msg }, { status: 502, headers })
     }
 
-    const rawHtml = await pageRes.text()
+    const rawHtml = pageRes.text
     if (rawHtml.length < 100) {
       return Response.json({ error: 'page too small', message: 'The page returned minimal content — it may require JavaScript to render.' }, { status: 422, headers })
     }

@@ -172,7 +172,7 @@ export default function LoginPage() {
     setGoogleLoading(false)
   }
 
-  if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
+  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-text-3 text-sm">Loading…</p></div>
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-0 antialiased">

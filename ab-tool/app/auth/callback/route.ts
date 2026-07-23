@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
 
+/**
+ * Validiert den `next`-Parameter gegen Open Redirect (Plan SEC-07).
+ * Erlaubt nur relative Pfade, die nicht mit `//` beginnen.
+ * `new URL('//evil.com', 'https://www.getvariante.com')` ergibt sonst
+ * `https://evil.com/` — ein hochwertiger Phishing-Vektor nach dem Login.
+ */
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/') || raw.startsWith('//')) return null
+  return raw
+}
+
 /** Extrahiert source/plan aus dem next-Param (z.B. `/dashboard?source=figma-plugin&plan=pro`). */
 function parseAttribution(nextRaw: string | null): { source?: string; plan?: string } {
   if (!nextRaw) return {}
@@ -54,8 +66,9 @@ export async function GET(req: NextRequest) {
           new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
         )
       }
-      const next = requestUrl.searchParams.get('next') || '/dashboard'
-      const attribution = parseAttribution(next)
+      const rawNext0 = requestUrl.searchParams.get('next')
+      const next = safeNext(rawNext0) || '/dashboard'
+      const attribution = parseAttribution(rawNext0)
       if (data.user) {
         await ensureProfile(data.user.id, attribution)
       }
@@ -90,8 +103,9 @@ export async function GET(req: NextRequest) {
         new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
       )
     }
-    const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
-    const attribution = parseAttribution(next)
+    const rawNext2 = requestUrl.searchParams.get('next')
+    const next = safeNext(rawNext2) || (type === 'recovery' ? '/update-password' : '/dashboard')
+    const attribution = parseAttribution(rawNext2)
     if (data.user) {
       await ensureProfile(data.user.id, attribution)
     }
@@ -109,7 +123,7 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       await ensureProfile(user.id)
-      const next = requestUrl.searchParams.get('next') || '/dashboard'
+      const next = safeNext(requestUrl.searchParams.get('next')) || '/dashboard'
       return NextResponse.redirect(new URL(next, req.url))
     }
     return NextResponse.redirect(new URL('/login?error=missing-token', req.url))
@@ -126,8 +140,9 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/update-password' : '/dashboard')
-  const attribution = parseAttribution(next)
+  const rawNext3 = requestUrl.searchParams.get('next')
+  const next = safeNext(rawNext3) || (type === 'recovery' ? '/update-password' : '/dashboard')
+  const attribution = parseAttribution(rawNext3)
   if (data.user) {
     await ensureProfile(data.user.id, attribution)
   }

@@ -4,6 +4,7 @@ import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { scanPII, PII_PATTERNS } from '@/lib/pii'
 import { getAIMonthlyBudget } from '@/lib/planLimits'
+import { checkDailyGlobalLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 60
 
@@ -389,7 +390,15 @@ export async function POST(req: Request) {
   // Temp-Sessions kein Profil haben.
   //
   // consume_temp_session_gen (Migration 031) prueft und bucht atomar.
+  // Zusätzlich: globaler Tages-Circuit-Breaker (Plan NEW-01) verhindert
+  // Botnetz-Angriffe mit verteilten IPs.
   if (isTemp) {
+    if (!(await checkDailyGlobalLimit())) {
+      return Response.json(
+        { error: 'global_limit', message: 'Daily generation limit reached. Please try again tomorrow or sign up.' },
+        { status: 429, headers: corsHeaders('POST, OPTIONS') }
+      )
+    }
     const { data: allowed } = await supabase.rpc('consume_temp_session_gen', {
       p_session_id: user.userId,
       p_limit: TEMP_SESSION_GEN_LIMIT,

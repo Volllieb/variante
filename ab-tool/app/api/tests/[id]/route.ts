@@ -19,6 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     goal?: string
     status?: string
     selector?: string | null
+    traffic_split?: number
     min_visitors?: number
     min_uplift?: number
     significance_level?: number
@@ -36,6 +37,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     goal?: string
     status?: string
     selector?: string | null
+    traffic_split?: number
     min_visitors?: number
     min_uplift?: number
     significance_level?: number
@@ -52,6 +54,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   if (body.status === 'draft' || body.status === 'active' || body.status === 'done' || body.status === 'paused') patch.status = body.status
   if (typeof body.selector === 'string' || body.selector === null) patch.selector = body.selector
+  if (typeof body.traffic_split === 'number' && Number.isFinite(body.traffic_split) && body.traffic_split >= 0 && body.traffic_split <= 100) patch.traffic_split = body.traffic_split
   if (typeof body.min_visitors === 'number' && body.min_visitors >= 0) patch.min_visitors = body.min_visitors
   if (typeof body.min_uplift === 'number' && body.min_uplift >= 0 && body.min_uplift <= 100) patch.min_uplift = body.min_uplift
   if (typeof body.significance_level === 'number' && [0.9, 0.95, 0.99].includes(body.significance_level)) patch.significance_level = body.significance_level

@@ -27,6 +27,7 @@ export default function SignupPage() {
   const { source, plan: signupPlan } = signupParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [err, setErr] = useState('')
   const [info, setInfo] = useState('')
@@ -65,6 +66,8 @@ export default function SignupPage() {
     setAlreadyRegistered(false)
     setLoading(true)
     if (norm(email) === norm(password)) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
+    if (password !== confirmPassword) { setErr('Passwords do not match.'); setLoading(false); return }
+    if (password.length < 6) { setErr('Password must be at least 6 characters.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
       const nextPath = '/onboarding'
@@ -174,7 +177,7 @@ export default function SignupPage() {
     setGoogleLoading(false)
   }
 
-  if (!sessionChecked) return null // UX: Warten auf Session-Check, kein Form-Flash
+  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-text-3 text-sm">Loading…</p></div>
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-0 antialiased">
@@ -259,6 +262,24 @@ export default function SignupPage() {
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
+              </div>
+            </div>
+
+            {/* Plan UX-11: Passwort-Bestätigung verhindert Vertipper bei ausgeblendetem Feld. */}
+            <div className="space-y-1.5">
+              <label htmlFor="signup-confirm-password" className="text-xs font-semibold uppercase tracking-wider text-text-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="signup-confirm-password"
+                  type="password"
+                  required
+                  placeholder="Type your password again"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                />
               </div>
             </div>
 

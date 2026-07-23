@@ -34,7 +34,28 @@ export async function POST(req: Request) {
     return Response.json({ error: 'file too large. max 2 MB' }, { status: 400, headers: corsHeaders('POST, DELETE, OPTIONS') })
   }
 
-  const ext = file.type.split('/')[1] || 'png'
+  // Plan SEC-12: file.type ist vom Client gesetzt und nicht belastbar.
+  // Magic Bytes prüfen, bevor die Datei im public-Bucket landet.
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const magic = buffer.slice(0, 4).toString('hex')
+  const magicMap: Record<string, string> = {
+    '89504e47': 'image/png',       // PNG: 89 50 4E 47
+    'ffd8ffe': 'image/jpeg',       // JPEG: FF D8 FF E0/E1/E2/...
+    '52494646': 'image/webp',      // WEBP: 52 49 46 46 (RIFF)
+    '47494638': 'image/gif',       // GIF: 47 49 46 38 (GIF8)
+  }
+  let detectedType = ''
+  for (const [prefix, mime] of Object.entries(magicMap)) {
+    if (magic.startsWith(prefix)) { detectedType = mime; break }
+  }
+  if (!detectedType || !ALLOWED.has(detectedType)) {
+    return Response.json({ error: 'file content does not match its declared type' }, { status: 400, headers: corsHeaders('POST, DELETE, OPTIONS') })
+  }
+
+  // Sicherheitspuffer: Magic Bytes wurden geprüft. Re-Encoding (sharp) wäre
+  // ideal um EXIF-Daten und Payloads zu entfernen, aber die Route läuft in
+  // Fluid Compute ohne native Abhängigkeiten. Magic-Byte-Check ist die Baseline.
+  const ext = detectedType.split('/')[1] || 'png'
   const path = `${user.userId}/avatar.${ext}`
 
   // Delete old avatar if exists
@@ -47,12 +68,11 @@ export async function POST(req: Request) {
     await supabase.storage.from('avatars').remove(old)
   }
 
-  // Upload new avatar
-  const buffer = Buffer.from(await file.arrayBuffer())
+  // Upload new avatar (magic-byte-geprüft, siehe SEC-12)
   const { error: uploadError } = await supabase
     .storage.from('avatars')
     .upload(path, buffer, {
-      contentType: file.type,
+      contentType: detectedType,
       upsert: true,
     })
 

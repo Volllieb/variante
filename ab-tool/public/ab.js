@@ -509,7 +509,14 @@
     if (convGet(ck)) return
     convSet(ck)
 
-    var payload = JSON.stringify({ testId: key, variant: variant, event: 'conversion' })
+    // Plan DATA-01: Token aus dem Assign-Cache mitliefern, damit der Server
+    // die Conversion gegen die vorherige Zuweisung verifizieren kann.
+    var stored = lsGet('ab_' + key)
+    var token = null
+    if (stored) {
+      try { var data = JSON.parse(stored); token = data.token || null } catch (_) {}
+    }
+    var payload = JSON.stringify({ testId: key, variant: variant, event: 'conversion', token: token || undefined })
     try {
       if (navigator.sendBeacon) {
         // WICHTIG: text/plain ist CORS-safelisted → kein Preflight. application/json
@@ -684,15 +691,18 @@
       })
       .then(function (res) {
         if (!res || (res.variant !== 'A' && res.variant !== 'B')) return
+        // Plan DATA-01: Token für Conversion-Verifikation speichern.
+        // Ohne Token würde /api/event Gelegenheitsfälschungen akzeptieren.
+        var token = res.token || null
         if (res.variant === 'A') {
-          lsSet('ab_' + key, JSON.stringify({ variant: 'A' }))
+          lsSet('ab_' + key, JSON.stringify({ variant: 'A', token: token }))
           finish('A', null)
           return
         }
         var html = t.variant_b_html
         var css = t.variant_b_css
         if (html || css) {
-          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html || null, css: css || null }))
+          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html || null, css: css || null, token: token }))
           applyCss(key, css)
           finish('B', html)
         } else {

@@ -1,6 +1,6 @@
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
-import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
+import { safeFetch } from '@/lib/safeFetch'
 import { safeError } from '@/lib/safeLog'
 import { stripForCRO, extractStructure, analyzePage, getCachedInsights, cacheInsights } from '@/lib/croAnalyze'
 
@@ -50,9 +50,7 @@ export async function POST(req: Request) {
   } catch {
     return Response.json({ error: 'Invalid URL' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
-  if (BLOCKED_HOSTS.test(hostname) || BLOCKED_HOSTNAMES.includes(hostname)) {
-    return Response.json({ error: 'Blocked host' }, { status: 403, headers: corsHeaders('POST, OPTIONS') })
-  }
+  // safeFetch prüft Hostname + DNS + private IPs intern (Plan SEC-08).
 
   // ─── Cache-Check (vor Cost-Booking — kein Spend bei Cache-Hit) ───
   const cached = await getCachedInsights(user.userId, url)
@@ -80,24 +78,17 @@ export async function POST(req: Request) {
     )
   }
 
-  // Fetch page
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 8000)
+  // Fetch page — Plan SEC-08: safeFetch mit DNS-Prüfung und Größenlimit.
+  const res = await safeFetch(url, {
+    timeoutMs: 8_000,
+    maxSize: 2_000_000,
+  })
 
-  let html = ''
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'variante-cro-analyzer/1.0', 'Accept': 'text/html' },
-      redirect: 'follow',
-    })
-    html = await res.text()
-  } catch {
-    return Response.json({ error: 'Site unreachable or timed out' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
-  } finally {
-    clearTimeout(timeout)
+  if (!res.ok) {
+    return Response.json({ error: res.error || 'Site unreachable or timed out' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  const html = res.text
   if (!html || html.length < 100) {
     return Response.json({ error: 'Page returned no usable content' }, { status: 422, headers: corsHeaders('POST, OPTIONS') })
   }

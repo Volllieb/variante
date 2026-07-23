@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabase'
-import { corsHeaders, preflight } from '@/lib/cors'
+import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
 import { sanitizeHtml, sanitizeCss } from '@/lib/sanitize'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 
 export async function OPTIONS() {
-  return preflight('GET, OPTIONS')
+  return preflightPublic('GET, OPTIONS')
 }
 
 function hostOf(u: string | null | undefined): string {
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   // (s-maxage=30, unten). Das Limit bleibt nur als Missbrauchs-Backstop.
   const ip = getClientIp(req)
   if (!loadtestBypass(req) && !await checkRateLimit(`resolve:${ip}`, 600, 60_000)) {
-    return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeaders('GET, OPTIONS'), 'Retry-After': '60' } })
+    return Response.json({ error: 'too many requests' }, { status: 429, headers: { ...corsHeadersPublic('GET, OPTIONS'), 'Retry-After': '60' } })
   }
 
   const url = new URL(req.url)
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   // Kein Pfad-Tracking auf dem Server.
 
   if (!host) {
-    return Response.json({ tests: [] }, { headers: corsHeaders('GET, OPTIONS') })
+    return Response.json({ tests: [] }, { headers: corsHeadersPublic('GET, OPTIONS') })
   }
 
   // Host-Filter passiert in der DB (site_host, Migration 021 — generierte Spalte,
@@ -68,7 +68,7 @@ export async function GET(req: Request) {
 
   if (error) {
     safeError('resolve', error)
-    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('GET, OPTIONS') })
+    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeadersPublic('GET, OPTIONS') })
   }
 
   const matched = (data ?? [])
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
 
   return Response.json({ tests, badge }, {
     headers: {
-      ...corsHeaders('GET, OPTIONS'),
+      ...corsHeadersPublic('GET, OPTIONS'),
       // Edge-Cache: Vercel cached die Antwort 30s am Edge. Spart DB-Last
       // bei hochfrequentierten Seiten (jeder Seitenaufruf → resolve-Call).
       // s-maxage=30: Shared-Cache (CDN) 30s, kein Browser-Cache.

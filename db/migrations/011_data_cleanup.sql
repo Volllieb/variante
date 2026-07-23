@@ -2,6 +2,10 @@
 -- - Waitlist: Einträge älter als 12 Monate löschen
 -- - Events: Verwaiste Events ohne Test-Referenz löschen (sollte via CASCADE nie vorkommen, aber defensiv)
 -- Idempotent. Ausführen im Supabase SQL-Editor: https://supabase.com/dashboard/project/_/sql/new
+--
+-- ⚠️  DIESE FUNKTION WURDE IN MIGRATION 033 ERWEITERT.
+--    033 fügt Events-Retention (12 Monate) und Agent-Runs-Retention (6 Monate) hinzu.
+--    Sollte 011 jemals erneut ausgeführt werden, muss danach 033 erneut laufen.
 
 -- Cleanup-Funktion: Löscht abgelaufene Waitlist-Einträge und verwaiste Events.
 -- Wird wöchentlich via Cron (/api/cron/cleanup-data) aufgerufen.

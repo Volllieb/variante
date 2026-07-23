@@ -312,7 +312,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         aria-modal="true"
         aria-labelledby="new-test-drawer-title"
         tabIndex={-1}
-        className="fixed right-0 top-0 z-50 h-dvh w-full sm:w-[50vw] animate-slide-in-right border-l border-border bg-bg-0 shadow-2xl focus:outline-none"
+        className="fixed right-0 top-0 z-50 h-dvh w-full sm:w-[50vw] animate-slide-in-right border-l border-border bg-bg-0 shadow-2xl focus-visible:outline-none"
       >
         {/* Success overlay */}
         {createdTestId && (
@@ -373,7 +373,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto px-5 py-5" style={{ height: 'calc(100vh - 180px)' }}>
+        <div className="overflow-y-auto px-5 py-5" style={{ height: 'calc(100dvh - 180px)' }}>
           {/* Step 0: URL + Element Picker */}
           {state.step === 0 && (
             <StepUrlAndElement

@@ -35,6 +35,16 @@ export async function POST(req: Request) {
     )
   }
 
+  // Längenlimits für HTML/CSS-Content (Plan DB-07). test-wizard/draft begrenzt
+  // dieselben Felder auf 50 000 Zeichen. Ohne Limit landet beliebig große
+  // Nutzereingabe in einer Tabelle mit replica identity full im Pageview-Hotpath.
+  if (original_html && typeof original_html === 'string' && original_html.length > 50_000) {
+    return Response.json({ error: 'original_html too long (max 50000)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
+  if (site_css && typeof site_css === 'string' && site_css.length > 50_000) {
+    return Response.json({ error: 'site_css too long (max 50000)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+  }
+
   const isTemp = user.plan === 'temp'
 
   const updatePayload = {

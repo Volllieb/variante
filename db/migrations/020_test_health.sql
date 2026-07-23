@@ -2,6 +2,15 @@
 -- Health-Check-System: Jeder Test bekommt einen Health-Status und eine Issues-Liste.
 -- Ein Test mit Health-Issues kann nicht aktiv sein / keine sinnvollen Ergebnisse liefern.
 -- Der Trigger komputiert den Status automatisch bei INSERT und UPDATE.
+--
+-- ⚠️  Plan DB-02: Das Full-Table-UPDATE weiter unten (Zeile ~81: `UPDATE tests SET
+--     name = name;`) ist ein Full-Table-Rewrite auf der heißesten Tabelle. Der
+--     Trigger (`trg_test_health`) enthält ein `active → draft`-Downgrade, das
+--     laufende Kundentests abschalten KANN, wenn eines der fünf Pflichtfelder
+--     fehlt. Diese Migration ist auf Production BEREITS GELAUFEN — ein Re-Run
+--     würde erneut alle aktiven Tests gefährden.
+--     Fix (für Staging/DR): Backfill batchen, Downgrade aus Trigger entfernen,
+--     Prüfung stattdessen im API-Layer beim Aktivieren.
 
 -- Health-Status: 'ok' | 'issues'
 ALTER TABLE tests ADD COLUMN IF NOT EXISTS health_status TEXT DEFAULT 'issues';

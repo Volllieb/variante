@@ -21,7 +21,20 @@ async function loadFont(weight: number): Promise<ArrayBuffer> {
 }
 
 export async function GET() {
-  const [interRegular, interBold] = await Promise.all([loadFont(400), loadFont(700)])
+  // Plan API-03: Font-Ladung von CDN kann fehlschlagen — fallback auf System-Font.
+  let interRegular: ArrayBuffer | undefined
+  let interBold: ArrayBuffer | undefined
+  try {
+    ;[interRegular, interBold] = await Promise.all([loadFont(400), loadFont(700)])
+  } catch {
+    // CDN down → ImageResponse ohne custom fonts rendern.
+    // Das Bild ist dann ohne Inter-Schrift, aber immer noch lesbar (System-Fallback).
+    console.warn('[og] Font loading failed, using system fallback')
+  }
+
+  const fonts: { name: string; data: ArrayBuffer; weight: 400 | 700; style: 'normal' }[] = []
+  if (interRegular) fonts.push({ name: 'Inter', data: interRegular, weight: 400, style: 'normal' })
+  if (interBold) fonts.push({ name: 'Inter', data: interBold, weight: 700, style: 'normal' })
 
   return new ImageResponse(
     (
@@ -94,10 +107,7 @@ export async function GET() {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        { name: 'Inter', data: interRegular, weight: 400, style: 'normal' },
-        { name: 'Inter', data: interBold, weight: 700, style: 'normal' },
-      ],
+      fonts,
     }
   )
 }

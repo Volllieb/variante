@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import { supabase } from '@/lib/supabase'
 import { corsHeaders } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
@@ -48,15 +49,19 @@ export async function ensureProfile(
 // den eingeloggten Besitzer, während fremde Betrachter abgewiesen werden.
 export async function getApiUser(req: Request): Promise<ApiUser | null> {
   // 1. Bearer-Token
+  // Plan SEC-10: Token wird als SHA-256-Hash in der DB gespeichert.
+  // Für Backward-Compat wird zuerst der Hash geprüft, dann das plaintext Token.
   const header = req.headers.get('authorization') || ''
   const m = header.match(/^Bearer\s+(.+)$/i)
   const token = m && m[1] ? m[1].trim() : ''
   if (token) {
+    const hashed = createHash('sha256').update(token).digest('hex')
     const { data } = await supabase
       .from('profiles')
       .select('user_id, plan')
-      .eq('api_token', token)
-      .single()
+      .or(`api_token.eq.${token},api_token.eq.${hashed}`)
+      .limit(1)
+      .maybeSingle()
     if (data) return { userId: data.user_id, plan: data.plan }
   }
 

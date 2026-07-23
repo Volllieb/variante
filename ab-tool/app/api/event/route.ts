@@ -1,14 +1,31 @@
 import { supabase } from '@/lib/supabase'
-import { corsHeaders, preflight } from '@/lib/cors'
+import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
 import { calcSignificance } from '@/lib/significance'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
 import { safeError } from '@/lib/safeLog'
+import { createHmac } from 'crypto'
 
 // Security: UUID v4 Format-Validierung für snippet_key
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+// Plan DATA-01: Verifiziere das signierte Token aus /api/assign.
+// Verhindert, dass Conversions ohne vorherige Zuweisung gefälscht werden können.
+const ASSIGN_SECRET = process.env.ASSIGN_SECRET || 'variante-assign-dev'
+
+function verifyToken(snippetKey: string, variant: string, token: string): boolean {
+  const parts = token.split('.')
+  if (parts.length !== 4) return false
+  const [key, v, expStr, sig] = parts
+  if (key !== snippetKey || v !== variant) return false
+  const exp = parseInt(expStr, 10)
+  if (!Number.isFinite(exp) || Date.now() > exp) return false
+  const payload = `${key}.${v}.${exp}`
+  const expected = createHmac('sha256', ASSIGN_SECRET).update(payload).digest('hex').slice(0, 16)
+  return sig === expected
+}
+
 export async function OPTIONS() {
-  return preflight('POST, OPTIONS')
+  return preflightPublic('POST, OPTIONS')
 }
 
 // Rückgabe der RPC ab_convert. Die Winner-Schwellen (min_visitors,
@@ -28,23 +45,36 @@ export async function POST(req: Request) {
   // dedupliziert (ab.js sendConversion), das Limit ist reiner Missbrauchsschutz.
   const ip = getClientIp(req)
   if (!loadtestBypass(req) && !await checkRateLimit(`event:${ip}`, 300, 60_000)) {
-    return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
-  let body: { testId?: string; variant?: string; event?: string }
+  let body: { testId?: string; variant?: string; event?: string; token?: string }
   try {
     body = await req.json()
   } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
-  const { testId, variant, event } = body
+  const { testId, variant, event, token } = body
 
   // Security: UUID-Validierung verhindert Malformed-Input in DB-Queries
   if (!testId || !UUID_RE.test(testId) || (variant !== 'A' && variant !== 'B') || event !== 'conversion') {
     return Response.json(
       { error: 'testId (UUID), variant (A|B) and event=conversion are required' },
-      { status: 400, headers: corsHeaders('POST, OPTIONS') }
+      { status: 400, headers: corsHeadersPublic('POST, OPTIONS') }
+    )
+  }
+
+  // Plan DATA-01: Verifiziere signiertes Token. Ohne gültiges Token wird die
+  // Conversion abgelehnt — verhindert, dass Dritte Conversions für fremde Tests
+  // melden können. Fehlt das Token (alte ab.js-Version), akzeptieren wir die
+  // Conversion mit einem Warning-Log (Graceful Degradation).
+  if (!token) {
+    console.warn('[event] conversion without token — consider upgrading ab.js')
+  } else if (!verifyToken(testId, variant, token)) {
+    return Response.json(
+      { error: 'invalid or expired token' },
+      { status: 403, headers: corsHeadersPublic('POST, OPTIONS') }
     )
   }
 
@@ -57,23 +87,23 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (metaError || !testMeta) {
-    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   if (testMeta.status === 'paused' || testMeta.status === 'done') {
-    return Response.json({ error: 'test is not active' }, { status: 409, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'test is not active' }, { status: 409, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   const { data, error } = await supabase.rpc('ab_convert', { p_key: testId, p_variant: variant })
 
   if (error) {
     safeError('event', error)
-    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   const row = data as TestRow | null
   if (!row || !row.id) {
-    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   // Signifikanz mitschreiben, damit das Dashboard einen aktuellen Wert zeigt.
@@ -101,5 +131,5 @@ export async function POST(req: Request) {
     safeError('event', updateError)
   }
 
-  return Response.json({ ok: true }, { headers: corsHeaders('POST, OPTIONS') })
+  return Response.json({ ok: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
 }
