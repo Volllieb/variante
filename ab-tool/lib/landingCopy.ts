@@ -158,11 +158,11 @@ const copy: LandingCopy = {
   navLogin: 'Log in',
   navSignup: 'Start free',
 
-  heroPill: 'A/B testing — without the dev ticket',
-  heroH1: 'CRO best practice. In 5 minutes.',
+  heroPill: 'No dev. No pipeline. Just results.',
+  heroH1: 'Your site can convert better. Today.',
   heroSub:
-    'Total control, minimum effort. You decide what to optimize — hero, pricing, CTAs. Variante analyzes your page, generates variants, measures conversions, and suggests the winner. You choose what goes live.',
-  heroCta: 'See your site transformed',
+    'Pick any element on your site. Variante generates a better version. You approve. Traffic splits. The winner ships. No developer needed.',
+  heroCta: 'Show me a better version →',
   heroFootnote: '',
 
   demo: {
@@ -194,10 +194,10 @@ const copy: LandingCopy = {
   },
 
   trustItems: [
-    { label: 'Live in 5 minutes', text: 'Paste the snippet, the agent starts. No setup, no dev.' },
-    { label: '5 KB snippet', text: 'Loads async. Zero performance impact.' },
-    { label: 'GDPR-compliant', text: 'EU hosting. No third-country data.' },
-    { label: 'A/B testing', text: 'No dev ticket. No tracking plan.' },
+    { label: 'One <script> tag', text: 'That\'s the entire setup. 30 seconds.' },
+    { label: '5 KB, loads async', text: 'Zero effect on Core Web Vitals.' },
+    { label: 'EU hosting', text: 'GDPR-compliant. No third-country data.' },
+    { label: 'No developer needed', text: 'Design, test, ship — all from your browser.' },
   ],
 
   sectionWorks: 'Works with your stack',
@@ -261,7 +261,7 @@ const copy: LandingCopy = {
   sectionPricing: 'Pricing',
   pricingSub: 'Start free. Upgrade once your first test has paid for itself.',
   period: '/mo',
-  proBadge: 'Recommended',
+  proBadge: 'Most popular',
   plans: {
     free: {
       label: 'Free',
@@ -322,16 +322,16 @@ const copy: LandingCopy = {
     },
     {
       q: 'How is this different from Optimizely or VWO?',
-      a: 'You\'d need a developer and a tracking plan for those. Variante: pick an element, review variants, ship the winner. No dev. No enterprise sales call.',
+      a: 'You needed a developer and a €1,000+/mo budget for those. Variante: pick an element, review the variant, ship. €0 to start. No enterprise sales call.',
     },
     {
       q: 'I’m a solo founder — is this worth it?',
-      a: 'Especially then. Your time is too valuable for manual A/B testing. Variante works while you build, sell, or sleep. One experiment can tell you if your pricing page converts 20% better — that\'s an afternoon\'s ROI.',
+      a: 'It’s built for you. While you sleep, Variante tests whether “Get Started” or “Try Free” converts better. One test can double your signups. You do the math.',
     },
   ],
 
-  closingH: 'Your site can start improving today.',
-  closingSub: 'One snippet, one experiment, no developer. Variante takes it from there.',
+  closingH: 'One snippet. Tomorrow your site converts better.',
+  closingSub: '5 KB. 5 minutes. No credit card.',
   closingCta: 'Start free',
 
   footerLine: '© 2026 Variante · Made in Bavaria',

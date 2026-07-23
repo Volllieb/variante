@@ -8,11 +8,11 @@ const sizeMap: Record<PandaLogoSize, string> = {
   lg: 'h-8 w-8',
 }
 
-export function PandaLogo({ size = 'md', className }: { size?: PandaLogoSize; className?: string }) {
+export function PandaLogo({ size = 'md', className, alt }: { size?: PandaLogoSize; className?: string; alt?: string }) {
   return (
     <Image
       src="/icon.svg"
-      alt=""
+      alt={alt ?? ''}
       width={28}
       height={28}
       className={`${sizeMap[size]} object-contain ${className ?? ''}`}

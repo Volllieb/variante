@@ -52,13 +52,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             href="/"
             className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
           >
-            <PandaLogo size="md" />
+            <PandaLogo size="md" alt="Variante" />
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/login"
-              className="hidden text-sm text-white/55 transition-colors duration-200 hover:text-white sm:block"
+              className="text-sm text-white/55 transition-colors duration-200 hover:text-white"
             >
               {copy.navLogin}
             </Link>
@@ -110,8 +110,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               <iframe
                 src="/ab-test-hero-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
-                title="A/B Test Demo"
-                loading="lazy"
+                title="A/B test demo showing variant A vs variant B"
+                loading="eager"
+                sandbox="allow-scripts allow-same-origin"
               />
             </div>
           </div>
@@ -215,7 +216,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               <iframe
                 src="/ai-workflow-animation.html"
                 className="absolute inset-0 w-full h-full border-0"
-                title="AI Workflow Demo"
+                title="AI workflow demo: analyze, generate, test, ship"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
               />
             </div>
           </div>
@@ -471,6 +474,24 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 description: copy.jsonldProDescription,
               },
             ],
+          }),
+        }}
+      />
+      {/* JSON-LD FAQPage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: copy.faqs.map((item) => ({
+              '@type': 'Question',
+              name: item.q,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.a,
+              },
+            })),
           }),
         }}
       />

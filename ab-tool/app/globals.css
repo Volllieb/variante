@@ -230,9 +230,10 @@ html {
 
 @media (hover: hover) {
   .card-lift {
-    transition: border-color 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease;
   }
   .card-lift:hover {
+    transform: translateY(-2px);
     border-color: var(--color-border-strong);
   }
 }
@@ -290,6 +291,69 @@ html {
 @media (hover: hover) {
   .agent-loop-card:hover {
     border-color: var(--color-border-strong);
+  }
+}
+
+/* ── Global focus-visible ── */
+
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-bg-0), 0 0 0 4px rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+  }
+}
+
+/* ── Unified button system ── */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--color-fill-invert);
+  color: var(--color-text-on-invert);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.btn-primary:hover {
+  background: var(--color-fill-invert-hover);
+  transform: scale(1.02);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border-strong);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem 1.75rem;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.85);
+}
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* ── Stat bar responsive ── */
+@media (max-width: 639px) {
+  .stat-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .stat-item + .stat-item {
+    padding-left: 0;
   }
 }
 
