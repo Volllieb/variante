@@ -91,15 +91,20 @@ export async function POST(req: Request) {
   // Normalize site_url: prepend https:// if no protocol present (Bug 4)
   const normalizedSiteUrl = /^https?:\/\//i.test(site_url) ? site_url : `https://${site_url}`
 
-  // ─── Domain-Gate ───
+  // ─── Domain-Gate (nur für Live/Paused-Tests, nicht für Drafts) ───
   // KRITISCH (Plan SEC-01): Dieser Endpunkt hatte KEINEN Domain-Gate, obwohl
   // /api/tests einen hat — und er ist der Pfad, den das Dashboard tatsächlich
   // benutzt. Jeder registrierte Free-User konnte damit einen aktiven Test für
   // eine BELIEBIGE Domain anlegen (fremde Kundenseiten, www.getvariante.com)
   // und über variant_b_html/css beliebiges Markup dorthin ausliefern.
-  const gate = await assertOwnedDomain(user.id, normalizedSiteUrl)
-  if (!gate.ok) {
-    return Response.json({ error: gate.error }, { status: gate.status, headers })
+  //
+  // Phase 2: Drafts sind von der Domain-Prüfung ausgenommen — Nutzer können
+  // Tests als Entwurf erstellen, bevor sie das Snippet installiert haben.
+  if (status !== 'draft') {
+    const gate = await assertOwnedDomain(user.id, normalizedSiteUrl)
+    if (!gate.ok) {
+      return Response.json({ error: gate.error }, { status: gate.status, headers })
+    }
   }
 
   // ─── Plan-Limit: Active Tests (Free = 1) ───

@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pre-Commit Hook — enforced build check before every commit.
+# AGENTS.md § "Build-Pflicht": npm run vercel-build muss grün sein.
+# Nur relevant, wenn Änderungen in ab-tool/ vorliegen.
+
+# Nur prüfen, wenn ab-tool/ Änderungen hat (staged oder unstaged).
+if ! git diff --cached --name-only | grep -q "^ab-tool/" && \
+   ! git diff --name-only | grep -q "^ab-tool/"; then
+  echo "⏭️  Keine ab-tool-Änderungen — Build-Check übersprungen."
+  exit 0
+fi
+
+echo "🔨 Pre-Commit: vercel-build in ab-tool/..."
+cd "$(dirname "$0")/../ab-tool" || exit 1
+
+if npm run vercel-build; then
+  echo "✅ vercel-build bestanden."
+  exit 0
+else
+  echo "❌ vercel-build FEHLGESCHLAGEN."
+  echo ""
+  echo "   Commit wurde ABGEBROCHEN. Fehler beheben, dann erneut commiten."
+  echo "   Für bewussten Skip (nur in Notfällen): git commit --no-verify"
+  exit 1
+fi

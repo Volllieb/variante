@@ -18,8 +18,9 @@ function extractDomain(url: string | null | undefined): string | null {
 }
 
 // POST /api/cron/check-winners — Von Vercel Cron stündlich aufgerufen.
-// Prüft alle aktiven Tests auf neu erkannte Winner und sendet
-// E-Mail-Benachrichtigungen via Resend.
+// Prüft alle aktiven Tests auf neu erkannte Winner, setzt den Status
+// automatisch auf 'done' (Auto-Promotion) und sendet E-Mail-Benachrichtigungen
+// via Resend. done+B → resolve liefert force:'B' (100% Variant B).
 //
 // Security: Authorization-Header mit CRON_SECRET erforderlich.
 async function run(req: Request) {
@@ -80,10 +81,12 @@ async function run(req: Request) {
     if (!winner) skipped.push({ id: t.id, reason: verdict.reason })
 
     if (winner) {
-      // Winner persistieren
+      // Winner persistieren + Auto-Promotion: Status auf 'done' setzen.
+      // done + winner=B → resolve liefert force:'B' (100% Variant B).
+      // done + winner=A → Test wird nicht mehr ausgeliefert (Original = A).
       await supabase
         .from('tests')
-        .update({ winner, significance: sig })
+        .update({ winner, significance: sig, status: 'done' })
         .eq('id', t.id)
 
       // Event loggen
@@ -91,7 +94,7 @@ async function run(req: Request) {
         p_test_id: t.id,
         p_user_id: t.user_id,
         p_type: 'winner_detected',
-        p_message: `Winner ${winner} detected (sig=${sig.toFixed(4)}, vA=${t.visitors_a}, vB=${t.visitors_b}, cA=${t.conversions_a}, cB=${t.conversions_b})`,
+        p_message: `Winner ${winner} detected — auto-completed. Variant ${winner} now live for all visitors. (sig=${sig.toFixed(4)}, vA=${t.visitors_a}, vB=${t.visitors_b}, cA=${t.conversions_a}, cB=${t.conversions_b})`,
       })
 
       // E-Mail an User wenn notify_on_winner aktiv
@@ -109,17 +112,18 @@ async function run(req: Request) {
           if (email) {
             await sendEmail({
               to: email,
-              subject: `🏆 Winner detected: "${t.name}"`,
+              subject: `🏆 "${t.name}" — Variant ${winner} won and is now live`,
               html: `
                 <p>Your A/B test <strong>"${t.name}"</strong> has a winner!</p>
-                <p>Variant <strong>${winner}</strong> won with statistical significance.</p>
+                <p>Variant <strong>${winner}</strong> won with statistical significance (${(sig * 100).toFixed(1)}% confidence)
+                   and is <strong>now live for all visitors</strong> automatically.</p>
                 <p>
-                  <a href="https://www.getvariante.com/dashboard/results/${t.id}">View results →</a>
+                  <a href="https://www.getvariante.com/dashboard/results/${t.id}">View detailed results →</a>
                 </p>
                 <hr>
                 <p style="color:#888;font-size:12px">
-                  You receive this because notifications are enabled.
-                  <a href="https://www.getvariante.com/dashboard">Manage settings</a>
+                  Auto-promotion is on by default. You can pause or revert the test in your dashboard.
+                  <br><a href="https://www.getvariante.com/dashboard">Manage settings</a>
                 </p>
               `,
             })

@@ -17,10 +17,11 @@ interface StepReviewProps {
   goal: GoalSelection | null
   testName: string
   onTestNameChange: (name: string) => void
+  hasDomain: boolean
 }
 
 export function StepReview({
-  url, element, variantResult, goal, testName, onTestNameChange,
+  url, element, variantResult, goal, testName, onTestNameChange, hasDomain,
 }: StepReviewProps) {
   const displayUrl = /^https?:\/\//i.test(url) ? url.replace(/^https?:\/\//, '') : url
 
@@ -92,13 +93,31 @@ export function StepReview({
       </div>
 
       {/* What happens next */}
-      <div className="rounded-[8px] border border-border bg-bg-1 p-3">
-        <p className="text-[11px] text-text-2">
-          <strong className="text-text">Go Live:</strong> Test starts immediately. Visitors will be split 50/50 between original and variant.
-        </p>
-        <p className="mt-1 text-[11px] text-text-2">
-          <strong className="text-text">Save Draft:</strong> Test is created but not active yet. Publish it anytime from the dashboard.
-        </p>
+      <div className="rounded-[8px] border border-border bg-bg-1 p-3 space-y-2">
+        {hasDomain ? (
+          <>
+            <p className="text-[11px] text-text-2">
+              <strong className="text-text">Go Live:</strong> Test starts immediately. Visitors will be split 50/50 between original and variant.
+            </p>
+            <p className="text-[11px] text-text-2">
+              <strong className="text-text">Save Draft:</strong> Test is created but not active yet. Publish it anytime from the dashboard.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="rounded-[6px] border border-pro/20 bg-pro/[0.04] px-3 py-2">
+              <p className="text-[11px] font-medium text-pro">
+                Draft mode — install the snippet to go live
+              </p>
+              <p className="mt-0.5 text-[10px] text-pro/70">
+                Your test will be saved as a draft. Install the snippet on your site, then publish it from the dashboard.
+              </p>
+            </div>
+            <p className="text-[11px] text-text-2">
+              <strong className="text-text">Go Live:</strong> Requires the snippet to be installed on your site. Use <strong className="text-text">Save Draft</strong> for now.
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

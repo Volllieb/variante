@@ -1,8 +1,8 @@
-# variante — A/B-Testing aus Figma
+# variante — A/B-Testing für jede Website
 
 > **Kurzübersicht & Schnellstart.** Produktbeschreibung, Ordnerstruktur, Dev-Kommandos. Details in [`PROJEKT.md`](./PROJEKT.md).
 
-Designer pickt Element auf Live-Site (eingebauter Picker im Snippet) → beschreibt Variante B in Figma → KI generiert HTML → Snippet trackt Conversions. **Kein Dev nötig.**
+URL eingeben → Element mit Built-in-Picker wählen → KI generiert Variante B → Snippet trackt Conversions. Figma-Plugin zeigt Live-Stats im Editor. **Kein Dev nötig.**
 
 > **Ausführliche Projektdoku:** [`PROJEKT.md`](./PROJEKT.md) (DSO)  
 > **GTM-Strategie:** [`docs/gotomarket.md`](./docs/gotomarket.md)  
@@ -13,7 +13,7 @@ Designer pickt Element auf Live-Site (eingebauter Picker im Snippet) → beschre
 | Ordner | Beschreibung | Deploy |
 |---|---|---|
 | `ab-tool/` | Aktive Next.js-App: API, Dashboard, Landing-Page | Vercel (`www.getvariante.com`) — Deploy aus Repo-Root |
-| `figma-plugin/` | 🎉 Figma-Plugin für Test-Erstellung — [Community](https://www.figma.com/community/plugin/1653734891132085565) | Figma Store |
+| `figma-plugin/` | 🎉 Figma-Plugin (Stats-Only, zeigt Live-Test-Daten) — [Community](https://www.figma.com/community/plugin/1653734891132085565) | Figma Store |
 | `db/migrations/` | Supabase-SQL-Migrationen | SQL-Editor |
 
 > Kein separates `ab-spike`-Projekt mehr; die aktive Produkt-Implementierung lebt in `ab-tool/`.

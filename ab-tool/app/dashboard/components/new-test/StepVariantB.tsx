@@ -3,20 +3,21 @@
 /**
  * StepVariantB — Step 1: Variant B.
  *
- * Erkennung: Text vs. Button-Element → entsprechender Editor.
- * - button/link → ButtonEditor (voll)
- * - text/headline → TextInputEditor (einfach)
- * - element → ButtonEditor (vereinfacht)
+ * Zwei Modi:
+ * - Manual Editor: ButtonEditor/TextInputEditor (bestehend)
+ * - From Figma: User öffnet Figma-Plugin, wählt Variant B, KI übersetzt in Code
  *
  * Keine API-Calls mehr. Variante wird rein clientseitig erzeugt.
  */
 
 import { useState, useCallback } from 'react'
-import { Pencil, Check } from 'lucide-react'
+import { Pencil, Check, Palette, ExternalLink } from 'lucide-react'
 import { ButtonEditor } from './ButtonEditor'
 import { TextInputEditor } from './TextInputEditor'
 import { getEditorCategory } from './types'
 import type { ElementSelection, VariantResult } from '../NewTestDrawer'
+
+type VariantMode = 'manual' | 'figma'
 
 interface StepVariantBProps {
   element: ElementSelection
@@ -27,6 +28,7 @@ interface StepVariantBProps {
 export function StepVariantB({
   element, variantResult, onVariantUpdate,
 }: StepVariantBProps) {
+  const [mode, setMode] = useState<VariantMode>('manual')
   const [showEditor, setShowEditor] = useState(!variantResult)
   const category = getEditorCategory(element.elementType)
 
@@ -63,27 +65,113 @@ export function StepVariantB({
       {/* Description */}
       <div>
         <p className="text-[13px] leading-relaxed text-text-2">
-          Create a variant for your element. Edit the text and styles directly.
+          Create a variant for your element. Edit the text and styles directly, or design it in Figma.
         </p>
       </div>
 
-      {/* Editor */}
-      {showEditor && (
-        category === 'button' ? (
-          <ButtonEditor
-            element={element}
-            originalHtml={element.originalHtml}
-            onApply={handleApply}
-            onCancel={handleCancel}
-          />
-        ) : (
-          <TextInputEditor
-            element={element}
-            originalHtml={element.originalHtml}
-            onApply={handleApply}
-            onCancel={handleCancel}
-          />
-        )
+      {/* Mode switcher */}
+      <div className="flex rounded-[6px] border border-border bg-bg-0 p-0.5">
+        <button
+          onClick={() => setMode('manual')}
+          className={`flex-1 rounded-[4px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            mode === 'manual'
+              ? 'bg-fill-invert text-text-on-invert'
+              : 'text-text-2 hover:text-text'
+          }`}
+        >
+          <Pencil className="inline h-3 w-3 mr-1" />
+          Manual Editor
+        </button>
+        <button
+          onClick={() => setMode('figma')}
+          className={`flex-1 rounded-[4px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            mode === 'figma'
+              ? 'bg-fill-invert text-text-on-invert'
+              : 'text-text-2 hover:text-text'
+          }`}
+        >
+          <Palette className="inline h-3 w-3 mr-1" />
+          From Figma
+        </button>
+      </div>
+
+      {/* Manual Editor Mode */}
+      {mode === 'manual' && (
+        <>
+          {showEditor && (
+            category === 'button' ? (
+              <ButtonEditor
+                element={element}
+                originalHtml={element.originalHtml}
+                onApply={handleApply}
+                onCancel={handleCancel}
+              />
+            ) : (
+              <TextInputEditor
+                element={element}
+                originalHtml={element.originalHtml}
+                onApply={handleApply}
+                onCancel={handleCancel}
+              />
+            )
+          )}
+        </>
+      )}
+
+      {/* From Figma Mode */}
+      {mode === 'figma' && (
+        <div className="rounded-[10px] border border-border bg-bg-1 p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-bg-2">
+              <Palette className="h-4 w-4 text-text-2" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold text-text">Design your variant in Figma</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-text-2">
+                Open the variante Figma plugin, select the element you want to redesign, and let the AI generate the variant code. The generated HTML and CSS will appear here automatically.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-text-3">How it works</p>
+            <ol className="space-y-2 text-[12px] text-text-2">
+              <li className="flex items-start gap-2">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">1</span>
+                <span>Open the <strong className="text-text">variante plugin</strong> in Figma — or install it from the <a href="https://www.figma.com/community/plugin/1653734891132085565" target="_blank" rel="noopener noreferrer" className="underline hover:text-text transition-colors">Figma Community <ExternalLink className="inline h-2.5 w-2.5" /></a></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">2</span>
+                <span>Click <strong className="text-text">&quot;Create Test in Dashboard&quot;</strong> in the plugin to open the test wizard here</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">3</span>
+                <span>Select the variant layer in Figma — the AI translates it to HTML/CSS code</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">4</span>
+                <span>The generated code appears in this wizard — review and continue</span>
+              </li>
+            </ol>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => {
+                // Open the Figma plugin page — user needs the desktop app for the plugin itself
+                window.open('https://www.figma.com/community/plugin/1653734891132085565', '_blank', 'noopener,noreferrer')
+              }}
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+            >
+              <Palette className="h-3.5 w-3.5" />
+              Open Figma Plugin
+            </button>
+          </div>
+
+          <p className="text-[11px] text-text-3">
+            Don&apos;t have Figma? Use the <button onClick={() => setMode('manual')} className="underline hover:text-text-2 transition-colors">Manual Editor</button> instead.
+          </p>
+        </div>
       )}
 
       {/* Applied variant summary */}

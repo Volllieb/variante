@@ -204,11 +204,10 @@ export function DashboardClient({
             </p>
           )}
         </div>
-        <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Add your website first'}>
+        <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Saved as draft until snippet is installed'}>
           <button
-            onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
-            disabled={!hasVerifiedDomain}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+            onClick={() => setNewTestOpen(true)}
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
           >
             <Plus className="h-3.5 w-3.5" />
             New test
@@ -328,9 +327,8 @@ export function DashboardClient({
             >
               {!query && (
                 <button
-                  onClick={() => hasVerifiedDomain && setNewTestOpen(true)}
-                  disabled={!hasVerifiedDomain}
-                  className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-25"
+                  onClick={() => setNewTestOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   New test
@@ -444,32 +442,36 @@ function EmptyDashboard({
         <FlaskConical className="h-6 w-6 text-text-3" />
       </div>
       <h2 className="text-[15px] font-semibold text-text">
-        {hasVerifiedDomain ? 'Create your first test' : 'Add your website'}
+        {hasVerifiedDomain ? 'Create your first test' : 'Start testing — even without a site yet'}
       </h2>
       <p className="mt-1.5 text-[13px] text-text-2 max-w-sm mx-auto">
         {hasVerifiedDomain
           ? 'Run your first A/B test in minutes. Pick a page element, let the AI generate a variant, and go live.'
-          : 'Connect a domain to start testing. Paste a one-line snippet into your site\'s <head> — done.'}
+          : 'Create a draft test now and go live when you install the snippet. No domain required to explore.'}
       </p>
-      <div className="mt-5">
-        {hasVerifiedDomain ? (
-          <button
-            onClick={onNewTest}
-            className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
-          >
-            <Plus className="h-4 w-4" />
-            New test
-          </button>
-        ) : (
+      <div className="mt-5 flex items-center justify-center gap-3">
+        <button
+          onClick={onNewTest}
+          className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+        >
+          <Plus className="h-4 w-4" />
+          New test
+        </button>
+        {!hasVerifiedDomain && (
           <a
-            href="/dashboard/health"
-            className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+            href="/dashboard/account"
+            className="inline-flex items-center gap-1.5 rounded-[6px] border border-border px-4 py-2.5 text-[13px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
             <Globe className="h-4 w-4" />
-            Install snippet
+            Add your site
           </a>
         )}
       </div>
+      {!hasVerifiedDomain && (
+        <p className="mt-2.5 text-[11px] text-text-3">
+          Tests are saved as drafts until you install the snippet on your site.
+        </p>
+      )}
       {!isPro && (
         <p className="mt-3 text-[11px] text-text-3">
           Free plan: 1 active test, 1 domain.{' '}

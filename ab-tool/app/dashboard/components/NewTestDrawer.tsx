@@ -349,6 +349,16 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           </button>
         </div>
 
+        {/* Draft-mode banner — shown when no verified domain exists */}
+        {verifiedDomains.length === 0 && (
+          <div className="border-b border-pro/20 bg-pro/[0.04] px-5 py-2.5">
+            <p className="text-[12px] text-pro font-medium">
+              Draft mode — install the snippet on your site to go live.{' '}
+              <a href="/dashboard/account" className="underline hover:text-pro/80 transition-colors">Add your site →</a>
+            </p>
+          </div>
+        )}
+
         {/* Step Indicator */}
         <div className="flex items-center gap-1 border-b border-border px-5 py-2.5">
           {stepLabels.map((label, i) => (
@@ -421,6 +431,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               variantResult={state.variantResult}
               goal={state.selectedGoal}
               testName={state.testName}
+              hasDomain={verifiedDomains.length > 0}
               onTestNameChange={(name) => updateState({ testName: name })}
             />
           )}
@@ -451,25 +462,48 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               </button>
             ) : (
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleCreate('draft')}
-                  disabled={creating}
-                  className="rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Draft'}
-                </button>
-                <button
-                  onClick={() => handleCreate('active')}
-                  disabled={creating}
-                  className="flex items-center gap-1.5 rounded-[6px] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {creating ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <FlaskConical className="h-3.5 w-3.5" />
-                  )}
-                  {creating ? 'Creating…' : 'Go Live'}
-                </button>
+                {verifiedDomains.length === 0 ? (
+                  <>
+                    <button
+                      onClick={() => handleCreate('active')}
+                      disabled
+                      title="Install the snippet on your site to go live"
+                      className="flex items-center gap-1.5 rounded-[6px] border border-border bg-bg-1 px-4 py-2 text-[12px] font-medium text-text-3 cursor-not-allowed"
+                    >
+                      <FlaskConical className="h-3.5 w-3.5" />
+                      Go Live
+                    </button>
+                    <button
+                      onClick={() => handleCreate('draft')}
+                      disabled={creating}
+                      className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Draft'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleCreate('draft')}
+                      disabled={creating}
+                      className="rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Draft'}
+                    </button>
+                    <button
+                      onClick={() => handleCreate('active')}
+                      disabled={creating}
+                      className="flex items-center gap-1.5 rounded-[6px] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {creating ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <FlaskConical className="h-3.5 w-3.5" />
+                      )}
+                      {creating ? 'Creating…' : 'Go Live'}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -198,7 +198,9 @@ export function TestCard({
   return (
     <Link
       href={`/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
-      className="group/card relative block rounded-[10px] border border-border bg-bg-1 p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+      className={`group/card relative block rounded-[10px] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
+        status === 'draft' ? 'border-dashed border-border bg-bg-0/60' : 'border-border bg-bg-1'
+      }`}
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
       {/* Live-Pulse: subtile Signatur für aktive Tests */}

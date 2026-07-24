@@ -10,3 +10,16 @@ export const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <h
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
 <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
 <script async src="https://www.getvariante.com/ab.js" integrity="${AB_JS_INTEGRITY}" crossorigin="anonymous"><\/script>`
+
+/**
+ * Generate a personalized snippet for a specific domain.
+ * The snippet itself is identical (resolution is host-based), but the
+ * comment personalizes it so the user sees their own domain.
+ */
+export function personalizedSnippet(domain: string): string {
+  return `<!-- variante A/B Testing for ${domain} — paste in <head> on EVERY page -->
+<link rel="preconnect" href="https://www.getvariante.com" crossorigin>
+<style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
+<script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)<\/script>
+<script async src="https://www.getvariante.com/ab.js" integrity="${AB_JS_INTEGRITY}" crossorigin="anonymous"><\/script>`
+}

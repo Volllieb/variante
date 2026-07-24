@@ -769,6 +769,7 @@ summary { padding: 4px 0; cursor: pointer; font-family: inherit; }
   </div>
   <div class="ftr">
     <button class="btn btn-primary" onclick="newTest()">+ New Test</button>
+    <button class="btn btn-secondary" onclick="openDashboardNewTest()" style="margin-top:6px">Create Test in Dashboard →</button>
   </div>
 </div>
 
@@ -1635,6 +1636,9 @@ function goToTokenMode() {
 }
 function openDashboardForToken() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard/health?source=figma-plugin' } }, '*')
+}
+function openDashboardNewTest() {
+  parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/dashboard?newTest=1&source=figma-plugin' } }, '*')
 }
 function openLoginForToken() {
   parent.postMessage({ pluginMessage: { type: 'OPEN_URL', url: 'https://www.getvariante.com/login?source=figma-plugin' } }, '*')
