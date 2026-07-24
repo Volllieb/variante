@@ -16,8 +16,9 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight } from 'lucide-react'
+import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight, Globe } from 'lucide-react'
 import { StepUrlAndElement } from './new-test/StepUrlAndElement'
+import type { TestRow } from './TestCard'
 import { StepVariantB } from './new-test/StepVariantB'
 import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
@@ -78,15 +79,31 @@ interface NewTestDrawerProps {
   userId: string
   onTestCreated: (createdTest: { id: string; name: string; site_url: string; status: string }) => void
   verifiedDomains: { url: string; verifiedAt: string | null }[]
+  /** Wenn gesetzt: Existierenden Draft-Test fortsetzen statt neuen erstellen. */
+  resumeTest?: TestRow | null
 }
 
 // ─── Component ───
 
-export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verifiedDomains }: NewTestDrawerProps) {
+export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verifiedDomains, resumeTest }: NewTestDrawerProps) {
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
   const [createdTestId, setCreatedTestId] = useState<string | null>(null)
+  // Local domain list — seeded from server, extended inline when user adds a site
+  // from within the wizard without leaving the flow (Plan §5, Post-Signup UX).
+  const [localDomains, setLocalDomains] = useState(verifiedDomains)
+  const [_addingDomain, _setAddingDomain] = useState(false)
+  const [addDomainUrl, setAddDomainUrl] = useState('')
+  const [addDomainState, setAddDomainState] = useState<'input' | 'saving' | 'not-found' | 'verified'>('input')
+  const [addDomainError, setAddDomainError] = useState('')
+  // Sync localDomains with prop when it changes externally
+  const [syncedDomainsKey, setSyncedDomainsKey] = useState('')
+  const currentDomainsKey = verifiedDomains.map((d) => d.url).join(',')
+  if (currentDomainsKey !== syncedDomainsKey) {
+    setSyncedDomainsKey(currentDomainsKey)
+    setLocalDomains(verifiedDomains)
+  }
   // A11Y-02: Focus-Trap, Escape, Focus-Restore und Scroll-Lock. Der Drawer
   // hatte davon nichts — ein Tastaturnutzer tabbte direkt in das Dashboard
   // dahinter, ohne zu merken, dass er das Modal verlassen hat.
@@ -120,11 +137,62 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   }, [isOpen])
 
   // ─── Draft: Load on open (only once per open) ───
+  // Priority: resumeTest (test data) > wizard draft (saved progress)
 
   useEffect(() => {
     if (!isOpen || !userId || draftLoadedRef.current) return
     draftLoadedRef.current = true
     ;(async () => {
+      // If resuming an existing draft test, populate from test data directly
+      if (resumeTest) {
+        if (!mountedRef.current) return
+        // Parse goal from DB format (e.g. "click:.selector" or "click")
+        let goalParsed = null
+        if (resumeTest.goal) {
+          const goalStr = resumeTest.goal
+          if (goalStr.startsWith('click:')) {
+            goalParsed = {
+              type: 'click' as const,
+              selector: goalStr.slice(6),
+              label: goalStr.slice(6) ? `Clicks on ${goalStr.slice(6)}` : 'Clicks on element',
+            }
+          }
+        }
+        // Determine first incomplete step
+        let startStep = 0
+        const hasElement = !!resumeTest.selector
+        const hasVariant = !!resumeTest.variant_b_html
+        const hasGoal = !!resumeTest.goal
+        if (hasElement && hasVariant && hasGoal) startStep = 3   // all done → Review
+        else if (hasElement && hasVariant) startStep = 2          // Goal missing
+        else if (hasElement) startStep = 1                        // Variant missing
+        // else startStep = 0                                     // Element missing
+
+        setState({
+          step: startStep,
+          url: resumeTest.site_url ?? '',
+          selectedElement: resumeTest.selector ? {
+            selector: resumeTest.selector,
+            originalHtml: resumeTest.original_html ?? '',
+            elementType: 'element',
+            elementName: resumeTest.selector,
+          } : null,
+          elementConfirmed: !!resumeTest.selector,
+          variantResult: resumeTest.variant_b_html ? {
+            variant: resumeTest.variant_b_html,
+            variant_html: resumeTest.variant_b_html ?? undefined,
+            variant_css: resumeTest.variant_b_css ?? undefined,
+            explanation: '',
+          } : null,
+          selectedGoal: goalParsed,
+          goalConfirmed: !!goalParsed,
+          testName: resumeTest.name?.startsWith('Demo test') ? '' : (resumeTest.name ?? ''),
+          testStatus: 'active',
+        })
+        return
+      }
+
+      // Normal flow: load saved wizard draft
       try {
         const res = await fetch('/api/test-wizard/draft')
         if (!res.ok) return
@@ -175,6 +243,8 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         }
       } catch { /* Draft-Load ist nice-to-have */ }
     })()
+  // resumeTest intentionally omitted from deps — draft load only on drawer open (guarded by draftLoadedRef)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId])
 
   // ─── Draft: Save on change (debounced 500ms) ───
@@ -247,8 +317,13 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         name: state.testName || undefined,
       }
 
-      const res = await fetch('/api/test-wizard/create', {
-        method: 'POST',
+      // Resume mode: PATCH existing draft test. Normal mode: POST new test.
+      const isResume = !!resumeTest
+      const endpoint = isResume ? `/api/tests/${resumeTest.id}` : '/api/test-wizard/create'
+      const method = isResume ? 'PATCH' : 'POST'
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
@@ -259,9 +334,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         return
       }
 
-      const { test } = await res.json()
-      setCreatedTestId(test.id)
-      onTestCreated({ id: test.id, name: test.name, site_url: test.site_url, status: test.status })
+      const { test } = await res.json().catch(() => ({ test: null }))
+      const testResult = test ?? resumeTest // PATCH returns updated test or empty
+      setCreatedTestId(testResult?.id ?? resumeTest?.id ?? '')
+      onTestCreated({
+        id: testResult?.id ?? resumeTest?.id ?? '',
+        name: state.testName || resumeTest?.name || 'Untitled test',
+        site_url: state.url,
+        status: isResume ? status : (testResult?.status ?? status),
+      })
       // Keep drawer open briefly to show success, then close
       setTimeout(() => {
         if (mountedRef.current) {
@@ -275,7 +356,71 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
     } finally {
       setCreating(false)
     }
-  }, [state, onClose, onTestCreated])
+  }, [state, onClose, onTestCreated, resumeTest])
+
+  // ─── Inline Domain Add ───
+  const normalize = (raw: string) =>
+    raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+
+  const handleAddDomain = useCallback(async () => {
+    const normalized = normalize(addDomainUrl)
+    if (!normalized || !normalized.includes('.')) {
+      setAddDomainError('Please enter a valid domain (e.g. yoursite.com)')
+      return
+    }
+    setAddDomainError('')
+    setAddDomainState('saving')
+
+    try {
+      const saveRes = await fetch('/api/domains', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: normalized }),
+      })
+      if (saveRes.status === 402) {
+        const d = await saveRes.json().catch(() => ({}))
+        setAddDomainError(d.error || 'Domain limit reached.')
+        setAddDomainState('input')
+        return
+      }
+      if (!saveRes.ok && saveRes.status !== 409) {
+        const d = await saveRes.json().catch(() => ({}))
+        setAddDomainError(d.error || 'Failed to save domain.')
+        setAddDomainState('input')
+        return
+      }
+
+      // Snippet check
+      const checkRes = await fetch('/api/snippet-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_url: normalized }),
+      })
+      const json = await checkRes.json()
+      if (!json.detected) {
+        setAddDomainState('not-found')
+        return
+      }
+
+      // Verify
+      const domainsRes = await fetch('/api/domains')
+      const { domains: freshDomains } = await domainsRes.json()
+      const newDomain = (freshDomains || []).find((d: { url: string }) => d.url === normalized)
+      if (newDomain?.id) {
+        await fetch('/api/domains/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domainId: newDomain.id }),
+        }).catch(() => {})
+      }
+
+      setLocalDomains((prev) => [...prev, { url: normalized, verifiedAt: new Date().toISOString() }])
+      setAddDomainState('verified')
+    } catch {
+      setAddDomainError('Connection failed. Check your internet.')
+      setAddDomainState('input')
+    }
+  }, [addDomainUrl])
 
   // ─── Step Navigation ───
 
@@ -349,13 +494,70 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           </button>
         </div>
 
-        {/* Draft-mode banner — shown when no verified domain exists */}
-        {verifiedDomains.length === 0 && (
-          <div className="border-b border-pro/20 bg-pro/[0.04] px-5 py-2.5">
-            <p className="text-[12px] text-pro font-medium">
-              Draft mode — install the snippet on your site to go live.{' '}
-              <a href="/dashboard/account" className="underline hover:text-pro/80 transition-colors">Add your site →</a>
-            </p>
+        {/* Draft-mode banner with inline domain input — shown when no verified domain exists */}
+        {localDomains.length === 0 && (
+          <div className="border-b border-pro/20 bg-pro/[0.04] px-5 py-3">
+            {addDomainState === 'verified' ? (
+              <p className="flex items-center gap-1.5 text-[12px] text-ok font-medium">
+                <Check className="h-3.5 w-3.5" />
+                {addDomainUrl.trim()} connected — you can now go live.
+              </p>
+            ) : addDomainState === 'saving' ? (
+              <p className="flex items-center gap-2 text-[12px] text-pro font-medium">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Saving &amp; checking {addDomainUrl.trim()}…
+              </p>
+            ) : addDomainState === 'not-found' ? (
+              <div className="space-y-2">
+                <p className="text-[12px] text-pro font-medium">
+                  Snippet not found on {addDomainUrl.trim()}. Paste it in your site&apos;s &lt;head&gt; and retry.
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleAddDomain}
+                    className="inline-flex cursor-pointer items-center gap-1 rounded-[4px] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    onClick={() => { setAddDomainState('input'); setAddDomainError('') }}
+                    className="cursor-pointer text-[10px] text-text-3 underline hover:text-text-2"
+                  >
+                    Change URL
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-[12px] text-pro font-medium mb-2">
+                  Draft mode — add your domain to go live with real visitors.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 max-w-[220px]">
+                    <Globe className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
+                    <input
+                      type="text"
+                      value={addDomainUrl}
+                      onChange={(e) => { setAddDomainUrl(e.target.value); setAddDomainError('') }}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
+                      placeholder="yoursite.com"
+                      disabled={addDomainState !== 'input'}
+                      className="w-full h-[30px] rounded-[4px] border border-border bg-bg-0 pl-7 pr-2 text-[11px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-text/30"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddDomain}
+                    disabled={!addDomainUrl.trim()}
+                    className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[4px] bg-fill-invert px-3 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                  >
+                    Check
+                  </button>
+                </div>
+                {addDomainError && (
+                  <p className="mt-1.5 text-[10px] text-err">{addDomainError}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -392,7 +594,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               selectedElement={state.selectedElement}
               onElementSelected={(el) => updateState({ selectedElement: el, elementConfirmed: false })}
               onConfirm={() => updateState({ elementConfirmed: true })}
-              verifiedDomains={verifiedDomains}
+              verifiedDomains={localDomains}
             />
           )}
 
@@ -431,7 +633,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               variantResult={state.variantResult}
               goal={state.selectedGoal}
               testName={state.testName}
-              hasDomain={verifiedDomains.length > 0}
+              hasDomain={localDomains.length > 0}
               onTestNameChange={(name) => updateState({ testName: name })}
             />
           )}
@@ -462,7 +664,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               </button>
             ) : (
               <div className="flex items-center gap-2">
-                {verifiedDomains.length === 0 ? (
+                {localDomains.length === 0 ? (
                   <>
                     <button
                       onClick={() => handleCreate('active')}
@@ -478,7 +680,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                       disabled={creating}
                       className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Draft'}
+                      {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : resumeTest ? 'Save Progress' : 'Save Draft'}
                     </button>
                   </>
                 ) : (
@@ -488,7 +690,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                       disabled={creating}
                       className="rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save Draft'}
+                      {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : resumeTest ? 'Save Progress' : 'Save Draft'}
                     </button>
                     <button
                       onClick={() => handleCreate('active')}
@@ -500,7 +702,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                       ) : (
                         <FlaskConical className="h-3.5 w-3.5" />
                       )}
-                      {creating ? 'Creating…' : 'Go Live'}
+                      {creating ? 'Saving…' : resumeTest ? 'Complete & Go Live' : 'Go Live'}
                     </button>
                   </>
                 )}

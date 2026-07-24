@@ -78,58 +78,63 @@ export async function POST(req: Request) {
     )
   }
 
-  // Guard: Conversions auf pausierten ODER abgeschlossenen Tests nicht zählen.
-  // (done kann über alte localStorage-Caches noch Klicks senden.)
-  const { data: testMeta, error: metaError } = await supabase
-    .from('tests')
-    .select('status')
-    .eq('snippet_key', testId)
-    .maybeSingle()
+  try {
+    // Guard: Conversions auf pausierten ODER abgeschlossenen Tests nicht zählen.
+    // (done kann über alte localStorage-Caches noch Klicks senden.)
+    const { data: testMeta, error: metaError } = await supabase
+      .from('tests')
+      .select('status')
+      .eq('snippet_key', testId)
+      .maybeSingle()
 
-  if (metaError || !testMeta) {
-    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
+    if (metaError || !testMeta) {
+      return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
+    }
+
+    if (testMeta.status === 'paused' || testMeta.status === 'done') {
+      return Response.json({ error: 'test is not active' }, { status: 409, headers: corsHeadersPublic('POST, OPTIONS') })
+    }
+
+    const { data, error } = await supabase.rpc('ab_convert', { p_key: testId, p_variant: variant })
+
+    if (error) {
+      safeError('event', error)
+      return Response.json({ error: 'db error' }, { status: 500, headers: corsHeadersPublic('POST, OPTIONS') })
+    }
+
+    const row = data as TestRow | null
+    if (!row || !row.id) {
+      return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
+    }
+
+    // Signifikanz mitschreiben, damit das Dashboard einen aktuellen Wert zeigt.
+    //
+    // ponytail: Hier stand vorher ZUSÄTZLICH determineWinner() plus
+    // `status: winner ? 'done' : undefined`. Damit wurde bei JEDER Conversion neu
+    // getestet und der Test bei Erfolg sofort beendet — klassisches Peeking, das
+    // die reale Falsch-Positiv-Rate weit über die beworbenen 5 % treibt
+    // (Plan STAT-01). Die Gewinner-Entscheidung liegt jetzt ausschließlich im
+    // Tages-Cron /api/cron/check-winners, wo sie einmal pro Tag und mit
+    // Mindestlaufzeit-, Stichproben- und Conversion-Schwellen fällt.
+    const significance = calcSignificance(
+      row.visitors_a,
+      row.conversions_a,
+      row.visitors_b,
+      row.conversions_b
+    )
+
+    const { error: updateError } = await supabase
+      .from('tests')
+      .update({ significance })
+      .eq('id', row.id)
+
+    if (updateError) {
+      safeError('event', updateError)
+    }
+
+    return Response.json({ ok: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
+  } catch (err) {
+    safeError('event', err instanceof Error ? err : new Error(String(err)))
+    return Response.json({ error: 'service unavailable' }, { status: 503, headers: corsHeadersPublic('POST, OPTIONS') })
   }
-
-  if (testMeta.status === 'paused' || testMeta.status === 'done') {
-    return Response.json({ error: 'test is not active' }, { status: 409, headers: corsHeadersPublic('POST, OPTIONS') })
-  }
-
-  const { data, error } = await supabase.rpc('ab_convert', { p_key: testId, p_variant: variant })
-
-  if (error) {
-    safeError('event', error)
-    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeadersPublic('POST, OPTIONS') })
-  }
-
-  const row = data as TestRow | null
-  if (!row || !row.id) {
-    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
-  }
-
-  // Signifikanz mitschreiben, damit das Dashboard einen aktuellen Wert zeigt.
-  //
-  // ponytail: Hier stand vorher ZUSÄTZLICH determineWinner() plus
-  // `status: winner ? 'done' : undefined`. Damit wurde bei JEDER Conversion neu
-  // getestet und der Test bei Erfolg sofort beendet — klassisches Peeking, das
-  // die reale Falsch-Positiv-Rate weit über die beworbenen 5 % treibt
-  // (Plan STAT-01). Die Gewinner-Entscheidung liegt jetzt ausschließlich im
-  // Tages-Cron /api/cron/check-winners, wo sie einmal pro Tag und mit
-  // Mindestlaufzeit-, Stichproben- und Conversion-Schwellen fällt.
-  const significance = calcSignificance(
-    row.visitors_a,
-    row.conversions_a,
-    row.visitors_b,
-    row.conversions_b
-  )
-
-  const { error: updateError } = await supabase
-    .from('tests')
-    .update({ significance })
-    .eq('id', row.id)
-
-  if (updateError) {
-    safeError('event', updateError)
-  }
-
-  return Response.json({ ok: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
 }

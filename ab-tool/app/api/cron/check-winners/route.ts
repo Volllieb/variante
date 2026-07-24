@@ -132,14 +132,15 @@ async function run(req: Request) {
         p_message: `Winner ${winner} detected — auto-completed. Variant ${winner} now live for all visitors. (sig=${sig.toFixed(4)}, vA=${t.visitors_a}, vB=${t.visitors_b}, cA=${t.conversions_a}, cB=${t.conversions_b})`,
       })
 
-      // E-Mail an User wenn notify_on_winner aktiv
+      // E-Mail + Pro-Pitch
       if (t.user_id) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('notify_on_winner')
+          .select('notify_on_winner, plan')
           .eq('user_id', t.user_id)
           .single()
 
+        // E-Mail an User wenn notify_on_winner aktiv
         if (profile?.notify_on_winner !== false) {
           const { data: authUser } = await supabase.auth.admin.getUserById(t.user_id)
           const email = authUser?.user?.email
@@ -163,6 +164,17 @@ async function run(req: Request) {
               `,
             })
           }
+        }
+
+        // ─── Pro-Pitch für Free-User nach erstem Winner ───
+        if (profile?.plan === 'free') {
+          await supabase.from('notifications').insert({
+            user_id: t.user_id,
+            type: 'tip',
+            title: 'Your first winner! 🎉',
+            body: `${upliftWin > 0 ? '+' : ''}${upliftWin.toFixed(1)}% uplift detected. Pro unlocks unlimited tests — keep optimizing every page.`,
+            href: `/dashboard/results/${t.id}`,
+          })
         }
       }
 

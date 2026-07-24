@@ -18,7 +18,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     name?: string
     goal?: string
     status?: string
+    site_url?: string
     selector?: string | null
+    original_html?: string | null
     traffic_split?: number
     min_visitors?: number
     min_uplift?: number
@@ -36,7 +38,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     name?: string
     goal?: string
     status?: string
+    site_url?: string
     selector?: string | null
+    original_html?: string | null
     traffic_split?: number
     min_visitors?: number
     min_uplift?: number
@@ -53,7 +57,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     patch.goal = body.goal
   }
   if (body.status === 'draft' || body.status === 'active' || body.status === 'done' || body.status === 'paused') patch.status = body.status
+  if (typeof body.site_url === 'string' && body.site_url.trim().length > 0) patch.site_url = body.site_url.trim()
   if (typeof body.selector === 'string' || body.selector === null) patch.selector = body.selector
+  if (typeof body.original_html === 'string' || body.original_html === null) patch.original_html = body.original_html
   if (typeof body.traffic_split === 'number' && Number.isFinite(body.traffic_split) && body.traffic_split >= 0 && body.traffic_split <= 100) patch.traffic_split = body.traffic_split
   if (typeof body.min_visitors === 'number' && body.min_visitors >= 0) patch.min_visitors = body.min_visitors
   if (typeof body.min_uplift === 'number' && body.min_uplift >= 0 && body.min_uplift <= 100) patch.min_uplift = body.min_uplift

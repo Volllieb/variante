@@ -63,6 +63,17 @@ export function getAIMonthlyBudget(plan: string): number {
   return PLAN_LIMITS[plan as Plan]?.aiMonthlyBudget ?? PLAN_LIMITS.free.aiMonthlyBudget
 }
 
+// ─── Contextual Upgrade Messages ───
+
+/** User-facing error when the domain limit is hit, with a plan-specific upgrade path. */
+export function getDomainLimitMessage(plan: string): string {
+  const limit = getDomainLimit(plan)
+  if (plan === 'free') {
+    return `Free accounts include ${limit} website. Upgrade to Pro for up to ${PLAN_LIMITS.pro.domains} websites.`
+  }
+  return `Your ${plan} plan allows up to ${limit} website${limit !== 1 ? 's' : ''}.`
+}
+
 // ─── Hilfstyp für API-Routen: alle AI-Limits auf einen Blick ───
 
 export interface PlanAiLimits {

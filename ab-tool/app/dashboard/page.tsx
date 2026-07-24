@@ -20,7 +20,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       .single(),
     supabase
       .from('tests')
-      .select('id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, preview_variant_screenshot_url')
+      .select('id, name, site_url, status, health_status, health_issues, selector, original_html, goal, variant_b_html, variant_b_css, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, preview_variant_screenshot_url')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -60,10 +60,20 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
           })
         if (!draftErr) {
           demoCreated = true
+          // Save domain so the dashboard shows "Snippet not found" instead of
+          // the empty "Connect your site" banner (Plan §5, Post-Signup UX).
+          try {
+            const hostOnly = new URL(normalizedUrl).hostname
+            await supabase.from('domains').insert({
+              user_id: user.id,
+              url: hostOnly,
+              verified: false,
+            })
+          } catch { /* domain insert is best-effort — unique constraint handles dupes */ }
           // Re-fetch tests to include the new draft
           const { data: freshTests } = await supabase
             .from('tests')
-            .select('id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, preview_variant_screenshot_url')
+            .select('id, name, site_url, status, health_status, health_issues, selector, original_html, goal, variant_b_html, variant_b_css, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, preview_variant_screenshot_url')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
           if (freshTests) tests.push(...freshTests.filter((t) => !tests.find((e) => e.id === t.id)))
@@ -75,7 +85,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" tests={[]} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} userId={user.id} />
+    return <DashboardClient plan="free" tests={[]} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} domainCount={0} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} userId={user.id} />
   }
 
   return (
@@ -86,6 +96,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       primaryDomain={primaryDomain}
       verifiedAt={verifiedAt}
       allVerifiedDomains={allVerifiedDomains}
+      domainCount={domains.length}
       highlightNew={demoCreated || searchParams.new === '1'}
       upgraded={searchParams.upgraded === '1'}
       openNewTest={searchParams.newTest === '1'}

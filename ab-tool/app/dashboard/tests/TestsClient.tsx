@@ -18,8 +18,6 @@ import {
   Code,
 } from 'lucide-react'
 
-/* ── Token palette ── */
-
 /* ── Component ── */
 
 // ponytail: apiToken/plan waren tote Props (Plan SEC-10/CODE-01).
@@ -36,10 +34,12 @@ export function TestsClient({
 }) {
   const router = useRouter()
   const [newTestOpen, setNewTestOpen] = useState(false)
+  const [resumeTest, setResumeTest] = useState<TestRow | null>(null)
 
   // Sync mit frischen Server-Daten passiert in useTestList selbst.
   const {
     testList,
+    setTestList,
     query,
     setQuery,
     filter,
@@ -73,7 +73,7 @@ export function TestsClient({
         </Tooltip>
         <Tooltip content="Create new test">
           <button
-            onClick={() => setNewTestOpen(true)}
+            onClick={() => { setResumeTest(null); setNewTestOpen(true) }}
             className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -85,22 +85,33 @@ export function TestsClient({
       {/* New test flow — Drawer Wizard */}
       <NewTestDrawer
         isOpen={newTestOpen}
-        onClose={() => setNewTestOpen(false)}
+        onClose={() => { setNewTestOpen(false); setResumeTest(null) }}
         userId={userId}
+        resumeTest={resumeTest}
         onTestCreated={(createdTest) => {
-          addTest({
-            id: createdTest.id,
-            name: createdTest.name,
-            site_url: createdTest.site_url,
-            status: createdTest.status,
-            visitors_a: 0,
-            visitors_b: 0,
-            conversions_a: 0,
-            conversions_b: 0,
-            winner: null,
-            created_at: new Date().toISOString(),
-          })
+          if (resumeTest) {
+            // Resume: update existing draft in list
+            setTestList((prev) => prev.map((t) =>
+              t.id === resumeTest.id
+                ? { ...t, name: createdTest.name, site_url: createdTest.site_url, status: createdTest.status, health_status: null, health_issues: null }
+                : t
+            ))
+          } else {
+            addTest({
+              id: createdTest.id,
+              name: createdTest.name,
+              site_url: createdTest.site_url,
+              status: createdTest.status,
+              visitors_a: 0,
+              visitors_b: 0,
+              conversions_a: 0,
+              conversions_b: 0,
+              winner: null,
+              created_at: new Date().toISOString(),
+            })
+          }
           setNewTestOpen(false)
+          setResumeTest(null)
         }}
         verifiedDomains={verifiedDomains}
       />
@@ -119,7 +130,7 @@ export function TestsClient({
           <div className="flex items-center gap-3">
             {hasFigmaPlugin ? (
               <button
-                onClick={() => setNewTestOpen(true)}
+                onClick={() => { setResumeTest(null); setNewTestOpen(true) }}
                 className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -145,7 +156,7 @@ export function TestsClient({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredTests.map((t) => (
-            <TestCard key={t.id} t={t} onDelete={handleDeleteTest} from="tests" />
+            <TestCard key={t.id} t={t} onDelete={handleDeleteTest} from="tests" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true) }} />
           ))}
         </div>
       )}

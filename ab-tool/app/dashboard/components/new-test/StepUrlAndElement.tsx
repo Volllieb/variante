@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown, Code2 } from 'lucide-react'
+import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown, Code2, Sparkles, AlertCircle, Zap } from 'lucide-react'
 import type { ElementSelection } from '../NewTestDrawer'
 
 interface StepUrlAndElementProps {
@@ -24,7 +24,23 @@ interface StepUrlAndElementProps {
 
 type PickerMode = 'picker' | 'manual'
 
-// Einfache CSS-Selektor-Validierung: lehnt offensichtlich invalide Strings ab
+// ─── AI Scan Types ───
+
+interface ScanSuggestion {
+  selector: string | null
+  element: string
+  rationale: string
+  elementType: string
+}
+
+type ScanState = 'idle' | 'loading' | 'success' | 'error'
+
+interface ScanResult {
+  suggestions: ScanSuggestion[]
+  primarySuggestion: ScanSuggestion | null
+}
+
+// ─── CSS-Selector-Validierung ───
 function isValidCssSelector(sel: string): boolean {
   if (!sel || sel.length < 2) return false
   if (sel.length > 512) return false
@@ -48,6 +64,7 @@ export function StepUrlAndElement({
 }: StepUrlAndElementProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
+  const [pickerBlocked, setPickerBlocked] = useState(false)
   const [mode, setMode] = useState<PickerMode>(verifiedDomains.length > 0 ? 'picker' : 'manual')
   // Manual mode fields
   const [manualSelector, setManualSelector] = useState('')
@@ -56,6 +73,11 @@ export function StepUrlAndElement({
   const [manualElementName, setManualElementName] = useState('')
   const [manualHtml, setManualHtml] = useState('')
 
+  // ── AI Scan State ──
+  const [scanState, setScanState] = useState<ScanState>('idle')
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [scanError, setScanError] = useState('')
+
   // Ref haelt den aktuellen Callback, ohne den postMessage-Listener bei jeder
   // neuen Callback-Identitaet neu aufzubauen. Schreiben MUSS im Effect passieren:
   // im Render ist es ein Seiteneffekt, den React 19 verwerfen darf.
@@ -63,6 +85,9 @@ export function StepUrlAndElement({
   useEffect(() => {
     onElementSelectedRef.current = onElementSelected
   })
+
+  // Picker timeout ref — bricht Warte-Status nach 30s ab
+  const pickerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Picker Mode: Listen for postMessage from ab.js picker ──
   useEffect(() => {
@@ -91,6 +116,7 @@ export function StepUrlAndElement({
       })
       setPickerOpen(false)
       setWaitingForPicker(false)
+      if (pickerTimeoutRef.current) { clearTimeout(pickerTimeoutRef.current); pickerTimeoutRef.current = null }
     }
 
     window.addEventListener('message', handleMessage)
@@ -103,10 +129,86 @@ export function StepUrlAndElement({
     const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
     const target = new URL(finalUrl)
     target.searchParams.set('ab_pick', '1')
-    window.open(target.toString(), 'ab-picker', 'width=1200,height=800')
+    const popup = window.open(target.toString(), 'ab-picker', 'width=1200,height=800')
+    if (!popup || popup.closed) {
+      setPickerBlocked(true)
+      setWaitingForPicker(false)
+      return
+    }
+    setPickerBlocked(false)
     setPickerOpen(true)
     setWaitingForPicker(true)
+    if (pickerTimeoutRef.current) clearTimeout(pickerTimeoutRef.current)
+    pickerTimeoutRef.current = setTimeout(() => {
+      setWaitingForPicker(false)
+    }, 30000)
   }, [url])
+
+  // ── Helpers ──
+  function isValidUrl(str: string): boolean {
+    if (/^https?:\/\//i.test(str)) {
+      try { new URL(str); return true } catch { return false }
+    }
+    return /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(str)
+  }
+
+  const urlValid = url.trim() && isValidUrl(url.trim())
+
+  // ── AI Scan: Page-Analyse via /api/test-wizard/scan ──
+
+  const runScan = useCallback(async () => {
+    if (!url || !urlValid) return
+    setScanState('loading')
+    setScanError('')
+    setScanResult(null)
+
+    try {
+      const res = await fetch('/api/test-wizard/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: /^https?:\/\//i.test(url) ? url : `https://${url}` }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Scan failed' }))
+        setScanError(err.message ?? err.error ?? 'Page analysis failed')
+        setScanState('error')
+        return
+      }
+
+      const data = await res.json()
+      const suggestions: ScanSuggestion[] = [data.primarySuggestion, ...(data.suggestions ?? [])]
+        .filter(Boolean)
+        // dedup by element name
+        .filter((s: ScanSuggestion, i: number, arr: ScanSuggestion[]) =>
+          arr.findIndex((x) => x.element === s.element) === i
+        )
+        .slice(0, 3)
+
+      if (suggestions.length === 0) {
+        setScanError('No elements found to test on this page. Try picking manually.')
+        setScanState('error')
+        return
+      }
+
+      setScanResult({ suggestions, primarySuggestion: data.primarySuggestion ?? suggestions[0] })
+      setScanState('success')
+    } catch {
+      setScanError('Network error — please try again.')
+      setScanState('error')
+    }
+  }, [url, urlValid])
+
+  function applySuggestion(s: ScanSuggestion) {
+    const sel = s.selector ?? ''
+    onElementSelected({
+      selector: sel,
+      originalHtml: '', // AI doesn't provide HTML — user can add manually if needed
+      elementType: s.elementType || 'element',
+      elementName: s.element,
+    })
+    setScanState('idle') // collapse scan results after selection
+  }
 
   // ── Manual Mode: Confirm manual element selection ──
   const confirmManual = useCallback(() => {
@@ -127,15 +229,6 @@ export function StepUrlAndElement({
       elementName: manualElementName.trim() || sel,
     })
   }, [manualSelector, manualHtml, manualElementType, manualElementName, onElementSelected])
-
-  function isValidUrl(str: string): boolean {
-    if (/^https?:\/\//i.test(str)) {
-      try { new URL(str); return true } catch { return false }
-    }
-    return /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(str)
-  }
-
-  const urlValid = url.trim() && isValidUrl(url.trim())
 
   const hasSnippet = verifiedDomains.length > 0
   const showPickerMode = mode === 'picker'
@@ -158,6 +251,7 @@ export function StepUrlAndElement({
               value={url}
               onChange={(e) => {
                 onUrlChange(e.target.value)
+                setScanState('idle'); setScanResult(null); setScanError('')
                 if (selectedElement) {
                   onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
                 }
@@ -176,7 +270,130 @@ export function StepUrlAndElement({
         </div>
       )}
 
-      {/* Mode Toggle — always available. Visual Picker uses the snippet for point-and-click; Manual Selector for when you know the CSS selector. */}
+      {/* ── Shared URL Input (always visible) ── */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          {verifiedDomains.length === 0 && (
+            <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
+          )}
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => {
+              onUrlChange(e.target.value)
+              // Reset scan when URL changes
+              if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
+            }}
+            placeholder="https://example.com/landing"
+            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
+              verifiedDomains.length > 0 ? 'pl-3 pr-3' : 'pl-9 pr-3'
+            }`}
+          />
+        </div>
+      </div>
+
+      {/* ── AI Scan: Analyze-Button + Results ── */}
+      {urlValid && scanState !== 'success' && (
+        <button
+          onClick={runScan}
+          disabled={scanState === 'loading'}
+          className="flex w-full items-center justify-center gap-2 rounded-[7px] border border-pro/20 bg-pro/[0.04] py-2.5 text-[13px] font-medium text-pro transition-colors hover:bg-pro/[0.08] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {scanState === 'loading' ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Analyzing page…
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Analyze page for test ideas
+            </>
+          )}
+        </button>
+      )}
+
+      {/* Scan loading detail */}
+      {scanState === 'loading' && (
+        <div className="flex items-center gap-2 rounded-[7px] border border-pro/10 bg-pro/[0.02] px-3 py-2.5">
+          <Loader2 className="h-4 w-4 animate-spin text-pro/70" />
+          <p className="text-[11px] text-text-3">
+            AI is scanning the page structure, CTAs, and headlines…
+          </p>
+        </div>
+      )}
+
+      {/* Scan error */}
+      {scanState === 'error' && scanError && (
+        <div className="flex items-start gap-2 rounded-[7px] border border-err/20 bg-err/[0.04] px-3 py-2.5">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-err/60" />
+          <div className="min-w-0">
+            <p className="text-[11px] text-err/80">{scanError}</p>
+            <button
+              onClick={runScan}
+              className="mt-1 text-[11px] text-text-2 underline hover:text-text transition-colors cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Scan results — AI suggestions */}
+      {scanState === 'success' && scanResult && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-pro" />
+            <p className="text-[11px] font-semibold text-pro uppercase tracking-wider">
+              AI Suggestions — click to select
+            </p>
+          </div>
+          {scanResult.suggestions.map((s, i) => {
+            const isPrimary = scanResult.primarySuggestion?.element === s.element
+            return (
+              <button
+                key={s.element}
+                onClick={() => applySuggestion(s)}
+                className={`flex w-full cursor-pointer items-start gap-3 rounded-[8px] px-3.5 py-3 text-left transition-all ${
+                  isPrimary
+                    ? 'border border-pro/25 bg-pro/[0.06] hover:bg-pro/[0.10]'
+                    : 'border border-border bg-bg-1 hover:border-border-strong'
+                }`}
+              >
+                <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                  isPrimary ? 'bg-pro/15 text-pro' : 'bg-bg-2 text-text-3'
+                }`}>
+                  {i + 1}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[12px] font-semibold text-text truncate">{s.element}</p>
+                    {isPrimary && (
+                      <span className="shrink-0 rounded-full bg-pro/15 px-1.5 py-0.5 text-[9px] font-semibold text-pro">
+                        Best pick
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-text-3 line-clamp-2">{s.rationale}</p>
+                  {s.selector && (
+                    <code className="mt-1.5 inline-block rounded-[4px] bg-bg-0 px-1.5 py-0.5 text-[10px] text-text-3 font-mono">
+                      {s.selector}
+                    </code>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+          <button
+            onClick={() => setScanState('idle')}
+            className="text-[11px] text-text-3 hover:text-text-2 transition-colors cursor-pointer"
+          >
+            Hide suggestions — pick manually instead
+          </button>
+        </div>
+      )}
+
+      {/* ── Mode Toggle ── */}
       <div className="flex rounded-[6px] border border-border bg-bg-1 p-0.5">
         <button
           onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
@@ -205,32 +422,15 @@ export function StepUrlAndElement({
       {/* ── PICKER MODE ── */}
       {showPickerMode && (
         <>
-          {/* URL Input */}
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              {verifiedDomains.length === 0 && (
-                <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
-              )}
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => onUrlChange(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && urlValid && openPicker()}
-                placeholder="https://example.com/landing"
-                className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
-                  verifiedDomains.length > 0 ? 'pl-3 pr-3' : 'pl-9 pr-3'
-                }`}
-              />
-            </div>
-            <button
-              onClick={openPicker}
-              disabled={!urlValid || waitingForPicker}
-              className="flex shrink-0 items-center gap-1.5 rounded-[7px] bg-fill-invert px-5 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Open Page
-            </button>
-          </div>
+          {/* Open Page button */}
+          <button
+            onClick={openPicker}
+            disabled={!urlValid || waitingForPicker}
+            className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-fill-invert px-5 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open page &amp; click element
+          </button>
 
           {/* Waiting for picker */}
           {waitingForPicker && (
@@ -238,6 +438,17 @@ export function StepUrlAndElement({
               <Loader2 className="h-4 w-4 animate-spin text-text" />
               <p className="text-[12px] text-text-2">
                 Waiting for element selection… Click any element on the opened page.
+              </p>
+            </div>
+          )}
+
+          {/* Popup blocked */}
+          {pickerBlocked && (
+            <div className="rounded-[7px] border border-err/20 bg-err/5 px-3 py-2.5">
+              <p className="text-[11px] text-err/80">
+                <strong>Pop-up blocked.</strong> Please allow pop-ups for this site and{' '}
+                <button onClick={openPicker} className="underline hover:text-err cursor-pointer">try again</button>, or switch to{' '}
+                <button onClick={() => { setMode('manual'); setPickerBlocked(false) }} className="underline hover:text-err cursor-pointer">Manual Selector</button>.
               </p>
             </div>
           )}
@@ -280,20 +491,7 @@ export function StepUrlAndElement({
       {/* ── MANUAL MODE ── */}
       {!showPickerMode && (
         <div className="space-y-3">
-          {/* URL Input (also needed in manual mode) */}
-          <div>
-            <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Page URL</label>
-            <div className="relative">
-              <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => onUrlChange(e.target.value)}
-                placeholder="https://example.com/landing"
-                className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
-              />
-            </div>
-          </div>
+          {/* URL is shared above; manual mode adds CSS selector below */}
 
           {/* CSS Selector */}
           <div>

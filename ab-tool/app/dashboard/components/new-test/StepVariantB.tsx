@@ -3,21 +3,22 @@
 /**
  * StepVariantB — Step 1: Variant B.
  *
- * Zwei Modi:
+ * Drei Modi:
+ * - AI Generate (default): Auto-triggered via /api/test-wizard/generate
+ *   → Accept / Edit / Regenerate. User behält volle Kontrolle.
  * - Manual Editor: ButtonEditor/TextInputEditor (bestehend)
  * - From Figma: User öffnet Figma-Plugin, wählt Variant B, KI übersetzt in Code
- *
- * Keine API-Calls mehr. Variante wird rein clientseitig erzeugt.
  */
 
-import { useState, useCallback } from 'react'
-import { Pencil, Check, Palette, ExternalLink } from 'lucide-react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { Pencil, Check, Palette, ExternalLink, Sparkles, Loader2, AlertCircle, RefreshCw, ChevronDown } from 'lucide-react'
 import { ButtonEditor } from './ButtonEditor'
 import { TextInputEditor } from './TextInputEditor'
 import { getEditorCategory } from './types'
 import type { ElementSelection, VariantResult } from '../NewTestDrawer'
 
-type VariantMode = 'manual' | 'figma'
+type VariantMode = 'ai' | 'manual' | 'figma'
+type AiGenState = 'idle' | 'loading' | 'success' | 'error'
 
 interface StepVariantBProps {
   element: ElementSelection
@@ -28,9 +29,14 @@ interface StepVariantBProps {
 export function StepVariantB({
   element, variantResult, onVariantUpdate,
 }: StepVariantBProps) {
-  const [mode, setMode] = useState<VariantMode>('manual')
+  const [mode, setMode] = useState<VariantMode>(variantResult ? 'ai' : 'ai')
   const [showEditor, setShowEditor] = useState(!variantResult)
   const category = getEditorCategory(element.elementType)
+
+  // ── AI Generation State ──
+  const [aiState, setAiState] = useState<AiGenState>(variantResult ? 'success' : 'idle')
+  const [aiError, setAiError] = useState('')
+  const aiTriggered = useRef(false)
 
   // Inline CSS/HTML editing
   const [editingCss, setEditingCss] = useState(false)
@@ -58,6 +64,54 @@ export function StepVariantB({
     }
   }, [variantResult])
 
+  // ── AI Variant Generation ──
+
+  const handleAiGenerate = useCallback(async () => {
+    setAiState('loading')
+    setAiError('')
+
+    try {
+      const res = await fetch('/api/test-wizard/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          element: element.elementName || element.selector,
+          original: element.originalHtml || `<${element.elementType}>`,
+          elementType: element.elementType,
+          selector: element.selector || undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Generation failed' }))
+        setAiError(err.message ?? err.error ?? 'AI generation failed')
+        setAiState('error')
+        return
+      }
+
+      const data = await res.json()
+      onVariantUpdate({
+        variant: data.variant ?? '',
+        variant_html: data.variant_html ?? undefined,
+        variant_css: data.variant_css ?? undefined,
+        explanation: data.explanation ?? '',
+      })
+      setAiState('success')
+      setShowEditor(false)
+    } catch {
+      setAiError('Network error — please try again.')
+      setAiState('error')
+    }
+  }, [element, onVariantUpdate])
+
+  // Auto-trigger AI generation when entering step without existing variant
+  useEffect(() => {
+    if (!variantResult && !aiTriggered.current && aiState === 'idle') {
+      aiTriggered.current = true
+      handleAiGenerate()
+    }
+  }, [variantResult, aiState, handleAiGenerate])
+
   // ─── Render ───
 
   return (
@@ -65,35 +119,204 @@ export function StepVariantB({
       {/* Description */}
       <div>
         <p className="text-[13px] leading-relaxed text-text-2">
-          Create a variant for your element. Edit the text and styles directly, or design it in Figma.
+          Create a variant for your element. AI generates an optimized version — accept it, edit it, or start from scratch.
         </p>
       </div>
 
-      {/* Mode switcher */}
+      {/* ── Mode Switcher (3-way) ── */}
       <div className="flex rounded-[6px] border border-border bg-bg-0 p-0.5">
         <button
-          onClick={() => setMode('manual')}
-          className={`flex-1 rounded-[4px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
+          onClick={() => {
+            setMode('ai')
+            // Re-trigger AI if no variant yet and not already loading
+            if (!variantResult && aiState !== 'loading') {
+              aiTriggered.current = false
+              setAiState('idle')
+            }
+          }}
+          className={`flex-1 rounded-[4px] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+            mode === 'ai'
+              ? 'bg-pro text-black'
+              : 'text-text-2 hover:text-text'
+          }`}
+        >
+          <Sparkles className="inline h-3 w-3 mr-1" />
+          AI Generate
+        </button>
+        <button
+          onClick={() => { setMode('manual'); setAiState('idle') }}
+          className={`flex-1 rounded-[4px] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
             mode === 'manual'
               ? 'bg-fill-invert text-text-on-invert'
               : 'text-text-2 hover:text-text'
           }`}
         >
           <Pencil className="inline h-3 w-3 mr-1" />
-          Manual Editor
+          Manual
         </button>
         <button
           onClick={() => setMode('figma')}
-          className={`flex-1 rounded-[4px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
+          className={`flex-1 rounded-[4px] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
             mode === 'figma'
               ? 'bg-fill-invert text-text-on-invert'
               : 'text-text-2 hover:text-text'
           }`}
         >
           <Palette className="inline h-3 w-3 mr-1" />
-          From Figma
+          Figma
         </button>
       </div>
+
+      {/* ── AI MODE ── */}
+      {mode === 'ai' && (
+        <>
+          {/* AI Loading */}
+          {aiState === 'loading' && (
+            <div className="rounded-[10px] border border-pro/15 bg-pro/[0.03] p-5">
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pro/10">
+                  <Loader2 className="h-5 w-5 animate-spin text-pro" />
+                </div>
+                <div className="text-center">
+                  <p className="text-[13px] font-medium text-text">Generating variant…</p>
+                  <p className="mt-1 text-[11px] text-text-3">
+                    AI is creating an optimized version of your{' '}
+                    <span className="text-text-2 font-medium">{element.elementType}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setMode('manual'); setAiState('idle') }}
+                  className="text-[11px] text-text-3 hover:text-text-2 transition-colors cursor-pointer"
+                >
+                  Skip — edit manually instead
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* AI Error */}
+          {aiState === 'error' && (
+            <div className="rounded-[10px] border border-err/20 bg-err/[0.04] p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-err/60" />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-medium text-err/80">Generation failed</p>
+                  <p className="mt-1 text-[11px] text-text-3">{aiError}</p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={handleAiGenerate}
+                      className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      Retry
+                    </button>
+                    <button
+                      onClick={() => setMode('manual')}
+                      className="rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                    >
+                      Edit manually
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Success — variant preview */}
+          {aiState === 'success' && variantResult && !showEditor && (
+            <div className="space-y-3">
+              {/* Variant preview card */}
+              <div className="rounded-[10px] border border-ok/15 bg-ok/[0.03] p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-ok/15">
+                    <Sparkles className="h-3 w-3 text-ok" />
+                  </div>
+                  <p className="text-[11px] font-semibold text-ok uppercase tracking-wider">AI Variant Ready</p>
+                </div>
+
+                {/* Variant text/content */}
+                <div className="rounded-[7px] border border-border bg-bg-0 p-3">
+                  <p className="text-[11px] font-medium text-text-3 mb-1.5">Preview</p>
+                  <p className="text-[13px] leading-relaxed text-text">
+                    {variantResult.variant}
+                  </p>
+                </div>
+
+                {/* CSS preview (collapsed) */}
+                {variantResult.variant_css && (
+                  <details className="mt-2">
+                    <summary className="flex cursor-pointer items-center gap-1 text-[11px] text-text-3 hover:text-text-2 transition-colors">
+                      <ChevronDown className="h-3 w-3" />
+                      CSS Changes
+                    </summary>
+                    <code className="mt-1.5 block rounded-[6px] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">
+                      {variantResult.variant_css}
+                    </code>
+                  </details>
+                )}
+
+                {/* Explanation */}
+                {variantResult.explanation && (
+                  <p className="mt-2 text-[10px] text-text-3 italic">
+                    {variantResult.explanation}
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowEditor(true)}
+                  className="flex items-center gap-1.5 rounded-[6px] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit
+                </button>
+                <button
+                  onClick={handleAiGenerate}
+                  className="flex items-center gap-1.5 rounded-[6px] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Regenerate
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Editor overlay when user clicks "Edit" on AI result */}
+          {aiState === 'success' && showEditor && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 rounded-[6px] bg-pro/[0.04] px-3 py-2">
+                <Sparkles className="h-3.5 w-3.5 text-pro" />
+                <p className="text-[11px] text-text-2">
+                  Editing AI-generated variant. Changes are applied to the AI result.
+                </p>
+              </div>
+              {category === 'button' ? (
+                <ButtonEditor
+                  element={element}
+                  originalHtml={variantResult?.variant_html ?? element.originalHtml}
+                  onApply={(html, css) => {
+                    handleApply(html, css)
+                    setShowEditor(false)
+                  }}
+                  onCancel={() => setShowEditor(false)}
+                />
+              ) : (
+                <TextInputEditor
+                  element={element}
+                  originalHtml={variantResult?.variant_html ?? element.originalHtml}
+                  onApply={(html, css) => {
+                    handleApply(html, css)
+                    setShowEditor(false)
+                  }}
+                  onCancel={() => setShowEditor(false)}
+                />
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Manual Editor Mode */}
       {mode === 'manual' && (
@@ -174,8 +397,8 @@ export function StepVariantB({
         </div>
       )}
 
-      {/* Applied variant summary */}
-      {!showEditor && variantResult && (
+      {/* Applied variant summary (manual/figma only — AI has its own preview) */}
+      {mode !== 'ai' && !showEditor && variantResult && (
         <div className="space-y-4">
           <div className="rounded-[10px] border border-border bg-bg-1 p-4">
             <div className="flex items-start gap-3">

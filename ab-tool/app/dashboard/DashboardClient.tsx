@@ -26,6 +26,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
+import { PlanUsageBar } from './components/PlanUsageBar'
 
 // ponytail: apiToken/hasFigmaPlugin/email waren tote Props — nie im Body
 // verwendet, aber vom Server in den HTML-Payload serialisiert. Bei apiToken
@@ -37,6 +38,7 @@ export function DashboardClient({
   primaryDomain,
   verifiedAt,
   allVerifiedDomains,
+  domainCount,
   highlightNew,
   upgraded,
   openNewTest,
@@ -48,6 +50,7 @@ export function DashboardClient({
   primaryDomain: string | null
   verifiedAt: string | null
   allVerifiedDomains: { url: string; verifiedAt: string | null }[]
+  domainCount: number
   highlightNew?: boolean
   upgraded?: boolean
   openNewTest?: boolean
@@ -55,6 +58,7 @@ export function DashboardClient({
 }) {
   const router = useRouter()
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
+  const [resumeTest, setResumeTest] = useState<TestRow | null>(null)
   const [drawerOpenCount, setDrawerOpenCount] = useState(0)
   const isPro = plan === 'pro' || plan === 'agency'
 
@@ -82,6 +86,7 @@ export function DashboardClient({
 
   const {
     testList,
+    setTestList,
     query,
     setQuery,
     filter,
@@ -170,6 +175,9 @@ export function DashboardClient({
 
       {/* Hybrid-Onboarding: Variante fertig, Snippet fehlt */}
       {pendingPreviewTest && <PreviewReadyBanner test={pendingPreviewTest} />}
+
+      {/* Free plan usage — proactive limit visibility before hitting a wall */}
+      <PlanUsageBar plan={plan} activeTests={activeTests} domainCount={domainCount} />
 
       {/* Content header: scope selector + CTA */}
       {/* A11Y-05: Bei mehreren Domains ersetzte das <select> das <h1> — die Seite
@@ -292,23 +300,34 @@ export function DashboardClient({
           <NewTestDrawer
             key={`drawer-${newTestOpen ? 'open' : 'closed'}-${drawerOpenCount}`}
             isOpen={newTestOpen}
-            onClose={() => setNewTestOpen(false)}
+            onClose={() => { setNewTestOpen(false); setResumeTest(null) }}
             userId={userId}
+            resumeTest={resumeTest}
             onTestCreated={(createdTest) => {
               setNewTestOpen(false)
+              setResumeTest(null)
               setDrawerOpenCount((c) => c + 1)
-              addTest({
-                id: createdTest.id,
-                name: createdTest.name,
-                site_url: createdTest.site_url,
-                status: createdTest.status,
-                visitors_a: 0,
-                visitors_b: 0,
-                conversions_a: 0,
-                conversions_b: 0,
-                winner: null,
-                created_at: new Date().toISOString(),
-              })
+              if (resumeTest) {
+                // Resume: update the existing draft test in the list
+                setTestList((prev) => prev.map((t) =>
+                  t.id === resumeTest.id
+                    ? { ...t, name: createdTest.name, site_url: createdTest.site_url, status: createdTest.status, health_status: null, health_issues: null }
+                    : t
+                ))
+              } else {
+                addTest({
+                  id: createdTest.id,
+                  name: createdTest.name,
+                  site_url: createdTest.site_url,
+                  status: createdTest.status,
+                  visitors_a: 0,
+                  visitors_b: 0,
+                  conversions_a: 0,
+                  conversions_b: 0,
+                  winner: null,
+                  created_at: new Date().toISOString(),
+                })
+              }
             }}
             verifiedDomains={allVerifiedDomains}
           />
@@ -339,7 +358,7 @@ export function DashboardClient({
             <ErrorBoundary label="Tests">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredTests.map((t, i) => (
-                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" />
+                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true); setDrawerOpenCount((c) => c + 1) }} />
                 ))}
               </div>
             </ErrorBoundary>

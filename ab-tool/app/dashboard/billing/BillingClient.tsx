@@ -121,10 +121,24 @@ export function BillingClient({ data }: { data: BillingData }) {
               label="Active experiments"
               value={isPro ? `${data.running}` : `${data.running} / 1`}
               atLimit={!isPro && data.running >= 1}
+              proValue={!isPro ? 'Unlimited' : undefined}
             />
-            <QuotaRow icon={Users} label="Total experiments" value={`${data.totalTests}`} />
-            <QuotaRow icon={Zap} label="Total visitors" value={data.totalVisitors.toLocaleString()} />
-            <QuotaRow icon={TrendingUp} label="Total conversions" value={data.totalConversions.toLocaleString()} />
+            <QuotaRow
+              icon={Users}
+              label="Total experiments"
+              value={`${data.totalTests}`}
+              proValue={!isPro ? 'Unlimited' : undefined}
+            />
+            <QuotaRow
+              icon={Zap}
+              label="Total visitors"
+              value={data.totalVisitors.toLocaleString()}
+            />
+            <QuotaRow
+              icon={TrendingUp}
+              label="Total conversions"
+              value={data.totalConversions.toLocaleString()}
+            />
             {data.avgLift !== null && (
               <QuotaRow
                 icon={TrendingUp}
@@ -155,12 +169,14 @@ function QuotaRow({
   value,
   atLimit,
   tone,
+  proValue,
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
   atLimit?: boolean
   tone?: 'ok' | 'err'
+  proValue?: string
 }) {
   const colorClass = atLimit ? 'text-pro' : tone === 'ok' ? 'text-ok' : tone === 'err' ? 'text-err' : 'text-text-2'
   return (
@@ -172,6 +188,11 @@ function QuotaRow({
       <span className={`font-mono text-[13px] ${colorClass}`}>
         {value}
       </span>
+      {proValue && (
+        <span className="hidden sm:inline text-[11px] text-text-3/50 w-[100px] text-right">
+          Pro: {proValue}
+        </span>
+      )}
     </div>
   )
 }

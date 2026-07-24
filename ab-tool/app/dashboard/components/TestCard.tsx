@@ -21,6 +21,12 @@ export type TestRow = {
   conversions_b: number
   winner: string | null
   created_at: string
+  /** Draft resume fields — needed to re-open the wizard for incomplete tests. */
+  selector?: string | null
+  original_html?: string | null
+  goal?: string | null
+  variant_b_html?: string | null
+  variant_b_css?: string | null
   /** Gesetzt, wenn der Test aus dem Hybrid-Onboarding stammt (Preview vor Sign-up). */
   preview_variant_screenshot_url?: string | null
 }
@@ -94,11 +100,14 @@ export function TestCard({
   t,
   highlight,
   onDelete,
+  onCompleteDraft,
   from,
 }: {
   t: TestRow
   highlight?: boolean
   onDelete?: (id: string) => void
+  /** Called when a draft test card is clicked — opens wizard instead of results page. */
+  onCompleteDraft?: (test: TestRow) => void
   from?: string
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -194,13 +203,24 @@ export function TestCard({
   }
 
   const isLive = status === 'active' || status === 'paused'
+  const isDraft = status === 'draft'
+  const hasIssues = Array.isArray(t.health_issues) && t.health_issues.length > 0
+
+  const cardClassName = `group/card relative block w-full text-left rounded-[10px] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
+    isDraft ? 'border-dashed border-border bg-bg-0/60 cursor-pointer' : 'border-border bg-bg-1'
+  }`
+
+  // Draft card: click opens the completion wizard instead of the (empty) results page.
+  function handleDraftClick(e: React.MouseEvent) {
+    e.preventDefault()
+    if (onCompleteDraft) onCompleteDraft(t)
+  }
 
   return (
     <Link
-      href={`/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
-      className={`group/card relative block rounded-[10px] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
-        status === 'draft' ? 'border-dashed border-border bg-bg-0/60' : 'border-border bg-bg-1'
-      }`}
+      href={isDraft && onCompleteDraft ? '#' : `/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
+      onClick={isDraft && onCompleteDraft ? handleDraftClick : undefined}
+      className={cardClassName}
       style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
     >
       {/* Live-Pulse: subtile Signatur für aktive Tests */}
@@ -350,8 +370,16 @@ export function TestCard({
           {status === 'active' ? 'Active' : status === 'paused' ? 'Paused' : status === 'done' ? 'Done' : 'Draft'}
         </span>
 
-        {/* Health issues pill */}
-        {t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length > 0 && (
+        {/* Draft: "Complete setup" call-to-action pill */}
+        {isDraft && hasIssues && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-pro/20 bg-pro/[0.08] px-2 py-0.5 text-[11px] font-medium text-pro">
+            <Pencil className="h-3 w-3" />
+            Complete setup
+          </span>
+        )}
+
+        {/* Health issues pill — only for non-draft tests */}
+        {!isDraft && t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length > 0 && (
           <span
             className="inline-flex items-center gap-1 rounded-full border border-err/20 bg-err/[0.05] px-2 py-0.5 text-[11px] text-err"
             title={t.health_issues.map(code => issueLabel(code)).join(', ')}

@@ -3,7 +3,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { BLOCKED_HOSTS, BLOCKED_HOSTNAMES } from '@/lib/ssrf'
-import { getDomainLimit } from '@/lib/planLimits'
+import { getDomainLimit, getDomainLimitMessage } from '@/lib/planLimits'
 import { revalidatePath } from 'next/cache'
 
 export async function OPTIONS() {
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
 
   if ((count ?? 0) >= domainLimit) {
     return Response.json(
-      { error: `Your ${user.plan} plan allows ${domainLimit} website${domainLimit > 1 ? 's' : ''}. Delete an existing domain or upgrade.`, limit: domainLimit },
+      { error: getDomainLimitMessage(user.plan), limit: domainLimit },
       { status: 402, headers: corsHeaders('POST, OPTIONS') }
     )
   }
