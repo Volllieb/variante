@@ -1,6 +1,6 @@
 # Market Research: Wie komme ich zu meinem ersten User?
 
-> Stand: 09.07.2026. Ziel: Erster Design-Partner → erster Pro-Kunde. Kein Theorie-Paper, sondern operationeller Plan.
+> Stand: 24.07.2026. Ziel: Erster Design-Partner → erster Pro-Kunde. Kein Theorie-Paper, sondern operationeller Plan.
 
 ---
 
@@ -387,7 +387,7 @@ Der Moment, in dem aus einem Interessenten ein Nutzer wird:
 ## 10. Quellen & Tools
 
 ### Eigene Tools
-- `scripts/x-pain-finder.user.js` — Tampermonkey-Script für X-Pain-Highlighting
+- ⚠️ `scripts/x-pain-finder.user.js` — Defekt (X-DOM-Änderungen), siehe `docs/gotomarket.md` für manuelle Bookmark-Queries
 - `figma-plugin/` — LIVE im Community Store
 - `ab.js` — Snippet mit eingebautem Picker
 - `ab-tool/` — Dashboard + API

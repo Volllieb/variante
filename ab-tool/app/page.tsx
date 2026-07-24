@@ -58,6 +58,18 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             variante
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href="#how-it-works"
+              className="text-sm text-white/55 transition-colors duration-200 hover:text-white hidden sm:inline"
+            >
+              How it works
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm text-white/55 transition-colors duration-200 hover:text-white hidden sm:inline"
+            >
+              Pricing
+            </a>
             <Link
               href="/login"
               className="text-sm text-white/55 transition-colors duration-200 hover:text-white"
@@ -92,7 +104,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </p>
             <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
               <a
-                href="#demo-hybrid"
+                href="#try-site"
                 className="inline-flex rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3.5"
               >
                 {copy.heroCta}
@@ -120,9 +132,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             </span>
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
               {techLogos.map((logo) => (
-                <div key={logo.name} className="flex items-center gap-2.5">
-                  <TechLogoMark logo={logo} className="h-5 w-5 text-white/30" />
-                  <span className="text-xs text-white/45">{logo.name}</span>
+                <div
+                  key={logo.name}
+                  className="flex items-center gap-2.5 group transition-all duration-200"
+                >
+                  <TechLogoMark logo={logo} className="h-5 w-5 text-white/30 transition-colors duration-200 group-hover:text-white/60" />
+                  <span className="text-xs text-white/45 transition-colors duration-200 group-hover:text-white/65">{logo.name}</span>
                 </div>
               ))}
             </div>
@@ -131,7 +146,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── How it works (statische Feature-Showcase) ── */}
-      <section className="section">
+      <section id="how-it-works" className="section">
         <div className="container">
           <span className="section-label">How it works</span>
           <h2 className="section-heading mt-1">Three steps to your first test</h2>
@@ -154,8 +169,16 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 title: 'Create a variant & test',
                 body: 'Write the new version — or let the AI draft one. Variante splits traffic and measures conversions.',
               },
-            ].map((step) => (
-              <div key={step.title} className="step-card rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
+            ].map((step, i) => (
+              <div key={step.title} className="step-card relative rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
+                {/* Connection arrows between steps (hidden on mobile) */}
+                {i < 2 && (
+                  <div className="hidden sm:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 text-white/15 pointer-events-none">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M18 7l5 5-5 5" />
+                    </svg>
+                  </div>
+                )}
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/70 mb-4">
                   <step.icon className="h-5 w-5" />
                 </span>
@@ -170,7 +193,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               href="/signup"
               className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start now — it&apos;s free
+              Create your first test — free
               <ArrowUpRight className="ml-1 h-3.5 w-3.5 opacity-60" />
             </Link>
           </div>
@@ -178,70 +201,15 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </section>
 
       {/* ── Try your site (demo → signup flow) ── */}
-      <LandingTrySite />
-
-
-      {/* ── How A/B Testing Works ── */}
-      <section className="section">
-        <div className="container">
-          <span className="section-label">{copy.sectionAgent}</span>
-          <h2 className="section-heading mt-1">{copy.agentH}</h2>
-          <p className="section-sub">{copy.agentSub}</p>
-
-          <div className="mx-auto mt-8 max-w-full">
-            <div className="relative w-full overflow-hidden rounded-xl border border-border" style={{ aspectRatio: '960/540' }} aria-hidden="true">
-              <iframe
-                src="/ai-workflow-animation.html"
-                className="absolute inset-0 w-full h-full border-0"
-                title="AI workflow demo: analyze, generate, test, ship"
-                loading="lazy"
-                sandbox="allow-scripts allow-same-origin"
-              />
-            </div>
-          </div>
-          <p className="mt-3 text-center text-xs text-text-3 italic">{copy.agentLoopNote}</p>
-
-          {/* Agent Loop Cards */}
-          <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {copy.agentLoop.map((item, i) => (
-              <div key={item.title} className="agent-loop-card rounded-xl border border-border bg-bg-1 p-4">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-bg-2 text-[11px] font-semibold text-text-3">
-                  {i + 1}
-                </span>
-                <h4 className="mt-3 text-sm font-semibold text-white/80">{item.title}</h4>
-                <p className="mt-1.5 text-xs text-white/45 font-normal leading-relaxed">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section id="try-site">
+        <LandingTrySite />
       </section>
 
-      <div className="section-divider" />
-
-      {/* ── Figma Community ── */}
-      <section className="section">
-        <div className="container-narrow text-center">
-          <span className="section-label">Figma</span>
-          <h2 className="section-heading mt-1">{copy.figmaCommunityTitle}</h2>
-          <p className="section-sub">{copy.figmaCommunityText}</p>
-          <div className="mt-8">
-            <a
-              href="https://www.figma.com/community/plugin/1653734891132085565"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-full border border-border-strong px-5 py-2.5 text-sm font-medium text-white/65 transition-all duration-200 hover:border-white/40 hover:text-white/85"
-            >
-              {copy.figmaCommunityLinkText}
-              <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 opacity-60" />
-            </a>
-          </div>
-        </div>
-      </section>
 
       <div className="section-divider" />
 
       {/* ── Pricing ── */}
-      <section className="section">
+      <section id="pricing" className="section">
         <div className="container">
           <span className="section-label">{copy.sectionPricing}</span>
           <h2 className="section-heading mt-1">{copy.sectionPricing}</h2>
@@ -380,7 +348,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {copy.closingCta}
             </Link>
           </div>
-          <p className="cta-urgency">{copy.heroFootnote || copy.pricingSub}</p>
+          <p className="cta-urgency">No credit card. No setup. 5 minutes to your first test.</p>
         </div>
       </section>
 
@@ -407,6 +375,20 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
             >
               {copy.footerDocs}
+            </Link>
+            <a
+              href="https://github.com/valentin/ab-tool/blob/main/CHANGELOG.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
+            >
+              {copy.footerChangelog}
+            </a>
+            <Link
+              href="/terms"
+              className="text-xs text-text-3 transition-colors duration-200 hover:text-text-2"
+            >
+              {copy.footerTerms}
             </Link>
             <Link
               href="/privacy"

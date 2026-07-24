@@ -1,6 +1,6 @@
 # Flow C — Onboarding-Redesign: Signup first, dann interaktives Onboarding
 
-> Stand: 22.07.2026
+> Stand: 24.07.2026
 > Status: Umgesetzt
 >
 > **Abhängigkeit:** Der Snippet-Check-Redesign (`docs/redesign-snippet-check.md`) sollte VOR oder parallel zu Flow C umgesetzt werden, da beide den Domain-Eingabe-Flow betreffen. Der Snippet-Status-Badge im Dashboard (aus dem Redesign) wird im Onboarding-Step 2 referenziert.

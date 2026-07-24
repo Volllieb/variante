@@ -3,7 +3,7 @@
 > **Anfassen verboten.** Dieser Ordner dokumentiert, was sicher kommt — aber erst nach Launch & Stabilisierung.
 > Kein Code dafür schreiben, keine Vorbereitungen treffen. Nur Denkarbeit parken.
 >
-> **Stand: 17.07.2026** — Mit aktuellem Code-Stand (PROJEKT.md §8) abgeglichen.
+> **Stand: 24.07.2026** — Mit aktuellem Code-Stand (PROJEKT.md §8) abgeglichen.
 >
 > ## ✅ Seit letztem Abgleich implementiert
 >
@@ -14,12 +14,17 @@
 > | **Self-Improving Site Engine v1+v2** | 13.–14.07.2026 | 🟡 Teilweise — CRO-Analyse + Agent + site_insights live, Learning Loop (v3) offen |
 > | **PLUGIN-WEB-SPLIT** | 03.–06.07.2026 | ✅ Abgeschlossen — Plugin = Creation, Web = Analysis |
 > | **Dashboard-Sprints 1–6** | 07.–17.07.2026 | ✅ Alle deployed (Setup-Checkliste → Inline-Billing) |
-> | **E2E-Test-Suite** (Playwright) | Juli 2026 | ✅ Live — smoke, auth, dashboard, conversion, mobile |
-> | **Error-Tracking** (Sentry) | 17.07.2026 | ✅ Live — 4 Env-Vars (DSN, ORG, PROJECT, AUTH_TOKEN) |
+> | **E2E-Test-Suite** (Playwright) | Juli 2026 | ✅ Live — 89 Tests über 9 Specs |
+> | **Error-Tracking** (Sentry) | 17.07.2026 | ✅ Live — Client + Server (10 Env-Vars) |
+> | **Produktionsreife-Audit** (Sessions 1–3) | 22.–23.07.2026 | ✅ 92% — Security, DB, UX, A11Y, Recht (~55/60 Items) |
+> | **Consent-API + AVV-Vorlage** | 23.07.2026 | ✅ Live — `window.varianteConsent`, `docs/avv-vorlage.md` |
+> | **Mobiles Dashboard** | 23.07.2026 | ✅ Live — Off-Canvas-Drawer, Hamburger, Focus-Trap |
+> | **Auto-Promotion** | 24.07.2026 | ✅ Live — Preview→Production bei Build auf `master` |
+> | **Loading/Error-States** | 24.07.2026 | ✅ Live — Billing, Account, Tests |
 > | **Hybrid-Onboarding-Plan v4** | 17.07.2026 | 📐 Planung — Option A (Code-Analyse), SPA-Fallback |
-| **Web Test-Erstellungs-Flow** | 18.07.2026 | ❓ Fragebogen — Anforderungsklärung für Wizard-Redesign |
-| **New Test Flow — Multi-Agent-Plan** | 18.07.2026 | 📐 Planung — 13 Schritte, 5 Components, 3 API-Routen, Figma-Umbau |
-| **Button-Editor — Visueller Werkzeugkasten** | 20.07.2026 | 📐 Planung — Property-Panel, Hover-Presets, CSS-Generator, Live-Preview |
+> | **Web Test-Erstellungs-Flow** | 18.07.2026 | ❓ Fragebogen — Anforderungsklärung für Wizard-Redesign |
+> | **New Test Flow — Multi-Agent-Plan** | 18.07.2026 | 📐 Planung — 13 Schritte, 5 Components, 3 API-Routen |
+> | **Button-Editor — Visueller Werkzeugkasten** | 20.07.2026 | 📐 Planung — Property-Panel, Hover-Presets, CSS-Generator |
 
 ---
 
@@ -385,4 +390,4 @@ Wenn Varianten auch ohne Figma erstellbar sind (Upload, AI-only, Copy-Variation)
 
 ---
 
-*Stand: 17.07.2026 — Abgleich mit PROJEKT.md §8. Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*
+*Stand: 24.07.2026 — Abgleich mit PROJEKT.md §8. Nichts davon anfassen bis nach Launch + stabilem Pro-Umsatz.*

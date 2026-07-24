@@ -4,18 +4,41 @@ import { useState, useRef, useEffect } from 'react'
 
 /**
  * Hero-Demo-Video: bettet die GSAP-Animation als Video-Player-ähnliches
- * Element ein. Der iframe-Inhalt läuft automatisch — der Play-Button
- * ist rein dekorativ und verschwindet beim ersten Tap/Hover.
+ * Element ein. Synchronisiert das Overlay via postMessage mit der
+ * tatsächlichen GSAP-Timeline — kein blindes Timeout mehr.
  */
 export function LandingDemo() {
   const [revealed, setRevealed] = useState(false)
+  const [iframeReady, setIframeReady] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    // Reveal after a short delay so the animation is ready
-    const t = setTimeout(() => setRevealed(true), 600)
-    return () => clearTimeout(t)
+    // Listen for the iframe's "I'm ready" signal
+    const handler = (e: MessageEvent) => {
+      if (e.data === 'hero-animation-ready') {
+        setIframeReady(true)
+      }
+    }
+    window.addEventListener('message', handler)
+
+    // Fallback: reveal after 1.2s even if postMessage never arrives
+    fallbackTimer.current = setTimeout(() => setRevealed(true), 1200)
+
+    return () => {
+      window.removeEventListener('message', handler)
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
+    }
   }, [])
+
+  // Once the iframe signals readiness, reveal with a short grace delay
+  useEffect(() => {
+    if (iframeReady) {
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
+      const t = setTimeout(() => setRevealed(true), 200)
+      return () => clearTimeout(t)
+    }
+  }, [iframeReady])
 
   return (
     <div

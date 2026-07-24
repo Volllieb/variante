@@ -12,7 +12,7 @@ export type Notification = {
   body: string
   href?: string
   read: boolean
-  createdAt: Date
+  created_at: string
 }
 
 const iconMap = {
@@ -40,6 +40,10 @@ function timeAgo(d: Date): string {
   return 'just now'
 }
 
+function isNewer(a: Notification, b: Notification): boolean {
+  return new Date(a.created_at).getTime() > new Date(b.created_at).getTime()
+}
+
 export function NotificationCenter() {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>(() => {
@@ -48,25 +52,80 @@ export function NotificationCenter() {
       const stored = localStorage.getItem('variante-notifications')
       if (!stored) return []
       const parsed = JSON.parse(stored)
-      return parsed.map((n: Record<string, unknown>) => ({ ...n, createdAt: new Date(n.createdAt as string) }))
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : []
     } catch {
       return []
     }
   })
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const lastSeenRef = useRef<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  // Persist — try/catch für Safari Private Mode (QuotaExceededError, Plan CODE-04).
+  // ── Poll server for new notifications ──
+  const pollServer = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({ unread: '1', limit: '50' })
+      if (lastSeenRef.current) params.set('since', lastSeenRef.current)
+      const res = await fetch(`/api/notifications?${params.toString()}`)
+      if (!res.ok) return
+      const { notifications: serverNotes } = await res.json()
+      if (!serverNotes || serverNotes.length === 0) return
+
+      setNotifications((prev) => {
+        const existingIds = new Set(prev.map((n) => n.id))
+        const fresh = (serverNotes as Notification[]).filter((n) => !existingIds.has(n.id))
+        if (fresh.length === 0) return prev
+        // Update lastSeenRef so next poll only gets newer notifications
+        const newest = fresh.reduce((a, b) => isNewer(a, b) ? a : b, fresh[0])
+        const newestTs = new Date(newest.created_at).getTime()
+        if (!lastSeenRef.current || newestTs > new Date(lastSeenRef.current).getTime()) {
+          lastSeenRef.current = newest.created_at
+        }
+        return [...fresh, ...prev]
+      })
+    } catch {
+      // silent — polling is best-effort
+    }
+  }, [])
+
+  // ── Load from server on mount, then poll every 60s ──
+  useEffect(() => {
+    // Initial server fetch — merges with localStorage cache (loaded via lazy initializer)
+    fetch('/api/notifications?limit=50')
+      .then((res) => res.ok ? res.json() : null)
+      .then((json) => {
+        if (json?.notifications) {
+          setNotifications((prev) => {
+            const serverIds = new Set((json.notifications as Notification[]).map((n: Notification) => n.id))
+            const localOnly = prev.filter((n) => !serverIds.has(n.id))
+            return [...localOnly, ...json.notifications]
+          })
+        }
+      })
+      .catch(() => {})
+
+    // Poll every 60 seconds
+    pollRef.current = setInterval(pollServer, 60_000)
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [pollServer])
+
+  // ── Persist to localStorage (cache for next mount) ──
   useEffect(() => {
     try {
-      localStorage.setItem('variante-notifications', JSON.stringify(notifications))
+      // Nur die neuesten 50 persistieren
+      const toPersist = [...notifications]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 50)
+      localStorage.setItem('variante-notifications', JSON.stringify(toPersist))
     } catch {
-      // Safari Private Mode wirft QuotaExceededError. Ignorieren — Notifications
-      // leben dann nur für die Session (State).
+      // Safari Private Mode wirft QuotaExceededError
     }
   }, [notifications])
 
-  // Close on outside click
+  // ── Close on outside click ──
   useEffect(() => {
     if (!open) return
     function handleClick(e: MouseEvent) {
@@ -76,14 +135,23 @@ export function NotificationCenter() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
-  const markAllRead = useCallback(() => {
+  const markAllRead = useCallback(async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+    } catch { /* silent */ }
   }, [])
 
   const clearAll = useCallback(() => {
     setNotifications([])
+    try { localStorage.removeItem('variante-notifications') } catch { /* noop */ }
   }, [])
 
+  // ── Render ──
   return (
     <div className="relative" ref={ref}>
       <Tooltip content="Notifications">
@@ -95,7 +163,7 @@ export function NotificationCenter() {
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#f5455c] px-1 text-[9px] font-bold text-white leading-none">
-              {unreadCount}
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>
@@ -135,11 +203,11 @@ export function NotificationCenter() {
               </div>
             ) : (
               [...notifications]
-                .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .map((n) => {
                   const Icon = iconMap[n.type]
                   const c = colorMap[n.type]
-                  return (
+                  const content = (
                     <div
                       key={n.id}
                       className={`flex items-start gap-2.5 border-b border-white/[0.04] px-4 py-2.5 last:border-b-0 transition-colors hover:bg-[#111111] ${n.read ? 'opacity-60' : ''}`}
@@ -150,15 +218,24 @@ export function NotificationCenter() {
                       <div className="min-w-0 flex-1">
                         <p className="text-[12px] font-medium text-[#ededed] truncate">{n.title}</p>
                         <p className="mt-0.5 text-[11px] leading-relaxed text-[#ededed]/50 line-clamp-2">{n.body}</p>
-                        <p className="mt-1 text-[10px] text-[#ededed]/30">{timeAgo(n.createdAt)}</p>
+                        <p className="mt-1 text-[10px] text-[#ededed]/30">{timeAgo(new Date(n.created_at))}</p>
                       </div>
                       {!n.read && (
                         <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#2fd76c]" title="Unread" />
                       )}
                     </div>
                   )
+
+                  if (n.href) {
+                    return (
+                      <a key={n.id} href={n.href} className="block" onClick={() => setOpen(false)}>
+                        {content}
+                      </a>
+                    )
+                  }
+                  return content
                 })
-              )}
+            )}
           </div>
         </div>
       )}

@@ -78,7 +78,30 @@ async function run(req: Request) {
       significanceLevel: t.significance_level ?? 0.95,
     })
     const winner = verdict.winner
-    if (!winner) skipped.push({ id: t.id, reason: verdict.reason })
+    if (!winner) {
+      skipped.push({ id: t.id, reason: verdict.reason })
+
+      // ─── Pre-Winner-Warning: Test nähert sich Signifikanz ───
+      // Nur warnen wenn der Test schon genug Daten hat (reason ist nicht
+      // 'not-enough-visitors' oder 'too-early'), aber noch nicht signifikant ist.
+      if (
+        sig >= 0.90 &&
+        verdict.reason !== 'not-enough-visitors' &&
+        verdict.reason !== 'not-enough-conversions' &&
+        verdict.reason !== 'too-early'
+      ) {
+        const crA = t.visitors_a > 0 ? t.conversions_a / t.visitors_a : 0
+        const crB = t.visitors_b > 0 ? t.conversions_b / t.visitors_b : 0
+        const uplift = crA > 0 ? Math.round(((crB - crA) / crA) * 10000) / 100 : 0
+        await supabase.from('notifications').insert({
+          user_id: t.user_id,
+          type: 'significance',
+          title: `"${t.name}" is approaching significance`,
+          body: `Your test has reached ${Math.round(sig * 100)}% confidence with ${(t.visitors_a + t.visitors_b).toLocaleString()} visitors. Variant B shows ${uplift > 0 ? '+' : ''}${uplift.toFixed(1)}% uplift.`,
+          href: `/dashboard/results/${t.id}`,
+        })
+      }
+    }
 
     if (winner) {
       // Winner persistieren + Auto-Promotion: Status auf 'done' setzen.
@@ -88,6 +111,18 @@ async function run(req: Request) {
         .from('tests')
         .update({ winner, significance: sig, status: 'done' })
         .eq('id', t.id)
+
+      // In-App Notification: Winner detected
+      const crAWin = t.visitors_a > 0 ? t.conversions_a / t.visitors_a : 0
+      const crBWin = t.visitors_b > 0 ? t.conversions_b / t.visitors_b : 0
+      const upliftWin = crAWin > 0 ? Math.round(((crBWin - crAWin) / crAWin) * 10000) / 100 : 0
+      await supabase.from('notifications').insert({
+        user_id: t.user_id,
+        type: 'test_done',
+        title: `🏆 "${t.name}" — Variant ${winner} won!`,
+        body: `Variant ${winner} is now live for all visitors (${(sig * 100).toFixed(1)}% confidence, ${upliftWin > 0 ? '+' : ''}${upliftWin.toFixed(1)}% uplift).`,
+        href: `/dashboard/results/${t.id}`,
+      })
 
       // Event loggen
       await supabase.rpc('log_event', {

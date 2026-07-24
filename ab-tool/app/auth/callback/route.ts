@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
+import { supabase as supabaseAdmin } from '@/lib/supabase'
 
 /**
  * Validiert den `next`-Parameter gegen Open Redirect (Plan SEC-07).
@@ -71,6 +72,12 @@ export async function GET(req: NextRequest) {
       const attribution = parseAttribution(rawNext0)
       if (data.user) {
         await ensureProfile(data.user.id, attribution)
+        // Google OAuth: Implied consent — set terms_accepted_at if not already set
+        await supabaseAdmin
+          .from('profiles')
+          .update({ terms_accepted_at: new Date().toISOString() })
+          .eq('user_id', data.user.id)
+          .is('terms_accepted_at', null)
       }
       // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
       if (attribution.plan === 'pro') {

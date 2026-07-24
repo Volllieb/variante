@@ -2,7 +2,7 @@
 
 > **Produkt:** A/B-Testing für jede Website. URL eingeben → Element mit Built-in-Picker wählen → KI generiert Variante B → Snippet trackt Conversions. Figma-Plugin zeigt Live-Stats im Editor. Test-Creation-Flow im Dashboard integriert Figma als optionale Variant-Quelle.
 > **Domain:** [www.getvariante.com](https://www.getvariante.com)
-> **Phase:** GTM-Ready — Produktionsreife-Prüfung zu 92% abgeschlossen, keine Launch-Blocker
+> **Phase:** GTM-Ready — Produktionsreife zu 92% abgeschlossen, keine Launch-Blocker (Stand: 24.07.2026)
 
 ## Stack
 
@@ -21,7 +21,7 @@
 | Validation | zod |
 | E2E Tests | Playwright 1.61 |
 | Load Tests | k6 |
-| Snippet | Vanilla JS `ab.js` (~41 KB, ES5 IIFE, self-contained element picker) |
+| Snippet | Vanilla JS `ab.js` (~14 KB, ES5 IIFE, self-contained element picker) |
 
 ## Monorepo Structure
 
@@ -29,7 +29,7 @@
 variante/
 ├── ab-tool/          # Next.js App — API, Dashboard, Landing (Vercel Root Dir)
 ├── figma-plugin/     # Figma Plugin (Stats-Only, 320×360px, zeigt Live-Test-Daten im Editor)
-├── db/migrations/    # Supabase SQL (001–034, migration-tracking via schema_migrations)
+├── db/migrations/    # Supabase SQL (001–036, migration-tracking via schema_migrations)
 ├── docs/             # Brand, GTM, Architecture, Runbook, Future Features
 ├── .claude/          # Claude Code skills (13 installed) + settings
 ├── .github/          # CI (e2e.yml), Copilot agents, copilot-instructions.md
@@ -80,12 +80,12 @@ vercel promote <url>              # Promote preview → production
 | Agent | `/api/agent`, `/api/agent/runs` |
 | Analytics | `/api/analytics/[testId]` |
 | Billing | `/api/billing/checkout`, `/api/billing/portal`, `/api/stripe/webhook` |
-| Cron | `/api/cron/{check-winners,snapshot-stats,cleanup-webhooks,cleanup-data,cleanup-previews,weekly-digest}` |
+| Cron | `/api/cron/{check-winners,snapshot-stats,cleanup-webhooks,cleanup-data,cleanup-previews,weekly-digest}` (alle GET+POST) |
 | Core | `/api/resolve`, `/api/assign`, `/api/capture`, `/api/event`, `/api/events` |
 | Domains | `/api/domains`, `/api/domains/verify` |
 | Figma | `/api/figma/stats` (Plugin-Stats), `/api/capture` (Figma→Test Bridge) |
 | Generation | `/api/generate`, `/api/suggestions` |
-| Tests | `/api/tests`, `/api/tests/[id]`, `/api/test-wizard/*` |
+| Tests | `/api/tests`, `/api/tests/[id]`, `/api/test-wizard/{scan,generate,create,draft}` |
 | User | `/api/profile`, `/api/profile/avatar`, `/api/profile/export`, `/api/token`, `/api/token/regenerate` |
 | Other | `/api/health`, `/api/temp-session`, `/api/landing-demo`, `/api/snippet-check`, `/api/results/[id]`, `/api/results/export` |
 

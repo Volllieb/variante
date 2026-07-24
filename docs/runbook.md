@@ -48,7 +48,7 @@ vercel rollback                # oder: vercel promote <alte-deployment-url>
 
 ## Szenario: OpenAI-Ausfall oder Kosten-Explosion
 
-**Symptom:** `/api/generate`, `/api/agent`, `/api/suggestions`, `/api/preview` schlagen fehl oder Kosten steigen.
+**Symptom:** `/api/generate`, `/api/agent`, `/api/suggestions` schlagen fehl oder Kosten steigen.
 
 - Ausfall: [status.openai.com](https://status.openai.com). Kein Handlungsbedarf — Fehler werden im UI angezeigt, Kern-Produkt (laufende Tests) ist nicht betroffen.
 - Kosten: Caps greifen automatisch — `OPENAI_MAX_MONTHLY_COST` (20 $/Monat Pro, 5 $ Free, 60 $ Agency) via `profiles.monthly_gen_cost`. Zusätzlich Tages-Limits für Previews (`PREVIEW_DAILY_*`, `REFINE_DAILY_*`).

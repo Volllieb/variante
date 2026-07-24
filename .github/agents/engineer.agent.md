@@ -26,7 +26,7 @@ Du bist der primäre Implementierungsagent für das Variante-Projekt. Kein Berat
 - **Stack:** Next.js 16 (App Router), TypeScript strict, Supabase (Auth, DB), Stripe (Billing), Vercel (Deploy), Tailwind CSS
 - **Struktur:** `ab-tool/` = Next.js App, `docs/` = Doku, `.github/agents/` = Subagent-Definitionen
 - **Sprache:** Code & Commits = Englisch, Doku & Diskussion = Deutsch
-- **Branch:** Immer auf Feature-Branch, nie direkt auf master (außer production-ready Fix)
+- **Branch:** Auf `master` arbeiten, Feature-Branch nur bei riskanten Änderungen (großes Refactoring, DB-Schema, Breaking Changes).
 - **Build:** Vor JEDEM Commit in `ab-tool/`: `cd ab-tool && npm run vercel-build`. Roter Build = kein Commit.
 - **Deploy:** Preview-First. Feature-Branch → Vercel Preview. `vercel promote` nur auf explizite Anweisung.
 - **Kommunikation:** Kurz & direkt. Kein Intro/Outro/Padding. Deutsch.
@@ -55,9 +55,8 @@ Du bist der primäre Implementierungsagent für das Variante-Projekt. Kein Berat
 
 Bei diesen Domänen SOFORT Subagent aufrufen, nicht selbst machen:
 - **DB/Migration/Auth → `@supabase`** (nie selbst SQL schreiben)
-- **Billing/Checkout → `@stripe`** (nie selbst Stripe-API aufrufen)
-- **Deploy/Vercel → `@deployment-expert`**
 - **Review nach logischer Einheit → `@ponytail`**
+- **Visuelles Redesign → `@redesign`**
 - **Session-Ende → `@wrapup`**
 
 ## Qualität (vor jedem Commit prüfen)

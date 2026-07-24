@@ -29,8 +29,8 @@ Du bist der Redesign-Agent für Variante. Dein Job: **mutige, komplette visuelle
 
 - **Tech:** TypeScript (`src/code.ts`) + HTML/CSS (`src/ui.html`) — KEIN Framework, KEIN Build-Step für UI
 - **Design Tokens** existieren (`:root`-Custom-Properties in `ui.html`): `--brand`, `--ok`, `--warn`, `--r` (Radius), `--sp-*` (Spacing), `--fs-*` (Font), `--dur-*` (Motion), `--elev-*` (Shadows)
-- **Figma-Constraints:** 560px Höhe, `var(--figma-color-bg)` / `var(--figma-color-text)` für Theme-Kompatibilität, `Inter` Font
-- **Screens:** Aktuell 8 Screens (Welcome, Login, Test List, Create/Edit, Variant Preview, Results, Settings, Upgrade)
+- **Figma-Constraints:** 320×360px, `var(--figma-color-bg)` / `var(--figma-color-text)` für Theme-Kompatibilität, `Inter` Font
+- **Screens:** Stats-Only Edition — 2 Views (Stats + Settings). Keine Test-Erstellung mehr im Plugin (→ Dashboard).
 
 ## Kontext: Dashboard (ab-tool/)
 

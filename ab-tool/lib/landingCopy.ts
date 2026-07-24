@@ -15,13 +15,10 @@ export interface PlanStructure {
 export const PLANS: readonly PlanStructure[] = [
   { id: 'free', price: '0 €', perMonth: false, href: '/signup', featured: false },
   { id: 'pro', price: '35 €', perMonth: true, href: '/signup?plan=pro', featured: true },
-  { id: 'agency', price: '99 €', perMonth: true, href: 'mailto:hello@getvariante.com?subject=Agency%20Plan', featured: false },
+  { id: 'agency', price: '99 €', perMonth: true, href: '/signup?plan=agency', featured: false },
 ]
 
-type Tuple4<T> = readonly [T, T, T, T]
-type Tuple3<T> = readonly [T, T, T]
-type Tuple2<T> = readonly [T, T]
-type Tuple5<T> = readonly [T, T, T, T, T]
+type Tuple7<T> = readonly [T, T, T, T, T, T, T]
 
 export interface PlanFeature {
   label: string
@@ -38,8 +35,6 @@ export interface PlanCopy {
 
 export interface LandingCopy {
   // Header
-  navDemo: string
-  navPricing: string
   navLogin: string
   navSignup: string
 
@@ -48,69 +43,12 @@ export interface LandingCopy {
   heroH1: string
   heroSub: string
   heroCta: string
-  heroFootnote: string
-
-  // Hybrid-Demo (URL rein → echte Variante der eigenen Seite raus)
-  demo: {
-    /** Überschrift der Demo-Sektion direkt unter dem Hero. */
-    heading: string
-    sub: string
-    inputPlaceholder: string
-    submit: string
-    /** Zwei Schritte der Loading-Animation — Code-Extraktion + KI-Analyse (~3s). */
-    loadingSteps: Tuple2<string>
-    tabOriginal: string
-    tabVariant: string
-    changesHeading: string
-    refineToggle: string
-    refinePlaceholder: string
-    refineSubmit: string
-    refining: string
-    goLive: string
-    goLiveHint: string
-    tryAnother: string
-    /** SPA erkannt → Snippet-first-Fallback (Plan §0b). */
-    spaHeading: string
-    spaBody: string
-    spaCta: string
-    errGeneric: string
-    errUrl: string
-    /** Text wenn Screenshot-Polling fehlschlägt (Code-First: Changes sind da, Bilder nicht). */
-    screenshotFailed: string
-  }
-
-  // Micro-Trust
-  trustItems: Tuple4<{ label: string; text: string }>
 
   // Works-with logos
   sectionWorks: string
-  worksLabel: string
-
-  // How A/B Testing Works (section)
-  sectionAgent: string
-  agentH: string
-  agentSub: string
-  agentMotto: string
-  agentMottoSub: string
-  agentModePill: string
-  agentLoop: Tuple4<{ title: string; body: string }>
-  agentLoopNote: string
-
-  // Figma Community Plugin
-  figmaCommunityTitle: string
-  figmaCommunityText: string
-  figmaCommunityLinkText: string
-
-  // Solo-dev transparency + implied usage
-  soloDevTitle: string
-  soloDevBody: string
-  impliedUsersText: string
 
   // How it works
-  sectionHow: string
-  steps: Tuple3<{ title: string; body: string }>
-  /** `{platforms}` wird durch die Namen aus TechLogos ersetzt. */
-  platformNote: string
+  impliedUsersText: string
 
   // Pricing
   sectionPricing: string
@@ -122,7 +60,7 @@ export interface LandingCopy {
 
   // FAQ
   sectionFaq: string
-  faqs: Tuple5<{ q: string; a: string }>
+  faqs: Tuple7<{ q: string; a: string }>
 
   // Closing CTA
   closingH: string
@@ -132,6 +70,8 @@ export interface LandingCopy {
   // Footer
   footerLine: string
   footerDocs: string
+  footerChangelog: string
+  footerTerms: string
   footerPrivacy: string
   footerImprint: string
 
@@ -153,8 +93,6 @@ export interface LandingCopy {
 }
 
 const copy: LandingCopy = {
-  navDemo: 'Demo',
-  navPricing: 'Pricing',
   navLogin: 'Log in',
   navSignup: 'Start free',
 
@@ -163,100 +101,11 @@ const copy: LandingCopy = {
   heroSub:
     'Pick any element on your site. Variante generates a better version. You approve. Traffic splits. The winner ships. No developer needed.',
   heroCta: 'Show me a better version →',
-  heroFootnote: '',
-
-  demo: {
-    heading: 'See what AI does to your site',
-    sub: 'Enter a URL, wait a moment. See your real site and the AI variant side by side.',
-    inputPlaceholder: 'your-website.com',
-    submit: 'Analyze page',
-    loadingSteps: [
-      'Reading your code …',
-      'Writing variant …',
-    ],
-    tabOriginal: 'Original',
-    tabVariant: 'AI Variant',
-    changesHeading: 'What the AI changed',
-    refineToggle: 'Refine',
-    refinePlaceholder: 'e.g. "Rounder button, tighter copy"',
-    refineSubmit: 'Apply',
-    refining: 'Refining …',
-    goLive: 'Start free',
-    goLiveHint: 'Create an account — your variant is saved.',
-    tryAnother: 'Try another page',
-    spaHeading: 'Your site renders in the browser',
-    spaBody:
-      "Your content is built in the browser, so from the outside we only see an empty shell. The snippet lets us read the real elements — then we'll show you your variant. The detour is really a shortcut: after sign-up your test is live immediately.",
-    spaCta: 'Get the snippet',
-    errGeneric: "That didn't work. Try again, or try a different page.",
-    errUrl: "That URL doesn't look right. Give it another look.",
-    screenshotFailed: "Screenshots couldn't load — but the analysis is ready. You'll see the variant in your dashboard after signing up.",
-  },
-
-  trustItems: [
-    { label: 'One <script> tag', text: 'That\'s the entire setup. 30 seconds.' },
-    { label: '5 KB, loads async', text: 'Zero effect on Core Web Vitals.' },
-    { label: 'EU hosting', text: 'GDPR-compliant. No third-country data.' },
-    { label: 'No developer needed', text: 'Design, test, ship — all from your browser.' },
-  ],
 
   sectionWorks: 'Works with your stack',
-  worksLabel: 'One snippet — anywhere you can paste a script tag',
 
-  sectionAgent: 'How A/B testing works',
-  agentH: 'Total control. Minimum effort.',
-  agentSub:
-    'Classic A/B tools hand you a result and wait for your next idea. Variante runs a continuous loop: analyze, test, ship, start over. You set the goal, it does the laps.',
-  agentMotto: 'Total control. Minimum effort.',
-  agentMottoSub: 'Pick the variant you want — ship it.',
-  agentModePill: 'Automated',
-  agentLoop: [
-    {
-      title: 'Analyze the page',
-      body: 'Variante reads your page, finds the weakest conversion points, and ranks them by expected impact.',
-    },
-    {
-      title: 'Create a hypothesis',
-      body: 'It drafts a variant — copy, hierarchy, CTAs. All you do is review what ships.',
-    },
-    {
-      title: 'Test it',
-      body: 'Traffic gets split cleanly, conversions tracked, significance computed. No tracking plan required.',
-    },
-    {
-      title: 'Choose the winner',
-      body: 'The winner goes live automatically. Variante moves straight on to the next hypothesis.',
-    },
-  ],
-  agentLoopNote: 'Every test improves your site\'s conversion.',
-
-  figmaCommunityTitle: 'Figma Community Plugin',
-  figmaCommunityText:
-    'Test and optimize right from Figma — no browser switch needed. Pick an element, generate a variant, push it live.',
-  figmaCommunityLinkText: 'View plugin in the Community →',
-
-  soloDevTitle: 'Built for builders. Designers, indie hackers, founders.',
-  soloDevBody:
-    'Built by someone who knows the “should I test this or just ship it?” dilemma firsthand. Every line of code is documented, every update public in the changelog.',
   impliedUsersText:
     'Join designers, indie hackers, and founders who ship AND test — without a dev team.',
-
-  sectionHow: 'How it works',
-  steps: [
-    {
-      title: 'Your site. Your rules.',
-      body: 'Tell Variante which page to optimize. It automatically analyzes structure, conversion paths, and UX — WordPress, Next.js, Shopify, custom, doesn\'t matter.',
-    },
-    {
-      title: 'Variants generate themselves.',
-      body: 'Variante writes variants based on what it learned — better CTAs, clearer hierarchy, optimized copy. You review what ships. Everything else is automatic.',
-    },
-    {
-      title: 'Data over gut feel. Days, not weeks.',
-      body: 'One snippet into your site — done. Variante serves variants, tracks conversions, computes significance, and rolls out the winner. Without touching a pipeline.',
-    },
-  ],
-  platformNote: 'One snippet. Works with {platforms} — anywhere you can paste a script tag.',
 
   sectionPricing: 'Pricing',
   pricingSub: 'Start free. Upgrade once your first test has paid for itself.',
@@ -292,8 +141,8 @@ const copy: LandingCopy = {
     },
     agency: {
       label: 'Agency',
-      sub: 'Everything in Pro, plus:',
-      cta: 'Get a Quote',
+      sub: 'Everything in Pro, plus white-label, client reports & team access. We\'ll set you up personally.',
+      cta: 'Contact sales',
       features: [
         { label: 'Up to 100 domains — manage every client site', exclusive: true },
         { label: 'White-label — no Variante mention anywhere', exclusive: true },
@@ -328,6 +177,14 @@ const copy: LandingCopy = {
       q: 'I’m a solo founder — is this worth it?',
       a: 'It’s built for you. While you sleep, Variante tests whether “Get Started” or “Try Free” converts better. One test can double your signups. You do the math.',
     },
+    {
+      q: 'What happens to my data? Is this GDPR-compliant?',
+      a: 'Your site data never leaves EU servers. We don’t store your visitors’ personal data — conversion events are anonymous by design. No third-party trackers, no data resale. Full GDPR compliance. Data processing agreement available on request.',
+    },
+    {
+      q: 'Can I cancel anytime? What happens to my tests?',
+      a: 'Cancel with one click — no dark patterns, no retention calls. Your snippet keeps working, tests just stop varying. All your data, variants, and reports remain exportable for 30 days. Annual plans: pro-rata refund within 14 days.',
+    },
   ],
 
   closingH: 'One snippet. Tomorrow your site converts better.',
@@ -336,6 +193,8 @@ const copy: LandingCopy = {
 
   footerLine: '© 2026 Variante · Made in Bavaria',
   footerDocs: 'Docs',
+  footerChangelog: 'Changelog',
+  footerTerms: 'Terms',
   footerPrivacy: 'Privacy',
   footerImprint: 'Imprint',
 

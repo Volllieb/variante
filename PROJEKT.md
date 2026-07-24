@@ -14,7 +14,7 @@
 | **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 22.07.2026 — 🐛 **P1-Fix**: AccountClient Fake-Domain-IDs (`crypto.randomUUID()` → Server-ID). Delete/Verify auf neu erstellten Domains funktioniert jetzt. PROJEKT.md-Tree korrigiert (7 live Components, 3 archiviert). Build grün. |
+| **Stand** | 24.07.2026 — 🛡️ **Produktionsreife 92%**: Security-Audit (SEC-01–12), DB-Härtung (Migrationen 029–036), UX/A11Y-Fixes (15+), Consent-API, AVV-Vorlage. Keine Launch-Blocker mehr offen. |
 | **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
 
 ## §2 Stack
@@ -27,14 +27,14 @@
 | KI-Generierung | OpenAI API (~0,3 ct/Call) |
 | Snippet | `ab.js` (Vanilla JS, ~14 KB, kein Build-Step, eingebauter Element-Picker) |
 | Figma-Plugin | TypeScript + HTML (320×360px, Figma-native Tokens) · Stats-Only Edition · [Community](https://www.figma.com/community/plugin/1653734891132085565) |
-| **KI-Agenten** | Cline (DeepSeek V4 Pro) + GitHub Copilot · 9 Custom Agents: `@ponytail`, `@redesign`, `@supabase`, `@stripe`, `@deployment-expert`, `@performance-optimizer`, `@ai-architect`, `@seo`, `@wrapup` · Config: `.github/agents/`, `.agents/skills/` · **VS Code Settings:** `github.copilot.chat.agent.bypassApproval` = `true` (default) |
+| **KI-Agenten** | Claude Code + GitHub Copilot · Agents: `@ponytail`, `@redesign`, `@supabase`, `@wrapup`, `@engineer` · Config: `.github/agents/`, `.github/copilot-instructions.md` |
 
 ## §3 Struktur
 
 ```
 ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── app/api/            # analytics, assign, billing, capture, claim-tests, cron, domains, event, events, figma, generate, preview, profile, resolve, results, snippet-check, stripe, suggestions, temp-session, test-wizard, tests, token
-├── app/components/     # HybridDemo, SkipButton, Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview (Archiv: ConnectWebsite, OnboardingIllustrations, TestCreationPanel → docs/future-features/components/)
+├── app/components/     # HybridDemo, SkipButton (Archiv: ConnectWebsite, OnboardingIllustrations, TestCreationPanel → docs/future-features/components/)
 ├── components/         # LandingIcons, PandaLogo, TechLogos
 ├── emails/             # Supabase Auth Templates (Confirmation, Magic Link, Reset, Invite, Change)
 ├── lib/                # agentTools, auth, claimTests, cors, croAnalyze, croHeuristics, detectLang, email, extractPageCode, generateVariantText, getExperimentStats, landingCopy, pii, planLimits, previewAnalyze, rateLimit, safeLog, sanitize, screenshot, significance, snippetCode, ssrf, stripe, supabase, supabaseBrowser, supabaseServer, useRealtime, useTestList
@@ -42,7 +42,7 @@ ab-tool/                # Next.js — API, Dashboard, Landingpage
 ├── __tests__/          # E2E: Playwright (smoke, auth, dashboard, conversion) + Node (significance, conversion-goal-click)
 ├── playwright.config.ts
 figma-plugin/           # code.ts + ui.html (Stats-Only, 2 Buttons)
-db/migrations/          # Supabase SQL (001–028)
+db/migrations/          # Supabase SQL (001–036) · schema_migrations-Tracking (029) · RLS-Lückenschluss (030) · Temp-Session-Budget (031) · Integritäts-Constraints (032) · Perf-Indizes & Retention (033) · daily_stats-Retention (034) · Terms-Consent (035) · Notifications (036)
 .github/workflows/      # CI: e2e.yml (Playwright bei Push/PR auf main)
 docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Future-Features
 ```
@@ -97,6 +97,14 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 
 | Datum | Eintrag |
 |---|---|
+| 24.07.2026 | **Meta-Update: Docs & PROJEKT.md auf aktuellen Stand.** Migrationen 035 (Terms-Consent) + 036 (Notifications) deployed. Build grün. |
+| 24.07.2026 | **fix: Loading/Error-States für Billing, Account, Tests.** `loading.tsx` + `error.tsx` für `/dashboard/billing`, `/dashboard/account`, `/dashboard/tests`. Copy-Fix in Landingpage. |
+| 24.07.2026 | **feat: Auto-Promotion + Figma-Wizard-Integration.** `vercel.json`: Auto-Promotion von Preview→Production bei erfolgreichem Build auf `master`. Figma-Wizard-Capture-Flow in Test-Erstellung integriert. |
+| 24.07.2026 | **feat(hero): Demo-Video-Iframe + Works-with-Logos.** Hero-Sektion: iframe als Demo-Video inszeniert, Works-with-Logos als Social-Proof-Ersatz. |
+| 24.07.2026 | **feat(landing): Copy-Rewrite, A11Y-Fixes, Design-System-Foundations.** Landingpage: vollständiger Copy-Rewrite, Accessibility-Verbesserungen (Skip-Link, `id="main"`, Fokus-Stile), Design-System-Grundlagen gefestigt. |
+| 23.07.2026 | **Session 3 — Restbestand: SSRF, CORS, Token-Hash, Signed-Assignment-Tokens, UX-Fixes.** `lib/safeFetch.ts` (DNS-Prüfung + private-IP, zentraler Fetch-Pfad). `lib/cors.ts`: `corsHeadersPublic()` für assign/event/resolve vs `corsHeaders()` mit Origin-Prüfung. API-Token-Hashing (SHA-256-Lookup, Backward-Compat, `vrnt_live_`-Prefix). Signierte HMAC-Assignment-Tokens in `/api/assign` + `/api/event` + `ab.js`. OG-Route: CDN-Fallback mit try/catch, System-Font-Fallback. UX: Framer/Squarespace aus TechLogos entfernt, Login/Signup/Onboarding Ladezustände statt `return null`, Passwort-Bestätigungsfeld + Match-Validierung im Signup, „Save Paused" → „Save Draft". `gsap` aus `package.json` entfernt. Account-Page: `Promise.all` statt sequenziellem Fetch. NotificationCenter: `[...notifications].sort()` + localStorage-try/catch. Phone-Regex konservativer. Migration 034 (daily_stats-Retention + wizard_drafts-Härtung). `/api/results/[id]`: 404 statt 401 bei fremder Test-ID. `/api/figma/stats`: `'live'`→`'active'`. AVV-Vorlage in `docs/avv-vorlage.md`. Alle Änderungen durch `tsc --noEmit` (clean) verifiziert. |
+| 23.07.2026 | **Session 2 — Waves 1–6: 14 Quick-Wins.** Globaler Tages-Circuit-Breaker (`checkDailyGlobalLimit`, Redis-basiert, 500/Tag Default) in `/api/generate`. Redis-Fallback: try/catch um Redis-Pfad im Rate-Limiter. Avatar-Upload: Magic-Byte-Prüfung (PNG/JPEG/WebP/GIF). Safe-Next-Validator in Auth-Callback (Open-Redirect-Schutz). `count: 'planned'` statt `'exact'` in temp-session. `traffic_split` in PATCH `/api/tests/[id]` ergänzt. `goal_selector` aus Wizard-Interface entfernt. `search_path = ''` in Migrationen 005 + 028. `__tests__/sanitize.mjs` mit 15 Bypass-Szenarien. Tote Env-Vars (Preview/Refine-Limits) aus `.env.example` entfernt. Kommentar in Migration 011 verweist auf 033. |
+| 23.07.2026 | **Session 1 — Blöcke 0–3: Security-Audit & Production-Hardening.** **Migration 029:** `schema_migrations`-Tracking (Backfill 001–028, `/api/health`-DB-Check). **Migration 030:** RLS auf `waitlist`/`temp_sessions`/`stripe_webhook_events` aktiviert + Grants entzogen. **SEC-03:** Domain-Verifikation serverseitig (snippet-check + verify in einer Transaktion). **SEC-01:** Cross-Tenant-XSS-Kette geschlossen: Domain-Gate im Wizard + DOMPurify (ersetzt Regex-Sanitizer) + `sanitizeCss()` in `/api/resolve`. **SEC-02:** `/api/picker-bridge` deaktiviert (410). **SEC-05:** `getPlanForUser()` aus `profiles` statt `user_metadata`. **SEC-06:** Temp-Session-Budget (Migration 031: `gen_count`/`test_count`, max 3+3 pro Session). **OPS-01:** Alle 6 Cron-Jobs auf GET + Batching. **BUG-01:** `ab.js` MutationObserver-Debounce (500ms) + Applying-Guard + Rate-Limit 600/min. **UX-01:** `bg-accent`→Monochrom-Tokens + CI-Grep-Gate. **UX-03:** Re-check-Button (useEffect + direkter recheckDomain-Call). **BILL-02:** `revalidateTag` entfernt. **BILL-01:** Account-Löschung: Stripe-Kündigung vor DB-Löschung + Storage-Cleanup. **STAT-01:** Auto-Winner nur im Cron + Guards (1000/Arm, 25 Conversions/Arm, 7 Tage, SRM-Check). **Migration 032:** 7 CHECK-Constraints + Ownership-Constraint + Resolve-Filter. **OPS-02:** CI auf `master` + `eslint.config.mjs` (Flat Config) + `tsc --noEmit` + Accent-Grep-Gate. **A11Y-01:** ARIA-States in 8 Komponenten. **A11Y-02:** `useFocusTrap`-Hook + NewTestDrawer (role="dialog", aria-modal, Escape, Scroll-Lock). **A11Y-03:** `focus:outline-none`→`focus-visible:ring-2` projektweit. **A11Y-04:** Kontrast-Tokens (`text-3`: 0.40→0.58, ≥4.5:1). **A11Y-05:** Skip-Link in `layout.tsx`, `id="main"`. **UX-02:** Mobiles Dashboard (Off-Canvas-Drawer mit Hamburger). **UX-04:** Toast statt `alert()` in BillingClient. **UX-05:** Sprachvereinheitlichung (Checkout EN, `undefined`-Locale, Agent-Prompt EN). **UX-06:** Light-Mode entfernt (Dark-only). **LEGAL-01:** Consent-API (`window.varianteConsent`), IP-Hashing, Google-Favicon entfernt, Signup-Datenschutzlink. **LEGAL-02:** Datenexport vollständig (alle 9 Tabellen + daily_stats). **PERF-01/02:** `replica identity default` + 4 Indizes + Retention (Migration 033). **OPS-03:** SentryInit (dynamisch, nur Dashboard) + `/api/health`. Migration 002→Archiv, 007→Seeds. ~55 Änderungen in 3 Sessions. Build grün. |
 | 22.07.2026 | **P1-Fix: AccountClient Fake-Domain-IDs.** `crypto.randomUUID()` in `changeConnectedPage()` und `addAdditionalPage()` durch Server-ID (`newDomain.id`) ersetzt. Delete/Verify auf neu erstellten Domains funktioniert jetzt. Fallback auf `crypto.randomUUID()` nur noch wenn Server-ID nicht verfügbar (sollte nie eintreten). PROJEKT.md-Tree korrigiert: 7 live Components in `app/components/`, 3 archiviert in `docs/future-features/components/`. |
 | 22.07.2026 | **Wrapup: Tote Komponenten + Ponytail-Review.** 3 ungenutzte Komponenten (TestCreationPanel, ConnectWebsite, OnboardingIllustrations) nach `docs/future-features/components/` verschoben. Ponytail-Review (HEAD~5..HEAD): P1-Bug in `AccountClient.tsx:260:330` — Fake-Domain-IDs (`crypto.randomUUID()`) statt Server-IDs, macht Delete/Verify auf neuen Domains kaputt. P2: `changeConnectedPage()` und `addAdditionalPage()` ~70% Duplikation (~60 Zeilen). P3: Zwei parallele State-Machines in AccountClient (8 State-Variablen, ~900 Zeilen). Positiv: `seedNotifications()` entfernt, `captureToStorage()` Dead Code, `extractPageCode.ts` Performance-Win (Promise.all). Build grün. |
 | 20.07.2026 | **Wrapup: Onboarding-Redesign.** Ponytail-Review: Hero-CTA-Fix (primär → #demo-hybrid statt /onboarding). Tote Komponenten (7 Stück, 21KB) nach `docs/future-features/components/` verschoben: Breadcrumbs, EmptyState, NotificationCenter, Skeleton, Toast, Tooltip, VariantPreview. TODO: `TestCreationPanel.tsx:210` (pageContext aus ab.js picker). Build grün. |
@@ -179,14 +187,16 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 ### Aktueller Stand
 - 🎉 **Figma-Plugin LIVE** — [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
 - 🎉 **Erster organischer User!** — Google OAuth Signup 13.07.2026 (kein Outreach)
-- Built-in-Picker: Element-Picker direkt im `ab.js`-Snippet (Extension gelöscht 13.07.2026)
-- **Design-Partner:** 1 von 5 angefragt
+- 🛡️ **Produktionsreife 92%** — Security-Audit abgeschlossen, keine Launch-Blocker
+- Built-in-Picker: Element-Picker direkt im `ab.js`-Snippet
+- **Design-Partner:** Outreach läuft (IbexAI, PostFox recherchiert)
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
-- **E2E:** ✅ M1 abgeschlossen
-- **Offen:** `TestCreationPanel.tsx:210` — `pageContext` aus ab.js picker anreichern (TODO im Code, File liegt in `docs/future-features/components/`)
-- **Offen (Ponytail 22.07.):** `AccountClient.tsx` — P2-Duplikation: `changeConnectedPage()`/`addAdditionalPage()` ~70% identisch → Shared Helper extrahieren (niedrige Prio, kein Bug).
-- **Offen (Ponytail 22.07.):** `AccountClient.tsx` — P3-Over-Engineering: 8 State-Variablen für 2 quasi-identische Flows → `useReducer` oder `<DomainForm>` Sub-Component (niedrige Prio, kein Bug).
-- **Nächster Schritt:** §9.1 Quick-Wins (Figma-SEO, X-Profil, Pain-Suchen) → Week-1 X-Outreach → Pain-Interviews
+- **E2E:** ✅ M1 abgeschlossen, 89 Tests über 9 Specs
+- **Sentry:** Client+Server Error-Tracking live
+- **Consent-API:** `window.varianteConsent` + cookieless Default
+- **AVV-Vorlage:** `docs/avv-vorlage.md` für B2B-Kunden
+- **Offen:** `paused`-State-Machine-Dokumentation, k6-Loadtest, Component-Splitting, E2E-Lücken
+- **Nächster Schritt:** Design-Partner-Onboarding → Product Hunt Launch
 
 ### Meilensteine
 
@@ -236,13 +246,17 @@ Der Happy Path für neue User:
 
 ## §11 Offene Baustellen
 
+> Stand: 24.07.2026 — Sync mit `docs/baustellen.md` und `docs/produktionsreife-massnahmenplan.md`.
+
 | # | Thema | Status | Aktion |
 |---|---|---|---|
-| 1 | Upstash Redis Env-Vars | ✅ Erledigt | `amazing-mudfish-98038.upstash.io`, Free Tier, beide Env-Vars in Vercel gesetzt (Production + Preview). |
-| 2 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in `README.md` + `DashboardClient.tsx` aktualisieren. |
-| 3 | OpenAI-Kosten-Tracking | ✅ Erledigt | `OPENAI_MAX_MONTHLY_COST` Env-Var (default $20) + `profiles.monthly_gen_cost` + Check in /api/generate. Migration 012. |
-| 4 | SENTRY_PROJECT in Vercel | ✅ Erledigt | `vercel env add SENTRY_PROJECT production preview --value variante`. 4 Sentry-Vars jetzt vollständig (DSN, ORG, PROJECT, AUTH_TOKEN). |
-| 5 | ab-tool Vercel-Projekt: Env-Vars fehlen | 🟡 Später | `ab-tool`-Projekt deployt aktiv, hat aber keine Env-Vars. Entweder Env-Vars dorthin spiegeln oder Git-Integration auf `variante`-Projekt prüfen. |
+| 1 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in Snippet-Referenzen aktualisieren. Langfristig: Hash aus `lib/snippetCode.ts` als Single Source generieren. |
+| 2 | k6-Loadtest ausführen | 🟡 Offen | `ab-tool/__tests__/load/main.k6.js` (smoke/load/stress). p95 <2s, Error <1%. |
+| 3 | E2E-Coverage-Lücken | 🟡 Offen | Domain-Verification, Agent-Run, Stripe-Checkout ohne E2E-Spec. |
+| 4 | Component-Splitting | 🟡 Später | `AccountClient.tsx` (876 Z.) + `ResultsClient.tsx` (1248 Z.) aufteilen. |
+| 5 | Supabase CLI Migration | 🟡 Später | Von manuellem SQL-Editor auf `supabase db push` umstellen. |
+| 6 | `paused`-State-Machine | 🟡 Dokumentation | Erlaubte Status-Übergänge dokumentieren und in CHECK-Constraints abbilden. |
+| 7 | Counter-Tabelle (PERF-01 Vollausbau) | 🟡 Später | `test_counters`-Tabelle für Hot-Path-Entlastung von `tests`-Row-Locks. |
 
 ## §12 Dashboard-Architektur
 

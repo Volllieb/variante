@@ -37,23 +37,20 @@ Du bist der Supabase-Agent für Variante. Dein Scope: alles um Supabase — Sche
 2. Login → Session-Cookie gesetzt → SSR-Client liest Cookie → `getSessionUser()` validiert
 3. API (Plugin/Extension) → `Authorization: Bearer <api_token>` → `getApiUser()` matched gegen `profiles.api_token`
 
-### Schema (13 Migrationen)
+### Schema (36 Migrationen, Stand 24.07.2026)
 
 | # | Datei | Inhalt |
 |---|---|---|
-| 001 | `001_schema.sql` | `tests`-Tabelle (id, name, selector, goal, status, counters, significance) |
-| 002 | `002_migrate_v1_to_v2.sql` | Cleanup alte Struktur |
-| 003 | `003_goal_candidates.sql` | Goal-Kandidaten für Content-Picker |
-| 004 | `004_winner_config.sql` | Winner-Detection-Konfiguration |
-| 005 | `005_auth_billing.sql` | `profiles`, `handle_new_user()`-Trigger, RLS auf `profiles` + `tests` |
-| 006 | `006_waitlist.sql` | Waitlist-Tabelle |
-| 007 | `007_dogfooding.sql` | Dogfood-Test-Daten |
-| 008 | `008_webhook_idempotency.sql` | `stripe_webhook_events`-Tabelle |
-| 009 | `009_onboarding_flag.sql` | `profiles.onboarded`-Flag |
-| 010 | `010_features.sql` | `events`, `daily_stats`, `domains` + `log_event()`/`snapshot_daily_stats()` RPCs |
-| 011 | `011_data_cleanup.sql` | Datenbereinigung |
-| 012 | `012_usage_tracking.sql` | `profiles.monthly_gen_cost` |
-| 013 | `013_plugin_flag.sql` | `has_figma_plugin`-Flag |
+| 001–013 | `001–013` | Basis-Schema: `tests`, `profiles`, `events`, `daily_stats`, `domains`, `handle_new_user()`, RLS |
+| 014–028 | `014–028` | Signup-Source, Domain-First, Realtime, Variant-CSS, Significance, Agent-Runs, Resolve-Scaling, Preview, RLS-Policies, Test-Health, Increment-Gen-Cost, Wizard-Drafts |
+| 029 | `029_schema_migrations` | Migration-Tracking-Tabelle + Backfill |
+| 030 | `030_enable_rls_gap` | RLS auf `waitlist`/`temp_sessions`/`stripe_webhook_events` |
+| 031 | `031_temp_session_budget` | `gen_count`/`test_count` + atomare RPCs |
+| 032 | `032_integrity_constraints` | 7 CHECK-Constraints + Ownership-Constraint |
+| 033 | `033_perf_indexes_retention` | Indizes + Retention + `replica identity default` |
+| 034 | `034_daily_stats_retention` | daily_stats-Retention + wizard_drafts-Härtung |
+| 035 | `035_terms_consent` | Terms-Acceptance-Tracking in `profiles` |
+| 036 | `036_notifications` | Notifications-Tabelle für In-App-Benachrichtigungen |
 
 ### RLS-Policies
 
@@ -77,7 +74,7 @@ Du bist der Supabase-Agent für Variante. Dein Scope: alles um Supabase — Sche
 
 - **Immer idempotent** — `create table if not exists`, `add column if not exists`, `drop policy if exists`. Kann mehrfach ausgeführt werden.
 - **Immer mit Kommentarblock** oben: Name, Zweck, Ausführungshinweis.
-- **Nummerierung fortlaufend** — nächste freie Nummer nehmen (aktuell 014).
+- **Nummerierung fortlaufend** — nächste freie Nummer nehmen (aktuell 037).
 - **Naming:** `NNN_beschreibung.sql` im `db/migrations/`-Ordner.
 - **Vor jedem neuen Migration-Code:** Alle bestehenden Migrationen quergrepen, ob das neue Objekt (Tabelle/Spalte/Policy/RPC) nicht schon existiert.
 - **Trigger-Funktionen** immer mit `security definer set search_path = public` (Supabase-Standard).

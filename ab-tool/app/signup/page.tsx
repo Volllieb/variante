@@ -36,6 +36,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [googleErr, setGoogleErr] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [sessionChecked, setSessionChecked] = useState(false)
 
   // Helper: baut die Query-Parameter für den Redirect nach dem Signup
@@ -68,6 +69,7 @@ export default function SignupPage() {
     if (norm(email) === norm(password)) { setErr('Your password cannot be the same as your email address.'); setLoading(false); return }
     if (password !== confirmPassword) { setErr('Passwords do not match.'); setLoading(false); return }
     if (password.length < 6) { setErr('Password must be at least 6 characters.'); setLoading(false); return }
+    if (!termsAccepted) { setErr('You must accept the Terms of Service and Privacy Policy to continue.'); setLoading(false); return }
     try {
       const supabase = getBrowserSupabase()
       const nextPath = '/onboarding'
@@ -113,6 +115,11 @@ export default function SignupPage() {
         return
       }
       if (data.session) {
+        // DSGVO: Terms-Consent-Timestamp speichern, sobald die Session steht.
+        // Google OAuth setzt terms_accepted_at im Auth-Callback.
+        try {
+          await fetch('/api/profile/accept-terms', { method: 'POST' })
+        } catch { /* Best-Effort */ }
         router.push('/onboarding')
         router.refresh()
       } else {
@@ -337,16 +344,29 @@ export default function SignupPage() {
             </div>
           </form>
 
-          {/* Plan LEGAL-01: DSGVO Art. 13 verlangt Information zum Zeitpunkt der
-              Erhebung. Ein Datenschutzlink erst im Footer der Landingpage ist
-              angreifbar — hier direkt an der Registrierung. */}
-          <p className="mt-4 text-center text-[12px] leading-relaxed text-text-3">
-            By signing up you agree to our{' '}
-            <Link href="/privacy" className="underline transition-colors hover:text-text">
-              Privacy Policy
-            </Link>
-            .
-          </p>
+          {/* Plan LEGAL-01: DSGVO Art. 7 — aktive Einwilligung per Checkbox.
+              Der Timestamp wird in profiles.terms_accepted_at gespeichert. */}
+          <div className="mt-4 flex items-start gap-2.5">
+            <input
+              type="checkbox"
+              id="signup-terms"
+              checked={termsAccepted}
+              onChange={(e) => { setTermsAccepted(e.target.checked); setErr('') }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded-[4px] border-border bg-bg-1 text-white accent-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+              aria-required="true"
+            />
+            <label htmlFor="signup-terms" className="text-[12px] leading-relaxed text-text-3 cursor-pointer select-none">
+              I agree to the{' '}
+              <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-text">
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-text">
+                Privacy Policy
+              </Link>
+              .
+            </label>
+          </div>
         </div>
 
         <p className="mt-5 text-center text-sm text-text-3">

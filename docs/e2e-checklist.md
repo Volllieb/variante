@@ -1,11 +1,11 @@
 # E2E-Test-Checkliste — variante
 
-> Stand: 13.07.2026. Kompletten Loop testen: Landing → Account → Figma → Snippet (inkl. Picker) → Traffic → Conversions → Billing → Winner.
+> Stand: 24.07.2026. Kompletten Loop testen: Landing → Account → Figma → Snippet (inkl. Picker) → Traffic → Conversions → Billing → Winner.
 >
 > **Vor dem Start:** `npm run test:smoke` (Playwright) oder Smoke-Tests unten manuell.
 >
-> **Automatisierte E2E-Tests:** `ab-tool/__tests__/e2e/` (Playwright) + `ab-tool/__tests__/` (Node).
-> CI: `.github/workflows/e2e.yml` läuft bei Push/PR auf `main`.
+> **Automatisierte E2E-Tests:** `ab-tool/__tests__/e2e/` (Playwright, 89 Tests über 9 Specs) + `ab-tool/__tests__/` (Node).
+> CI: `.github/workflows/e2e.yml` läuft bei Push/PR auf `master` (seit 23.07.2026).
 
 ---
 
@@ -71,23 +71,6 @@ curl -sI https://www.getvariante.com/ab.js | head -1  # → HTTP/2 200
 
 
 
-
----
-
-## ⚠️ Chrome Extension — Gelöscht (13.07.2026)
-
-> Der Element-Picker ist direkt im `ab.js`-Snippet integriert. Die Extension wurde komplett entfernt.
-
-## Veraltete Extension-Tests (Archiv)
-
-- [ ] ~~**CWS-Install** — [Chrome Web Store](https://chromewebstore.google.com/detail/variante-—-ab-test-elemen/hopbdjfpmknemchgoonjommfemgihkbh) → "variante — A/B Test Element Picker" installieren~~
-
-### URL-Hash-Modi (jetzt im Snippet-Picker)
-- [ ] `#ab_pick=<testId>` — Startet Picker automatisch (kein Popup nötig)
-- [ ] `#ab_goal=<testId>` — Startet Goal-Modus, klickbares Element = Goal
-
-### Goal-Picker (jetzt im Snippet)
-- [ ] Goal-Modus aktivieren (Test-ID mit Goal-Flag) → Klick auf Button/Link → Goal gespeichert
 
 ---
 

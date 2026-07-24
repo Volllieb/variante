@@ -1,8 +1,8 @@
 # Variante — KI-Coding-Infrastruktur
 
-> **Hauptanweisung:** [`AGENTS.md`](../AGENTS.md) — Arbeitsweise, Sprache, Standing Orders, Prüfpflicht, **Build-Pflicht, Deploy-Regel**, **Schätzungen & Qualität** (keine Zeitschätzungen, nur Aufwand; immer sauberste Version & Best Practice).
+> **Hauptanweisung:** [`CLAUDE.md`](../CLAUDE.md) — Arbeitsweise, Sprache, Standing Orders, Build-Pflicht, Deploy-Regel.
 > **Wissensquelle:** [`PROJEKT.md`](../PROJEKT.md) — Projektidentität, Stack, Struktur, Deployment, Pricing, Historie.
-> **Vercel-Ökosystem:** [`vercel-ecosystem.md`](../.agents/vercel-ecosystem.md) — Produkte, Decision-Matrizen, Cross-Product-Workflows.
+> **Architektur-Patterns:** [`docs/architektur.md`](../docs/architektur.md) — API-Routen, Migrationen, Client Components, Auth, Error Boundaries.
 
 ## Agenten
 

@@ -1,6 +1,6 @@
 # Leads — variante
 
-> IndieHackers Products DB, 13.07.2026. 2/17 recherchiert. Nächste Schritte: IbexAI/PostFox pitchen, dann nächste 5 recherchieren.
+> IndieHackers Products DB, 13.07.2026. 2/17 recherchiert. Stand: 24.07.2026.
 
 ## 🔥 Top-Fit
 

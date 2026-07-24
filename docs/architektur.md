@@ -28,8 +28,8 @@ User klickt [+ New test]
 | Plan | AI Scans/Monat | Variant-Generierungen/Monat | Agent-Runs/Monat | OpenAI-Budget/Monat |
 |---|---|---|---|---|
 | Free | 1 | 1 | 0 | $5 |
-| Pro | 50 | 50 | 20 | $25 |
-| Agency | ∞ | ∞ | ∞ | $100 |
+| Pro | 10 | 30 | 5 | $20 |
+| Agency | ∞ | ∞ | 50 | $60 |
 
 ## Meilensteine
 

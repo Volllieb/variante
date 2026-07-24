@@ -189,6 +189,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
   async function refresh() {
     setRefreshing(true)
+    setAnalyticsLoaded(false) // Win #5: Re-fetch analytics when user manually refreshes
     try {
       const res = await fetch(`/api/results/${experimentId}`)
       if (res.ok) setData(await res.json())
@@ -205,7 +206,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     }, 2000)
   }, [])
 
-  useTestUpdate(experimentId, refreshDebounced)
+  useTestUpdate(experimentId, () => {
+    setAnalyticsLoaded(false) // Win #5: Re-fetch analytics on realtime updates too
+    refreshDebounced()
+  })
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -220,7 +224,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const done = status === 'done' || !!winner
   const visitorPct = Math.min(100, Math.round((totalVisitors / Math.max(1, minVisitors)) * 100))
 
-  const lift = a.views > 0 && a.conversions > 0
+  // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
+  // Bei < 10 Conversions pro Arm ist die Uplift-Schätzung statistisches Rauschen
+  // und führt zu Fehlinterpretationen ("+50%!" bei 2 vs 3 Conversions).
+  const MIN_CONV_FOR_UPLIFT = 10
+  const enoughDataForUplift = a.conversions >= MIN_CONV_FOR_UPLIFT && b.conversions >= MIN_CONV_FOR_UPLIFT
+  const lift = a.views > 0 && a.conversions > 0 && enoughDataForUplift
     ? ((b.cr - a.cr) / a.cr) * 100
     : null
 
@@ -413,6 +422,26 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               <p className="mt-2 text-[13px] text-[#ededed]/62">
                 visitors so far
               </p>
+              {/* Win #3: "0 Visitors" — zeige konkrete nächste Schritte */}
+              {totalVisitors === 0 && (
+                <div className="mt-5 mx-auto max-w-md rounded-[8px] border border-pro/15 bg-pro/[0.03] p-4 text-left">
+                  <p className="text-[12px] font-medium text-pro mb-2">Your test is live — now drive traffic</p>
+                  <ul className="space-y-1.5 text-[11px] text-text-2">
+                    <li className="flex items-start gap-2">
+                      <span className="text-text-3 mt-0.5 shrink-0">1.</span>
+                      <span>Share your page URL with visitors — the snippet auto-assigns them to A or B.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-text-3 mt-0.5 shrink-0">2.</span>
+                      <span>First results usually appear within hours, depending on your traffic.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-text-3 mt-0.5 shrink-0">3.</span>
+                      <span>Need faster data? Run an ad or share the page on social media to boost traffic.</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
             </>
           )}
           {/* Visitor bar */}

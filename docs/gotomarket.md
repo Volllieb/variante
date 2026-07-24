@@ -1,6 +1,6 @@
 # gotomarket.md — variante
 
-Stand: 13.07.2026. 🔥 Phase 2 läuft — Outreach aktiv. 2 High-Potential-Leads recherchiert (IbexAI, PostFox), erste Cold-DMs gehen heute raus. Figma-Plugin LIVE.
+Stand: 24.07.2026. 🛡️ Produktionsreife 92% — Security-Audit abgeschlossen, keine Launch-Blocker. Figma-Plugin LIVE. Outreach läuft (IbexAI, PostFox recherchiert). Produkt bereit für Design-Partner-Onboarding.
 
 ## Strategie in einem Satz
 **Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
@@ -138,20 +138,21 @@ Figma-Plugin ist LIVE — jetzt Reichweite maximieren:
 - Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
 - **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
 
-## Aktueller Status (10.07.2026)
+## Aktueller Status (24.07.2026)
 
 - ✅ **Produkt fertig**: Phase A+B+C auf `www.getvariante.com` deployed
-- ✅ **E2E-Test**: M1 abgeschlossen — kompletter Loop auf Fremd-Site getestet
+- 🛡️ **Produktionsreife 92%**: Security-Audit abgeschlossen (SEC-01–12), DB-Härtung, A11Y-Fixes, Consent-API, AVV-Vorlage
+- ✅ **E2E-Test**: M1 abgeschlossen — kompletter Loop auf Fremd-Site getestet, 89 Tests über 9 Specs
 - 🎉 **Figma-Plugin**: LIVE im [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
 - ✅ **Built-in-Picker**: Element-Picker direkt im `ab.js`-Snippet integriert
 - ✅ **Dogfooding**: ab.js im Root-Layout integriert, Badge sichtbar
+- ✅ **Sentry**: Client+Server Error-Tracking live
+- ✅ **Cron-Jobs**: Alle 6 Cron-Jobs laufen (GET), mit Batching und Retention
 - ✅ **Leads recherchiert**: 2 High-Potential (IbexAI $3-6K MRR, PostFox $2K MRR), 15 weitere in Pipeline, dokumentiert in `docs/leads.md`
-- 🔥 **Outreach läuft**: Cold-DM-Phase gestartet — IbexAI (Matt Bauer, @Matt___Bauer) heute per X-DM, PostFox morgen, dann Batch 3–5
-- 🏗️ **Design-Partner**: 1 von 5 angefragt, Concierge-Onboarding steht bereit
-- ⚠️ **X-Pain-Finder-Script**: Defekt (X-DOM-Änderungen) — ersetzt durch 5 manuelle Bookmark-Queries
-- 📋 **Outreach-Strategie**: Dual-Track (Pain-Replies + Direkt-Angebote in Communities) + kalte Loom-DMs an IH-Leads
+- 🔥 **Outreach läuft**: Cold-DM-Phase gestartet, Design-Partner gesucht
+- 📋 **Strategie**: Dual-Track (Pain-Replies + Direkt-Angebote in Communities) + kalte Loom-DMs
 
-**Nächster Schritt:** Cold-DMs an IH-Leads (IbexAI heute, PostFox morgen). Parallel: Design-Partner-Onboarding mit gratis erstem Test. Reddit-Posts (r/web_design + r/SaaS) nach ersten Replies. Case-Studies aus ersten 2–3 Live-Tests sammeln → Product-Hunt-Material.
+**Nächster Schritt:** Design-Partner-Onboarding mit gratis erstem Test. Case-Studies aus ersten 2–3 Live-Tests sammeln → Product-Hunt-Material.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte, 1 angefragt) → Design-Partner-Onboarding ist jetzt der kritische Pfad. Ohne Case-Studies kein Product-Hunt-Material.

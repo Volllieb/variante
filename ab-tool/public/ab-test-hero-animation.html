@@ -364,6 +364,10 @@
   gsap.set([badgeA, badgeB], {autoAlpha:0});
   gsap.set(cursor, {x:840, y:565});
 
+  /* Signal parent that the animation is ready (post first fade-in).
+     The parent uses this to sync overlay removal with actual animation state. */
+  try { window.parent.postMessage('hero-animation-ready', '*'); } catch(e){}
+
   /* ---- measure click targets (stage-space coordinates) ---- */
   function pt(el, dx=0, dy=0){
     const s = stage.getBoundingClientRect();
