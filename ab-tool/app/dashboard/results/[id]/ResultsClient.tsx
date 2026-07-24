@@ -1257,7 +1257,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           <div className="rounded-[10px] border border-dashed border-white/10 p-6 text-center">
             <h2 className="text-sm font-semibold text-[#ededed]">Auto Winner</h2>
             <p className="mt-2 text-xs text-[#ededed]/40">
-              Auto-Winner configuration and raw data are available from the Pro plan onward.
+              Auto-Winner configuration is available from the Pro plan onward.
             </p>
             <button
               onClick={upgrade}
