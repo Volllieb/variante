@@ -4,10 +4,9 @@
  * StepUrlAndElement — Step 0: URL eingeben + Element auf Live-Site wählen.
  *
  * Zwei Modi:
- *   picker — Öffnet die Seite mit ?ab_pick=1 (benötigt installiertes Snippet)
- *   manual — CSS-Selektor manuell eingeben (Fallback ohne Snippet)
- *
- * Kein KI-Scan. User gibt URL ein, wählt das zu testende Element aus.
+ *   picker — Öffnet die Seite mit ?ab_pick=1 (benötigt installiertes Snippet auf der Zielseite)
+ *   manual — CSS-Selektor manuell eingeben (z. B. wenn Element hinter Login, in Shadow-DOM,
+ *            oder Selektor bereits bekannt ist)
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -138,8 +137,7 @@ export function StepUrlAndElement({
 
   const urlValid = url.trim() && isValidUrl(url.trim())
 
-  // ── Mode toggle visibility ──
-  const showModeToggle = verifiedDomains.length === 0
+  const hasSnippet = verifiedDomains.length > 0
   const showPickerMode = mode === 'picker'
 
   return (
@@ -178,33 +176,31 @@ export function StepUrlAndElement({
         </div>
       )}
 
-      {/* Mode Toggle (only when no verified domain — snippet not installed) */}
-      {showModeToggle && (
-        <div className="flex rounded-[6px] border border-border bg-bg-1 p-0.5">
-          <button
-            onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
-            className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-              mode === 'picker'
-                ? 'bg-bg-2 text-text'
-                : 'text-text-3 hover:text-text-2'
-            }`}
-          >
-            <MousePointerClick className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-            Visual Picker
-          </button>
-          <button
-            onClick={() => { setMode('manual'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
-            className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-              mode === 'manual'
-                ? 'bg-bg-2 text-text'
-                : 'text-text-3 hover:text-text-2'
-            }`}
-          >
-            <Code2 className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-            Manual Selector
-          </button>
-        </div>
-      )}
+      {/* Mode Toggle — always available. Visual Picker uses the snippet for point-and-click; Manual Selector for when you know the CSS selector. */}
+      <div className="flex rounded-[6px] border border-border bg-bg-1 p-0.5">
+        <button
+          onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
+          className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+            mode === 'picker'
+              ? 'bg-bg-2 text-text'
+              : 'text-text-3 hover:text-text-2'
+          }`}
+        >
+          <MousePointerClick className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
+          Visual Picker
+        </button>
+        <button
+          onClick={() => { setMode('manual'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
+          className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+            mode === 'manual'
+              ? 'bg-bg-2 text-text'
+              : 'text-text-3 hover:text-text-2'
+          }`}
+        >
+          <Code2 className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
+          Manual Selector
+        </button>
+      </div>
 
       {/* ── PICKER MODE ── */}
       {showPickerMode && (
@@ -246,12 +242,13 @@ export function StepUrlAndElement({
             </div>
           )}
 
-          {/* Picker not available hint — only when no snippet */}
-          {showModeToggle && !waitingForPicker && !selectedElement && (
+          {/* Visual Picker hint — shown when snippet not installed and in picker mode */}
+          {!hasSnippet && !waitingForPicker && !selectedElement && (
             <div className="rounded-[7px] border border-pro/15 bg-pro/[0.03] px-3 py-2.5">
               <p className="text-[11px] text-pro/80">
-                <strong>Visual Picker requires the snippet</strong> to be installed on your site.{' '}
-                Switch to <button onClick={() => setMode('manual')} className="underline hover:text-pro cursor-pointer">Manual Selector</button> if you haven&apos;t installed it yet.
+                <strong>The Visual Picker uses the snippet</strong> to let you click elements on your site.{' '}
+                Install the snippet first, or{' '}
+                <button onClick={() => setMode('manual')} className="underline hover:text-pro cursor-pointer">enter a CSS selector manually</button>.
               </p>
             </div>
           )}

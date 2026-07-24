@@ -8,7 +8,7 @@ import { useTestUpdate } from '@/lib/useRealtime'
 import { Breadcrumbs } from '@/app/components/Breadcrumbs'
 import { Tooltip } from '@/app/components/Tooltip'
 import { useToast } from '@/app/components/Toast'
-import { calcSignificance } from '@/lib/significance'
+import { calcSignificance, MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 import {
   RefreshCw,
   Users,
@@ -25,6 +25,7 @@ import {
   Download,
   MousePointerClick,
   Globe,
+  Clock,
 } from 'lucide-react'
 import {
   LineChart,
@@ -36,6 +37,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  ReferenceLine,
 } from 'recharts'
 // ponytail: echte Recharts-Typen statt `as any`-Kaskaden. Bricht ein
 // Major-Update die Signatur, meldet das jetzt der Typecheck und nicht der
@@ -88,6 +90,64 @@ function exportCsv(daily: DailyRow[], testName: string) {
   URL.revokeObjectURL(url)
 }
 
+// ── V4: Time-to-significance Schätzung ──
+// Schätzt, wie viele Tage es bei aktuellem täglichem Traffic-Durchschnitt
+// noch bis zur 95%-Signifikanz dauert. Konservativ: nimmt an, dass der
+// z-Wert mit sqrt(n) wächst (gültig für moderate Effektstärken).
+function estimateDaysToSignificance(
+  totalVisitors: number,
+  significance: number,
+  createdAt: string,
+  targetSignificance: number,
+  nowTs: number
+): number | null {
+  if (significance <= 0 || significance >= targetSignificance) return null
+  if (totalVisitors < 100) return null
+
+  // Tage seit Teststart
+  const daysRunning = Math.max(1, (nowTs - new Date(createdAt).getTime()) / 86_400_000)
+
+  // z-Werte: aktuell und Ziel
+  // significance = 1 - 2*(1-Phi(z)), also Phi(z) = 1 - (1-sig)/2 = (1+sig)/2
+  // Näherung: z ≈ sqrt(2) * erfinv(2*significance - 1)
+  // Für unsere Zwecke reicht eine einfache Tabelle:
+  function zForSig(s: number): number {
+    // Lineare Interpolation für typische Werte
+    const pairs = [
+      [0.50, 0.0], [0.60, 0.253], [0.70, 0.524], [0.75, 0.674],
+      [0.80, 0.842], [0.85, 1.036], [0.90, 1.282], [0.92, 1.405],
+      [0.95, 1.645], [0.98, 2.054], [0.99, 2.326],
+    ]
+    for (let i = 0; i < pairs.length - 1; i++) {
+      if (s <= pairs[i + 1][0]) {
+        const t = (s - pairs[i][0]) / (pairs[i + 1][0] - pairs[i][0])
+        return Number(pairs[i][1]) + t * (Number(pairs[i + 1][1]) - Number(pairs[i][1]))
+      }
+    }
+    return 2.5
+  }
+
+  const zNow = zForSig(significance)
+  const zTarget = zForSig(targetSignificance)
+  if (zNow <= 0) return null
+
+  // z ~ sqrt(n) * (pB - pA) / se₀
+  // zTarget / zNow = sqrt(nTarget / nNow)
+  // nTarget = nNow * (zTarget / zNow)²
+  const ratio = (zTarget / zNow) ** 2
+  const additionalVisitorsNeeded = totalVisitors * (ratio - 1)
+  const dailyTraffic = totalVisitors / daysRunning
+
+  if (dailyTraffic <= 0) return null
+  const daysEstimate = Math.ceil(additionalVisitorsNeeded / dailyTraffic)
+  return Math.max(1, daysEstimate)
+}
+
+// ── V3: Multi-Kriterien-Progress ──
+function progressPct(current: number, target: number): number {
+  return Math.min(100, Math.round((current / Math.max(1, target)) * 100))
+}
+
 type DailyRow = {
   date: string
   visitors_a: number
@@ -135,6 +195,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const [editingB, setEditingB] = useState(false)
   const [draftB, setDraftB] = useState(initial.variantBHtml || '')
   const [refreshing, setRefreshing] = useState(false)
+  const [now, setNow] = useState(0) // updated in refresh() + realtime callback
   const [busy, setBusy] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -151,13 +212,15 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const from = searchParams.get('from')
   const backHref = from === 'tests' ? '/dashboard/tests' : '/dashboard'
 
-  // Fetch analytics — available for all plans
+  // Fetch analytics — available for all plans.
+  // `now` is initialized in the .finally() to satisfy react-hooks/set-state-in-effect
+  // (setState must be async, not sync in the effect body).
   useEffect(() => {
     if (analyticsLoaded) return
     fetch(`/api/analytics/${experimentId}`)
       .then(res => res.ok ? res.json() : null)
       .then(json => { if (json) setAnalytics(json) })
-      .finally(() => setAnalyticsLoaded(true))
+      .finally(() => { setAnalyticsLoaded(true); setNow(Date.now()) })
   }, [experimentId, analyticsLoaded])
 
   async function upgrade() {
@@ -190,6 +253,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   async function refresh() {
     setRefreshing(true)
     setAnalyticsLoaded(false) // Win #5: Re-fetch analytics when user manually refreshes
+    setNow(Date.now())        // V3: Update time reference for purity-compliant duration calc
     try {
       const res = await fetch(`/api/results/${experimentId}`)
       if (res.ok) setData(await res.json())
@@ -208,6 +272,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
   useTestUpdate(experimentId, () => {
     setAnalyticsLoaded(false) // Win #5: Re-fetch analytics on realtime updates too
+    setNow(Date.now())        // V3: Update time reference
     refreshDebounced()
   })
 
@@ -231,6 +296,20 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const enoughDataForUplift = a.conversions >= MIN_CONV_FOR_UPLIFT && b.conversions >= MIN_CONV_FOR_UPLIFT
   const lift = a.views > 0 && a.conversions > 0 && enoughDataForUplift
     ? ((b.cr - a.cr) / a.cr) * 100
+    : null
+
+  // ── V3: Multi-Kriterien-Progress ──
+  const visitorsPerArm = Math.min(a.views, b.views)
+  const convPerArm = Math.min(a.conversions, b.conversions)
+  const visitorsProgress = progressPct(visitorsPerArm, Math.max(minVisitors, MIN_VISITORS_PER_ARM))
+  const convProgress = progressPct(convPerArm, MIN_CONVERSIONS_PER_ARM)
+  const daysRunning = Math.max(0, (now - new Date(created_at).getTime()) / 86_400_000)
+  const runtimeProgress = progressPct(daysRunning, MIN_RUNTIME_DAYS)
+  const allCriteriaMet = visitorsProgress >= 100 && convProgress >= 100 && runtimeProgress >= 100
+
+  // ── V4: Time-to-significance Schätzung ──
+  const daysToSig = !done && significance > 0 && significance < (significanceLevel)
+    ? estimateDaysToSignificance(totalVisitors, significance, created_at, significanceLevel, now)
     : null
 
   // UX-07: Diese drei Handler hatten keinen Busy-Guard — die Buttons blieben
@@ -383,80 +462,187 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-5">
 
-        {/* Hero stat */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6 text-center">
-          {done && winner ? (
-            <>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                {winner} is leading
+        {/* ── Hero stat (V2: Significance-first layout) ── */}
+        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            {/* Left: Significance donut */}
+            <div className="flex flex-col items-center">
+              <div className="relative h-[100px] w-[100px]">
+                <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#111111" strokeWidth="3" />
+                  <circle
+                    cx="18" cy="18" r="14" fill="none"
+                    stroke={significance >= significanceLevel ? C.ok : significance >= 0.7 ? C.pro : 'rgba(255,255,255,0.2)'}
+                    strokeWidth="3"
+                    strokeDasharray={`${Math.max(0.01, significance) * 87.96} 87.96`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={`text-xl font-bold ${significance >= significanceLevel ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/50'}`}>
+                    {Math.round(significance * 100)}%
+                  </span>
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/50">Confidence</span>
+                </div>
+              </div>
+              <p className="mt-2 text-[10px] text-center text-[#ededed]/40 leading-relaxed max-w-[160px]">
+                {significance >= significanceLevel
+                  ? 'Statistically significant'
+                  : significance >= 0.7
+                  ? 'Approaching significance'
+                  : 'Collecting data'}
               </p>
-              <p className={`mt-3 text-5xl font-bold tracking-tight ${lift !== null && lift > 0 ? 'text-ok' : lift !== null && lift < 0 ? 'text-err' : 'text-[#ededed]'}`}>
-                {lift !== null ? `${lift > 0 ? '+' : ''}${lift.toFixed(1)}%` : '—'}
-              </p>
-              <p className="mt-2 text-[13px] text-[#ededed]/62">
-                {lift !== null
-                  ? `Conversion rate uplift vs Variant ${winner === 'B' ? 'A' : 'B'}`
-                  : 'Not enough data yet'}
-              </p>
-            </>
-          ) : !done && lift !== null ? (
-            <>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                {lift > 0 ? 'B ahead' : lift < 0 ? 'A ahead' : 'Tied'}
-              </p>
-              <p className={`mt-3 text-5xl font-bold tracking-tight ${lift > 0 ? 'text-ok' : lift < 0 ? 'text-pro' : 'text-[#ededed]'}`}>
-                {lift > 0 ? '+' : ''}{lift.toFixed(1)}%
-              </p>
-              <p className="mt-2 text-[13px] text-[#ededed]/62">
-                B conversion uplift over A · {totalVisitors.toLocaleString()} visitors
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-                Collecting data
-              </p>
-              <p className="mt-3 text-5xl font-bold tracking-tight text-[#ededed]/50">
-                {totalVisitors.toLocaleString()}
-              </p>
-              <p className="mt-2 text-[13px] text-[#ededed]/62">
-                visitors so far
-              </p>
-              {/* Win #3: "0 Visitors" — zeige konkrete nächste Schritte */}
-              {totalVisitors === 0 && (
-                <div className="mt-5 mx-auto max-w-md rounded-[8px] border border-pro/15 bg-pro/[0.03] p-4 text-left">
-                  <p className="text-[12px] font-medium text-pro mb-2">Your test is live — now drive traffic</p>
-                  <ul className="space-y-1.5 text-[11px] text-text-2">
-                    <li className="flex items-start gap-2">
-                      <span className="text-text-3 mt-0.5 shrink-0">1.</span>
-                      <span>Share your page URL with visitors — the snippet auto-assigns them to A or B.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-text-3 mt-0.5 shrink-0">2.</span>
-                      <span>First results usually appear within hours, depending on your traffic.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-text-3 mt-0.5 shrink-0">3.</span>
-                      <span>Need faster data? Run an ad or share the page on social media to boost traffic.</span>
-                    </li>
-                  </ul>
+            </div>
+
+            {/* Center: Primary stat — uplift or visitors */}
+            <div className="text-center">
+              {done && winner ? (
+                <>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                    {winner} won
+                  </p>
+                  <p className={`mt-1 text-4xl font-bold tracking-tight ${lift !== null && lift > 0 ? 'text-ok' : lift !== null && lift < 0 ? 'text-err' : 'text-[#ededed]'}`}>
+                    {lift !== null ? `${lift > 0 ? '+' : ''}${lift.toFixed(1)}%` : '—'}
+                  </p>
+                  <p className="mt-1 text-[12px] text-[#ededed]/50">
+                    {lift !== null ? 'Conversion uplift' : 'Not enough data'}
+                  </p>
+                  <p className="mt-1 text-[11px] text-[#ededed]/40">
+                    {totalVisitors.toLocaleString()} visitors · {a.conversions + b.conversions} conversions
+                  </p>
+                </>
+              ) : !done && lift !== null ? (
+                <>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                    {lift > 0 ? 'B ahead' : lift < 0 ? 'A ahead' : 'Tied'}
+                  </p>
+                  <p className={`mt-1 text-4xl font-bold tracking-tight ${lift > 0 ? 'text-ok' : lift < 0 ? 'text-pro' : 'text-[#ededed]'}`}>
+                    {lift > 0 ? '+' : ''}{lift.toFixed(1)}%
+                  </p>
+                  <p className="mt-1 text-[12px] text-[#ededed]/50">
+                    Uplift · {totalVisitors.toLocaleString()} visitors
+                  </p>
+                  <p className="mt-1 text-[11px] text-[#ededed]/40">
+                    A: {a.cr}% CR · B: {b.cr}% CR
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
+                    Collecting data
+                  </p>
+                  <p className="mt-1 text-4xl font-bold tracking-tight text-[#ededed]/50">
+                    {totalVisitors.toLocaleString()}
+                  </p>
+                  <p className="mt-1 text-[12px] text-[#ededed]/50">
+                    visitors so far
+                  </p>
+                  {!enoughDataForUplift && totalVisitors > 0 && (
+                    <p className="mt-1 text-[10px] text-text-3">
+                      Need {MIN_CONV_FOR_UPLIFT - convPerArm} more conversions per variant for reliable uplift
+                    </p>
+                  )}
+                </>
+              )}
+
+              {/* V4: Time-to-significance estimate */}
+              {daysToSig !== null && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-pro/[0.08] border border-pro/15 px-3 py-1">
+                  <Clock className="h-3 w-3 text-pro shrink-0" />
+                  <span className="text-[11px] text-pro/90">
+                    ~{daysToSig} day{daysToSig !== 1 ? 's' : ''} to {Math.round(significanceLevel * 100)}% confidence
+                  </span>
                 </div>
               )}
-            </>
-          )}
-          {/* Visitor bar */}
-          <div className="mx-auto mt-5 max-w-[240px]">
-            <div className="mb-1 flex justify-between text-[10px] text-[#ededed]/50">
-              <span>Minimum sample size</span>
-              <span>{visitorPct}%</span>
             </div>
-            <div className="h-1 overflow-hidden rounded-full bg-[#111111]">
-              <div
-                className="h-full rounded-full bg-[#ededed]/20 transition-all duration-500"
-                style={{ width: `${visitorPct}%` }}
-              />
+
+            {/* Right: Multi-criteria progress (V3) */}
+            <div className="space-y-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#ededed]/40">Requirements</p>
+              {/* Visitors per arm */}
+              <div>
+                <div className="flex justify-between text-[10px] mb-0.5">
+                  <span className={visitorsProgress >= 100 ? 'text-ok' : 'text-[#ededed]/50'}>
+                    {visitorsProgress >= 100 ? '✓' : '○'} Visitors/arm
+                  </span>
+                  <span className="text-[#ededed]/40 tabular-nums">
+                    {visitorsPerArm.toLocaleString()} / {Math.max(minVisitors, MIN_VISITORS_PER_ARM).toLocaleString()}
+                  </span>
+                </div>
+                <div className="h-1 overflow-hidden rounded-full bg-[#111111]">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${visitorsProgress >= 100 ? 'bg-ok/60' : 'bg-[#ededed]/15'}`}
+                    style={{ width: `${visitorsProgress}%` }}
+                  />
+                </div>
+              </div>
+              {/* Conversions per arm */}
+              <div>
+                <div className="flex justify-between text-[10px] mb-0.5">
+                  <span className={convProgress >= 100 ? 'text-ok' : 'text-[#ededed]/50'}>
+                    {convProgress >= 100 ? '✓' : '○'} Conversions/arm
+                  </span>
+                  <span className="text-[#ededed]/40 tabular-nums">
+                    {convPerArm} / {MIN_CONVERSIONS_PER_ARM}
+                  </span>
+                </div>
+                <div className="h-1 overflow-hidden rounded-full bg-[#111111]">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${convProgress >= 100 ? 'bg-ok/60' : 'bg-[#ededed]/15'}`}
+                    style={{ width: `${convProgress}%` }}
+                  />
+                </div>
+              </div>
+              {/* Runtime */}
+              <div>
+                <div className="flex justify-between text-[10px] mb-0.5">
+                  <span className={runtimeProgress >= 100 ? 'text-ok' : 'text-[#ededed]/50'}>
+                    {runtimeProgress >= 100 ? '✓' : '○'} Runtime
+                  </span>
+                  <span className="text-[#ededed]/40 tabular-nums">
+                    {daysRunning.toFixed(1)} / {MIN_RUNTIME_DAYS} days
+                  </span>
+                </div>
+                <div className="h-1 overflow-hidden rounded-full bg-[#111111]">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${runtimeProgress >= 100 ? 'bg-ok/60' : 'bg-[#ededed]/15'}`}
+                    style={{ width: `${runtimeProgress}%` }}
+                  />
+                </div>
+              </div>
+              {!done && !allCriteriaMet && (
+                <p className="text-[9px] text-[#ededed]/30 italic">
+                  All three must be met before a winner is declared.
+                </p>
+              )}
+              {!done && allCriteriaMet && significance < significanceLevel && (
+                <p className="text-[10px] text-pro/80">
+                  Thresholds met — waiting for {Math.round(significanceLevel * 100)}% confidence.
+                </p>
+              )}
             </div>
           </div>
+
+          {/* Win #3: "0 Visitors" — konkrete nächste Schritte */}
+          {totalVisitors === 0 && (
+            <div className="mt-5 rounded-[8px] border border-pro/15 bg-pro/[0.03] p-4">
+              <p className="text-[12px] font-medium text-pro mb-2">Your test is live — now drive traffic</p>
+              <ul className="space-y-1.5 text-[11px] text-text-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-text-3 mt-0.5 shrink-0">1.</span>
+                  <span>Share your page URL with visitors — the snippet auto-assigns them to A or B.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-text-3 mt-0.5 shrink-0">2.</span>
+                  <span>First results usually appear within hours, depending on your traffic.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-text-3 mt-0.5 shrink-0">3.</span>
+                  <span>Need faster data? Run an ad or share the page on social media to boost traffic.</span>
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* ── Charts Row: Visitors + Conversions side-by-side ── */}
@@ -687,7 +873,13 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}
                     formatter={(value) => [`${value}%`, 'Confidence']}
                   />
-                  {/* 95% significance threshold line */}
+                  {/* 95% significance threshold */}
+                  <ReferenceLine
+                    y={Math.round(significanceLevel * 100)}
+                    stroke="rgba(255,255,255,0.18)"
+                    strokeDasharray="4 4"
+                    strokeWidth={1}
+                  />
                   <Line
                     type="monotone"
                     dataKey="significance"
@@ -720,53 +912,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </div>
         ) : null}
 
-        {/* ── Significance + A/B Stats row ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Significance donut */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
-              Significance
-            </span>
-          </div>
-          <div className="flex items-center justify-center">
-            <div className="relative h-[120px] w-[120px]">
-              <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                <circle
-                  cx="18" cy="18" r="14"
-                  fill="none"
-                  stroke="#111111"
-                  strokeWidth="3"
-                />
-                <circle
-                  cx="18" cy="18" r="14"
-                  fill="none"
-                  stroke={significance >= significanceLevel ? C.ok : significance >= 0.7 ? C.pro : 'rgba(255,255,255,0.2)'}
-                  strokeWidth="3"
-                  strokeDasharray={`${significance * 87.96} 87.96`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-2xl font-bold ${significance >= significanceLevel ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-[#ededed]/40'}`}>
-                  {Math.round(significance * 100)}%
-                </span>
-                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#ededed]/50">Confidence</span>
-              </div>
-            </div>
-          </div>
-          <p className="mt-3 text-center text-[12px] text-[#ededed]/40">
-            {significance >= significanceLevel
-              ? 'Statistical significance reached — result is reliable.'
-              : significance >= 0.7
-              ? 'Approaching significance — more data needed.'
-              : 'Not enough data for a reliable conclusion yet.'}
-          </p>
-        </div>
-
-        {/* A/B Stats cards — spans 2 cols in the 3-col grid */}
-        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+        {/* ── A/B Stats Cards (Significance jetzt im Hero) ── */}
+        <div className="grid grid-cols-2 gap-4">
           {[a, b].map((v, i) => {
             const isWinner = winner === v.id
             const isVariantB = i === 1
@@ -823,7 +970,6 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             )
           })}
         </div>
-        </div>{/* end significance + stats row */}
 
         {/* Variant comparison bar chart — available for all plans */}
         <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">

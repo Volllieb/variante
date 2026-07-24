@@ -57,7 +57,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             <PandaLogo size="md" alt="Variante" />
             variante
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3 sm:gap-5">
             <a
               href="#how-it-works"
               className="text-sm text-white/55 transition-colors duration-200 hover:text-white hidden sm:inline"
@@ -70,6 +70,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
             >
               Pricing
             </a>
+            <span className="hidden sm:block w-px h-4 bg-border mx-1" aria-hidden="true" />
             <Link
               href="/login"
               className="text-sm text-white/55 transition-colors duration-200 hover:text-white"
