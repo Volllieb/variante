@@ -149,11 +149,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── How it works (statische Feature-Showcase) ── */}
       <section id="how-it-works" className="section">
         <div className="container">
-          <span className="section-label">How it works</span>
-          <h2 className="section-heading mt-1">Three steps to your first test</h2>
-          <p className="section-sub">No dev ticket. No setup. Start in 5 minutes.</p>
+          <h2 className="section-heading">How it works</h2>
+          <p className="section-sub">Three steps to your first test</p>
 
-          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:gap-8 sm:grid-cols-3">
             {[
               {
                 icon: Code2,
@@ -174,7 +173,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               <div key={step.title} className="step-card relative rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
                 {/* Connection arrows between steps (hidden on mobile) */}
                 {i < 2 && (
-                  <div className="hidden sm:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 text-white/15 pointer-events-none">
+                  <div aria-hidden="true" className="hidden sm:block absolute -right-7 top-1/2 -translate-y-1/2 z-10 text-white/15 pointer-events-none">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M18 7l5 5-5 5" />
                     </svg>
@@ -212,8 +211,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── Pricing ── */}
       <section id="pricing" className="section">
         <div className="container">
-          <span className="section-label">{copy.sectionPricing}</span>
-          <h2 className="section-heading mt-1">{copy.sectionPricing}</h2>
+          <h2 className="section-heading">{copy.sectionPricing}</h2>
           <p className="section-sub">{copy.pricingSub}</p>
           <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {/* Free */}
@@ -315,8 +313,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {/* ── FAQ ── */}
       <section className="section">
         <div className="container-narrow">
-          <span className="section-label">{copy.sectionFaq}</span>
-          <h2 className="section-heading mt-1">{copy.sectionFaq}</h2>
+          <h2 className="section-heading">{copy.sectionFaq}</h2>
           <dl className="mt-10 space-y-3">
             {copy.faqs.map((item) => (
               <details

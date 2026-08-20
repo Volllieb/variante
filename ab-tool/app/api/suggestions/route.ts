@@ -44,9 +44,9 @@ export async function POST(req: Request) {
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`
 
   // SSRF-Guard
-  let hostname: string
+  let _hostname: string
   try {
-    hostname = new URL(url).hostname
+    _hostname = new URL(url).hostname
   } catch {
     return Response.json({ error: 'Invalid URL' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }

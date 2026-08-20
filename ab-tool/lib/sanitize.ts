@@ -147,7 +147,7 @@ const CSS_STYLE_BREAKOUT_RE = /<\/?\s*style\b[^>]*>/gi
 const CSS_IMPORT_RE = /@import\b[^;]*;?/gi
 const CSS_EXPRESSION_RE = /expression\s*\(/gi
 const CSS_URL_RE = /url\s*\(\s*(['"]?)([^'")]*)\1\s*\)/gi
-const CSS_BEHAVIOR_RE = /(?:^|;)\s*(?:-moz-)?behavior\s*:[^;]*/gi
+const CSS_BEHAVIOR_RE = /(^|[;{])\s*(?:-moz-)?behavior\s*:[^;]*/gi
 // Ein Vollbild-Overlay auf einer fremden Seite ist Clickjacking, kein A/B-Test.
 const CSS_POSITION_FIXED_RE = /(^|[;{])(\s*)position\s*:\s*fixed\b/gi
 
@@ -160,7 +160,7 @@ export function sanitizeCss(css: string | null | undefined): string {
   s = s.replace(CSS_IMPORT_RE, '')
   // IE-Legacy, führt JS aus
   s = s.replace(CSS_EXPRESSION_RE, '(')
-  s = s.replace(CSS_BEHAVIOR_RE, '')
+  s = s.replace(CSS_BEHAVIOR_RE, '$1')
   // position:fixed → static. Verhindert seitenweite Overlays über fremdem Content.
   s = s.replace(CSS_POSITION_FIXED_RE, '$1$2position:static')
   // url(): nur https:, http:, relative Pfade und data:image/*

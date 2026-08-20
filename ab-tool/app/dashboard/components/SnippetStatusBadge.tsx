@@ -113,7 +113,7 @@ function SnippetVerifiedBadge({
   const otherDomains = (allVerifiedDomains ?? []).filter((d) => d.url !== domain)
 
   return (
-    <div className="mb-5 rounded-[10px] border border-ok/20 bg-ok/[0.04] px-4 py-2.5">
+    <div className="mb-5 rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.04] px-4 py-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="relative flex h-2.5 w-2.5 shrink-0">
@@ -144,7 +144,7 @@ function SnippetVerifiedBadge({
           </a>
           <button
             onClick={onToggle}
-            className="flex cursor-pointer items-center justify-center h-5 w-5 rounded-[4px] text-text-3 transition-colors hover:bg-ok/10 hover:text-text"
+            className="flex cursor-pointer items-center justify-center h-5 w-5 rounded-[var(--radius-sm)] text-text-3 transition-colors hover:bg-ok/10 hover:text-text"
           >
             <ChevronDown
               className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`}
@@ -174,13 +174,13 @@ function SnippetVerifiedBadge({
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={onRecheck}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               Re-check snippet
             </button>
             <a
               href="/dashboard/account"
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-pro transition-colors hover:border-pro/30 hover:text-pro"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-medium text-pro transition-colors hover:border-pro/30 hover:text-pro"
             >
               + Add another site
             </a>
@@ -207,7 +207,7 @@ function SnippetBanner({
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const mountedRef = useRef(true)
   const stateRef = useRef(state)
-  stateRef.current = state
+  useEffect(() => { stateRef.current = state }, [state])
 
   useEffect(() => {
     mountedRef.current = true
@@ -345,7 +345,7 @@ function SnippetBanner({
     const progress = state.phase === 'checking' ? state.progress : undefined
 
     return (
-      <div className="mb-5 rounded-[10px] border border-border-strong bg-bg-1 px-5 py-4">
+      <div className="mb-5 rounded-[var(--radius-lg)] border border-border-strong bg-bg-1 px-5 py-4" aria-live="polite">
         <div className="flex items-start gap-4">
           {/* Icon */}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5">
@@ -377,13 +377,15 @@ function SnippetBanner({
                   placeholder="yoursite.com"
                   disabled={isChecking}
                   autoFocus
-                  className="w-full h-[38px] rounded-[6px] border border-border bg-bg-0 px-3.5 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none disabled:opacity-40"
+                  aria-label="Domain to check"
+                  aria-describedby="snippet-input-error"
+                  className="w-full h-[38px] rounded-[var(--radius-md)] border border-border bg-bg-0 px-3.5 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none disabled:opacity-40"
                 />
               </div>
               <button
                 onClick={submitDomain}
                 disabled={isChecking || !urlInput.trim()}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
               >
                 {isChecking ? (
                   <span className="flex items-center gap-1.5">
@@ -401,12 +403,19 @@ function SnippetBanner({
 
             {/* Error */}
             {state.phase === 'input' && 'error' in state && state.error && (
-              <p className="text-[12px] text-err">{state.error}</p>
+              <p id="snippet-input-error" role="alert" className="text-[12px] text-err">{state.error}</p>
             )}
 
             {/* Progress bar while checking */}
             {state.phase === 'checking' && progress !== undefined && (
-              <div className="h-1 w-full max-w-[320px] rounded-full bg-bg-2 overflow-hidden">
+              <div
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Checking snippet: ${progress}%`}
+                className="h-1 w-full max-w-[320px] rounded-full bg-bg-2 overflow-hidden"
+              >
                 <div
                   className="h-full rounded-full bg-pro transition-all duration-500"
                   style={{ width: `${Math.max(progress, 5)}%` }}
@@ -443,7 +452,7 @@ function SnippetBanner({
     const stillPolling = retries < 5
 
     return (
-      <div className="mb-5 rounded-[10px] border border-err/20 bg-err/[0.03] px-5 py-4">
+      <div className="mb-5 rounded-[var(--radius-lg)] border border-err/20 bg-err/[0.03] px-5 py-4" role="alert">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-err/10">
             <X className="h-5 w-5 text-err" />
@@ -486,7 +495,7 @@ function SnippetBanner({
 
             {/* Snippet code for re-copy */}
             <div>
-              <pre className="overflow-x-auto rounded-[6px] bg-black px-4 py-3 text-[10px] leading-relaxed text-text-3 ring-1 ring-border">
+              <pre className="overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-3 text-[10px] leading-relaxed text-text-3 ring-1 ring-border">
                 {SNIPPET_CODE}
               </pre>
             </div>
@@ -495,14 +504,14 @@ function SnippetBanner({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={copySnippet}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
               >
                 {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
               </button>
               <button
                 onClick={handleRetry}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
               >
                 <Loader2 className="h-3.5 w-3.5" />
                 Check again

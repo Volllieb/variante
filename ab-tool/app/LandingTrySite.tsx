@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Loader2, Globe, Check, AlertCircle, FileText, MousePointerClick } from 'lucide-react'
+import { ArrowRight, Loader2, Globe, Check, AlertCircle, FileText, MousePointerClick, Sparkles } from 'lucide-react'
 
 const STEPS = [
   'Fetching your page',
@@ -12,7 +12,14 @@ const STEPS = [
 
 interface PagePreview {
   title: string
+  h1: string
   elementCounts: { buttons: number; headings: number; links: number; images: number }
+}
+
+interface HeadlineSuggestion {
+  original: string
+  improved: string
+  why: string
 }
 
 export function LandingTrySite() {
@@ -21,6 +28,7 @@ export function LandingTrySite() {
   const [errMsg, setErrMsg] = useState('')
   const [stepIndex, setStepIndex] = useState(0)
   const [preview, setPreview] = useState<PagePreview | null>(null)
+  const [headlineSuggestion, setHeadlineSuggestion] = useState<HeadlineSuggestion | null>(null)
 
   function isValidUrl(raw: string): boolean {
     const trimmed = raw.trim()
@@ -42,6 +50,7 @@ export function LandingTrySite() {
 
     setErrMsg('')
     setPreview(null)
+    setHeadlineSuggestion(null)
     setPhase('submitting')
     setStepIndex(0)
 
@@ -74,6 +83,7 @@ export function LandingTrySite() {
 
       const data = await res.json()
       if (data.preview) setPreview(data.preview)
+      if (data.headlineSuggestion) setHeadlineSuggestion(data.headlineSuggestion)
 
       // Show all steps complete, then transition to success
       setStepIndex(STEPS.length - 1)
@@ -90,6 +100,7 @@ export function LandingTrySite() {
     setErrMsg('')
     setStepIndex(0)
     setPreview(null)
+    setHeadlineSuggestion(null)
   }
 
   const normalized = url.trim().replace(/^https?:\/\//, '').replace(/\/+$/, '')
@@ -106,14 +117,22 @@ export function LandingTrySite() {
         </span>
 
         <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
-          {phase === 'success' ? (preview ? `Found ${preview.elementCounts.headings + preview.elementCounts.buttons} testable elements on ${normalized}` : `URL saved — you're one step away`) : 'See what you can test'}
+          {phase === 'success'
+            ? headlineSuggestion
+              ? `A better headline for ${normalized}`
+              : preview
+                ? `Found ${preview.elementCounts.headings + preview.elementCounts.buttons} testable elements on ${normalized}`
+                : `URL saved — you're one step away`
+            : 'See what you can test'}
         </h2>
         <p className="mt-2 text-sm text-white/45 max-w-md mx-auto">
           {phase === 'success'
-            ? preview
-              ? `Variante can test headlines, buttons, and more on ${normalized}. Create an account to start your first experiment.`
-              : `We'll prepare a draft test for ${normalized} as soon as you sign up.`
-            : 'Enter your site URL — we\'ll save it and prepare your first draft test after signup.'}
+            ? headlineSuggestion
+              ? 'Here\'s what Variante\'s AI would test first — a small change with measurable impact.'
+              : preview
+                ? `Variante can test headlines, buttons, and more on ${normalized}. Create an account to start your first experiment.`
+                : `We'll prepare a draft test for ${normalized} as soon as you sign up.`
+            : 'Enter your site URL — we\'ll connect it to your account and prepare your first draft test after signup.'}
         </p>
 
         {/* Input form (idle & error states) */}
@@ -126,14 +145,14 @@ export function LandingTrySite() {
                 onChange={(e) => { setUrl(e.target.value); setErrMsg(''); if (phase === 'error') setPhase('input') }}
                 placeholder="yoursite.com"
                 autoComplete="url"
-                className={`flex-1 h-[42px] rounded-[6px] border px-4 text-sm text-white placeholder:text-text-3 bg-bg-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-text/20 ${
+                className={`flex-1 h-[42px] rounded-[var(--radius-md)] border px-4 text-sm text-white placeholder:text-text-3 bg-bg-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-text/20 ${
                   phase === 'error' ? 'border-err/40' : 'border-border focus:border-border-strong'
                 }`}
               />
               <button
                 type="submit"
                 disabled={!url.trim()}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] bg-fill-invert px-5 py-2.5 text-sm font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-5 py-2.5 text-sm font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
               >
                 Try it
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -151,7 +170,7 @@ export function LandingTrySite() {
         {/* Submitting — step animation */}
         {phase === 'submitting' && (
           <div className="mt-5 max-w-sm mx-auto">
-            <div className="rounded-[10px] border border-border bg-bg-1 p-5 space-y-3">
+            <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5 space-y-3">
               {STEPS.map((step, i) => (
                 <div key={step} className="flex items-center gap-3">
                   <span className={`flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold transition-colors ${
@@ -170,14 +189,40 @@ export function LandingTrySite() {
           </div>
         )}
 
-        {/* Success — show preview + CTA to signup */}
+        {/* Success — show headline suggestion + CTA */}
         {phase === 'success' && (
           <div className="mt-5 max-w-sm mx-auto space-y-3">
-            {/* Page preview card — the "Aha moment" */}
-            {preview && (
-              <div className="rounded-[10px] border border-border bg-bg-1 p-4 text-left">
+            {/* Headline before/after card — the "Aha moment" */}
+            {headlineSuggestion && (
+              <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 text-left space-y-3">
+                {/* Original */}
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-text-3">Your headline</span>
+                  <p className="mt-1 text-[13px] text-white/55 leading-relaxed italic">
+                    &ldquo;{headlineSuggestion.original}&rdquo;
+                  </p>
+                </div>
+
+                {/* Improved */}
+                <div className="rounded-[var(--radius-md)] bg-pro/5 border border-pro/15 p-3">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-pro">
+                    <Sparkles className="h-3 w-3" /> Suggested improvement
+                  </span>
+                  <p className="mt-1.5 text-[14px] text-white font-semibold leading-snug">
+                    &ldquo;{headlineSuggestion.improved}&rdquo;
+                  </p>
+                  <p className="mt-1.5 text-[11px] text-pro/80 leading-relaxed">
+                    {headlineSuggestion.why}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Fallback: element counts (when AI didn't return a suggestion) */}
+            {!headlineSuggestion && preview && (
+              <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 text-left">
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-bg-2">
                     <span className="text-[10px] font-semibold uppercase text-text-3">
                       {normalized.charAt(0)}
                     </span>
@@ -189,17 +234,15 @@ export function LandingTrySite() {
                     <p className="text-[10px] text-text-3 truncate">{normalized}</p>
                   </div>
                 </div>
-
-                {/* Element counts */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2 rounded-[6px] bg-bg-2 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-[var(--radius-md)] bg-bg-2 px-3 py-2">
                     <MousePointerClick className="h-3.5 w-3.5 text-pro shrink-0" />
                     <div>
                       <p className="text-[13px] font-semibold text-text tabular-nums">{preview.elementCounts.buttons}</p>
                       <p className="text-[9px] text-text-3">Buttons</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-[6px] bg-bg-2 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-[var(--radius-md)] bg-bg-2 px-3 py-2">
                     <FileText className="h-3.5 w-3.5 text-text-3 shrink-0" />
                     <div>
                       <p className="text-[13px] font-semibold text-text tabular-nums">{preview.elementCounts.headings}</p>
@@ -213,8 +256,17 @@ export function LandingTrySite() {
               </div>
             )}
 
+            {/* "Also found" teaser */}
+            {headlineSuggestion && preview && (
+              <p className="text-[10px] text-text-3 px-1">
+                Also found on {normalized}: {preview.elementCounts.buttons} buttons,{' '}
+                {preview.elementCounts.headings - 1 > 0 ? `${preview.elementCounts.headings - 1} more headings, ` : ''}
+                {preview.elementCounts.links} links — all testable after signup.
+              </p>
+            )}
+
             {/* Status badge */}
-            <div className="rounded-[10px] border border-ok/20 bg-ok/[0.04] p-4">
+            <div className="rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.04] p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ok opacity-75" />
@@ -223,15 +275,18 @@ export function LandingTrySite() {
                 <span className="text-[12px] font-medium text-ok">Ready when you are</span>
               </div>
               <p className="text-[13px] text-white/70">
-                After signup, Variante will read <strong className="text-white/85">{normalized}</strong> and prepare your first draft variant — pick any element to test.
+                {headlineSuggestion
+                  ? <>Sign up and <strong className="text-white/85">{normalized}</strong> gets connected to your account — test this headline against your original and see which one <strong className="text-white/85">actually converts better</strong>.</>
+                  : <>Sign up and <strong className="text-white/85">{normalized}</strong> gets connected to your account, with your first draft variant ready — pick any element to test.</>
+                }
               </p>
             </div>
 
             <a
               href={signupHref}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-[6px] bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
             >
-              Continue to signup — it&rsquo;s free
+              Sign up free — connect your site
               <ArrowRight className="h-4 w-4" />
             </a>
             <button
@@ -256,7 +311,7 @@ export function LandingTrySite() {
         )}
 
         <p className="mt-4 text-[11px] text-text-3">
-          No account needed to try — we&rsquo;ll save your URL for after signup.
+          No account needed to try — sign up and your site connects to your account automatically.
         </p>
       </div>
     </section>

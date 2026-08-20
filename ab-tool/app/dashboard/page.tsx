@@ -1,6 +1,7 @@
 import { getSessionUser } from '@/lib/supabaseServer'
 import { supabase } from '@/lib/supabase'
 import { ensureProfile } from '@/lib/auth'
+import { claimDemoUrlForUser } from '@/lib/demoClaim'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { DashboardClient } from './DashboardClient'
@@ -38,39 +39,20 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const verifiedAt = domains.find((d) => d.verified)?.verified_at ?? null
   const allVerifiedDomains = domains.filter((d) => d.verified).map((d) => ({ url: d.url, verifiedAt: d.verified_at }))
 
-  // ── Demo → Draft: Convert landing page demo URL to a draft test ──
+  // ── Demo → Account: Landing-Demo-URL direkt mit dem Account verbinden ──
+  // Fallback für den Direct-Session-Signup-Pfad (ohne Auth-Callback). Der
+  // Callback claimed normalerweise schon beim Signup/Login — dann ist der
+  // Cookie bereits gelöscht und hier passiert nichts.
   let demoCreated = false
   try {
     const cookieStore = await cookies()
     const demoUrlCookie = cookieStore.get('variante_demo_url')
     if (demoUrlCookie?.value) {
       const demoUrl = decodeURIComponent(demoUrlCookie.value)
-      // Only create draft if user has no tests yet (first visit after signup)
-      if (tests.length === 0 && demoUrl.includes('.')) {
-        const normalizedUrl = demoUrl.startsWith('http') ? demoUrl : `https://${demoUrl}`
-        const { error: draftErr } = await supabase
-          .from('tests')
-          .insert({
-            user_id: user.id,
-            name: `Demo test on ${demoUrl}`,
-            site_url: normalizedUrl,
-            goal: 'click',
-            status: 'draft',
-            traffic_split: 50,
-          })
-        if (!draftErr) {
-          demoCreated = true
-          // Save domain so the dashboard shows "Snippet not found" instead of
-          // the empty "Connect your site" banner (Plan §5, Post-Signup UX).
-          try {
-            const hostOnly = new URL(normalizedUrl).hostname
-            await supabase.from('domains').insert({
-              user_id: user.id,
-              url: hostOnly,
-              verified: false,
-            })
-          } catch { /* domain insert is best-effort — unique constraint handles dupes */ }
-          // Re-fetch tests to include the new draft
+      if (demoUrl.includes('.')) {
+        demoCreated = await claimDemoUrlForUser(user.id, demoUrl)
+        // Re-fetch tests to include the new draft
+        if (demoCreated) {
           const { data: freshTests } = await supabase
             .from('tests')
             .select('id, name, site_url, status, health_status, health_issues, selector, original_html, goal, variant_b_html, variant_b_css, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, preview_variant_screenshot_url')

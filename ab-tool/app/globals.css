@@ -25,6 +25,10 @@
   --color-pro-bg: rgba(245, 166, 35, 0.12);
   --color-err: #f5455c;
   --color-err-bg: rgba(245, 69, 92, 0.12);
+  /* Border-radius scale */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
   color-scheme: dark;
 }
 
@@ -51,6 +55,9 @@
   --color-pro-bg: var(--color-pro-bg);
   --color-err: var(--color-err);
   --color-err-bg: var(--color-err-bg);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
 }
 
 @layer base {
@@ -125,16 +132,6 @@ html {
   .section {
     padding: 6rem 1.5rem;
   }
-}
-
-.section-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-3);
-  text-align: center;
 }
 
 .section-heading {
@@ -303,6 +300,10 @@ html {
     border-radius: 4px;
   }
 }
+
+/* ── Landing-Page Buttons (pill-style, rounded-full) ──
+   Dashboard verwendet die <Button>-Komponente (app/components/Button.tsx)
+   mit rounded-[var(--radius-md)] statt rounded-full. */
 
 /* ── Unified button system ── */
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabaseServer'
 import { ensureProfile } from '@/lib/auth'
+import { claimDemoUrlForUser } from '@/lib/demoClaim'
 import { supabase as supabaseAdmin } from '@/lib/supabase'
 
 /**
@@ -29,6 +30,32 @@ function parseAttribution(nextRaw: string | null): { source?: string; plan?: str
   } catch {
     return {}
   }
+}
+
+/**
+ * Verbindet die Landing-Demo-URL direkt mit dem Account (Signup/Login).
+ * Liest den `variante_demo_url`-Cookie (gesetzt von /api/landing-demo) und
+ * claimed ihn — Draft-Test + Domain. Rückgabe: `true` bei erfolgreichem Claim.
+ */
+async function claimLandingDemo(userId: string, req: NextRequest): Promise<boolean> {
+  const raw = req.cookies.get('variante_demo_url')?.value
+  if (!raw) return false
+  try {
+    const demoUrl = decodeURIComponent(raw)
+    if (!demoUrl.includes('.')) return false
+    return await claimDemoUrlForUser(userId, demoUrl)
+  } catch {
+    return false
+  }
+}
+
+/** Redirect, der nach erfolgreichem Demo-Claim den Cookie aufräumt. */
+function redirectAfter(next: string, req: NextRequest, claimed: boolean): NextResponse {
+  const res = NextResponse.redirect(new URL(next, req.url))
+  if (claimed) {
+    res.cookies.set('variante_demo_url', '', { path: '/', maxAge: 0 })
+  }
+  return res
 }
 
 /**
@@ -79,11 +106,12 @@ export async function GET(req: NextRequest) {
           .eq('user_id', data.user.id)
           .is('terms_accepted_at', null)
       }
+      const claimed = data.user ? await claimLandingDemo(data.user.id, req) : false
       // Kauf-Intent: User kam über "Pro"-Button → direkt in den Stripe-Checkout
       if (attribution.plan === 'pro') {
-        return NextResponse.redirect(new URL('/auth/checkout', req.url))
+        return redirectAfter('/auth/checkout', req, claimed)
       }
-      return NextResponse.redirect(new URL(next, req.url))
+      return redirectAfter(next, req, claimed)
     } catch (e: unknown) {
       // PKCE exchange kann fehlschlagen, wenn die Session bereits via
       // OAuth-Implicit-Flow gesetzt wurde (Supabase setzt Cookies direkt).
@@ -116,10 +144,11 @@ export async function GET(req: NextRequest) {
     if (data.user) {
       await ensureProfile(data.user.id, attribution)
     }
+    const claimed = data.user ? await claimLandingDemo(data.user.id, req) : false
     if (attribution.plan === 'pro') {
-      return NextResponse.redirect(new URL('/auth/checkout', req.url))
+      return redirectAfter('/auth/checkout', req, claimed)
     }
-    return NextResponse.redirect(new URL(next, req.url))
+    return redirectAfter(next, req, claimed)
   }
 
   if (!tokenHash) {
@@ -131,7 +160,8 @@ export async function GET(req: NextRequest) {
     if (user) {
       await ensureProfile(user.id)
       const next = safeNext(requestUrl.searchParams.get('next')) || '/dashboard'
-      return NextResponse.redirect(new URL(next, req.url))
+      const claimed = await claimLandingDemo(user.id, req)
+      return redirectAfter(next, req, claimed)
     }
     return NextResponse.redirect(new URL('/login?error=missing-token', req.url))
   }
@@ -153,8 +183,9 @@ export async function GET(req: NextRequest) {
   if (data.user) {
     await ensureProfile(data.user.id, attribution)
   }
+  const claimed = data.user ? await claimLandingDemo(data.user.id, req) : false
   if (attribution.plan === 'pro') {
-    return NextResponse.redirect(new URL('/auth/checkout', req.url))
+    return redirectAfter('/auth/checkout', req, claimed)
   }
-  return NextResponse.redirect(new URL(next, req.url))
+  return redirectAfter(next, req, claimed)
 }
