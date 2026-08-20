@@ -2,8 +2,12 @@
 
 Stand: 24.07.2026. 🛡️ Produktionsreife 92% — Security-Audit abgeschlossen, keine Launch-Blocker. Figma-Plugin LIVE. Outreach läuft (IbexAI, PostFox recherchiert). Produkt bereit für Design-Partner-Onboarding.
 
+> ⚠️ **Kursdefinition 20.08.2026 (verbindlich):** siehe `docs/kursdefinition.md` — Erfolgskriterium = erster zahlender Pro-Kunde (90 Tage, bis ~18.11.2026), Metriken = Sales-Pipeline, 2 Lead-Kanäle (Figma + Landingpage). Wo dieses Dokument abweicht, gilt die Kursdefinition.
+
 ## Strategie in einem Satz
-**Figma-Community-Plugin = Burggraben + PLG-Engine.** Dort sitzt die Zielgruppe, organische Discovery, ~0 CAC. Alles Gewicht zuerst dorthin — bevor SEO, Ads oder sonst was.
+**Zwei Lead-Kanäle, ein Ziel — erster zahlender Pro-Kunde in 90 Tagen:** Figma-Plugin = Kanal A (Designer, Agenturen, Figma Developers), Landingpage = Kanal B (Indie Hacker, AI-Builder, Product Hunt). Sales-Pipeline-Metriken, pro Kanal getrennt. Details: `docs/kursdefinition.md`.
+
+> Frühere Fassung: „Figma-Community-Plugin = Burggraben + PLG-Engine. Alles Gewicht zuerst dorthin." — gilt weiter als Priorität für Kanal A, aber nicht mehr als einziger Kanal.
 
 ## Die ersten 10 User — was wirklich funktioniert
 
@@ -58,6 +62,8 @@ Diese Checkliste ist **kein Feature**, sondern **Positionierung**: variante ist 
 > **Evolution:** Die Checkliste ist v0. Die Vollversion ist die **Self-Improving Site Engine** (→ `docs/future-features/self-improving-site-engine.md`): variante scanned die echte Site, analysiert DOM + Copy per KI, schlägt die Top-3-Tests vor, und lernt nach jedem abgeschlossenen Test dazu. Der geschlossene Loop: Scan → Test → Winner → nächster Scan (mit Kontext). Das ist der Burggraben, den kein anderes A/B-Tool hat.
 
 ## Distribution-Channels (6 Orte, Dual-Track)
+
+> ⚠️ **Superseded (20.08.2026):** Der Kurs schrumpft auf **2 Fokus-Kanäle** — Figma (Designer-Segment) + Landingpage (Indie-Hacker-Segment). Siehe `docs/kursdefinition.md`. Die Kanäle 2–6 unten laufen als Sparflamme weiter, sind aber kein Fokus mehr.
 
 **Strategie-Update (10.07.2026):** Da variante ein live Produkt mit live Figma-Plugin ist, fahren wir parallel zwei Strategien:
 - **Track A — Pain-First (langfristig, Glaubwürdigkeit):** Hilfreiche Replies auf Pain-Posts, kein Pitch. Baut Reputation.
@@ -133,10 +139,11 @@ Figma-Plugin ist LIVE — jetzt Reichweite maximieren:
 
 ---
 
-## Metriken
-- **North Star:** % der Installs, die einen **Live-Test starten** (Aktivierung).
-- Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient).
-- **Umsatzziel:** erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach Public-Launch. Agency-Tier später.
+## Metriken (20.08.2026 — ersetzt durch `docs/kursdefinition.md`)
+
+**Aktuell verbindlich: Sales-Pipeline, pro Kanal getrennt** — Leads → Gespräche → Concierge-Setups (erste Tests für Partner) → Live-Tests → Pro-Conversion. Erfolgskriterium: erster zahlender Pro-Kunde bis ~18.11.2026.
+
+Später (ab >100 Installs Volumen): North Star = % der Installs, die einen **Live-Test starten** (Aktivierung). Free→Pro-Conversion · Badge-getriebene Installs (viraler Koeffizient). Umsatzziel: erste 10 zahlende (Pro) innerhalb 60–90 Tagen nach dem ersten Kunden. Agency-Tier später.
 
 ## Aktueller Status (24.07.2026)
 
@@ -152,7 +159,7 @@ Figma-Plugin ist LIVE — jetzt Reichweite maximieren:
 - 🔥 **Outreach läuft**: Cold-DM-Phase gestartet, Design-Partner gesucht
 - 📋 **Strategie**: Dual-Track (Pain-Replies + Direkt-Angebote in Communities) + kalte Loom-DMs
 
-**Nächster Schritt:** Design-Partner-Onboarding mit gratis erstem Test. Case-Studies aus ersten 2–3 Live-Tests sammeln → Product-Hunt-Material.
+**Nächster Schritt:** Bestandsaufnahme (Plugin-Stats, Signups, Outreach-Antworten seit 24.07.) → Design-Partner-Onboarding (Kanal A) parallel zu PH-Vorbereitung (Kanal B). Kurs: `docs/kursdefinition.md`.
 
 ## Risiken
 - **Cold Start** (nur 2 Kontakte, 1 angefragt) → Design-Partner-Onboarding ist jetzt der kritische Pfad. Ohne Case-Studies kein Product-Hunt-Material.

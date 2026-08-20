@@ -14,8 +14,8 @@
 | **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
-| **Stand** | 24.07.2026 — 🛡️ **Produktionsreife 92%**: Security-Audit (SEC-01–12), DB-Härtung (Migrationen 029–036), UX/A11Y-Fixes (15+), Consent-API, AVV-Vorlage. Keine Launch-Blocker mehr offen. |
-| **Ziel** | 500–1.000 €/Mo passives Asset. Hebel = Distribution (Figma Community), nicht Produkt. |
+| **Stand** | 24.07.2026 — 🛡️ **Produktionsreife ~92%**: Security-Audit (SEC-01–12), DB-Härtung (Migrationen 029–036), UX/A11Y-Fixes (15+), Consent-API, AVV-Vorlage. **Re-Audit 24.07.:** 1 live wirksamer Datenintegritäts-Fehler (`ASSIGN_SECRET` in Prod nie gesetzt) + 1 Logik-Bug (Auto-Promotion pausierter Tests) gefunden & behoben — **Env-Aktion nötig** (`ASSIGN_SECRET` in Vercel setzen). Siehe `docs/produktionsreife-massnahmenplan.md` §Re-Audit. **Kursdefinition 20.08.:** Erfolgskriterium = erster zahlender Pro-Kunde (90 Tage), Metriken = Sales-Pipeline, 2 Lead-Kanäle (Figma + Landingpage). Siehe `docs/kursdefinition.md`. |
+| **Ziel** | Kurs (20.08.2026): **erster zahlender Pro-Kunde bis ~18.11.2026** (90-Tage-Kriterium). Danach: 500–1.000 €/Mo passives Asset. 2 Lead-Kanäle: Figma (Designer/Agenturen) + Landingpage (Indie Hacker/PH). Metriken: Sales-Pipeline. Verbindlich: `docs/kursdefinition.md` |
 
 ## §2 Stack
 
@@ -97,6 +97,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 
 | Datum | Eintrag |
 |---|---|
+| 20.08.2026 | **Kursdefinition nach Urlaub: Richtung neu ausgerichtet.** Erfolgskriterium nächste 90 Tage = erster zahlender Pro-Kunde (bis ~18.11.2026). Metrik-Set = Sales-Pipeline (Lead → Gespräch → Test → Pro), pro Kanal getrennt. Kurs = 2 Lead-Kanäle statt 6: **Figma** (Designer, Design-Partner, Agencies, Figma Developers) + **Landingpage** (Indie Hacker, AI-Builder, Product Hunt). X/Reddit/LinkedIn/Slack auf Sparflamme. Neues verbindliches Doku-File: `docs/kursdefinition.md` (inkl. Pipeline-Log). gotomarket.md + CLAUDE.md synchronisiert. |
 | 24.07.2026 | **Meta-Update: Docs & PROJEKT.md auf aktuellen Stand.** Migrationen 035 (Terms-Consent) + 036 (Notifications) deployed. Build grün. |
 | 24.07.2026 | **fix: Loading/Error-States für Billing, Account, Tests.** `loading.tsx` + `error.tsx` für `/dashboard/billing`, `/dashboard/account`, `/dashboard/tests`. Copy-Fix in Landingpage. |
 | 24.07.2026 | **feat: Auto-Promotion + Figma-Wizard-Integration.** `vercel.json`: Auto-Promotion von Preview→Production bei erfolgreichem Build auf `master`. Figma-Wizard-Capture-Flow in Test-Erstellung integriert. |
@@ -187,7 +188,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 ### Aktueller Stand
 - 🎉 **Figma-Plugin LIVE** — [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
 - 🎉 **Erster organischer User!** — Google OAuth Signup 13.07.2026 (kein Outreach)
-- 🛡️ **Produktionsreife 92%** — Security-Audit abgeschlossen, keine Launch-Blocker
+- 🛡️ **Produktionsreife ~92%** — Security-Audit abgeschlossen; Re-Audit 24.07. fand + behob `ASSIGN_SECRET`-Fehler (Env-Aktion nötig) & Auto-Promotion-Bug pausierter Tests
 - Built-in-Picker: Element-Picker direkt im `ab.js`-Snippet
 - **Design-Partner:** Outreach läuft (IbexAI, PostFox recherchiert)
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)
@@ -196,7 +197,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 - **Consent-API:** `window.varianteConsent` + cookieless Default
 - **AVV-Vorlage:** `docs/avv-vorlage.md` für B2B-Kunden
 - **Offen:** `paused`-State-Machine-Dokumentation, k6-Loadtest, Component-Splitting, E2E-Lücken
-- **Nächster Schritt:** Design-Partner-Onboarding → Product Hunt Launch
+- **Nächster Schritt:** Bestandsaufnahme (Plugin-Stats, Signups, Outreach-Antworten der letzten 4 Wochen) → Design-Partner-Onboarding (Kanal A) parallel zu PH-Vorbereitung (Kanal B). Kurs: `docs/kursdefinition.md`
 
 ### Meilensteine
 
@@ -213,6 +214,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 - **Plugin = Creation, Web = Analysis.** Keine Results ins Plugin.
 - **Self-Improving Site Engine = Moat.** Kein anderes A/B-Tool analysiert deine Site und sagt dir, was du als nächstes testen sollst — geschweige denn, dass es aus deinen Ergebnissen lernt.
 - **Keine Features ohne Revenue-Signal.**
+- **Kurs (20.08.2026):** 90-Tage-Kriterium = erster zahlender Pro-Kunde. Metriken = Sales-Pipeline. 2 Kanäle: Figma + Landingpage. Entscheidungsregeln + Anti-Roadmap in `docs/kursdefinition.md`.
 
 ### Vision: ab.js → Auto-Scan → 1-Klick
 
