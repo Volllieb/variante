@@ -12,6 +12,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown, Code2, Sparkles, AlertCircle, Zap } from 'lucide-react'
 import type { ElementSelection } from '../NewTestDrawer'
+import { validateManualSelector } from '@/lib/manualSelector'
 
 interface StepUrlAndElementProps {
   url: string
@@ -38,25 +39,6 @@ type ScanState = 'idle' | 'loading' | 'success' | 'error'
 interface ScanResult {
   suggestions: ScanSuggestion[]
   primarySuggestion: ScanSuggestion | null
-}
-
-// ─── CSS-Selector-Validierung ───
-function isValidCssSelector(sel: string): boolean {
-  if (!sel || sel.length < 2) return false
-  if (sel.length > 512) return false
-  // Keine Zeichen, die in CSS-Selektoren nichts zu suchen haben
-  if (/[<>{};]/.test(sel)) return false
-  // Muss mit einem gültigen Selektor-Zeichen beginnen
-  if (!/^[.#[a-zA-Z_*]/.test(sel)) return false
-  // Keine Whitespace-only Selektoren
-  if (!/\S/.test(sel)) return false
-  try {
-    // Prüfe ob der Selektor parsbar ist (document.querySelector wirft bei invaliden Selektoren)
-    document.querySelector(sel)
-    return true
-  } catch {
-    return false
-  }
 }
 
 export function StepUrlAndElement({
@@ -212,21 +194,17 @@ export function StepUrlAndElement({
 
   // ── Manual Mode: Confirm manual element selection ──
   const confirmManual = useCallback(() => {
-    const sel = manualSelector.trim()
-    if (!sel) {
-      setManualSelectorError('Please enter a CSS selector.')
-      return
-    }
-    if (!isValidCssSelector(sel)) {
-      setManualSelectorError('Invalid CSS selector. Try something like: .my-class, #my-id, button.cta')
+    const result = validateManualSelector(manualSelector)
+    if (!result.ok) {
+      setManualSelectorError(result.error ?? 'Invalid CSS selector.')
       return
     }
     setManualSelectorError('')
     onElementSelected({
-      selector: sel,
+      selector: result.selector,
       originalHtml: manualHtml.trim() || `<${manualElementType}>…</${manualElementType}>`,
       elementType: manualElementType,
-      elementName: manualElementName.trim() || sel,
+      elementName: manualElementName.trim() || result.selector,
     })
   }, [manualSelector, manualHtml, manualElementType, manualElementName, onElementSelected])
 

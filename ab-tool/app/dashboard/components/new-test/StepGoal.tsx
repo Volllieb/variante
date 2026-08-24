@@ -15,6 +15,7 @@ import {
   MousePointerClick, ExternalLink, Check, Loader2, Code2,
 } from 'lucide-react'
 import type { GoalSelection } from '../NewTestDrawer'
+import { validateManualSelector } from '@/lib/manualSelector'
 
 interface StepGoalProps {
   elementType: string
@@ -26,21 +27,6 @@ interface StepGoalProps {
 }
 
 type GoalMode = 'picker' | 'manual'
-
-// Einfache CSS-Selektor-Validierung
-function isValidCssSelector(sel: string): boolean {
-  if (!sel || sel.length < 2) return false
-  if (sel.length > 512) return false
-  if (/[<>{};]/.test(sel)) return false
-  if (!/^[.#[a-zA-Z_*]/.test(sel)) return false
-  if (!/\S/.test(sel)) return false
-  try {
-    document.querySelector(sel)
-    return true
-  } catch {
-    return false
-  }
-}
 
 export function StepGoal({
   elementType, elementName, url, selectedGoal, onGoalSelected, onConfirm,
@@ -139,20 +125,16 @@ export function StepGoal({
 
   // ── Manual Mode: Confirm manual goal selection ──
   function confirmManualGoal() {
-    const sel = manualSelector.trim()
-    if (!sel) {
-      setManualSelectorError('Please enter a CSS selector for the conversion element.')
-      return
-    }
-    if (!isValidCssSelector(sel)) {
-      setManualSelectorError('Invalid CSS selector. Try: .buy-button, #checkout, button.primary')
+    const result = validateManualSelector(manualSelector)
+    if (!result.ok) {
+      setManualSelectorError(result.error ?? 'Invalid CSS selector. Try: .buy-button, #checkout, button.primary')
       return
     }
     setManualSelectorError('')
     onGoalSelected({
       type: 'click',
-      selector: sel,
-      label: `Clicks on ${sel}`,
+      selector: result.selector,
+      label: `Clicks on ${result.selector}`,
     })
   }
 
