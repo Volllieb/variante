@@ -5,6 +5,7 @@ import { safeError } from '@/lib/safeLog'
 import { revalidatePath } from 'next/cache'
 import { parseBody } from '@/lib/apiHelpers'
 import { updateTestBody } from '@/lib/validation'
+import { getTestHealthIssues, describeTestHealthIssues } from '@/lib/testHealth'
 
 export async function OPTIONS() {
   return preflight('GET, PATCH, DELETE, OPTIONS')
@@ -31,10 +32,32 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const ownerCol = isTemp ? 'temp_session_id' : 'user_id'
   const { data: oldTest } = await supabase
     .from('tests')
-    .select('status, name')
+    .select('status, name, site_url, selector, goal, variant_b_html, variant_b_css')
     .eq('id', id)
     .eq(ownerCol, user.userId)
     .single()
+
+  if (!oldTest) {
+    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') })
+  }
+
+  // Plan DB-02: Ein Test darf nur (aktiv) bleiben, wenn alle Pflichtfelder
+  // gesetzt sind — sowohl beim expliziten Aktivieren als auch bei jeder
+  // weiteren Bearbeitung eines bereits aktiven Tests (z.B. Variante B leeren,
+  // während eine neue Fassung gespeichert wird). Der DB-Trigger blockt das
+  // nur noch stumm (status bleibt 'draft'); hier gibt's die verständliche
+  // Fehlermeldung dafür, statt eines No-Ops mit { ok: true }.
+  const resultingStatus = patch.status ?? oldTest.status
+  if (resultingStatus === 'active') {
+    const merged = { ...oldTest, ...patch }
+    const issues = getTestHealthIssues(merged)
+    if (issues.length > 0) {
+      return Response.json(
+        { error: 'cannot activate test', message: `Missing: ${describeTestHealthIssues(issues)}`, issues },
+        { status: 422, headers: corsHeaders('GET, PATCH, DELETE, OPTIONS') },
+      )
+    }
+  }
 
   const { data: updated, error } = await supabase
     .from('tests')

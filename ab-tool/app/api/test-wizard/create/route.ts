@@ -13,6 +13,7 @@ import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit } from '@/lib/rateLimit'
 import { assertOwnedDomain } from '@/lib/domainGate'
+import { getTestHealthIssues, describeTestHealthIssues } from '@/lib/testHealth'
 
 export const maxDuration = 30
 
@@ -133,6 +134,26 @@ export async function POST(req: Request) {
 
   // ─── Test erstellen (Name vom Client, kein KI-Auto-Name) ───
   const testName = normalizedName || `Test on ${normalizedSiteUrl.replace(/^https?:\/\//, '').slice(0, 60)}`
+
+  // Plan DB-02: 'active' erfordert alle Pflichtfelder — sonst blockt der
+  // DB-Trigger die Aktivierung nur noch stumm (Insert landet als 'draft').
+  // Hier gibt's die verständliche Fehlermeldung dafür.
+  if (status === 'active') {
+    const issues = getTestHealthIssues({
+      name: testName,
+      site_url: normalizedSiteUrl,
+      selector: normalizedSelector,
+      goal,
+      variant_b_html: normalizedVariantHtml,
+      variant_b_css: normalizedVariantCss,
+    })
+    if (issues.length > 0) {
+      return Response.json(
+        { error: 'cannot activate test', message: `Missing: ${describeTestHealthIssues(issues)}`, issues },
+        { status: 422, headers },
+      )
+    }
+  }
 
   // ponytail: Nur Spalten inserted, die in der DB existieren.
   const testRow: Record<string, unknown> = {
