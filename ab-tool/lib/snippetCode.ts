@@ -1,9 +1,10 @@
 // Shared snippet code — used by DomainGate, SetupClient, and copy-prompt flows.
-// Keep in sync with README.md SRI hash when ab.js changes.
 
-// Single source of truth for the ab.js SRI integrity hash.
-// Update this AND the README.md snippet block when ab.js changes.
-export const AB_JS_INTEGRITY = 'sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW'
+// SRI-Hash von public/ab.js. NICHT von Hand pflegen: `npm run sri` schreibt ihn
+// hier und im README, `npm run sri:check` laeuft in vercel-build und bricht ab,
+// sobald er driftet. Ein falscher Hash blockiert ab.js auf jeder Kundenseite —
+// still, nur mit einer Console-Meldung im Browser des Besuchers.
+export const AB_JS_INTEGRITY = 'sha384-Qsq0oyC/klf8KDvsWI3jckOstviKGPHtSCEicmoe3rtTKka0ynosZsW4yRMhLFUl'
 
 export const SNIPPET_CODE = `<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
 <link rel="preconnect" href="https://www.getvariante.com" crossorigin>

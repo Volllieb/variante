@@ -73,9 +73,21 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
-      // Public Assets (ab.js, icon.svg): 1h Stale + Revalidate
+      // ab.js liegt unter einer unveraenderlichen URL im <head> fremder Seiten.
+      // Mit max-age=3600 lief jeder Picker-/Tracking-Fix bis zu einer Stunde ins
+      // Leere: Browser servierten die alte Datei ohne Revalidierung, und der
+      // User sah weiterhin den bereits behobenen Fehler. 5 Minuten Frische +
+      // stale-while-revalidate haelt die Auslieferung schnell, laesst Fixes aber
+      // in Minuten statt Stunden durchschlagen.
       {
-        source: '/:file(ab.js|icon.svg)',
+        source: '/ab.js',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' },
+        ],
+      },
+      // Icon: 1h Stale + Revalidate
+      {
+        source: '/icon.svg',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' },
         ],

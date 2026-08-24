@@ -61,8 +61,10 @@ Das `ab.js`-Snippet wird auf fremden Websites geladen. Zum Schutz vor Supply-Cha
 
 ```html
 <script async src="https://www.getvariante.com/ab.js"
-  integrity="sha384-UWQNoAlUdBZpCeh5Fdi6Wrqdp6Br23/hcRLvJS8N2mUFO03X2S0mdC3+LzwiBSZW"
+  integrity="sha384-Qsq0oyC/klf8KDvsWI3jckOstviKGPHtSCEicmoe3rtTKka0ynosZsW4yRMhLFUl"
   crossorigin="anonymous"></script>
 ```
 
 > Der Hash wird bei jedem `ab.js`-Release neu generiert (`sha384`). Ohne SRI könnte ein kompromittierter Vercel-Account Schadcode auf allen Kunden-Sites ausführen.
+
+> **Pflege:** `npm run sri` (in `ab-tool/`) schreibt den aktuellen Hash in diesen Block und in `lib/snippetCode.ts`. `npm run sri:check` läuft als Teil von `vercel-build` und bricht den Build ab, wenn der Hash nicht zu `public/ab.js` passt — ein veralteter Hash blockiert `ab.js` auf jeder Kundenseite.

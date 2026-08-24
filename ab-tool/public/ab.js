@@ -180,6 +180,12 @@
       }
       function hideBanner() { if (__banner) { try { __banner.remove() } catch (_) {}; __banner = null } }
 
+      // Detailtexte der Fehler-Card koennen aus der Zielseite stammen (Selektor).
+      function esc(v) {
+        return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      }
+
       function showOverlay(title, selectorText, isError) {
         hideBanner()
         var old = document.getElementById('__ab_picker_overlay')
@@ -196,6 +202,7 @@
           card.innerHTML =
             '<div style=\"width:56px;height:56px;border-radius:28px;background:rgba(245,69,92,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;color:#f5455c;border:1px solid rgba(245,69,92,.20)\">!</div>' +
             '<div style=\"font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.4;color:#f5455c\">' + title + '</div>' +
+            (selectorText ? '<div style=\"font-size:12px;color:rgba(237,237,237,.55);margin-bottom:10px;line-height:1.5\">' + esc(selectorText) + '</div>' : '') +
             '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:20px\">Dismissing in a moment\u2026</div>' +
             '<button id=\"__ab_overlay_close\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\'rgba(255,255,255,.10)\'\" onmouseout=\"this.style.background=\'rgba(255,255,255,.06)\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\'__ab_picker_overlay\');if(o)o.remove()})(event)\">Close</button>'
         } else {
@@ -246,6 +253,17 @@
 
         function onOver(e) { if (lastEl) lastEl.style.outline = ''; lastEl = e.target; lastEl.style.outline = HL }
         function onOut(e) { if (e.target && e.target.style) e.target.style.outline = '' }
+
+        // Ein 401/403 entsteht hier nur, wenn ein Token MITGESCHICKT und
+        // abgelehnt wurde -- ohne Token wird gar nicht erst gesendet. Der nackte
+        // Statuscode liess den User raten, was zu tun ist.
+        function showSaveError(status) {
+          if (status === 401 || status === 403) {
+            showOverlay('Token rejected', 'Reconnect the Figma plugin in the dashboard, then start the picker again.', true)
+          } else {
+            showOverlay('Save failed (' + status + ')', 'The selection was not stored. Please try again in a moment.', true)
+          }
+        }
 
         function doCaptureRequest(el, sel, extraBody) {
           var headers = { 'Content-Type': 'application/json' }
@@ -339,14 +357,26 @@
               }
               return
             }
-            // Zweiter Klick: beide Elemente senden
+            // Zweiter Klick: beide Elemente senden.
+            // Element A MUSS vor cleanup() gesichert werden -- cleanup() setzt
+            // reorderEl1 selbst auf null. Der Zugriff danach warf jedes Mal
+            // "Cannot read properties of null (reading 'outerHTML')", der
+            // Swap-Modus brach beim zweiten Klick kommentarlos ab.
+            var e1 = reorderEl1
+            var s1 = reorderSel1
+            var el1Html = e1.outerHTML, el1Css = collectCss(e1)
+            e1.style.outline = ''
             cleanup()
             hideBanner()
-            if (reorderEl1) reorderEl1.style.outline = ''
-            var s1 = reorderSel1
-            var el1Html = reorderEl1.outerHTML, el1Css = collectCss(reorderEl1)
-            var e1 = reorderEl1
-            reorderEl1 = null; reorderSel1 = null
+
+            // Gleicher Guard wie im Normal-Modus weiter unten: ohne Token kann
+            // /api/capture per Definition nur 401 liefern. Der Swap-Modus hat
+            // keinen postMessage-Rueckkanal, der Call ist hier also nicht nur
+            // nutzlos, sondern die Quelle des irrefuehrenden "Save failed (401)".
+            if (!cfg.token && !cfg.tempToken) {
+              showOverlay('Swap needs a connected test', 'Start the swap from the dashboard so the picker carries a token.', true)
+              return
+            }
 
             var headers = { 'Content-Type': 'application/json' }
             if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
@@ -364,7 +394,7 @@
             fetch(cfg.apiBase + '/api/capture', { method: 'POST', headers: headers, body: body })
               .then(function (r) {
                 if (r.ok) showOverlay('Swap elements captured', s1 + ' \u2194 ' + sel, false)
-                else showOverlay('Save failed (' + r.status + ')', '', true)
+                else showSaveError(r.status)
               })
               .catch(function () { showOverlay('Network error while saving.', '', true) })
             return
@@ -381,7 +411,7 @@
             if (sentToOpener) {
               showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
             } else if (!returnToDashboard(el, sel, text)) {
-              showOverlay('Could not send the selection back', '', true)
+              showOverlay('Could not send the selection back', 'Keep the dashboard tab open and start the picker again.', true)
             }
             return
           }
@@ -390,7 +420,7 @@
           doCaptureRequest(el, sel).then(function (r) {
             if (r.ok) showOverlay(cfg.mode === 'goal' ? 'Goal saved' : 'Element captured', sel, false)
             else if (sentToOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
-            else showOverlay('Save failed (' + r.status + ')', '', true)
+            else showSaveError(r.status)
           }).catch(function () {
             if (sentToOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
             else showOverlay('Network error while saving.', '', true)
