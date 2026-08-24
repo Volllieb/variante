@@ -190,7 +190,7 @@ Standard ist Arbeit direkt auf `master` (siehe `AGENTS.md`). Nur bei echten Risi
 ### Aktueller Stand
 - 🎉 **Figma-Plugin LIVE** — [Community Store](https://www.figma.com/community/plugin/1653734891132085565)
 - 🎉 **Erster organischer User!** — Google OAuth Signup 13.07.2026 (kein Outreach)
-- 🛡️ **Produktionsreife ~92%** — Security-Audit abgeschlossen; Re-Audit 24.07. fand + behob `ASSIGN_SECRET`-Fehler (Env-Aktion nötig) & Auto-Promotion-Bug pausierter Tests
+- 🛡️ **Produktionsreife ~92%** — Security-Audit abgeschlossen; Re-Audit 24.07. fand + behob `ASSIGN_SECRET`-Fehler & Auto-Promotion-Bug pausierter Tests. `ASSIGN_SECRET` in Vercel gesetzt (24.08.).
 - Built-in-Picker: Element-Picker direkt im `ab.js`-Snippet
 - **Design-Partner:** Outreach läuft (IbexAI, PostFox recherchiert)
 - Dogfooding: variante testet eigene Landingpage (ab.js im Root-Layout)

@@ -53,7 +53,7 @@ Sonst: **nicht machen.** Auch wenn's Spaß macht oder technisch elegant ist.
 
 ## 90-Tage-Plan (20.08. → 18.11.2026)
 
-- **Woche 1–2: Bestandsaufnahme.** Plugin-Stats, Signups, Outreach-Antworten der letzten 4 Wochen. `ASSIGN_SECRET` in Vercel setzen. Uncommitted Stand (77 Files vom Re-Audit) committen. Pipeline-Baseline pro Kanal.
+- **Woche 1–2: Bestandsaufnahme.** Plugin-Stats, Signups, Outreach-Antworten der letzten 4 Wochen. Uncommitted Stand (77 Files vom Re-Audit) committen. Pipeline-Baseline pro Kanal.
 - **Woche 1–6: Kanal A anlaufen.** Design-Partner-Outreach (Loom-DMs), Concierge-Onboarding, erste Live-Tests auf Partnersites.
 - **Woche 4–8: Kanal B vorbereiten.** Landingpage für Indie-Hacker schärfen, PH-Material (Demo-GIF, Case-Study-Ansätze).
 - **Woche 8–10: Product Hunt Launch** (Kanal B), parallel Concierge (Kanal A).

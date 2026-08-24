@@ -2,7 +2,7 @@
 
 > **Produkt:** A/B-Testing für jede Website. URL eingeben → Element mit Built-in-Picker wählen → KI generiert Variante B → Snippet trackt Conversions. Figma-Plugin zeigt Live-Stats im Editor. Test-Creation-Flow im Dashboard integriert Figma als optionale Variant-Quelle.
 > **Domain:** [www.getvariante.com](https://www.getvariante.com)
-> **Phase:** GTM — Kursdefinition 20.08.2026 (verbindlich: `docs/kursdefinition.md`): Erfolgskriterium = **erster zahlender Pro-Kunde bis ~18.11.2026**. Metriken = Sales-Pipeline (Lead → Gespräch → Test → Pro, pro Kanal). 2 Lead-Kanäle: **Figma** (Designer, Agenturen, Figma Developers) + **Landingpage** (Indie Hacker, AI-Builder, PH). X/Reddit/LinkedIn auf Sparflamme. Produktionsreife ~92%. **Vor Prod-Deploy: `ASSIGN_SECRET` in Vercel setzen** (Re-Audit 24.07., Details: `docs/produktionsreife-massnahmenplan.md` §Re-Audit).
+> **Phase:** GTM — Kursdefinition 20.08.2026 (verbindlich: `docs/kursdefinition.md`): Erfolgskriterium = **erster zahlender Pro-Kunde bis ~18.11.2026**. Metriken = Sales-Pipeline (Lead → Gespräch → Test → Pro, pro Kanal). 2 Lead-Kanäle: **Figma** (Designer, Agenturen, Figma Developers) + **Landingpage** (Indie Hacker, AI-Builder, PH). X/Reddit/LinkedIn auf Sparflamme. Produktionsreife ~92%. `ASSIGN_SECRET` ist in Vercel gesetzt (Re-Audit 24.07. behoben, Details: `docs/produktionsreife-massnahmenplan.md` §Re-Audit).
 
 ## Stack
 
