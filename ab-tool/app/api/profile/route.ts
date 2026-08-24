@@ -9,23 +9,41 @@ export async function OPTIONS() {
   return preflight('GET, PATCH, DELETE, OPTIONS')
 }
 
-// GET /api/profile — Profil-Daten (inkl. notify_on_winner, last_plugin_sync_at)
+// GET /api/profile — Profil-Daten (inkl. notify_on_winner, auto_promote_winner,
+// last_plugin_sync_at)
 export async function GET(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, PATCH, OPTIONS')
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('plan, plan_status, notify_on_winner, last_plugin_sync_at, created_at')
-    .eq('user_id', user.userId)
-    .single()
+  // auto_promote_winner kommt aus einer SEPARATEN, fehlertoleranten Query.
+  // Grund: Migration 038 läuft manuell im Supabase-Editor, der Deploy aber
+  // automatisch beim Push. In dem Fenster dazwischen existiert die Spalte
+  // nicht — stünde sie im Haupt-Select, würde PostgREST die GESAMTE Abfrage
+  // abweisen und dieser Endpunkt 404 liefern. Daran hängt das live
+  // ausgelieferte Figma-Plugin. Ein neues Feature darf ein bestehendes nicht
+  // von der Deploy-Reihenfolge abhängig machen.
+  const [{ data, error }, prefsRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('plan, plan_status, notify_on_winner, last_plugin_sync_at, created_at')
+      .eq('user_id', user.userId)
+      .single(),
+    supabase
+      .from('profiles')
+      .select('auto_promote_winner')
+      .eq('user_id', user.userId)
+      .single(),
+  ])
 
   if (error || !data) {
     safeError('profile', error)
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, PATCH, OPTIONS') })
   }
 
-  return Response.json(data, { headers: corsHeaders('GET, PATCH, OPTIONS') })
+  return Response.json(
+    { ...data, auto_promote_winner: prefsRes.data?.auto_promote_winner !== false },
+    { headers: corsHeaders('GET, PATCH, OPTIONS') }
+  )
 }
 
 // PATCH /api/profile — Profil-Einstellungen aktualisieren
@@ -33,7 +51,7 @@ export async function PATCH(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('PATCH, OPTIONS')
 
-  let body: { notify_on_winner?: boolean }
+  let body: { notify_on_winner?: boolean; auto_promote_winner?: boolean }
   try {
     body = await req.json()
   } catch {
@@ -42,6 +60,10 @@ export async function PATCH(req: Request) {
 
   const patch: Record<string, unknown> = {}
   if (typeof body.notify_on_winner === 'boolean') patch.notify_on_winner = body.notify_on_winner
+  // Plan RA-06: Opt-out für die Auto-Promotion. false = der Winner-Cron
+  // schreibt den Gewinner, rollt ihn aber nicht selbstständig auf der
+  // Kundenseite aus (siehe cron/check-winners).
+  if (typeof body.auto_promote_winner === 'boolean') patch.auto_promote_winner = body.auto_promote_winner
 
   if (Object.keys(patch).length === 0) {
     return Response.json({ error: 'nothing to update' }, { status: 400, headers: corsHeaders('PATCH, OPTIONS') })

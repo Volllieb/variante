@@ -19,9 +19,13 @@ function extractDomain(url: string | null | undefined): string | null {
 }
 
 // POST /api/cron/check-winners — Von Vercel Cron stündlich aufgerufen.
-// Prüft alle aktiven Tests auf neu erkannte Winner, setzt den Status
-// automatisch auf 'done' (Auto-Promotion) und sendet E-Mail-Benachrichtigungen
-// via Resend. done+B → resolve liefert force:'B' (100% Variant B).
+// Prüft alle aktiven Tests auf neu erkannte Winner und benachrichtigt via
+// Resend + In-App-Notification.
+//
+// Auto-Promotion (profiles.auto_promote_winner, Default true): Status wird auf
+// 'done' gesetzt, done+B → resolve liefert force:'B' (100 % Variant B).
+// Ist der Schalter aus, wird der Winner nur protokolliert — der Test bleibt
+// 'active', die Kundenseite unverändert, bis der Nutzer manuell zustimmt.
 
 export const { GET, POST } = cronRoute(async (_req) => {
 
@@ -44,6 +48,8 @@ export const { GET, POST } = cronRoute(async (_req) => {
   }
 
   const notified: string[] = []
+  // Tests, deren Gewinner tatsächlich ausgerollt wurde (Rest: nur gemeldet).
+  const promoted: string[] = []
 
   // ponytail: Die Gewinner-Entscheidung fällt AUSSCHLIESSLICH hier — einmal pro
   // Tag. Vorher wurde sie zusätzlich in /api/event bei jeder Conversion neu
@@ -105,42 +111,78 @@ export const { GET, POST } = cronRoute(async (_req) => {
     }
 
     if (winner) {
-      // Winner persistieren + Auto-Promotion: Status auf 'done' setzen.
-      // done + winner=B → resolve liefert force:'B' (100% Variant B).
-      // done + winner=A → Test wird nicht mehr ausgeliefert (Original = A).
+      // ponytail (Plan RA-06): Das Profil entscheidet, ob der Gewinner
+      // automatisch ausgerollt wird — deshalb wird es VOR dem Update geladen.
+      // Vorher setzte der Cron bedingungslos status='done', was über
+      // /api/resolve (force:'B') 100 % Variante B auf der Kundenseite
+      // erzwang. Eine fremde Live-Seite dauerhaft zu ändern, ohne dass der
+      // Betreiber zugestimmt hat und ohne Abschaltmöglichkeit, ist keine
+      // Entscheidung, die ein Cron treffen darf.
+      let profile: { notify_on_winner: boolean | null; plan: string | null; auto_promote_winner: boolean | null } | null = null
+      if (t.user_id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('notify_on_winner, plan, auto_promote_winner')
+          .eq('user_id', t.user_id)
+          .single()
+        profile = data
+      }
+      // Fail-open auf das dokumentierte Default-Verhalten: nur ein explizites
+      // false schaltet die Promotion ab. NULL (Altbestand) und ein
+      // fehlgeschlagener Select (Spalte existiert vor Migration 038 noch
+      // nicht) landen damit beide auf dem bisherigen Verhalten — der Cron
+      // verhält sich vor der Migration exakt wie vorher.
+      const autoPromote = profile?.auto_promote_winner !== false
+
+      // Winner immer persistieren (auch ohne Promotion — das verhindert, dass
+      // derselbe Test in jedem Lauf erneut gemeldet wird, der Cron filtert auf
+      // winner IS NULL). Der Status wechselt nur bei aktiver Auto-Promotion:
+      //   done + winner=B → resolve liefert force:'B' (100 % Variante B).
+      //   done + winner=A → Test wird nicht mehr ausgeliefert (Original = A).
+      // Ohne Promotion bleibt der Test 'active' und läuft mit seinem Split
+      // weiter, bis der Nutzer im Dashboard "Apply winner" drückt.
       await supabase
         .from('tests')
-        .update({ winner, significance: sig, status: 'done' })
+        .update({ winner, significance: sig, ...(autoPromote ? { status: 'done' } : {}) })
         .eq('id', t.id)
 
       // In-App Notification: Winner detected
       const crAWin = t.visitors_a > 0 ? t.conversions_a / t.visitors_a : 0
       const crBWin = t.visitors_b > 0 ? t.conversions_b / t.visitors_b : 0
       const upliftWin = crAWin > 0 ? Math.round(((crBWin - crAWin) / crAWin) * 10000) / 100 : 0
-      await supabase.from('notifications').insert({
-        user_id: t.user_id,
-        type: 'test_done',
-        title: `🏆 "${t.name}" — Variant ${winner} won!`,
-        body: `Variant ${winner} is now live for all visitors (${(sig * 100).toFixed(1)}% confidence, ${upliftWin > 0 ? '+' : ''}${upliftWin.toFixed(1)}% uplift).`,
-        href: `/dashboard/results/${t.id}`,
-      })
+      const statsSuffix = `${(sig * 100).toFixed(1)}% confidence, ${upliftWin > 0 ? '+' : ''}${upliftWin.toFixed(1)}% uplift`
+      await supabase.from('notifications').insert(
+        autoPromote
+          ? {
+              user_id: t.user_id,
+              type: 'test_done',
+              title: `🏆 "${t.name}" — Variant ${winner} won!`,
+              body: `Variant ${winner} is now live for all visitors (${statsSuffix}).`,
+              href: `/dashboard/results/${t.id}`,
+            }
+          : {
+              user_id: t.user_id,
+              // 'significance' rendert als Award-Icon in Amber — "Entscheidung
+              // steht an", im Gegensatz zum grünen test_done ("ist live").
+              type: 'significance',
+              title: `"${t.name}" — Variant ${winner} won. Ready to apply.`,
+              body: `Variant ${winner} won (${statsSuffix}). Nothing changed on your site — open the test to apply it or keep running.`,
+              href: `/dashboard/results/${t.id}`,
+            }
+      )
 
       // Event loggen
       await supabase.rpc('log_event', {
         p_test_id: t.id,
         p_user_id: t.user_id,
         p_type: 'winner_detected',
-        p_message: `Winner ${winner} detected — auto-completed. Variant ${winner} now live for all visitors. (sig=${sig.toFixed(4)}, vA=${t.visitors_a}, vB=${t.visitors_b}, cA=${t.conversions_a}, cB=${t.conversions_b})`,
+        p_message: autoPromote
+          ? `Winner ${winner} detected — auto-completed. Variant ${winner} now live for all visitors. (sig=${sig.toFixed(4)}, vA=${t.visitors_a}, vB=${t.visitors_b}, cA=${t.conversions_a}, cB=${t.conversions_b})`
+          : `Winner ${winner} detected — awaiting manual approval (auto-promotion off). Test stays active, site unchanged. (sig=${sig.toFixed(4)}, vA=${t.visitors_a}, vB=${t.visitors_b}, cA=${t.conversions_a}, cB=${t.conversions_b})`,
       })
 
       // E-Mail + Pro-Pitch
       if (t.user_id) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('notify_on_winner, plan')
-          .eq('user_id', t.user_id)
-          .single()
-
         // E-Mail an User wenn notify_on_winner aktiv
         if (profile?.notify_on_winner !== false) {
           const { data: authUser } = await supabase.auth.admin.getUserById(t.user_id)
@@ -149,8 +191,11 @@ export const { GET, POST } = cronRoute(async (_req) => {
           if (email) {
             await sendEmail({
               to: email,
-              subject: `🏆 "${t.name}" — Variant ${winner} won and is now live`,
-              html: `
+              subject: autoPromote
+                ? `🏆 "${t.name}" — Variant ${winner} won and is now live`
+                : `🏆 "${t.name}" — Variant ${winner} won. Ready to apply.`,
+              html: autoPromote
+                ? `
                 <p>Your A/B test <strong>"${t.name}"</strong> has a winner!</p>
                 <p>Variant <strong>${winner}</strong> won with statistical significance (${(sig * 100).toFixed(1)}% confidence)
                    and is <strong>now live for all visitors</strong> automatically.</p>
@@ -159,8 +204,23 @@ export const { GET, POST } = cronRoute(async (_req) => {
                 </p>
                 <hr>
                 <p style="color:#888;font-size:12px">
-                  Auto-promotion is on by default. You can pause or revert the test in your dashboard.
-                  <br><a href="https://www.getvariante.com/dashboard">Manage settings</a>
+                  Auto-apply is on. You can turn it off under Account → Experiments,
+                  and pause or revert the test in your dashboard.
+                  <br><a href="https://www.getvariante.com/dashboard/account">Manage settings</a>
+                </p>
+              `
+                : `
+                <p>Your A/B test <strong>"${t.name}"</strong> has a winner!</p>
+                <p>Variant <strong>${winner}</strong> won with statistical significance (${(sig * 100).toFixed(1)}% confidence).</p>
+                <p><strong>Nothing has changed on your site.</strong> Auto-apply is off, so the test keeps
+                   running at its current split until you decide.</p>
+                <p>
+                  <a href="https://www.getvariante.com/dashboard/results/${t.id}">Review and apply the winner →</a>
+                </p>
+                <hr>
+                <p style="color:#888;font-size:12px">
+                  You can re-enable auto-apply under Account → Experiments.
+                  <br><a href="https://www.getvariante.com/dashboard/account">Manage settings</a>
                 </p>
               `,
             })
@@ -180,6 +240,7 @@ export const { GET, POST } = cronRoute(async (_req) => {
       }
 
       notified.push(t.id)
+      if (autoPromote) promoted.push(t.id)
 
       // ─── Learning Loop v3: Winner-Daten in site_insights schreiben ───
       const domain = extractDomain(t.site_url)
@@ -221,7 +282,8 @@ export const { GET, POST } = cronRoute(async (_req) => {
   safeLog('info', 'cron:check-winners', 'completed', {
     checked: tests?.length ?? 0,
     notified: notified.length,
+    promoted: promoted.length,
     skipped: skipped.length,
   })
-  return Response.json({ checked: tests?.length ?? 0, notified, skipped })
+  return Response.json({ checked: tests?.length ?? 0, notified, promoted, skipped })
 })

@@ -36,6 +36,7 @@ import {
   MousePointerClick,
   Globe,
   Clock,
+  Trophy,
 } from 'lucide-react'
 import {
   LineChart,
@@ -167,7 +168,18 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const { name, status, significance, winner, variants, created_at } = data
   const [a, b] = variants
   const totalVisitors = a.views + b.views
-  const done = status === 'done' || !!winner
+  // ponytail (Plan RA-06): `done` hieß bisher `status === 'done' || !!winner`.
+  // Seit die Auto-Promotion abschaltbar ist, kann ein Test einen ermittelten
+  // Gewinner haben und trotzdem weiterlaufen — dann hätte die alte Definition
+  // „Variante B wird an alle Besucher ausgeliefert" behauptet, obwohl auf der
+  // Kundenseite nichts passiert ist. Der ausgerollte Zustand hängt jetzt
+  // ausschließlich am Status, wie in /api/resolve (force nur bei done+B).
+  const done = status === 'done'
+  // Gewinner steht fest, wartet aber auf die Freigabe des Nutzers.
+  const winnerPending = !!winner && !done
+  // „Die Entscheidung ist gefallen" — egal ob schon ausgerollt oder nicht.
+  // Steuert alles, was Fortschritts- statt Ergebnisdarstellung zeigt.
+  const decided = done || winnerPending
   const visitorPct = Math.min(100, Math.round((totalVisitors / Math.max(1, minVisitors)) * 100))
 
   // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
@@ -189,7 +201,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const allCriteriaMet = visitorsProgress >= 100 && convProgress >= 100 && runtimeProgress >= 100
 
   // ── V4: Time-to-significance Schätzung ──
-  const daysToSig = !done && significance > 0 && significance < (significanceLevel)
+  const daysToSig = !decided && significance > 0 && significance < (significanceLevel)
     ? estimateDaysToSignificance(totalVisitors, significance, created_at, significanceLevel, now)
     : null
 
@@ -268,8 +280,35 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     }
   }
 
-  const statusColor =
-    status === 'active'
+  // Plan RA-06: Manuelles Ausrollen des Gewinners. Ohne diesen Weg wäre der
+  // Auto-Promotion-Opt-out eine Sackgasse — der Test hätte einen Gewinner,
+  // aber kein UI, um ihn live zu schalten.
+  // status='done' + winner='B' → /api/resolve liefert force:'B' (100 % B).
+  // Bei winner='A' schließt es den Test ab; ausgeliefert wird ohnehin das
+  // Original.
+  async function applyWinner() {
+    if (busy || !winner) return
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/tests/${experimentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'done' }),
+      })
+      if (!res.ok) throw new Error('patch failed')
+      await refresh()
+    } catch {
+      setError('Failed to apply the winner. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const statusColor = winnerPending
+    // Gewinner steht fest, ist aber noch nicht ausgerollt → Handlungsbedarf.
+    ? 'bg-pro-bg text-pro'
+    : status === 'active'
       ? 'bg-ok-bg text-ok'
       : status === 'paused'
       ? 'bg-pro-bg text-pro'
@@ -290,8 +329,20 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         </div>
         <div className="flex items-center gap-2">
           <span className={`rounded-[var(--radius-md)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
-            {winner ? `${winner} won` : status}
+            {winnerPending ? `${winner} won · not applied` : winner ? `${winner} won` : status}
           </span>
+          {/* Plan RA-06: Nur sichtbar, wenn die Auto-Promotion aus ist und ein
+              Gewinner auf Freigabe wartet. Bei aktiver Auto-Promotion tritt
+              dieser Zustand nie auf — der Cron setzt done direkt. */}
+          {winnerPending && (
+            <button
+              onClick={applyWinner}
+              disabled={busy}
+              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-xs font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Trophy className="h-3 w-3" /> Apply winner
+            </button>
+          )}
           {status === 'active' && (
             <button
               onClick={() => toggleStatus('paused')}
@@ -405,7 +456,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
             {/* Center: Primary stat — uplift or visitors */}
             <div className="text-center">
-              {done && winner ? (
+              {decided && winner ? (
                 <>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                     {winner} won
@@ -420,7 +471,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     {totalVisitors.toLocaleString()} visitors · {a.conversions + b.conversions} conversions
                   </p>
                 </>
-              ) : !done && lift !== null ? (
+              ) : !decided && lift !== null ? (
                 <>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                     {lift > 0 ? 'B ahead' : lift < 0 ? 'A ahead' : 'Tied'}
@@ -519,12 +570,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   />
                 </div>
               </div>
-              {!done && !allCriteriaMet && (
+              {!decided && !allCriteriaMet && (
                 <p className="text-[9px] text-[#ededed]/30 italic">
                   All three must be met before a winner is declared.
                 </p>
               )}
-              {!done && allCriteriaMet && significance < significanceLevel && (
+              {!decided && allCriteriaMet && significance < significanceLevel && (
                 <p className="text-[10px] text-pro/80">
                   Thresholds met — waiting for {Math.round(significanceLevel * 100)}% confidence.
                 </p>
@@ -1258,10 +1309,34 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   ? `Variant ${winner} wins and is now served to all visitors.`
                   : 'no winner declared.'}
               </p>
+            ) : winnerPending ? (
+              // Plan RA-06: Auto-Apply ist aus — der Gewinner steht fest, aber
+              // auf der Kundenseite hat sich nichts geändert. Das hier muss
+              // unmissverständlich sein, sonst glaubt der Kunde, die Variante
+              // sei live.
+              <div className="mt-2 space-y-3">
+                <p className="text-[13px] text-pro">
+                  Variant {winner} won — <strong className="font-semibold">not applied yet</strong>.
+                </p>
+                <p className="text-xs leading-relaxed text-[#ededed]/40">
+                  Auto-apply is off, so your site is unchanged and the test keeps running at its
+                  current split. Applying the winner serves Variant {winner} to all visitors and
+                  closes the test.
+                </p>
+                <button
+                  onClick={applyWinner}
+                  disabled={busy}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-xs font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trophy className="h-3.5 w-3.5" /> Apply winner
+                </button>
+              </div>
             ) : (
               <>
                 <p className="mt-1 text-xs text-[#ededed]/40 leading-relaxed">
-                  Once both thresholds are met, Variant B automatically becomes the winner and is served to all new visitors.
+                  Once both thresholds are met, Variant B becomes the winner. If auto-apply is on
+                  (Account → Experiments), it is served to all new visitors automatically —
+                  otherwise you get a notification and decide here.
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <label className="block space-y-1.5">
