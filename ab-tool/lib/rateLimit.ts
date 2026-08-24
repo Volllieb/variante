@@ -82,6 +82,40 @@ export async function checkRateLimit(
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// Einmal-Marker (Replay-Dedup). Plan DATA-01: Eine Assignment-Nonce darf nur
+// EINE Conversion zählen. Gibt true zurück, wenn der Key zum ersten Mal gesehen
+// wird (Conversion zählen), false bei Wiederholung (Replay → verwerfen).
+//
+// Redis: SET key 1 NX EX ttl — atomar. Fehlt Redis (Dev) oder fällt es aus,
+// greift der In-Memory-Fallback (pro Instanz, reicht für Dev). Fail-open: bei
+// Redis-Fehler wird die Conversion gezählt statt verworfen — lieber einmal zu
+// viel als eine echte Conversion verlieren.
+// ─────────────────────────────────────────────────────────────────────────
+const seenOnce = new Map<string, number>() // key -> expiry (ms)
+
+export async function markConversionOnce(nonce: string, ttlSeconds: number): Promise<boolean> {
+  const key = `conv:once:${nonce}`
+  if (redis) {
+    try {
+      const res = await redis.set(key, '1', { nx: true, ex: ttlSeconds })
+      return res === 'OK' // OK = neu gesetzt, null = existierte bereits
+    } catch (err) {
+      console.error('[markConversionOnce] Redis-Error, fallback to in-memory:', String(err))
+      redis = null
+    }
+  }
+  // In-Memory-Fallback (Dev / Redis aus)
+  const now = Date.now()
+  const existing = seenOnce.get(key)
+  if (existing && existing > now) return false
+  seenOnce.set(key, now + ttlSeconds * 1000)
+  if (seenOnce.size > 10_000) {
+    for (const [k, exp] of seenOnce) if (exp <= now) seenOnce.delete(k)
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // Globaler Tages-Circuit-Breaker für unauthentifizierte KI-Generierungen
 // (Plan NEW-01 / SEC-06). Redis-basierter Zähler mit 24h-Expiry.
 // Verhindert, dass ein Botnetz mit verteilten IPs Per-Session-Limits umgeht.

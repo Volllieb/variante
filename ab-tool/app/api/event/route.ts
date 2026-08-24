@@ -1,28 +1,15 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
 import { calcSignificance } from '@/lib/significance'
-import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
+import { checkRateLimit, getClientIp, loadtestBypass, markConversionOnce } from '@/lib/rateLimit'
 import { safeError } from '@/lib/safeLog'
-import { createHmac } from 'crypto'
-
-// Security: UUID v4 Format-Validierung für snippet_key
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { verifyAssignToken, TOKEN_TTL_SECONDS } from '@/lib/assignToken'
+import { parseBody } from '@/lib/apiHelpers'
+import { eventBody } from '@/lib/validation'
 
 // Plan DATA-01: Verifiziere das signierte Token aus /api/assign.
 // Verhindert, dass Conversions ohne vorherige Zuweisung gefälscht werden können.
-const ASSIGN_SECRET = process.env.ASSIGN_SECRET || 'variante-assign-dev'
-
-function verifyToken(snippetKey: string, variant: string, token: string): boolean {
-  const parts = token.split('.')
-  if (parts.length !== 4) return false
-  const [key, v, expStr, sig] = parts
-  if (key !== snippetKey || v !== variant) return false
-  const exp = parseInt(expStr, 10)
-  if (!Number.isFinite(exp) || Date.now() > exp) return false
-  const payload = `${key}.${v}.${exp}`
-  const expected = createHmac('sha256', ASSIGN_SECRET).update(payload).digest('hex').slice(0, 16)
-  return sig === expected
-}
+// Ausstellung + Prüfung + Secret leben zentral in lib/assignToken.ts.
 
 export async function OPTIONS() {
   return preflightPublic('POST, OPTIONS')
@@ -48,34 +35,39 @@ export async function POST(req: Request) {
     return Response.json({ error: 'too many requests' }, { status: 429, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
-  let body: { testId?: string; variant?: string; event?: string; token?: string }
-  try {
-    body = await req.json()
-  } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
-  }
-
-  const { testId, variant, event, token } = body
-
-  // Security: UUID-Validierung verhindert Malformed-Input in DB-Queries
-  if (!testId || !UUID_RE.test(testId) || (variant !== 'A' && variant !== 'B') || event !== 'conversion') {
+  const parsed = await parseBody(req, eventBody, 'POST, OPTIONS')
+  if (!parsed.ok) {
+    const err = parsed.response
     return Response.json(
-      { error: 'testId (UUID), variant (A|B) and event=conversion are required' },
-      { status: 400, headers: corsHeadersPublic('POST, OPTIONS') }
+      await err.json(),
+      { status: err.status, headers: corsHeadersPublic('POST, OPTIONS') }
     )
   }
+  const { testId, variant, token } = parsed.data
 
-  // Plan DATA-01: Verifiziere signiertes Token. Ohne gültiges Token wird die
-  // Conversion abgelehnt — verhindert, dass Dritte Conversions für fremde Tests
-  // melden können. Fehlt das Token (alte ab.js-Version), akzeptieren wir die
-  // Conversion mit einem Warning-Log (Graceful Degradation).
+  // Plan DATA-01: Token verifizieren. Fehlt es, akzeptieren wir die Conversion
+  // (Graceful Degradation): Im cookieless Default-Modus von ab.js überlebt das
+  // Token keinen Seitenwechsel, Cross-Page-Conversions kommen dann legitim ohne
+  // Token. Ist ein Token da, MUSS es gültig sein — ein ungültiges/abgelaufenes
+  // wird abgelehnt. Eine bereits eingelöste Nonce ist ein Replay und wird
+  // verworfen, ohne die Conversion erneut zu zählen.
   if (!token) {
-    console.warn('[event] conversion without token — consider upgrading ab.js')
-  } else if (!verifyToken(testId, variant, token)) {
-    return Response.json(
-      { error: 'invalid or expired token' },
-      { status: 403, headers: corsHeadersPublic('POST, OPTIONS') }
-    )
+    console.warn('[event] conversion without token — cookieless page-change or outdated ab.js')
+  } else {
+    const check = verifyAssignToken(testId, variant, token)
+    if (!check.valid) {
+      return Response.json(
+        { error: 'invalid or expired token' },
+        { status: 403, headers: corsHeadersPublic('POST, OPTIONS') }
+      )
+    }
+    if (check.nonce) {
+      const first = await markConversionOnce(check.nonce, TOKEN_TTL_SECONDS)
+      if (!first) {
+        // Replay derselben Zuweisung — als OK bestätigen, aber nicht doppelt zählen.
+        return Response.json({ ok: true, deduped: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
+      }
+    }
   }
 
   try {

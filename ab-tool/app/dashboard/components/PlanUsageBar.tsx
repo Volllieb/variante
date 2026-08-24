@@ -39,11 +39,11 @@ export function PlanUsageBar({ plan, activeTests, domainCount }: PlanUsageBarPro
   ]
 
   return (
-    <div className="mb-5 rounded-[10px] border border-border bg-bg-1 px-5 py-4">
+    <div className="mb-5 rounded-[var(--radius-lg)] border border-border bg-bg-1 px-5 py-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-[12px] font-semibold text-text">Free plan</span>
-          <span className="rounded-[4px] border border-border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-text-3">
+          <span className="rounded-[var(--radius-sm)] border border-border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-text-3">
             Free
           </span>
         </div>

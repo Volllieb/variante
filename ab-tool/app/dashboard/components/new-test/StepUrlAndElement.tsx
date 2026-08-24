@@ -233,11 +233,21 @@ export function StepUrlAndElement({
   const hasSnippet = verifiedDomains.length > 0
   const showPickerMode = mode === 'picker'
 
+  // Does the current URL point at an already-connected domain? If so we lock
+  // the domain and only let the user edit the path — that's the one thing
+  // that was genuinely ambiguous before: whether to type "example.com" or
+  // "example.com/about" into a single free-text field.
+  const matchedDomain = verifiedDomains.find((d) => {
+    const withProtocol = `https://${d.url}`
+    return url === withProtocol || url.startsWith(`${withProtocol}/`)
+  })
+  const pathValue = matchedDomain ? url.slice(`https://${matchedDomain.url}`.length) || '/' : ''
+
   return (
     <div className="space-y-4">
       <div>
         <p className="text-[13px] leading-relaxed text-text-2">
-          Enter your page URL, then pick the element you want to test.
+          Choose the page where your element lives, then pick it.
         </p>
       </div>
 
@@ -248,9 +258,10 @@ export function StepUrlAndElement({
           <div className="relative">
             <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
             <select
-              value={url}
+              value={matchedDomain?.url ?? ''}
               onChange={(e) => {
-                onUrlChange(e.target.value)
+                const nextUrl = e.target.value ? `https://${e.target.value}/` : ''
+                onUrlChange(nextUrl)
                 setScanState('idle'); setScanResult(null); setScanError('')
                 if (selectedElement) {
                   onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
@@ -258,39 +269,64 @@ export function StepUrlAndElement({
               }}
               className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
             >
-              <option value="">Enter custom URL…</option>
               {verifiedDomains.map((d) => (
-                <option key={d.url} value={`https://${d.url}`}>
-                  {d.url}
-                </option>
+                <option key={d.url} value={d.url}>{d.url}</option>
               ))}
+              <option value="">Different site or page…</option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
           </div>
         </div>
       )}
 
-      {/* ── Shared URL Input (always visible) ── */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          {verifiedDomains.length === 0 && (
-            <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
-          )}
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => {
-              onUrlChange(e.target.value)
-              // Reset scan when URL changes
-              if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
-            }}
-            placeholder="https://example.com/landing"
-            className={`w-full rounded-[7px] border border-border bg-bg-1 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 ${
-              verifiedDomains.length > 0 ? 'pl-3 pr-3' : 'pl-9 pr-3'
-            }`}
-          />
+      {/* Page: locked domain-prefix + path-only input once a connected site is
+          selected — structurally impossible to type the domain twice. Falls
+          back to one plain full-URL field only when there's no connected
+          domain to lock to yet. */}
+      {matchedDomain ? (
+        <div>
+          <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Page</label>
+          <div className="flex items-stretch overflow-hidden rounded-[7px] border border-border bg-bg-1 focus-within:border-border-strong focus-within:ring-2 focus-within:ring-text/10">
+            <span className="flex shrink-0 select-none items-center border-r border-border bg-bg-2 px-3 text-[13px] text-text-3">
+              {matchedDomain.url}
+            </span>
+            <input
+              type="text"
+              value={pathValue}
+              onChange={(e) => {
+                const raw = e.target.value
+                const path = raw.startsWith('/') ? raw : `/${raw}`
+                onUrlChange(`https://${matchedDomain.url}${path}`)
+                if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
+              }}
+              placeholder="/pricing"
+              className="w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none"
+            />
+          </div>
+          <p className="mt-1 text-[10px] text-text-3">Leave as &quot;/&quot; for the homepage, or add a path like /pricing</p>
         </div>
-      </div>
+      ) : (
+        <div>
+          {verifiedDomains.length > 0 && (
+            <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Page URL</label>
+          )}
+          <div className="relative">
+            <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => {
+                onUrlChange(e.target.value)
+                // Reset scan when URL changes
+                if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
+              }}
+              placeholder="https://example.com/pricing"
+              className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+            />
+          </div>
+          <p className="mt-1 text-[10px] text-text-3">Full URL of the exact page — the element you pick must be on it.</p>
+        </div>
+      )}
 
       {/* ── AI Scan: Analyze-Button + Results ── */}
       {urlValid && scanState !== 'success' && (
@@ -354,7 +390,7 @@ export function StepUrlAndElement({
               <button
                 key={s.element}
                 onClick={() => applySuggestion(s)}
-                className={`flex w-full cursor-pointer items-start gap-3 rounded-[8px] px-3.5 py-3 text-left transition-all ${
+                className={`flex w-full cursor-pointer items-start gap-3 rounded-[var(--radius-md)] px-3.5 py-3 text-left transition-all ${
                   isPrimary
                     ? 'border border-pro/25 bg-pro/[0.06] hover:bg-pro/[0.10]'
                     : 'border border-border bg-bg-1 hover:border-border-strong'
@@ -376,7 +412,7 @@ export function StepUrlAndElement({
                   </div>
                   <p className="mt-0.5 text-[11px] leading-relaxed text-text-3 line-clamp-2">{s.rationale}</p>
                   {s.selector && (
-                    <code className="mt-1.5 inline-block rounded-[4px] bg-bg-0 px-1.5 py-0.5 text-[10px] text-text-3 font-mono">
+                    <code className="mt-1.5 inline-block rounded-[var(--radius-sm)] bg-bg-0 px-1.5 py-0.5 text-[10px] text-text-3 font-mono">
                       {s.selector}
                     </code>
                   )}
@@ -394,7 +430,7 @@ export function StepUrlAndElement({
       )}
 
       {/* ── Mode Toggle ── */}
-      <div className="flex rounded-[6px] border border-border bg-bg-1 p-0.5">
+      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5">
         <button
           onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
           className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
@@ -466,7 +502,7 @@ export function StepUrlAndElement({
 
           {/* No URL yet — prompt to enter */}
           {!url.trim() && !selectedElement && (
-            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
+            <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6 text-center">
               <MousePointerClick className="mx-auto mb-3 h-8 w-8 text-text-3" />
               <p className="text-[13px] font-medium text-text">Enter a URL to get started</p>
               <p className="mt-1 text-[12px] text-text-3">
@@ -477,7 +513,7 @@ export function StepUrlAndElement({
 
           {/* URL entered but no element yet */}
           {url.trim() && !selectedElement && !waitingForPicker && (
-            <div className="rounded-[10px] border border-border bg-bg-1 p-6 text-center">
+            <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6 text-center">
               <MousePointerClick className="mx-auto mb-3 h-8 w-8 text-text-3" />
               <p className="text-[13px] font-medium text-text">Open your site to pick an element</p>
               <p className="mt-1 text-[12px] text-text-3">
@@ -579,15 +615,15 @@ export function StepUrlAndElement({
 
       {/* ── Selected element (shared between both modes) ── */}
       {selectedElement && (
-        <div className="rounded-[10px] border border-ok/20 bg-ok/5 p-4">
+        <div className="rounded-[var(--radius-lg)] border border-ok/20 bg-ok/5 p-4">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-ok/15">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-ok/15">
               <Check className="h-4 w-4 text-ok" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-text">{selectedElement.elementName}</p>
               <p className="mt-1 text-[12px] text-text-2 capitalize">{selectedElement.elementType}</p>
-              <code className="mt-2 inline-block rounded-[4px] bg-bg-1 px-2 py-0.5 text-[10px] text-text-3 font-mono">
+              <code className="mt-2 inline-block rounded-[var(--radius-sm)] bg-bg-1 px-2 py-0.5 text-[10px] text-text-3 font-mono">
                 {selectedElement.selector}
               </code>
             </div>
@@ -595,7 +631,7 @@ export function StepUrlAndElement({
           <div className="mt-4 flex gap-2">
             <button
               onClick={onConfirm}
-              className="flex items-center gap-1.5 rounded-[6px] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 cursor-pointer"
             >
               <Check className="h-3.5 w-3.5" />
               Confirm &amp; continue
@@ -603,14 +639,14 @@ export function StepUrlAndElement({
             {showPickerMode ? (
               <button
                 onClick={openPicker}
-                className="flex items-center gap-1.5 rounded-[6px] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
               >
                 Pick different element
               </button>
             ) : (
               <button
                 onClick={() => onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })}
-                className="flex items-center gap-1.5 rounded-[6px] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
               >
                 Change element
               </button>

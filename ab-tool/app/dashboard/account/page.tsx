@@ -17,10 +17,10 @@ export default async function AccountPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('profiles')
-      .select('avatar_url, plan')
+      .select('avatar_url, plan, api_token')
       .eq('user_id', user.id)
       .single(),
   ])
 
-  return <AccountClient email={user.email ?? ''} domains={domainsRes.data ?? []} avatarUrl={profileRes.data?.avatar_url ?? null} plan={profileRes.data?.plan ?? 'free'} />
+  return <AccountClient email={user.email ?? ''} domains={domainsRes.data ?? []} avatarUrl={profileRes.data?.avatar_url ?? null} plan={profileRes.data?.plan ?? 'free'} apiToken={profileRes.data?.api_token ?? null} />
 }

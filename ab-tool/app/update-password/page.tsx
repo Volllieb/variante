@@ -28,7 +28,7 @@ function UpdatePasswordFallback() {
             variante
           </Link>
         </div>
-        <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8">
           <p className="text-sm text-text-3">Checking your reset link…</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ function UpdatePasswordForm() {
           </Link>
         </div>
 
-        <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8">
           {checking ? (
             <p className="text-sm text-text-3">Checking your reset link…</p>
           ) : !ready ? (
@@ -111,7 +111,7 @@ function UpdatePasswordForm() {
               </p>
               <Link
                 href="/login"
-                className="mt-6 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
+                className="mt-6 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
               >
                 Back to login
               </Link>
@@ -139,7 +139,7 @@ function UpdatePasswordForm() {
                       placeholder="Min. 6 characters"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full rounded-[6px] border border-border bg-bg-2 px-4 py-3 pr-11 text-sm text-text placeholder:text-text-3 transition-colors duration-200 focus:border-text/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-text/10"
+                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-2 px-4 py-3 pr-11 text-sm text-text placeholder:text-text-3 transition-colors duration-200 focus:border-text/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-text/10"
                     />
                     <button
                       type="button"
@@ -153,7 +153,7 @@ function UpdatePasswordForm() {
                 </div>
 
                 {err && (
-                  <p className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
+                  <p className="rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
                     {err}
                   </p>
                 )}
@@ -162,7 +162,7 @@ function UpdatePasswordForm() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:pointer-events-none disabled:opacity-50"
+                    className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:pointer-events-none disabled:opacity-50"
                   >
                     {loading ? 'Updating…' : 'Save password'}
                     {!loading && <ShieldCheck className="h-4 w-4" />}

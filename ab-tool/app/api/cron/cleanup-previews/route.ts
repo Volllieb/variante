@@ -1,24 +1,18 @@
 import { supabase } from '@/lib/supabase'
-import { safeError } from '@/lib/safeLog'
+import { safeError, safeLog } from '@/lib/safeLog'
 import { deletePreviewShots } from '@/lib/screenshot'
+import { cronRoute } from '@/lib/cronAuth'
 
 // POST /api/cron/cleanup-previews — 24h-TTL für ungeclaimte Hybrid-Previews.
 // Täglich per Vercel Cron (04:00 UTC). Plan §7 Punkt 3.
 //
 // Räumt Rows UND Storage ab. Geclaimte Previews (user_id gesetzt) bleiben —
 // die gehören dann einem echten User; deren Screenshots löscht der Claim-Pfad.
-//
-// Security: Authorization-Header mit CRON_SECRET erforderlich.
 
 const TTL_HOURS = 24
 const BATCH = 500
 
-async function run(req: Request) {
-  const secret = req.headers.get('authorization')?.replace('Bearer ', '')
-  const expected = process.env.CRON_SECRET
-  if (!expected || secret !== expected) {
-    return Response.json({ error: 'unauthorized' }, { status: 401 })
-  }
+export const { GET, POST } = cronRoute(async (_req) => {
 
   const cutoff = new Date(Date.now() - TTL_HOURS * 3_600_000).toISOString()
 
@@ -68,6 +62,7 @@ async function run(req: Request) {
   const { data: sessionActions, error: sessionErr } = await supabase.rpc('cleanup_temp_sessions')
   if (sessionErr) safeError('cron:cleanup-previews-sessions', sessionErr)
 
+  safeLog('info', 'cron:cleanup-previews', 'completed', { stale: stale.length, shotsDeleted })
   return Response.json({
     actions: [
       { action: 'stale_previews_cleaned', count: stale.length },
@@ -75,12 +70,4 @@ async function run(req: Request) {
       ...(Array.isArray(sessionActions) ? sessionActions : []),
     ],
   })
-}
-
-// Vercel Cron ruft den Pfad per GET auf — die Methode ist in vercel.json
-// nicht konfigurierbar. Vorher lag die Arbeit ausschliesslich in POST und
-// GET gab nur einen Hinweistext zurueck: KEIN Cron-Job lief jemals
-// (Plan OPS-01). Der Authorization: Bearer $CRON_SECRET wird von Vercel
-// automatisch mitgeschickt.
-export const GET = run
-export const POST = run
+})

@@ -8,8 +8,9 @@
  *
  * Flow ohne KI (ausser Variant-Generierung):
  * Step 0: URL + Element auf Live-Site wählen
- * Step 1: Variant B (KI-generiert — Ausnahme)
- * Step 2: Goal/Metrik wählen
+ * Step 1: Goal/Metrik wählen (VOR der Variante — die Variante soll aufs Ziel
+ *         hin gebaut werden, nicht umgekehrt)
+ * Step 2: Variant B (KI-generiert — Ausnahme)
  * Step 3: Review + Create
  *
  * Draft: Fortschritt wird automatisch serverseitig gespeichert (debounced).
@@ -90,6 +91,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
   const [createdTestId, setCreatedTestId] = useState<string | null>(null)
+  const [goLiveConfirm, setGoLiveConfirm] = useState(false)
   // Local domain list — seeded from server, extended inline when user adds a site
   // from within the wizard without leaving the flow (Plan §5, Post-Signup UX).
   const [localDomains, setLocalDomains] = useState(verifiedDomains)
@@ -128,6 +130,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       setCreating(false)
       setCreateError('')
       setCreatedTestId(null)
+      setGoLiveConfirm(false)
     }
   }
 
@@ -163,9 +166,9 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         const hasElement = !!resumeTest.selector
         const hasVariant = !!resumeTest.variant_b_html
         const hasGoal = !!resumeTest.goal
-        if (hasElement && hasVariant && hasGoal) startStep = 3   // all done → Review
-        else if (hasElement && hasVariant) startStep = 2          // Goal missing
-        else if (hasElement) startStep = 1                        // Variant missing
+        if (hasElement && hasGoal && hasVariant) startStep = 3   // all done → Review
+        else if (hasElement && hasGoal) startStep = 2              // Variant missing
+        else if (hasElement) startStep = 1                        // Goal missing
         // else startStep = 0                                     // Element missing
 
         setState({
@@ -362,6 +365,19 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   const normalize = (raw: string) =>
     raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
 
+  // Bare hostname from a page URL — used to prefill the "connect your site"
+  // banner from the page URL typed in Step 0, so a user without a connected
+  // domain doesn't have to type the same site twice on the same screen.
+  const deriveHostname = (raw: string): string | null => {
+    if (!raw) return null
+    try {
+      const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+      return parsed.hostname.replace(/^www\./, '') || null
+    } catch {
+      return null
+    }
+  }
+
   const handleAddDomain = useCallback(async () => {
     const normalized = normalize(addDomainUrl)
     if (!normalized || !normalized.includes('.')) {
@@ -427,13 +443,13 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   const canAdvanceFromStep = (step: number): boolean => {
     switch (step) {
       case 0: return state.selectedElement !== null && state.elementConfirmed
-      case 1: return state.variantResult !== null
-      case 2: return state.selectedGoal !== null && state.goalConfirmed
+      case 1: return state.selectedGoal !== null && state.goalConfirmed
+      case 2: return state.variantResult !== null
       default: return true
     }
   }
 
-  const stepLabels = ['Element', 'Variant', 'Goal', 'Review']
+  const stepLabels = ['Element', 'Goal', 'Variant', 'Review']
 
   // ─── Render ───
 
@@ -475,7 +491,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-fill-invert">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-fill-invert">
               <FlaskConical className="h-4 w-4 text-text-on-invert" />
             </div>
             <div>
@@ -488,7 +504,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           <button
             onClick={onClose}
             aria-label="Close new test wizard"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -515,7 +531,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleAddDomain}
-                    className="inline-flex cursor-pointer items-center gap-1 rounded-[4px] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                    className="inline-flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
                   >
                     Retry
                   </button>
@@ -542,13 +558,13 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                       onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
                       placeholder="yoursite.com"
                       disabled={addDomainState !== 'input'}
-                      className="w-full h-[30px] rounded-[4px] border border-border bg-bg-0 pl-7 pr-2 text-[11px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-text/30"
+                      className="w-full h-[30px] rounded-[var(--radius-sm)] border border-border bg-bg-0 pl-7 pr-2 text-[11px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-text/30"
                     />
                   </div>
                   <button
                     onClick={handleAddDomain}
                     disabled={!addDomainUrl.trim()}
-                    className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[4px] bg-fill-invert px-3 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                    className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                   >
                     Check
                   </button>
@@ -590,7 +606,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           {state.step === 0 && (
             <StepUrlAndElement
               url={state.url}
-              onUrlChange={(url) => updateState({ url, selectedElement: null, elementConfirmed: false })}
+              onUrlChange={(url) => {
+                updateState({ url, selectedElement: null, elementConfirmed: false })
+                // Only ever fills the still-empty, untouched banner field —
+                // never overwrites something the user is already typing there.
+                if (localDomains.length === 0 && addDomainState === 'input' && !addDomainUrl) {
+                  const host = deriveHostname(url)
+                  if (host) setAddDomainUrl(host)
+                }
+              }}
               selectedElement={state.selectedElement}
               onElementSelected={(el) => updateState({ selectedElement: el, elementConfirmed: false })}
               onConfirm={() => updateState({ elementConfirmed: true })}
@@ -598,8 +622,20 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             />
           )}
 
-          {/* Step 1: Variant B */}
-          {state.step === 1 && state.selectedElement && (
+          {/* Step 1: Goal/Metric — vor der Variante, damit die Variante aufs Ziel hin gebaut wird */}
+          {state.step === 1 && (
+            <StepGoal
+              elementType={state.selectedElement?.elementType ?? 'element'}
+              elementName={state.selectedElement?.elementName ?? ''}
+              url={state.url}
+              selectedGoal={state.selectedGoal}
+              onGoalSelected={(goal) => updateState({ selectedGoal: goal, goalConfirmed: false })}
+              onConfirm={() => updateState({ goalConfirmed: true })}
+            />
+          )}
+
+          {/* Step 2: Variant B */}
+          {state.step === 2 && state.selectedElement && (
             <StepVariantB
               element={state.selectedElement}
               variantResult={state.variantResult}
@@ -610,18 +646,6 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                     : patch as VariantResult,
                 })
               }}
-            />
-          )}
-
-          {/* Step 2: Goal/Metric */}
-          {state.step === 2 && (
-            <StepGoal
-              elementType={state.selectedElement?.elementType ?? 'element'}
-              elementName={state.selectedElement?.elementName ?? ''}
-              url={state.url}
-              selectedGoal={state.selectedGoal}
-              onGoalSelected={(goal) => updateState({ selectedGoal: goal, goalConfirmed: false })}
-              onConfirm={() => updateState({ goalConfirmed: true })}
             />
           )}
 
@@ -647,7 +671,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                 if (state.step > 0) updateState({ step: state.step - 1 })
                 else onClose()
               }}
-              className="flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:text-text cursor-pointer"
+              className="flex items-center gap-1.5 rounded-[var(--radius-md)] px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:text-text cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               {state.step === 0 ? 'Cancel' : 'Back'}
@@ -657,7 +681,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               <button
                 onClick={() => updateState({ step: state.step + 1 })}
                 disabled={!canAdvanceFromStep(state.step)}
-                className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
               >
                 Next
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -670,7 +694,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                       onClick={() => handleCreate('active')}
                       disabled
                       title="Install the snippet on your site to go live"
-                      className="flex items-center gap-1.5 rounded-[6px] border border-border bg-bg-1 px-4 py-2 text-[12px] font-medium text-text-3 cursor-not-allowed"
+                      className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-2 text-[12px] font-medium text-text-3 cursor-not-allowed"
                     >
                       <FlaskConical className="h-3.5 w-3.5" />
                       Go Live
@@ -678,7 +702,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                     <button
                       onClick={() => handleCreate('draft')}
                       disabled={creating}
-                      className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : resumeTest ? 'Save Progress' : 'Save Draft'}
                     </button>
@@ -688,22 +712,38 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                     <button
                       onClick={() => handleCreate('draft')}
                       disabled={creating}
-                      className="rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : resumeTest ? 'Save Progress' : 'Save Draft'}
                     </button>
-                    <button
-                      onClick={() => handleCreate('active')}
-                      disabled={creating}
-                      className="flex items-center gap-1.5 rounded-[6px] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      {creating ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
+                    {!goLiveConfirm ? (
+                      <button
+                        onClick={() => setGoLiveConfirm(true)}
+                        disabled={creating}
+                        className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
                         <FlaskConical className="h-3.5 w-3.5" />
-                      )}
-                      {creating ? 'Saving…' : resumeTest ? 'Complete & Go Live' : 'Go Live'}
-                    </button>
+                        {resumeTest ? 'Complete & Go Live' : 'Go Live'}
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleCreate('active')}
+                          disabled={creating}
+                          className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          {creating ? 'Saving…' : 'Confirm — go live now'}
+                        </button>
+                        <button
+                          onClick={() => setGoLiveConfirm(false)}
+                          disabled={creating}
+                          className="rounded-[var(--radius-md)] border border-border px-3 py-2 text-[12px] text-text-3 transition-colors hover:text-text disabled:opacity-30 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -714,7 +754,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         {/* Create Error */}
         {createError && (
           <div className="absolute bottom-16 left-0 right-0 px-5">
-            <div className="rounded-[6px] border border-err/20 bg-err/5 px-3 py-2 text-[11px] text-err/80">
+            <div className="rounded-[var(--radius-md)] border border-err/20 bg-err/5 px-3 py-2 text-[11px] text-err/80">
               {createError}
             </div>
           </div>

@@ -3,12 +3,12 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, X, Camera, User } from 'lucide-react'
+import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, X, Camera, User, Copy } from 'lucide-react'
 import Image from 'next/image'
 
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
 
-export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar, plan }: { email: string; domains: Domain[]; avatarUrl: string | null; plan: string }) {
+export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar, plan, apiToken: initialToken }: { email: string; domains: Domain[]; avatarUrl: string | null; plan: string; apiToken: string | null }) {
   const router = useRouter()
   const [domains, setDomains] = useState<Domain[]>(initialDomains)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatar)
@@ -85,6 +85,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
+
+  // ── API Token ──
+  const [token, setToken] = useState<string | null>(initialToken)
+  const [showToken, setShowToken] = useState(false)
+  const [tokenCopied, setTokenCopied] = useState(false)
+  const [tokenBusy, setTokenBusy] = useState(false)
+  const [regenerateConfirm, setRegenerateConfirm] = useState(false)
 
   async function uploadAvatar(file: File) {
     if (!file) return
@@ -341,6 +348,43 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
     window.location.href = '/'
   }
 
+  async function copyToken() {
+    if (!token) return
+    try {
+      await navigator.clipboard.writeText(token)
+      setTokenCopied(true)
+      setTimeout(() => setTokenCopied(false), 2000)
+    } catch {
+      // Fallback
+      const el = document.createElement('textarea')
+      el.value = token
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      setTokenCopied(true)
+      setTimeout(() => setTokenCopied(false), 2000)
+    }
+  }
+
+  async function regenerateToken() {
+    setTokenBusy(true)
+    try {
+      const res = await fetch('/api/token/regenerate', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok && data.token) {
+        setToken(data.token)
+        setRegenerateConfirm(false)
+      } else {
+        setError(data.error ?? 'Failed to regenerate token.')
+      }
+    } catch {
+      setError('Connection failed.')
+    } finally {
+      setTokenBusy(false)
+    }
+  }
+
   const dangerConfirm = `delete ${email}`
 
   return (
@@ -349,7 +393,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         <h1 className="text-[18px] font-semibold text-text">Account</h1>
 
         {/* Avatar */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Camera className="h-4 w-4 text-text-3" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Profile Picture</span>
@@ -432,7 +476,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Current email */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Mail className="h-4 w-4 text-text-3" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Email</span>
@@ -447,12 +491,12 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-[6px] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <button
                 onClick={changeEmail}
                 disabled={busy || emailSent}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-40"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-40"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emailSent ? <Check className="h-3.5 w-3.5" /> : null}
                 {emailSent ? 'Sent' : 'Change'}
@@ -468,7 +512,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Connected Page */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Globe className="h-4 w-4 text-text-3" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Connected Page</span>
@@ -483,13 +527,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           {/* ── No connected page ── */}
           {domains.length === 0 && !changingPage && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 rounded-[6px] border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
+              <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
                 <AlertTriangle className="h-4 w-4 shrink-0 text-pro" />
                 <p className="text-[13px] text-pro">No page connected yet — tests won&apos;t run without a snippet.</p>
               </div>
               <button
                 onClick={() => { setChangingPage(true); setChangeState('input'); setChangeError('') }}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
               >
                 Connect a page
               </button>
@@ -500,7 +544,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           {domains.length > 0 && !changingPage && (
             <div className="space-y-3">
               {/* Primary domain */}
-              <div className="rounded-[8px] border border-ok/20 bg-ok/[0.04] px-4 py-3.5">
+              <div className="rounded-[var(--radius-md)] border border-ok/20 bg-ok/[0.04] px-4 py-3.5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ok/15">
@@ -529,14 +573,14 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       <button
                         onClick={() => verifyDomain(domains[0].id, domains[0].url)}
                         disabled={verifying === domains[0].id}
-                        className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
+                        className="cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
                       >
                         {verifying === domains[0].id ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Re-verify'}
                       </button>
                     )}
                     <button
                       onClick={() => { setChangingPage(true); setChangeState('input'); setChangeError(''); setChangeUrl('') }}
-                      className="cursor-pointer rounded-[6px] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                      className="cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[10px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
                     >
                       Change
                     </button>
@@ -549,7 +593,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">Additional pages</p>
                   {domains.slice(1).map((d) => (
-                    <div key={d.id} className="flex items-center justify-between rounded-[6px] bg-bg-2 px-3 py-2">
+                    <div key={d.id} className="flex items-center justify-between rounded-[var(--radius-md)] bg-bg-2 px-3 py-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-[13px] text-text-2 truncate">{d.url}</span>
                         {d.verified ? (
@@ -563,7 +607,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                           <button
                             onClick={() => verifyDomain(d.id, d.url)}
                             disabled={verifying === d.id}
-                            className="cursor-pointer rounded-[4px] px-2 py-1 text-[10px] text-text-3 transition-colors hover:text-text disabled:opacity-40"
+                            className="cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[10px] text-text-3 transition-colors hover:text-text disabled:opacity-40"
                           >
                             {verifying === d.id ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : 'Verify'}
                           </button>
@@ -573,14 +617,14 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                             <button
                               onClick={() => deleteDomain(d.id)}
                               disabled={domainBusy}
-                              className="cursor-pointer rounded-[4px] bg-err px-2 py-0.5 text-[9px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
+                              className="cursor-pointer rounded-[var(--radius-sm)] bg-err px-2 py-0.5 text-[9px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
                             >
                               {domainBusy ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : 'Confirm'}
                             </button>
                             <button
                               onClick={() => setDeleteId(null)}
                               disabled={domainBusy}
-                              className="cursor-pointer rounded-[4px] px-1.5 py-0.5 text-[9px] text-text-3 hover:text-text"
+                              className="cursor-pointer rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[9px] text-text-3 hover:text-text"
                             >
                               Cancel
                             </button>
@@ -588,7 +632,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                         ) : (
                           <button
                             onClick={() => setDeleteId(d.id)}
-                            className="cursor-pointer rounded-[4px] p-1 text-text-3/50 transition-colors hover:text-err"
+                            className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3/50 transition-colors hover:text-err"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -600,23 +644,23 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   {/* Add page button or inline form */}
                   {!addingPage ? (
                     plan === 'free' ? (
-                      <div className="flex items-center gap-2 rounded-[6px] border border-dashed border-pro/20 bg-pro/[0.02] px-3 py-2">
+                      <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-pro/20 bg-pro/[0.02] px-3 py-2">
                         <span className="text-[10px] font-medium text-pro/80">Free plan: 1 website</span>
                         <a href="/dashboard/billing" className="text-[10px] font-semibold text-pro underline hover:text-pro/80 transition-colors">Pro includes 5 websites →</a>
                       </div>
                     ) : (
                     <button
                       onClick={() => { setAddingPage(true); setAddState('input'); setAddError(''); setAddUrl('') }}
-                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[6px] border border-dashed border-border py-2 text-[10px] font-semibold text-text-3 transition-colors hover:border-border-strong hover:text-text-2"
+                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-dashed border-border py-2 text-[10px] font-semibold text-text-3 transition-colors hover:border-border-strong hover:text-text-2"
                     >
                       + Add page
                     </button>
                     )
                   ) : (
-                    <div className="space-y-2 rounded-[6px] bg-bg-2 p-3">
+                    <div className="space-y-2 rounded-[var(--radius-md)] bg-bg-2 p-3">
                       {(addState === 'input' || addState === 'saving') && (
                         <>
-                          <div className="flex items-center gap-2 rounded-[4px] border border-border bg-bg-1 px-2.5 py-2">
+                          <div className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-bg-1 px-2.5 py-2">
                             <Globe className="h-3.5 w-3.5 shrink-0 text-text-3" />
                             <input
                               type="text"
@@ -634,7 +678,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                             <button
                               onClick={addAdditionalPage}
                               disabled={addState !== 'input' || !addUrl.trim()}
-                              className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[4px] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                              className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                             >
                               {addState === 'saving' ? (
                                 <>
@@ -647,7 +691,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                             </button>
                             <button
                               onClick={resetAddFlow}
-                              className="cursor-pointer rounded-[4px] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text"
+                              className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text"
                             >
                               Cancel
                             </button>
@@ -658,18 +702,18 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                         <div className="space-y-2">
                           <p className="text-[11px] text-pro">Snippet not found on <strong>{addUrl.trim()}</strong>. Add it to the page&apos;s &lt;head&gt; and retry.</p>
                           <div className="flex gap-1.5">
-                            <button onClick={addAdditionalPage} className="flex cursor-pointer items-center gap-1 rounded-[4px] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+                            <button onClick={addAdditionalPage} className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
                               <Loader2 className="h-2.5 w-2.5" /> Retry
                             </button>
-                            <button onClick={() => { setAddState('input'); setAddError('') }} className="cursor-pointer rounded-[4px] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Change URL</button>
-                            <button onClick={resetAddFlow} className="cursor-pointer rounded-[4px] px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
+                            <button onClick={() => { setAddState('input'); setAddError('') }} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Change URL</button>
+                            <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
                           </div>
                         </div>
                       )}
                       {addState === 'verified' && (
                         <div className="space-y-2">
                           <p className="flex items-center gap-1.5 text-[11px] text-ok"><Check className="h-3 w-3" /> <strong>{addUrl.trim()}</strong> added &amp; verified.</p>
-                          <button onClick={resetAddFlow} className="cursor-pointer rounded-[4px] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">Done</button>
+                          <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">Done</button>
                         </div>
                       )}
                     </div>
@@ -695,7 +739,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               {/* Input / Saving */}
               {(changeState === 'input' || changeState === 'deleting' || changeState === 'saving') && (
                 <>
-                  <div className="flex items-center gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2.5">
+                  <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2.5">
                     <Globe className="h-4 w-4 shrink-0 text-text-3" />
                     <input
                       type="text"
@@ -715,7 +759,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     <button
                       onClick={changeConnectedPage}
                       disabled={changeState !== 'input' || !changeUrl.trim()}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-fill-invert py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-fill-invert py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
                     >
                       {changeState === 'deleting' || changeState === 'saving' ? (
                         <>
@@ -729,7 +773,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     {domains.length > 0 && changeState === 'input' && (
                       <button
                         onClick={resetChangeFlow}
-                        className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[12px] text-text-3 transition-colors hover:text-text"
+                        className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-3 transition-colors hover:text-text"
                       >
                         Cancel
                       </button>
@@ -740,7 +784,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
 
               {/* Not found */}
               {changeState === 'not-found' && (
-                <div className="rounded-[6px] border border-pro/20 bg-pro/[0.04] px-4 py-3">
+                <div className="rounded-[var(--radius-md)] border border-pro/20 bg-pro/[0.04] px-4 py-3">
                   <p className="text-[13px] font-semibold text-pro">Snippet not found</p>
                   <p className="mt-1 text-[12px] text-text-3">
                     We couldn&apos;t detect the variante snippet on <strong>{changeUrl.trim() || '(your URL)'}</strong>.
@@ -752,13 +796,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   <div className="mt-3 flex gap-2">
                     <button
                       onClick={changeConnectedPage}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                      className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
                     >
                       Retry
                     </button>
                     <button
                       onClick={() => { setChangeState('input'); setChangeError('') }}
-                      className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[11px] text-text-3 transition-colors hover:text-text"
+                      className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[11px] text-text-3 transition-colors hover:text-text"
                     >
                       Change URL
                     </button>
@@ -768,7 +812,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
 
               {/* Verified */}
               {changeState === 'verified' && (
-                <div className="rounded-[6px] border border-ok/20 bg-ok/[0.04] px-4 py-3">
+                <div className="rounded-[var(--radius-md)] border border-ok/20 bg-ok/[0.04] px-4 py-3">
                   <p className="flex items-center gap-2 text-[13px] font-semibold text-ok">
                     <Check className="h-4 w-4" /> Page connected
                   </p>
@@ -777,7 +821,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                   </p>
                   <button
                     onClick={resetChangeFlow}
-                    className="mt-3 cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                    className="mt-3 cursor-pointer rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
                   >
                     Done
                   </button>
@@ -795,7 +839,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
         </div>
 
         {/* Password */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Key className="h-4 w-4 text-text-3" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Password</span>
@@ -806,15 +850,103 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           <button
             onClick={changePassword}
             disabled={busy || pwSent}
-            className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-4 py-2 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
+            className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : pwSent ? <Check className="h-3.5 w-3.5 text-ok" /> : <Key className="h-3.5 w-3.5" />}
             {pwSent ? 'Link sent — check your inbox' : 'Send password reset link'}
           </button>
         </div>
 
+        {/* API Token — used by Figma plugin and API access */}
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Key className="h-4 w-4 text-text-3" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">API Token</span>
+          </div>
+
+          {!token ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-pro" />
+                <p className="text-[12px] text-pro">No API token found. This is required for the Figma plugin.</p>
+              </div>
+              <button
+                onClick={regenerateToken}
+                disabled={tokenBusy}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-40"
+              >
+                {tokenBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Key className="h-3.5 w-3.5" />}
+                Generate token
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-[11px] text-text-3 leading-relaxed">
+                This token authenticates the <strong className="text-text-2">Figma plugin</strong> and API requests.
+                Treat it like a password — do not share it publicly.
+              </p>
+
+              {/* Token display */}
+              <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2.5">
+                <Key className="h-3.5 w-3.5 shrink-0 text-text-3" />
+                <code className="flex-1 text-[12px] font-mono text-text truncate select-all">
+                  {showToken ? token : `••••••••••••••••${token.slice(-4)}`}
+                </code>
+                <button
+                  onClick={() => setShowToken((v) => !v)}
+                  className="shrink-0 cursor-pointer text-[10px] text-text-3 transition-colors hover:text-text-2"
+                  aria-label={showToken ? 'Hide token' : 'Show token'}
+                >
+                  {showToken ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={copyToken}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                >
+                  {tokenCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
+                  {tokenCopied ? 'Copied' : 'Copy'}
+                </button>
+
+                {!regenerateConfirm ? (
+                  <button
+                    onClick={() => setRegenerateConfirm(true)}
+                    className="cursor-pointer rounded-[var(--radius-md)] px-3 py-1.5 text-[11px] font-medium text-text-3 transition-colors hover:text-err"
+                  >
+                    Regenerate
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={regenerateToken}
+                      disabled={tokenBusy}
+                      className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-err px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                    >
+                      {tokenBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => setRegenerateConfirm(false)}
+                      disabled={tokenBusy}
+                      className="cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[10px] text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-[10px] text-text-3/60">
+                Regenerating invalidates the old token immediately. Update it in the Figma plugin afterwards.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Danger Zone */}
-        <div className="rounded-[10px] border border-err/20 bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-err/20 bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="h-4 w-4 text-err" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-err">Danger Zone</span>
@@ -826,7 +958,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               </p>
               <button
                 onClick={() => setShowDelete(true)}
-                className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-err/20 bg-err-bg px-4 py-2 text-[11px] font-semibold text-err transition-colors hover:bg-err/10"
+                className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-2 text-[11px] font-semibold text-err transition-colors hover:bg-err/10"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete account
@@ -835,20 +967,20 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           ) : (
             <div className="space-y-3">
               <p className="text-[12px] font-semibold text-err">
-                Type <code className="rounded-[4px] bg-err-bg px-1.5 py-0.5 font-mono text-[12px]">{dangerConfirm}</code> to confirm:
+                Type <code className="rounded-[var(--radius-sm)] bg-err-bg px-1.5 py-0.5 font-mono text-[12px]">{dangerConfirm}</code> to confirm:
               </p>
               <input
                 type="text"
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-[6px] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="w-full rounded-[var(--radius-md)] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <div className="flex items-center gap-2">
                 <button
                   onClick={deleteAccount}
                   disabled={deleting || deleteConfirm !== dangerConfirm}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-err px-4 py-2 text-[11px] font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-30"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-err px-4 py-2 text-[11px] font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-30"
                 >
                   {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                   {deleting ? 'Deleting…' : 'Yes, delete my account'}
@@ -856,7 +988,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 <button
                   onClick={() => { setShowDelete(false); setDeleteConfirm('') }}
                   disabled={deleting}
-                  className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[11px] font-semibold text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                  className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[11px] font-semibold text-text-3 transition-colors hover:text-text disabled:opacity-30"
                 >
                   Cancel
                 </button>
@@ -867,7 +999,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
 
         {/* Error */}
         {error && (
-          <div className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-[12px] text-err">
+          <div className="rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-3 text-[12px] text-err">
             {error}
           </div>
         )}

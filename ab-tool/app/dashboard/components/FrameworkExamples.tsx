@@ -67,7 +67,7 @@ export function FrameworkExamples() {
     <div className="space-y-2">
       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Framework examples</p>
       {examples.map(({ label, file, code }) => (
-        <details key={label} className="group rounded-[6px] border border-border [&_summary]:list-none">
+        <details key={label} className="group rounded-[var(--radius-md)] border border-border [&_summary]:list-none">
           <summary className="flex cursor-pointer select-none items-center justify-between px-3 py-2.5 text-[11px] font-semibold text-text-2 transition-colors hover:text-text">
             <span>{label}</span>
             <span className="flex items-center gap-2">

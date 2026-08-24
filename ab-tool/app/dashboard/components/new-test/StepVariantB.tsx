@@ -124,7 +124,7 @@ export function StepVariantB({
       </div>
 
       {/* ── Mode Switcher (3-way) ── */}
-      <div className="flex rounded-[6px] border border-border bg-bg-0 p-0.5">
+      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-0 p-0.5">
         <button
           onClick={() => {
             setMode('ai')
@@ -134,7 +134,7 @@ export function StepVariantB({
               setAiState('idle')
             }
           }}
-          className={`flex-1 rounded-[4px] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+          className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
             mode === 'ai'
               ? 'bg-pro text-black'
               : 'text-text-2 hover:text-text'
@@ -145,7 +145,7 @@ export function StepVariantB({
         </button>
         <button
           onClick={() => { setMode('manual'); setAiState('idle') }}
-          className={`flex-1 rounded-[4px] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+          className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
             mode === 'manual'
               ? 'bg-fill-invert text-text-on-invert'
               : 'text-text-2 hover:text-text'
@@ -156,7 +156,7 @@ export function StepVariantB({
         </button>
         <button
           onClick={() => setMode('figma')}
-          className={`flex-1 rounded-[4px] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+          className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
             mode === 'figma'
               ? 'bg-fill-invert text-text-on-invert'
               : 'text-text-2 hover:text-text'
@@ -172,7 +172,7 @@ export function StepVariantB({
         <>
           {/* AI Loading */}
           {aiState === 'loading' && (
-            <div className="rounded-[10px] border border-pro/15 bg-pro/[0.03] p-5">
+            <div className="rounded-[var(--radius-lg)] border border-pro/15 bg-pro/[0.03] p-5">
               <div className="flex flex-col items-center gap-3 py-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pro/10">
                   <Loader2 className="h-5 w-5 animate-spin text-pro" />
@@ -196,7 +196,7 @@ export function StepVariantB({
 
           {/* AI Error */}
           {aiState === 'error' && (
-            <div className="rounded-[10px] border border-err/20 bg-err/[0.04] p-4">
+            <div className="rounded-[var(--radius-lg)] border border-err/20 bg-err/[0.04] p-4">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-err/60" />
                 <div className="min-w-0">
@@ -205,14 +205,14 @@ export function StepVariantB({
                   <div className="mt-3 flex gap-2">
                     <button
                       onClick={handleAiGenerate}
-                      className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
+                      className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
                     >
                       <RefreshCw className="h-3 w-3" />
                       Retry
                     </button>
                     <button
                       onClick={() => setMode('manual')}
-                      className="rounded-[6px] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                      className="rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                     >
                       Edit manually
                     </button>
@@ -226,7 +226,7 @@ export function StepVariantB({
           {aiState === 'success' && variantResult && !showEditor && (
             <div className="space-y-3">
               {/* Variant preview card */}
-              <div className="rounded-[10px] border border-ok/15 bg-ok/[0.03] p-4">
+              <div className="rounded-[var(--radius-lg)] border border-ok/15 bg-ok/[0.03] p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-ok/15">
                     <Sparkles className="h-3 w-3 text-ok" />
@@ -249,7 +249,7 @@ export function StepVariantB({
                       <ChevronDown className="h-3 w-3" />
                       CSS Changes
                     </summary>
-                    <code className="mt-1.5 block rounded-[6px] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">
+                    <code className="mt-1.5 block rounded-[var(--radius-md)] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">
                       {variantResult.variant_css}
                     </code>
                   </details>
@@ -267,14 +267,14 @@ export function StepVariantB({
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowEditor(true)}
-                  className="flex items-center gap-1.5 rounded-[6px] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                   Edit
                 </button>
                 <button
                   onClick={handleAiGenerate}
-                  className="flex items-center gap-1.5 rounded-[6px] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Regenerate
@@ -286,7 +286,7 @@ export function StepVariantB({
           {/* Editor overlay when user clicks "Edit" on AI result */}
           {aiState === 'success' && showEditor && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 rounded-[6px] bg-pro/[0.04] px-3 py-2">
+              <div className="flex items-center gap-2 rounded-[var(--radius-md)] bg-pro/[0.04] px-3 py-2">
                 <Sparkles className="h-3.5 w-3.5 text-pro" />
                 <p className="text-[11px] text-text-2">
                   Editing AI-generated variant. Changes are applied to the AI result.
@@ -343,9 +343,9 @@ export function StepVariantB({
 
       {/* From Figma Mode */}
       {mode === 'figma' && (
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5 space-y-4">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5 space-y-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-bg-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
               <Palette className="h-4 w-4 text-text-2" />
             </div>
             <div className="min-w-0">
@@ -384,7 +384,7 @@ export function StepVariantB({
                 // Open the Figma plugin page — user needs the desktop app for the plugin itself
                 window.open('https://www.figma.com/community/plugin/1653734891132085565', '_blank', 'noopener,noreferrer')
               }}
-              className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
             >
               <Palette className="h-3.5 w-3.5" />
               Open Figma Plugin
@@ -400,7 +400,7 @@ export function StepVariantB({
       {/* Applied variant summary (manual/figma only — AI has its own preview) */}
       {mode !== 'ai' && !showEditor && variantResult && (
         <div className="space-y-4">
-          <div className="rounded-[10px] border border-border bg-bg-1 p-4">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
             <div className="flex items-start gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-semibold text-text">Variant B</p>
@@ -418,7 +418,7 @@ export function StepVariantB({
                   {!editingCss && (
                     <button
                       onClick={() => { setEditCss(variantResult.variant_css ?? ''); setEditingCss(true) }}
-                      className="flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                      className="flex items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
                     >
                       <Pencil className="h-2.5 w-2.5" /> Edit
                     </button>
@@ -430,26 +430,26 @@ export function StepVariantB({
                       value={editCss}
                       onChange={(e) => setEditCss(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => { onVariantUpdate({ variant_css: editCss }); setEditingCss(false) }}
-                        className="flex items-center gap-1 rounded-[4px] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
+                        className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
                       >
                         <Check className="h-2.5 w-2.5" /> Apply
                       </button>
                       <button
                         onClick={() => setEditingCss(false)}
-                        className="rounded-[4px] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                        className="rounded-[var(--radius-sm)] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
                       >
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <code className="block rounded-[6px] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
+                  <code className="block rounded-[var(--radius-md)] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
                     {variantResult.variant_css}
                   </code>
                 )}
@@ -464,7 +464,7 @@ export function StepVariantB({
                   {!editingHtml && (
                     <button
                       onClick={() => { setEditHtml(variantResult.variant_html ?? ''); setEditingHtml(true) }}
-                      className="flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                      className="flex items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
                     >
                       <Pencil className="h-2.5 w-2.5" /> Edit
                     </button>
@@ -476,26 +476,26 @@ export function StepVariantB({
                       value={editHtml}
                       onChange={(e) => setEditHtml(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[6px] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => { onVariantUpdate({ variant_html: editHtml }); setEditingHtml(false) }}
-                        className="flex items-center gap-1 rounded-[4px] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
+                        className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
                       >
                         <Check className="h-2.5 w-2.5" /> Apply
                       </button>
                       <button
                         onClick={() => setEditingHtml(false)}
-                        className="rounded-[4px] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
+                        className="rounded-[var(--radius-sm)] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:text-text cursor-pointer"
                       >
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <code className="block rounded-[6px] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
+                  <code className="block rounded-[var(--radius-md)] bg-bg-0 p-3 text-[11px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
                     {variantResult.variant_html}
                   </code>
                 )}
@@ -505,7 +505,7 @@ export function StepVariantB({
 
           <button
             onClick={() => setShowEditor(true)}
-            className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text"
+            className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
             Edit variant
           </button>

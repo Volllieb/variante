@@ -98,7 +98,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             sichtbar nur bei Tastatur-Fokus. Ziel: id="main" in jedem Layout. */}
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[100] focus:rounded-[6px] focus:bg-fill-invert focus:px-4 focus:py-2 focus:text-text-on-invert focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[100] focus:rounded-[var(--radius-md)] focus:bg-fill-invert focus:px-4 focus:py-2 focus:text-text-on-invert focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
         >
           Skip to content
         </a>

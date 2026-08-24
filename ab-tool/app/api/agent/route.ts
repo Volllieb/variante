@@ -4,6 +4,7 @@
 
 import { streamText, stepCountIs } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import * as Sentry from '@sentry/nextjs'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
@@ -142,19 +143,20 @@ export async function POST(req: Request) {
       ? `\n\n💾 **Cache-Treffer**: Für ${url} liegt eine frische Analyse vom ${new Date(cached.analyzedAt).toLocaleDateString('de-DE')} vor:\n${JSON.stringify(cached.suggestions.slice(0, 3), null, 2)}\n\nDu kannst fetchSite und analyzeCRO ÜBERSPRINGEN und direkt mit generateVariant für diese Vorschläge weitermachen — es sei denn, die Seite hat sich seitdem geändert.${previousTests}`
       : ''
 
-    const result = streamText({
-      model: openai('gpt-4o-mini'),
-      system: AGENT_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: `Analysiere ${url} und erstelle A/B-Tests. Conversion-Ziel: ${pageGoal}.${cacheContext}`,
-        },
-      ],
-      tools: makeAgentTools(user),
-      stopWhen: stepCountIs(10), // Max 10 Tool-Calls pro Run — Kostenkontrolle
-      temperature: 0.7,
-      onFinish: async ({ toolCalls, toolResults, finishReason }) => {
+    const result = await Sentry.startSpan({ name: 'agent.streamText', op: 'ai.agent' }, async () => {
+      const r = streamText({
+        model: openai('gpt-4o-mini'),
+        system: AGENT_SYSTEM_PROMPT,
+        messages: [
+          {
+            role: 'user',
+            content: `Analysiere ${url} und erstelle A/B-Tests. Conversion-Ziel: ${pageGoal}.${cacheContext}`,
+          },
+        ],
+        tools: makeAgentTools(user),
+        stopWhen: stepCountIs(10), // Max 10 Tool-Calls pro Run — Kostenkontrolle
+        temperature: 0.7,
+        onFinish: async ({ toolCalls, toolResults, finishReason }) => {
         // Run persistieren (Audit + Monitoring, Tabelle: 019_agent_runs.sql)
         // + site_insights für Learning Loop v3 befüllen
         try {
@@ -204,6 +206,9 @@ export async function POST(req: Request) {
           safeError('agent-run-persist', err)
         }
       },
+    })
+
+      return r
     })
 
     return result.toUIMessageStreamResponse({

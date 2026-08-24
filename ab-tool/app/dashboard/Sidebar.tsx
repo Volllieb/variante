@@ -92,7 +92,8 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
   }, [popoverOpen])
 
   const isActive = (href: string) => pathname === href
-  const isInSection = (href: string) => pathname.startsWith(href)
+  // Tests link remains active for results sub-pages
+  const isTestsActive = pathname.startsWith('/dashboard/tests') || pathname.startsWith('/dashboard/results')
 
   return (
     <>
@@ -103,7 +104,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           aria-label="Open navigation"
           aria-expanded={mobileOpen}
           aria-controls="dashboard-sidebar"
-          className="flex h-8 w-8 items-center justify-center rounded-[6px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -132,7 +133,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         <button
           onClick={() => setMobileOpen(false)}
           aria-label="Close navigation"
-          className="absolute right-2 top-3 flex h-7 w-7 items-center justify-center rounded-[6px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+          className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -147,29 +148,47 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
 
       {/* Navigation */}
       <nav aria-label="Main" className="flex flex-col gap-0.5 px-2">
-        {/* Overview */}
         <SidebarLink
           href="/dashboard"
           icon={LayoutGrid}
           label="Overview"
           active={isActive('/dashboard')}
         />
-
-        {/* Tests */}
         <SidebarLink
           href="/dashboard/tests"
           icon={FlaskConical}
           label="Tests"
-          active={isInSection('/dashboard/tests')}
+          active={isTestsActive}
         />
 
-        {/* Docs */}
+        {/* Divider */}
+        <div className="my-1.5 border-t border-border" />
+
         <SidebarLink
-          href="/docs"
-          icon={BookOpen}
-          label="Docs"
-          active={false}
+          href="/dashboard/account"
+          icon={User}
+          label="Account"
+          active={isActive('/dashboard/account')}
         />
+        <SidebarLink
+          href="/dashboard/billing"
+          icon={CreditCard}
+          label="Billing"
+          active={isActive('/dashboard/billing')}
+        />
+
+        {/* Divider */}
+        <div className="my-1.5 border-t border-border" />
+
+        <a
+          href="/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative flex items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
+        >
+          <BookOpen className="h-4 w-4 shrink-0" />
+          <span>Docs</span>
+        </a>
 
       </nav>
 
@@ -186,7 +205,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           aria-expanded={popoverOpen}
           aria-controls="sidebar-account-popover"
           aria-haspopup="menu"
-          className="flex w-full items-center gap-2.5 rounded-[6px] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer"
+          className="flex w-full items-center gap-2.5 rounded-[var(--radius-md)] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer"
         >
           {avatarUrl && !avatarLoadFailed ? (
             <Image
@@ -225,31 +244,15 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           />
         </button>
 
-        {/* Popover */}
+        {/* Popover — only sign out, navigation is in sidebar */}
         {popoverOpen && (
-          <div id="sidebar-account-popover" role="menu" className="absolute bottom-full left-3 right-3 mb-1 rounded-[8px] border border-border bg-bg-1 p-1">
-            <Link
-              href="/dashboard/account"
-              onClick={() => setPopoverOpen(false)}
-              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
-            >
-              <User className="h-4 w-4 shrink-0" />
-              <span>Account settings</span>
-            </Link>
-            <Link
-              href="/dashboard/billing"
-              onClick={() => setPopoverOpen(false)}
-              className="flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
-            >
-              <CreditCard className="h-4 w-4 shrink-0" />
-              <span>Billing</span>
-            </Link>
+          <div id="sidebar-account-popover" role="menu" className="absolute bottom-full left-3 right-3 mb-1 rounded-[var(--radius-md)] border border-border bg-bg-1 p-1">
             <button
               onClick={async () => {
                 await getBrowserSupabase().auth.signOut()
                 window.location.href = '/'
               }}
-              className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text cursor-pointer"
+              className="flex w-full items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text cursor-pointer"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               <span>Sign out</span>
@@ -276,15 +279,16 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`relative flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] transition-colors ${
+      aria-current={active ? 'page' : undefined}
+      className={`relative flex items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] transition-colors ${
         active
           ? 'bg-bg-2 font-medium text-text'
           : 'text-text-2 hover:bg-bg-2 hover:text-text'
       }`}
     >
       {/* Aktiver Seiten-Indikator: subtiler linker Balken */}
-      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-full bg-text" />}
-      <Icon className="h-4 w-4 shrink-0" />
+      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-full bg-text" aria-hidden="true" />}
+      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span>{label}</span>
     </Link>
   )

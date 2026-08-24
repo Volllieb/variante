@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         </nav>
 
         <main className="mx-auto max-w-2xl px-6 pb-20 pt-2">
-          <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-12">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8 sm:p-12">
             <h1 className="text-3xl font-semibold text-text">
               Privacy Policy
             </h1>
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
                   We use the following sub-processors. Data processing agreements (Art. 28 GDPR)
                   are in place with all of them.
                 </p>
-                <div className="mt-4 overflow-x-auto rounded-[6px] border border-border">
+                <div className="mt-4 overflow-x-auto rounded-[var(--radius-md)] border border-border">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border bg-bg-2">
@@ -140,7 +140,7 @@ export default function PrivacyPage() {
                   We do not use tracking or advertising cookies. The following storage mechanisms
                   are used strictly for functionality:
                 </p>
-                <div className="mt-4 overflow-x-auto rounded-[6px] border border-border">
+                <div className="mt-4 overflow-x-auto rounded-[var(--radius-md)] border border-border">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border bg-bg-2">

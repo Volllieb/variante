@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { corsHeaders, preflight } from '@/lib/cors'
 import { checkRateLimit } from '@/lib/rateLimit'
 import { checkSnippet } from '@/lib/snippetCheck'
-import { getApiUser } from '@/lib/auth'
+import { getApiUser, unauthorized } from '@/lib/auth'
+import { safeError } from '@/lib/safeLog'
+import { parseBody } from '@/lib/apiHelpers'
+import { snippetCheckBody } from '@/lib/validation'
 
 /**
  * POST /api/snippet-check
@@ -16,37 +19,41 @@ import { getApiUser } from '@/lib/auth'
  * ponytail: Der Endpunkt war unauthentifiziert. Damit konnte jeder Anonyme
  * unsere Server beliebige fremde URLs fetchen lassen — ein Traffic-Amplifier
  * auf unsere Rechnung und unsere IP-Reputation (Plan SEC-08).
- *
- * Body: { site_url: string }
- * Response: { detected: boolean, checked_url: string, reason?: string }
  */
-export async function POST(req: NextRequest) {
+
+export async function OPTIONS() {
+  return preflight('POST, OPTIONS')
+}
+
+export async function POST(req: Request) {
   const user = await getApiUser(req)
-  if (!user) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  }
+  if (!user) return unauthorized('POST, OPTIONS')
 
   if (!(await checkRateLimit(`snippet-check:${user.userId}`, 10, 60_000))) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return Response.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: corsHeaders('POST, OPTIONS') }
+    )
   }
 
-  let siteUrl: unknown
+  const parsed = await parseBody(req, snippetCheckBody, 'POST, OPTIONS')
+  if (!parsed.ok) return parsed.response
+
   try {
-    const body = await req.json()
-    siteUrl = body?.site_url
-  } catch {
-    return NextResponse.json({ error: 'invalid json' }, { status: 400 })
+    const result = await checkSnippet(parsed.data.site_url)
+    return Response.json(
+      {
+        detected: result.detected,
+        checked_url: result.checkedUrl,
+        ...(result.reason ? { reason: result.reason } : {}),
+      },
+      { headers: corsHeaders('POST, OPTIONS') }
+    )
+  } catch (err) {
+    safeError('snippet-check', err)
+    return Response.json(
+      { error: 'check failed' },
+      { status: 500, headers: corsHeaders('POST, OPTIONS') }
+    )
   }
-
-  if (!siteUrl || typeof siteUrl !== 'string') {
-    return NextResponse.json({ error: 'Missing site_url' }, { status: 400 })
-  }
-
-  const result = await checkSnippet(siteUrl)
-
-  return NextResponse.json({
-    detected: result.detected,
-    checked_url: result.checkedUrl,
-    ...(result.reason ? { reason: result.reason } : {}),
-  })
 }

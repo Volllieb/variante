@@ -1,52 +1,43 @@
-import { NextRequest } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
+import { getApiUser, unauthorized } from '@/lib/auth'
+import { safeError } from '@/lib/safeLog'
 
-const corsHeaders: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-}
+/**
+ * GET /api/figma/stats — Stats für das Figma-Plugin (320×360px iframe).
+ *
+ * ponytaile: Vorher manueller Bearer-Token-Check + eigene Supabase-Query
+ * statt getApiUser() aus lib/auth.ts. Jetzt zentraler Auth-Pfad.
+ */
 
 export async function OPTIONS() {
-  return new Response(null, { status: 204, headers: corsHeaders })
+  return preflightPublic('GET, OPTIONS')
 }
 
-export async function GET(req: NextRequest) {
-  const origin = req.headers.get('origin') ?? ''
-  const headers = { ...corsHeaders }
-  if (origin) headers['Access-Control-Allow-Origin'] = origin
+export async function GET(req: Request) {
+  const user = await getApiUser(req)
+  if (!user) return unauthorized('GET, OPTIONS')
 
   try {
-    const auth = req.headers.get('authorization')
-    if (!auth?.startsWith('Bearer ')) {
-      return Response.json({ error: 'unauthorized' }, { status: 401, headers })
-    }
-    const token = auth.slice(7)
-    if (token.length < 32) {
-      return Response.json({ error: 'invalid token' }, { status: 401, headers })
-    }
-
-    // Find user by API token
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .eq('api_token', token)
-      .single()
-
-    if (!profile) {
-      return Response.json({ error: 'invalid token' }, { status: 401, headers })
-    }
-
     const { data: tests } = await supabase
       .from('tests')
       .select('name, status, visitors_a, visitors_b, conversions_a, conversions_b')
-      .eq('user_id', profile.user_id)
+      .eq('user_id', user.userId)
       .in('status', ['active', 'paused'])
       .order('created_at', { ascending: false })
       .limit(10)
 
-    return Response.json({ tests: tests ?? [] }, { headers })
-  } catch {
-    return Response.json({ error: 'server_error' }, { status: 500, headers })
+    return Response.json(
+      { tests: tests ?? [] },
+      {
+        headers: {
+          ...corsHeadersPublic('GET, OPTIONS'),
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        },
+      }
+    )
+  } catch (err) {
+    safeError('figma:stats', err)
+    return Response.json({ error: 'server_error' }, { status: 500, headers: corsHeadersPublic('GET, OPTIONS') })
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 
 // ponytail: Die Callback-Refs wurden vorher WÄHREND des Renders geschrieben
@@ -22,9 +22,18 @@ function useLatest<T>(value: T) {
 /**
  * Hook: Reagiert auf neue Test-INSERTs für den aktuellen User.
  * Ersetzt Polling in NewTestFlow.
+ *
+ * @param userId — Supabase user ID (null = nicht eingeloggt, kein Subscribe)
+ * @param onInsert — Callback bei neuem Test
+ * @param opts.onError — optionaler Callback bei Channel-Fehlern
  */
-export function useTestsInsert(userId: string | null, onInsert: (name: string) => void) {
+export function useTestsInsert(
+  userId: string | null,
+  onInsert: (name: string) => void,
+  opts?: { onError?: (status: string) => void }
+) {
   const onInsertRef = useLatest(onInsert)
+  const onErrorRef = useLatest(opts?.onError)
 
   useEffect(() => {
     if (!userId) return
@@ -42,25 +51,47 @@ export function useTestsInsert(userId: string | null, onInsert: (name: string) =
         }
       )
       .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.warn('[realtime] tests insert channel error')
+        if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+          console.warn('[realtime] tests insert channel error:', status)
+          onErrorRef.current?.(status)
         }
       })
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [userId, onInsertRef])
+  }, [userId, onInsertRef, onErrorRef])
 }
 
 /**
  * Hook: Reagiert auf UPDATEs eines einzelnen Tests.
  * Ersetzt Polling in ResultsClient.
+ *
+ * @param testId — Test-ID zum Überwachen
+ * @param onUpdate — Callback bei Test-Update
+ * @param opts.onError — optionaler Callback bei Channel-Fehlern
+ * @param opts.pollFallbackMs — wenn gesetzt, startet ein Polling-Intervall bei Disconnect (z.B. 15000)
  */
-export function useTestUpdate(testId: string, onUpdate: () => void) {
+export function useTestUpdate(
+  testId: string,
+  onUpdate: () => void,
+  opts?: { onError?: (status: string) => void; pollFallbackMs?: number }
+) {
   const onUpdateRef = useLatest(onUpdate)
+  const onErrorRef = useLatest(opts?.onError)
+  const fallbackRef = useLatest(opts?.pollFallbackMs)
+  const fallbackTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Polling-Fallback: wird nur aktiviert, wenn der Channel disconnected und pollFallbackMs gesetzt ist
+  const clearFallback = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearInterval(fallbackTimerRef.current)
+      fallbackTimerRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
+    clearFallback()
     const supabase = getBrowserSupabase()
     const channel = supabase
       .channel(`test-update-${testId}`)
@@ -72,13 +103,23 @@ export function useTestUpdate(testId: string, onUpdate: () => void) {
         }
       )
       .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.warn('[realtime] test update channel error for', testId)
+        if (status === 'SUBSCRIBED') {
+          clearFallback() // WebSocket aktiv → Polling stoppen
+        } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+          console.warn('[realtime] test update channel error for', testId, ':', status)
+          onErrorRef.current?.(status)
+          // Polling-Fallback starten, wenn konfiguriert
+          if (fallbackRef.current && !fallbackTimerRef.current) {
+            fallbackTimerRef.current = setInterval(() => {
+              onUpdateRef.current()
+            }, fallbackRef.current)
+          }
         }
       })
 
     return () => {
       supabase.removeChannel(channel)
+      clearFallback()
     }
-  }, [testId, onUpdateRef])
+  }, [testId, onUpdateRef, onErrorRef, fallbackRef, clearFallback])
 }

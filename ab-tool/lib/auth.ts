@@ -123,11 +123,12 @@ export async function getPlanForUser(userId: string): Promise<string> {
   return data?.plan ?? 'free'
 }
 
-// Standard-401 mit CORS-Headern.
-export function unauthorized(methods: string): Response {
+// Standard-401 ohne CORS-Header (werden vom withApiAuth-Wrapper gesetzt).
+// Backward-compat: akzeptiert optional methods für direkte Aufrufer.
+export function unauthorized(methods?: string): Response {
   return Response.json(
     { error: 'unauthorized', hint: 'API token missing or invalid — copy it from the dashboard.' },
-    { status: 401, headers: corsHeaders(methods) }
+    { status: 401, headers: methods ? corsHeaders(methods) : {} }
   )
 }
 

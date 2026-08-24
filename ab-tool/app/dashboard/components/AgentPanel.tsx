@@ -67,7 +67,7 @@ export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
   if (!domain || !hasVerifiedDomain) return null
 
   return (
-    <div className="rounded-[10px] border border-border bg-bg-1">
+    <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1">
       {/* Header */}
       <button
         onClick={() => setExpanded((v) => !v)}
@@ -97,7 +97,7 @@ export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
           {!hasRun && !isRunning && (
             <button
               onClick={handleRun}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Optimize {host}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Copy, Globe, ArrowRight, ChevronLeft, Loader2, X } from 'lucide-react'
+import { Check, Copy, Globe, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react'
 import { SNIPPET_CODE, personalizedSnippet } from '@/lib/snippetCode'
 
 type Step = 1 | 2 | 3
@@ -178,7 +178,8 @@ export default function OnboardingPage() {
 
   // Keep a ref to checkState so the interval callback reads fresh state
   const checkStateRef = useRef(checkState)
-  checkStateRef.current = checkState
+  // eslint-disable-next-line react-hooks/immutability -- intentional: ref must track latest state for interval callback
+  useEffect(() => { checkStateRef.current = checkState }, [checkState])
 
   // Cleanup polling
   useEffect(() => {
@@ -214,9 +215,9 @@ export default function OnboardingPage() {
                 Install the snippet
               </h1>
               <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
-                Paste this one line into your site&apos;s{' '}
+                Paste this snippet into your site&apos;s{' '}
                 <code className="text-white/80 bg-white/5 px-1.5 py-0.5 rounded text-[13px]">&lt;head&gt;</code>{' '}
-                tag. It loads async at 5 KB — zero impact on performance.
+                tag. It loads async (~12 KB gzipped) — no impact on your page speed.
               </p>
 
               {/* Domain hint: enter domain to personalize */}
@@ -226,20 +227,21 @@ export default function OnboardingPage() {
                     type="text"
                     placeholder="yoursite.com (optional, personalizes snippet)"
                     value={domainUrl}
+                    aria-label="Your domain (optional)"
                     onChange={(e) => setDomainUrl(e.target.value)}
-                    className="flex-1 rounded-[6px] border border-border bg-bg-1 px-4 py-2.5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+                    className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-2.5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
                   />
                 </div>
               </div>
 
               <div className="mt-8 text-left">
-                <div className="relative rounded-[10px] border border-border bg-bg-1 p-4">
+                <div className="relative rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
                   <pre className="overflow-x-auto text-[13px] text-white/80 font-mono leading-relaxed whitespace-pre-wrap break-all">
                     {snippetForDomain}
                   </pre>
                   <button
                     onClick={handleCopy}
-                    className="absolute top-3 right-3 flex items-center gap-1.5 rounded-[6px] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
+                    className="absolute top-3 right-3 flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
                   >
                     {copied ? (
                       <><Check className="h-3.5 w-3.5 text-ok" /> Copied!</>
@@ -287,18 +289,18 @@ export default function OnboardingPage() {
             <StepIndicator step={2} />
             <div className="text-center">
               <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full mb-5 ${
-                isFound ? 'bg-ok/10 text-ok' : isNotFound ? 'bg-err/10 text-err' : 'bg-white/10 text-white/70'
+                isFound ? 'bg-ok/10 text-ok' : isNotFound ? 'bg-pro/10 text-pro' : 'bg-white/10 text-white/70'
               }`}>
-                {isFound ? <Check className="h-6 w-6" /> : isNotFound ? <X className="h-6 w-6" /> : <Globe className="h-6 w-6" />}
+                {isFound ? <Check className="h-6 w-6" /> : <Globe className="h-6 w-6" />}
               </span>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                {isFound ? 'Snippet detected!' : isNotFound ? 'Snippet not found' : 'Verify installation'}
+                {isFound ? 'Snippet detected!' : isNotFound ? 'Not detected yet' : 'Verify installation'}
               </h1>
               <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
                 {isFound
                   ? <>Your site <strong className="text-white/80">{normalized}</strong> is connected. Redirecting…</>
                   : isNotFound
-                  ? <>We couldn&apos;t find the snippet on <strong className="text-white/80">{normalized}</strong>. Let&apos;s fix that.</>
+                  ? <>No snippet found on <strong className="text-white/80">{normalized}</strong> yet — that&apos;s completely normal if you haven&apos;t deployed it to your live site. Deploy the snippet, then re-check. You can also finish this anytime from your dashboard.</>
                   : 'Enter your domain to check if the snippet is installed correctly.'}
               </p>
 
@@ -320,12 +322,14 @@ export default function OnboardingPage() {
                         if (checkState.phase !== 'input') setCheckState({ phase: 'input' })
                       }}
                       disabled={isChecking}
-                      className="flex-1 rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 disabled:opacity-50"
+                      aria-label="Domain to verify"
+                      aria-describedby="onboarding-domain-error"
+                      className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 disabled:opacity-50"
                     />
                     <button
                       type="submit"
                       disabled={isChecking || !domainUrl.trim()}
-                      className="inline-flex items-center gap-1.5 rounded-[6px] bg-white px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
                     >
                       {isChecking ? (
                         <>
@@ -342,7 +346,7 @@ export default function OnboardingPage() {
                     </button>
                   </div>
                   {domainErr && (
-                    <p className="mt-2 text-xs text-err text-left">{domainErr}</p>
+                    <p id="onboarding-domain-error" role="alert" className="mt-2 text-xs text-err text-left">{domainErr}</p>
                   )}
                 </form>
               )}
@@ -350,7 +354,7 @@ export default function OnboardingPage() {
               {/* Checking animation */}
               {checkState.phase === 'checking' && (
                 <div className="mt-6 max-w-md mx-auto">
-                  <div className="rounded-[10px] border border-pro/20 bg-pro/[0.04] p-4">
+                  <div className="rounded-[var(--radius-lg)] border border-pro/20 bg-pro/[0.04] p-4">
                     <div className="flex items-center gap-3">
                       <Loader2 className="h-5 w-5 animate-spin text-pro shrink-0" />
                       <div className="text-left">
@@ -363,7 +367,14 @@ export default function OnboardingPage() {
                       </div>
                     </div>
                     {/* Progress bar */}
-                    <div className="mt-3 h-1 w-full rounded-full bg-bg-2 overflow-hidden">
+                    <div
+                      role="progressbar"
+                      aria-valuenow={checkState.progress}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`Verification progress: ${checkState.progress}%`}
+                      className="mt-3 h-1 w-full rounded-full bg-bg-2 overflow-hidden"
+                    >
                       <div
                         className="h-full rounded-full bg-pro transition-all duration-500"
                         style={{ width: `${checkState.progress}%` }}
@@ -376,7 +387,7 @@ export default function OnboardingPage() {
               {/* Found — success state */}
               {isFound && (
                 <div className="mt-6 max-w-md mx-auto">
-                  <div className="rounded-[10px] border border-ok/20 bg-ok/[0.05] p-4 text-center">
+                  <div className="rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.05] p-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ok opacity-75" />
@@ -394,30 +405,30 @@ export default function OnboardingPage() {
               {/* Not found — troubleshooting */}
               {isNotFound && (
                 <div className="mt-6 max-w-md mx-auto text-left space-y-4">
-                  <div className="rounded-[10px] border border-err/20 bg-err/[0.04] p-4">
-                    <p className="text-[12px] font-medium text-white mb-2">Common issues:</p>
+                  <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
+                    <p className="text-[12px] font-medium text-white mb-2">Checklist — make sure:</p>
                     <ul className="space-y-1.5 text-[11px] text-text-2">
                       <li className="flex items-start gap-2">
-                        <span className="text-err mt-0.5 shrink-0">•</span>
+                        <span className="text-text-3 mt-0.5 shrink-0">•</span>
                         The snippet must be in the <code className="text-white/80 bg-white/5 px-1 rounded text-[10px]">&lt;head&gt;</code> of every page
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-err mt-0.5 shrink-0">•</span>
+                        <span className="text-text-3 mt-0.5 shrink-0">•</span>
                         Your site must be publicly accessible (no localhost, no login wall)
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-err mt-0.5 shrink-0">•</span>
+                        <span className="text-text-3 mt-0.5 shrink-0">•</span>
                         Deploy your changes — local edits won&apos;t be detected
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-err mt-0.5 shrink-0">•</span>
+                        <span className="text-text-3 mt-0.5 shrink-0">•</span>
                         Check for CSP or adblockers that might block third-party scripts
                       </li>
                     </ul>
                   </div>
 
                   {/* Show personalized snippet for re-copy */}
-                  <div className="rounded-[10px] border border-border bg-bg-1 p-4">
+                  <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
                     <p className="text-[11px] text-text-3 mb-2">
                       Your snippet for <strong className="text-text-2">{normalized}</strong>:
                     </p>
@@ -426,7 +437,7 @@ export default function OnboardingPage() {
                     </pre>
                     <button
                       onClick={handleCopy}
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-[6px] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
                     >
                       {copied ? <><Check className="h-3 w-3 text-ok" /> Copied!</> : <><Copy className="h-3 w-3" /> Copy snippet</>}
                     </button>
@@ -435,7 +446,7 @@ export default function OnboardingPage() {
                   <div className="flex items-center gap-3 pt-1">
                     <button
                       onClick={handleRetry}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
                     >
                       <Loader2 className="h-3.5 w-3.5" />
                       Check again
@@ -490,14 +501,16 @@ export default function OnboardingPage() {
               <Check className="h-7 w-7" />
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              You&apos;re all set!
+              {checkState.phase === 'found' ? <>You&apos;re all set!</> : <>Almost there!</>}
             </h1>
             <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
-              Head to the dashboard to create your first A/B test.
+              {checkState.phase === 'found'
+                ? 'Head to the dashboard to create your first A/B test.'
+                : 'Install the snippet on your site to finish setup. You can verify later in the dashboard.'}
             </p>
 
             <div className="mt-8 space-y-3 text-left max-w-md mx-auto">
-              <div className="flex items-start gap-3 rounded-[10px] border border-border bg-bg-1 p-4">
+              <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                 <div>
                   <p className="text-sm font-semibold text-white">Snippet ready</p>
@@ -508,7 +521,7 @@ export default function OnboardingPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 rounded-[10px] border border-border bg-bg-1 p-4">
+              <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
                 {checkState.phase === 'found' ? (
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                 ) : (
@@ -577,6 +590,7 @@ function OnboardingHeader({
         </div>
         <button
           onClick={() => router.push('/dashboard')}
+          aria-label="Skip onboarding and go to dashboard"
           className="rounded-full px-4 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
         >
           Skip to dashboard
@@ -588,10 +602,11 @@ function OnboardingHeader({
 
 function StepIndicator({ step }: { step: Step }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
+    <div className="flex items-center justify-center gap-2 mb-8" role="list" aria-label="Onboarding progress">
       {([1, 2, 3] as const).map((s) => (
-        <div key={s} className="flex items-center gap-2">
+        <div key={s} className="flex items-center gap-2" role="listitem">
           <div
+            aria-current={s === step ? 'step' : undefined}
             className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold transition-colors ${
               s === step
                 ? 'bg-white text-black'
@@ -600,9 +615,9 @@ function StepIndicator({ step }: { step: Step }) {
                 : 'bg-bg-2 text-text-3'
             }`}
           >
-            {s < step ? <Check className="h-3.5 w-3.5" /> : s}
+            {s < step ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : s}
           </div>
-          {s < 3 && <div className={`h-px w-8 sm:w-12 ${s < step ? 'bg-ok/40' : 'bg-border'}`} />}
+          {s < 3 && <div className={`h-px w-8 sm:w-12 ${s < step ? 'bg-ok/40' : 'bg-border'}`} aria-hidden="true" />}
         </div>
       ))}
     </div>

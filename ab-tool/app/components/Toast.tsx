@@ -108,7 +108,7 @@ function ToastItem({
 
   return (
     <div
-      className={`pointer-events-auto flex items-center gap-3 rounded-[10px] border ${c.border} ${c.bg} px-4 py-3 shadow-lg backdrop-blur-sm animate-[fadeIn_0.2s_ease-out] max-w-sm`}
+      className={`pointer-events-auto flex items-center gap-3 rounded-[var(--radius-lg)] border ${c.border} ${c.bg} px-4 py-3 shadow-lg backdrop-blur-sm animate-[fadeIn_0.2s_ease-out] max-w-sm`}
       role="alert"
     >
       <Icon className={`h-4 w-4 shrink-0 ${c.text}`} />

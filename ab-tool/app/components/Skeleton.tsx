@@ -4,7 +4,7 @@
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-[6px] bg-white/[0.05] ${className ?? ''}`}
+      className={`animate-pulse rounded-[var(--radius-md)] bg-white/[0.05] ${className ?? ''}`}
       aria-hidden="true"
     />
   )
@@ -13,10 +13,10 @@ export function Skeleton({ className }: { className?: string }) {
 /** Skeleton for a TestCard in the grid */
 export function TestCardSkeleton() {
   return (
-    <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-3.5">
+    <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5">
       {/* Row: favicon | name | pie */}
       <div className="flex items-center gap-2.5">
-        <Skeleton className="h-[18px] w-[18px] rounded-[4px]" />
+        <Skeleton className="h-[18px] w-[18px] rounded-[var(--radius-sm)]" />
         <div className="flex-1 space-y-1.5">
           <Skeleton className="h-3 w-3/4" />
           <Skeleton className="h-2.5 w-1/2" />
@@ -46,7 +46,7 @@ export function TestGridSkeleton({ count = 6 }: { count?: number }) {
 /** Skeleton for the stats overview sidebar */
 export function StatsSkeleton() {
   return (
-    <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 space-y-2.5">
+    <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 space-y-2.5">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex items-center justify-between py-2.5 border-b border-white/[0.06] last:border-b-0">
           <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export function DashboardSkeleton() {
         <Skeleton className="h-4 w-20" />
         <StatsSkeleton />
         <Skeleton className="h-4 w-16 mt-6" />
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 space-y-2.5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 space-y-2.5">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center justify-between py-2.5 border-b border-white/[0.06] last:border-b-0">
               <div className="flex items-center gap-2">
@@ -108,17 +108,17 @@ export function FormSkeleton() {
         <Skeleton className="h-3 w-72" />
       </div>
       {/* Plan card */}
-      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5 space-y-3">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5 space-y-3">
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-4 w-20" />
         </div>
         <Skeleton className="h-3 w-full" />
         <Skeleton className="h-3 w-3/4" />
-        <Skeleton className="h-9 w-40 rounded-[6px]" />
+        <Skeleton className="h-9 w-40 rounded-[var(--radius-md)]" />
       </div>
       {/* Details */}
-      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5 space-y-4">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5 space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center justify-between py-2">
             <Skeleton className="h-3 w-24" />
@@ -138,7 +138,7 @@ export function ListSkeleton() {
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-3 w-48" />
       </div>
-      <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5 space-y-3">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5 space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center justify-between py-2 border-b border-white/[0.06] last:border-b-0">
             <Skeleton className="h-3 w-40" />
@@ -168,14 +168,14 @@ export function ResultsSkeleton() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-4 space-y-2">
+          <div key={i} className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 space-y-2">
             <Skeleton className="h-3 w-20" />
             <Skeleton className="h-6 w-16" />
           </div>
         ))}
       </div>
       {/* Chart area */}
-      <Skeleton className="h-48 w-full rounded-[10px]" />
+      <Skeleton className="h-48 w-full rounded-[var(--radius-lg)]" />
     </div>
   )
 }

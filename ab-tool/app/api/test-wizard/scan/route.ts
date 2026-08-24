@@ -9,6 +9,7 @@
  */
 
 import { supabase } from '@/lib/supabase'
+import * as Sentry from '@sentry/nextjs'
 import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { getPlanForUser } from '@/lib/auth'
@@ -123,7 +124,10 @@ export async function POST(req: Request) {
     const html = stripForCRO(rawHtml)
     const structure = extractStructure(html)
 
-    const { suggestions, primarySuggestionIndex } = await analyzePageWithPrimary(html, structure)
+    const { suggestions, primarySuggestionIndex } = await Sentry.startSpan(
+      { name: 'scan.analyzePage', op: 'ai.cro.scan' },
+      async () => analyzePageWithPrimary(html, structure)
+    )
 
     const primarySuggestion = suggestions[primarySuggestionIndex] ?? null
 

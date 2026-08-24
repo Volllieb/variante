@@ -1,19 +1,14 @@
 import { supabase } from '@/lib/supabase'
-import { safeError } from '@/lib/safeLog'
+import { safeError, safeLog } from '@/lib/safeLog'
+import { cronRoute } from '@/lib/cronAuth'
 
 // Der erste Lauf nach dem GET-Fix arbeitet einen aufgestauten Bestand ab.
 export const maxDuration = 300
 
 // POST /api/cron/snapshot-stats — Täglicher Snapshot aller aktiven Tests
 // Wird von Vercel Cron täglich um Mitternacht aufgerufen.
-//
-// Security: Authorization-Header mit CRON_SECRET erforderlich.
-async function run(req: Request) {
-  const secret = req.headers.get('authorization')?.replace('Bearer ', '')
-  const expected = process.env.CRON_SECRET
-  if (!expected || secret !== expected) {
-    return Response.json({ error: 'unauthorized' }, { status: 401 })
-  }
+
+export const { GET, POST } = cronRoute(async (_req) => {
 
   // Alle aktiven und pausierten Tests snapshoten
   const { data: tests, error } = await supabase
@@ -56,13 +51,6 @@ async function run(req: Request) {
     })
   }
 
+  safeLog('info', 'cron:snapshot-stats', 'completed', { snapshotted, total: rows.length, timedOut })
   return Response.json({ snapshotted, total: rows.length, timedOut })
-}
-
-// Vercel Cron ruft den Pfad per GET auf — die Methode ist in vercel.json
-// nicht konfigurierbar. Vorher lag die Arbeit ausschliesslich in POST und
-// GET gab nur einen Hinweistext zurueck: KEIN Cron-Job lief jemals
-// (Plan OPS-01). Der Authorization: Bearer $CRON_SECRET wird von Vercel
-// automatisch mitgeschickt.
-export const GET = run
-export const POST = run
+})

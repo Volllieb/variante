@@ -7,8 +7,9 @@
  * Name wird manuell vom User eingegeben (kein KI-Auto-Name).
  */
 
-import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair } from 'lucide-react'
+import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
+import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 
 interface StepReviewProps {
   url: string
@@ -34,10 +35,10 @@ export function StepReview({
       </div>
 
       {/* Summary Card */}
-      <div className="rounded-[10px] border border-border bg-bg-1 p-4 space-y-4">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-bg-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
             <Sparkles className="h-3.5 w-3.5 text-text" />
           </div>
           <p className="text-[14px] font-semibold text-text">Test Summary</p>
@@ -52,14 +53,29 @@ export function StepReview({
             label="Goal"
             value={goal?.label ?? 'Not set'}
           />
-          {variantResult && (
-            <DetailRow
-              icon={Sparkles}
-              label="Variant"
-              value={variantResult.explanation || variantResult.variant}
-            />
-          )}
         </div>
+
+        {/* Variant preview — rendered side-by-side instead of described as text,
+            so the user sees exactly what visitors will see for A and B. */}
+        {variantResult && (
+          <div>
+            <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-text-2">
+              <Sparkles className="h-3 w-3" />
+              Preview
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <ElementPreview label="Original (A)" html={element.originalHtml} />
+              <ElementPreview
+                label="Variant (B)"
+                html={variantResult.variant_html || variantResult.variant}
+                css={variantResult.variant_css}
+              />
+            </div>
+            {variantResult.explanation && (
+              <p className="mt-1.5 text-[10px] text-text-3 italic">{variantResult.explanation}</p>
+            )}
+          </div>
+        )}
 
         {/* Test name (manual, no AI) */}
         <div>
@@ -85,15 +101,29 @@ export function StepReview({
         {variantResult?.variant_css && (
           <div>
             <p className="mb-1 text-[11px] font-medium text-text-2">CSS Changes</p>
-            <code className="block max-h-24 overflow-y-auto rounded-[6px] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
+            <code className="block max-h-24 overflow-y-auto rounded-[var(--radius-md)] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
               {variantResult.variant_css}
             </code>
           </div>
         )}
       </div>
 
+      {/* Sample-size expectation — same thresholds the winner-check cron uses
+          (lib/significance.ts), shown up front so nobody judges the test on
+          day 2 and calls a false result. */}
+      <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] border border-border bg-bg-1 p-3">
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-3" />
+        <p className="text-[11px] leading-relaxed text-text-2">
+          For a trustworthy result, this test needs at least{' '}
+          <strong className="text-text">{MIN_VISITORS_PER_ARM.toLocaleString()} visitors</strong> and{' '}
+          <strong className="text-text">{MIN_CONVERSIONS_PER_ARM} conversions</strong> per variant,
+          running for at least <strong className="text-text">{MIN_RUNTIME_DAYS} days</strong> — whichever
+          takes longer. Ending it earlier risks a false result.
+        </p>
+      </div>
+
       {/* What happens next */}
-      <div className="rounded-[8px] border border-border bg-bg-1 p-3 space-y-2">
+      <div className="rounded-[var(--radius-md)] border border-border bg-bg-1 p-3 space-y-2">
         {hasDomain ? (
           <>
             <p className="text-[11px] text-text-2">
@@ -105,7 +135,7 @@ export function StepReview({
           </>
         ) : (
           <>
-            <div className="rounded-[6px] border border-pro/20 bg-pro/[0.04] px-3 py-2">
+            <div className="rounded-[var(--radius-md)] border border-pro/20 bg-pro/[0.04] px-3 py-2">
               <p className="text-[11px] font-medium text-pro">
                 Draft mode — install the snippet to go live
               </p>
@@ -130,6 +160,35 @@ function DetailRow({ icon: Icon, label, value }: { icon: typeof Globe; label: st
       <div className="min-w-0">
         <p className="text-[10px] text-text-3 uppercase tracking-wider">{label}</p>
         <p className="text-[12px] text-text truncate">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Rendert Original/Variante isoliert in einem sandboxed iframe statt die
+ * Variant-CSS ins Dashboard zu injecten — die CSS-Regeln zielen auf Selektoren
+ * der Zielseite (z. B. `.btn-cta`) und könnten sonst mit Dashboard-Styles
+ * kollidieren.
+ */
+function ElementPreview({ label, html, css }: { label: string; html: string; css?: string }) {
+  const srcDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; padding: 14px; min-height: 72px; display: flex; align-items: center; justify-content: center; background: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; }
+    ${css ?? ''}
+  </style></head><body>${html || ''}</body></html>`
+
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>
+      <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
+        <iframe
+          srcDoc={srcDoc}
+          sandbox=""
+          title={`${label} preview`}
+          className="h-20 w-full"
+        />
       </div>
     </div>
   )

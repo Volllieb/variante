@@ -50,9 +50,9 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
   return (
     <div className="space-y-4">
       {/* Live Preview */}
-      <div className="rounded-[10px] border border-border bg-bg-1 p-4">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
         <p className="mb-3 text-[11px] font-medium text-text-2">Live Preview</p>
-        <div className="flex items-center justify-center rounded-[8px] border border-border bg-bg-0 p-6 min-h-[60px]">
+        <div className="flex items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 p-6 min-h-[60px]">
           <span className="text-[14px] text-text">
             {text || originalText || 'Text'}
           </span>
@@ -68,7 +68,7 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text"
           maxLength={200}
-          className="w-full rounded-[6px] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+          className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
         />
       </div>
 
@@ -86,14 +86,14 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+            className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleApply}
-            className="cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
           >
             Apply
           </button>

@@ -15,6 +15,8 @@
     "test:conversion": "playwright test --project=chromium --grep \"@conversion\"",
     "test:ci": "playwright test --project=chromium-ci",
     "test:ci:smoke": "playwright test --project=chromium-ci --grep \"@smoke\"",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:node": "node --import tsx __tests__/sanitize.mjs && node --import tsx __tests__/winner-guards.mjs && node --import tsx __tests__/domain-gate.mjs && node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs && node __tests__/resolve-host-parity.mjs",
     "test:report": "playwright show-report",
     "loadtest": "k6 run __tests__/load/main.k6.js",
@@ -47,13 +49,18 @@
     "@electric-sql/pglite": "^0.5.4",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "tsx": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

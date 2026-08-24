@@ -42,7 +42,7 @@ export function PropertySlider({
             }}
             min={min}
             max={max}
-            className="w-14 rounded-[4px] border border-border bg-bg-0 px-2 py-0.5 text-[11px] font-mono text-text text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+            className="w-14 rounded-[var(--radius-sm)] border border-border bg-bg-0 px-2 py-0.5 text-[11px] font-mono text-text text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
           />
           {unit && <span className="text-[11px] text-text-3">{unit}</span>}
         </div>

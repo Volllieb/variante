@@ -54,19 +54,19 @@ export function TestsClient({
       {/* Toolbar */}
       <div className="mb-3 flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#ededed]/40" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find test…"
-            className="w-full h-[30px] rounded-[6px] border border-white/10 bg-[#0a0a0a] py-1.5 pl-8 pr-3 text-[13px] text-[#ededed] placeholder:text-[#ededed]/40 focus:border-white/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+            className="w-full h-[30px] rounded-[var(--radius-md)] border border-border bg-bg-1 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
           />
         </div>
         <FilterDropdown filter={filter} onChange={setFilter} />
         <Tooltip content="Refresh test list">
           <button
             onClick={() => router.refresh()}
-            className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-white/10 bg-[#0a0a0a] text-[#ededed]/62 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+            className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-1 text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
             <RefreshCw className="h-3.5 w-3.5" />
           </button>
@@ -74,7 +74,7 @@ export function TestsClient({
         <Tooltip content="Create new test">
           <button
             onClick={() => { setResumeTest(null); setNewTestOpen(true) }}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
           >
             <Plus className="h-3.5 w-3.5" />
             New test
@@ -131,7 +131,7 @@ export function TestsClient({
             {hasFigmaPlugin ? (
               <button
                 onClick={() => { setResumeTest(null); setNewTestOpen(true) }}
-                className="flex items-center gap-1.5 rounded-[6px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+                className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
               >
                 <Plus className="h-3.5 w-3.5" />
                 New test
@@ -139,7 +139,7 @@ export function TestsClient({
             ) : (
               <a
                 href="/dashboard/health"
-                className="flex items-center gap-1.5 rounded-[6px] border border-white/[0.18] px-3.5 py-2 text-[12px] font-medium text-[#ededed]/70 transition-colors hover:border-white/25 hover:text-[#ededed]"
+                className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border-strong px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border hover:text-text"
               >
                 <Code className="h-3.5 w-3.5" />
                 Install snippet

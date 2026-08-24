@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import { calcSignificance, evaluateWinner, hasSampleRatioMismatch } from '@/lib/significance'
-import { safeError } from '@/lib/safeLog'
+import { safeError, safeLog } from '@/lib/safeLog'
 import { sendEmail } from '@/lib/email'
+import { cronRoute } from '@/lib/cronAuth'
 
 // Der erste Lauf nach dem GET-Fix (Plan OPS-01) arbeitet einen aufgestauten
 // Bestand ab — E-Mail-Versand pro Test kostet Zeit.
@@ -21,20 +22,20 @@ function extractDomain(url: string | null | undefined): string | null {
 // Prüft alle aktiven Tests auf neu erkannte Winner, setzt den Status
 // automatisch auf 'done' (Auto-Promotion) und sendet E-Mail-Benachrichtigungen
 // via Resend. done+B → resolve liefert force:'B' (100% Variant B).
-//
-// Security: Authorization-Header mit CRON_SECRET erforderlich.
-async function run(req: Request) {
-  const secret = req.headers.get('authorization')?.replace('Bearer ', '')
-  const expected = process.env.CRON_SECRET
-  if (!expected || secret !== expected) {
-    return Response.json({ error: 'unauthorized' }, { status: 401 })
-  }
 
-  // Alle aktiven Tests ohne Winner laden
+export const { GET, POST } = cronRoute(async (_req) => {
+
+  // Nur AKTIVE Tests ohne Winner laden.
+  // ponytail: Vorher wurden auch 'paused' Tests ausgewertet und bei Signifikanz
+  // auf status='done' + Auto-Promotion gesetzt. Damit überschrieb der Cron die
+  // bewusste Pause des Users — ein pausierter Test wurde über Nacht auf 100 %
+  // Variante B ausgerollt, obwohl der User ihn genau deshalb angehalten hatte
+  // (z. B. weil die Variante Probleme machte). Pause muss Pause bleiben; ein
+  // pausierter Test wird erst wieder ausgewertet, wenn der User ihn reaktiviert.
   const { data: tests, error } = await supabase
     .from('tests')
     .select('id, name, user_id, site_url, created_at, traffic_split, visitors_a, visitors_b, conversions_a, conversions_b, significance, min_visitors, min_uplift, significance_level')
-    .in('status', ['active', 'paused'])
+    .eq('status', 'active')
     .is('winner', null)
 
   if (error) {
@@ -217,13 +218,10 @@ async function run(req: Request) {
     }
   }
 
+  safeLog('info', 'cron:check-winners', 'completed', {
+    checked: tests?.length ?? 0,
+    notified: notified.length,
+    skipped: skipped.length,
+  })
   return Response.json({ checked: tests?.length ?? 0, notified, skipped })
-}
-
-// Vercel Cron ruft den Pfad per GET auf — die Methode ist in vercel.json
-// nicht konfigurierbar. Vorher lag die Arbeit ausschliesslich in POST und
-// GET gab nur einen Hinweistext zurueck: KEIN Cron-Job lief jemals
-// (Plan OPS-01). Der Authorization: Bearer $CRON_SECRET wird von Vercel
-// automatisch mitgeschickt.
-export const GET = run
-export const POST = run
+})

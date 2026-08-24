@@ -61,11 +61,11 @@ function FreeTeaser({ domain }: { domain: string | null }) {
       </div>
 
       {/* Geblurrter Inhalt */}
-      <div className="relative overflow-hidden rounded-[10px] border border-border bg-bg-1">
+      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border bg-bg-1">
         {/* Blur-Layer */}
         <div className="pointer-events-none select-none px-3.5 py-3 space-y-2.5 blur-[6px]">
           {TEASER_SUGGESTIONS.map((tip) => (
-            <div key={tip.element} className="flex items-start gap-2 rounded-[6px] border border-border bg-bg-2 px-3 py-2">
+            <div key={tip.element} className="flex items-start gap-2 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2">
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] leading-relaxed text-text-2">
                   Test <span className="font-medium text-text/90">&ldquo;{tip.original}&rdquo;</span> vs{' '}
@@ -86,7 +86,7 @@ function FreeTeaser({ domain }: { domain: string | null }) {
           </p>
           <Link
             href="/dashboard/billing"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-[6px] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
+            className="mt-1 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85"
           >
             <Sparkles className="h-3 w-3" />
             Upgrade to Pro
@@ -96,7 +96,7 @@ function FreeTeaser({ domain }: { domain: string | null }) {
 
       {/* Auto-optimize teaser */}
       {domain && (
-        <div className="mt-3 flex items-center gap-2.5 rounded-[8px] border border-pro/10 bg-pro/[0.02] px-3 py-2.5">
+        <div className="mt-3 flex items-center gap-2.5 rounded-[var(--radius-md)] border border-pro/10 bg-pro/[0.02] px-3 py-2.5">
           <Bot className="h-3.5 w-3.5 shrink-0 text-pro/40" />
           <p className="flex-1 text-[11px] text-text-3">Auto-optimize {domain.replace(/^https?:\/\//, '')} — creates tests in one click</p>
           <span className="shrink-0 rounded-full border border-pro/20 px-1.5 py-0.5 text-[9px] font-semibold text-pro/60">PRO</span>
@@ -116,7 +116,7 @@ function NoUrlPrompt() {
         <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
         <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">PRO</span>
       </div>
-      <div className="rounded-[10px] border border-border bg-bg-1 p-4 text-center">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 text-center">
         <Globe className="mx-auto h-4 w-4 text-text-3" />
         <p className="mt-2 text-[12px] text-text-3">
           Add a website and create a test first — then AI can analyze your page for specific suggestions.
@@ -201,7 +201,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
         <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">AI</span>
       </div>
 
-      <div className="rounded-[10px] border border-border bg-bg-1 p-3.5">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5">
         {/* Idle: Noch nie generiert → CTA */}
         {state === 'idle' && (
           <div className="flex flex-col items-center gap-3 py-3">
@@ -216,7 +216,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
             </div>
             <button
               onClick={fetchSuggestions}
-              className="inline-flex items-center gap-1.5 rounded-[6px] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Analyze my page
@@ -237,7 +237,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
         {state === 'done' && (
           <div className="space-y-2.5">
             {suggestions.map((s, i) => (
-              <div key={i} className="flex items-start gap-2 rounded-[6px] border border-pro/10 bg-pro/[0.03] px-3 py-2">
+              <div key={i} className="flex items-start gap-2 rounded-[var(--radius-md)] border border-pro/10 bg-pro/[0.03] px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-medium uppercase tracking-wider text-pro">
                     {s.element}
@@ -258,7 +258,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
               </span>
               <button
                 onClick={fetchSuggestions}
-                className="flex items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-text-3 transition-colors hover:border-border-strong hover:text-text-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+                className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-2.5 py-1 text-[11px] text-text-3 transition-colors hover:border-border-strong hover:text-text-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
               >
                 <RefreshCw className="h-3 w-3" />
                 Regenerate
@@ -273,7 +273,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
             <p className="text-[11px] text-err/70">{error}</p>
             <button
               onClick={fetchSuggestions}
-              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
@@ -324,7 +324,7 @@ function MiniAgent({ domain }: { domain: string }) {
   }
 
   return (
-    <div className="mt-3 rounded-[8px] border border-pro/10 bg-pro/[0.02] p-3">
+    <div className="mt-3 rounded-[var(--radius-md)] border border-pro/10 bg-pro/[0.02] p-3">
       <div className="flex items-center gap-2 mb-2">
         <Bot className="h-3.5 w-3.5 text-pro" />
         <p className="text-[11px] font-medium text-text">Auto-optimize</p>
@@ -337,7 +337,7 @@ function MiniAgent({ domain }: { domain: string }) {
           </p>
           <button
             onClick={handleRun}
-            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
           >
             <Sparkles className="h-3 w-3" />
             Optimize {host}

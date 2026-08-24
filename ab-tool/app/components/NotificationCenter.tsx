@@ -157,7 +157,7 @@ export function NotificationCenter() {
       <Tooltip content="Notifications">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] text-[#ededed]/50 transition-colors hover:bg-[#111111] hover:text-[#ededed]/80"
+          className="relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-[#ededed]/50 transition-colors hover:bg-[#111111] hover:text-[#ededed]/80"
           aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         >
           <Bell className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function NotificationCenter() {
       </Tooltip>
 
       {open && (
-        <div className="absolute left-0 bottom-full z-50 mb-1.5 w-80 rounded-[10px] border border-white/10 bg-[#0a0a0a] shadow-xl">
+        <div className="absolute left-0 bottom-full z-50 mb-1.5 w-80 rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
             <span className="text-[12px] font-semibold text-[#ededed]">Notifications</span>

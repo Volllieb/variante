@@ -4,6 +4,8 @@ import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { revalidatePath } from 'next/cache'
 import { assertOwnedDomain } from '@/lib/domainGate'
+import { parseBody } from '@/lib/apiHelpers'
+import { createTestBody } from '@/lib/validation'
 
 // Maximale Anzahl Tests pro anonymer Temp-Session (Figma-Onboarding-Vorschau).
 const TEMP_SESSION_TEST_LIMIT = 3
@@ -16,12 +18,9 @@ export async function GET(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('GET, POST, OPTIONS')
 
-  // ponytail: Die Spaltenliste stand dreimal in dieser Funktion, einmal davon
-  // in einer Query, deren Ergebnis nie verwendet wurde.
   const COLUMNS =
     'id, name, site_url, status, health_status, health_issues, visitors_a, visitors_b, conversions_a, conversions_b, significance, winner, min_visitors, min_uplift, created_at'
 
-  // Temp-User: Tests per temp_session_id holen, regulärer User per user_id
   const isTemp = user.plan === 'temp'
   const { data, error } = await supabase
     .from('tests')
@@ -42,43 +41,9 @@ export async function POST(req: Request) {
   const user = await getApiUser(req)
   if (!user) return unauthorized('POST, OPTIONS')
 
-  let body: {
-    name?: string
-    site_url?: string
-    selector?: string
-    goal?: string
-    traffic_split?: number
-    min_visitors?: number
-    min_uplift?: number
-    significance_level?: number
-  }
-  try {
-    body = await req.json()
-  } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  }
-
-  const { name, site_url, selector, goal, traffic_split, min_visitors, min_uplift, significance_level } = body
-
-  if (!name) {
-    return Response.json({ error: 'name is required' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  }
-
-  // Input-Validierung: Längenlimits verhindern DB-Blähung.
-  if (name.length > 256) return Response.json({ error: 'name too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  if (site_url && site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  if (selector && selector.length > 512) return Response.json({ error: 'selector too long (max 512)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  if (goal && goal.length > 256) return Response.json({ error: 'goal too long (max 256)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  // ponytail: traffic_split ging ungeprüft aus dem Body in den Insert, während
-  // die vier Felder darüber längenvalidiert wurden. 500 hier bedeutet in
-  // ab_assign `random()*100 < 500` — also 100 % Traffic auf B und ein Test,
-  // der keiner mehr ist (Plan DB-03).
-  if (traffic_split !== undefined && (typeof traffic_split !== 'number' || !Number.isFinite(traffic_split) || traffic_split < 0 || traffic_split > 100)) {
-    return Response.json({ error: 'traffic_split must be a number between 0 and 100' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  }
-  if (min_visitors !== undefined && (typeof min_visitors !== 'number' || min_visitors < 0)) {
-    return Response.json({ error: 'min_visitors must be a non-negative number' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
-  }
+  const parsed = await parseBody(req, createTestBody, 'POST, OPTIONS')
+  if (!parsed.ok) return parsed.response
+  const { name, site_url, selector, goal, traffic_split, min_visitors, min_uplift, significance_level } = parsed.data
 
   const isTemp = user.plan === 'temp'
 
@@ -141,9 +106,9 @@ export async function POST(req: Request) {
   } else {
     insert.user_id = user.userId
   }
-  if (typeof min_visitors === 'number') insert.min_visitors = min_visitors
-  if (typeof min_uplift === 'number') insert.min_uplift = min_uplift
-  if (typeof significance_level === 'number' && [0.9, 0.95, 0.99].includes(significance_level)) insert.significance_level = significance_level
+  if (min_visitors !== undefined) insert.min_visitors = min_visitors
+  if (min_uplift !== undefined) insert.min_uplift = min_uplift
+  if (significance_level !== undefined) insert.significance_level = significance_level
 
   const { data, error } = await supabase
     .from('tests')

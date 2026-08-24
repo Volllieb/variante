@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
 
-// SVG-Farben (dynamisch, nicht über Tailwind abbildbar)
-const SIG_COLORS = { ok: '#2fd76c', pro: '#f5a623', err: '#f5455c', neutral: '#ffffff26' }
+// SVG-Farben via CSS custom properties — SVGs unterstützen var() nativ
+const OK = 'var(--color-ok)'
+const PRO = 'var(--color-pro)'
+const OK_BG = 'var(--color-ok-bg)'
 
 export type TestRow = {
   id: string
@@ -71,12 +73,12 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
   const c = size / 2
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, Math.max(0, significance))
-  const strokeColor = pct >= 0.95 ? SIG_COLORS.ok : pct >= 0.7 ? SIG_COLORS.pro : SIG_COLORS.neutral
-  const bgColor = pct >= 0.95 ? `${SIG_COLORS.ok}1f` : pct >= 0.7 ? `${SIG_COLORS.pro}1f` : '#ffffff0d'
+  const strokeColor = pct >= 0.95 ? OK : pct >= 0.7 ? PRO : 'var(--color-border)'
+  const bgColor = pct >= 0.95 ? OK_BG : pct >= 0.7 ? 'var(--color-pro-bg)' : 'var(--color-bg-2)'
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      <circle cx={c} cy={c} r={r} fill={bgColor} stroke="rgba(255,255,255,.06)" strokeWidth="1.5" />
+      <circle cx={c} cy={c} r={r} fill={bgColor} stroke="var(--color-border)" strokeWidth="1.5" />
       <circle
         cx={c}
         cy={c}
@@ -89,7 +91,7 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
         transform={`rotate(-90 ${c} ${c})`}
         style={{ transition: 'stroke-dasharray 0.5s ease' }}
       />
-      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="600" fill="#ededed">
+      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="600" fill="var(--color-text)">
         {visitors >= 1000 ? `${(visitors / 1000).toFixed(0)}k` : visitors}
       </text>
     </svg>
@@ -206,7 +208,7 @@ export function TestCard({
   const isDraft = status === 'draft'
   const hasIssues = Array.isArray(t.health_issues) && t.health_issues.length > 0
 
-  const cardClassName = `group/card relative block w-full text-left rounded-[10px] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
+  const cardClassName = `group/card relative block w-full text-left rounded-[var(--radius-lg)] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
     isDraft ? 'border-dashed border-border bg-bg-0/60 cursor-pointer' : 'border-border bg-bg-1'
   }`
 
@@ -237,7 +239,7 @@ export function TestCard({
             steht nicht in der Sub-Prozessor-Tabelle, und die Docs behaupten
             ausdrücklich "No third-party analytics or CDNs". Jetzt ein lokal
             gerendertes Monogramm, kein externer Request. */}
-        <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-bg-2">
+        <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-bg-2">
           <span className="text-[10px] font-semibold uppercase text-text-3">
             {domain ? domain.replace(/^www\./, '').charAt(0) : 'W'}
           </span>
@@ -253,12 +255,12 @@ export function TestCard({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
                 autoFocus
-                className="flex-1 rounded-[4px] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+                className="flex-1 rounded-[var(--radius-sm)] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
               />
-              <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[4px] p-1 text-text-3 hover:text-text">
+              <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3 hover:text-text">
                 <Check className="h-3 w-3" />
               </button>
-              <button onClick={() => { setRenameOpen(false); setRenameValue(localName) }} className="cursor-pointer rounded-[4px] p-1 text-text-3 hover:text-text">
+              <button onClick={() => { setRenameOpen(false); setRenameValue(localName) }} className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3 hover:text-text">
                 <X className="h-3 w-3" />
               </button>
             </div>
@@ -289,7 +291,7 @@ export function TestCard({
             </button>
 
             {menuOpen && (
-              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[8px] border border-border bg-bg-2 py-1">
+              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[var(--radius-md)] border border-border bg-bg-2 py-1">
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameOpen(true); setMenuOpen(false) }}
                   className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"

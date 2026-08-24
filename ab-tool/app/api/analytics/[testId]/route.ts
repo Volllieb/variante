@@ -52,5 +52,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ testId: 
       winner: test.winner,
     },
     daily: stats ?? [],
-  }, { headers: corsHeaders('GET, OPTIONS') })
+  }, { headers: { ...corsHeaders('GET, OPTIONS'), 'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30' } })
 }

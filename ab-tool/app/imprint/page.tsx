@@ -32,7 +32,7 @@ export default function ImprintPage() {
         </nav>
 
         <main className="mx-auto max-w-2xl px-6 pb-20 pt-2">
-          <div className="rounded-[10px] border border-border bg-bg-1 p-8 sm:p-12">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8 sm:p-12">
             <h1 className="text-3xl font-semibold text-text">
               Impressum
             </h1>

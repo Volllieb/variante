@@ -22,7 +22,7 @@ import {
   Plus,
   Check,
   Globe,
-
+  User,
   ChevronDown,
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
@@ -156,7 +156,7 @@ export function DashboardClient({
     <div className="px-5 py-6 sm:px-8">
       {/* Upgraded banner */}
       {upgraded && (
-        <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-ok/20 bg-ok/[0.05] px-5 py-3.5">
+        <div className="mb-5 flex items-center gap-3 rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.05] px-5 py-3.5">
           <Check className="h-4 w-4 shrink-0 text-ok" />
           <p className="text-[13px] text-ok">
             You&apos;re now on <strong className="font-semibold">Pro</strong> — unlimited experiments, full statistics, no badge.
@@ -173,8 +173,13 @@ export function DashboardClient({
         onDomainVerified={() => router.refresh()}
       />
 
-      {/* Hybrid-Onboarding: Variante fertig, Snippet fehlt */}
-      {pendingPreviewTest && <PreviewReadyBanner test={pendingPreviewTest} />}
+      {/* Getting Started Banner — zeigt immer den nächsten logischen Schritt */}
+      {!hasVerifiedDomain && (
+        <GettingStartedBanner
+          hasDomain={domainCount > 0}
+          previewTest={pendingPreviewTest ?? undefined}
+        />
+      )}
 
       {/* Free plan usage — proactive limit visibility before hitting a wall */}
       <PlanUsageBar plan={plan} activeTests={activeTests} domainCount={domainCount} />
@@ -215,7 +220,7 @@ export function DashboardClient({
         <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Saved as draft until snippet is installed'}>
           <button
             onClick={() => setNewTestOpen(true)}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
           >
             <Plus className="h-3.5 w-3.5" />
             New test
@@ -251,9 +256,84 @@ export function DashboardClient({
         </div>
 
 
+      {/* Winner banner — highlights tests with declared winners */}
+      {winningTests > 0 && (
+        <div className="mb-5 rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.05] px-5 py-3.5">
+          <p className="text-[13px] text-ok">
+            🎉 <strong className="font-semibold">{winningTests} test{winningTests !== 1 ? 's' : ''}</strong> ha{winningTests === 1 ? 's' : 've'} a winner.{' '}
+            <a href="/dashboard/tests" className="underline transition-opacity hover:opacity-80">View results →</a>
+          </p>
+        </div>
+      )}
+
+      {/* Quick Actions row */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <button
+          onClick={() => setNewTestOpen(true)}
+          className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-fill-invert">
+            <Plus className="h-4 w-4 text-text-on-invert" />
+          </span>
+          <span className="text-[13px] font-semibold text-text">Create test</span>
+        </button>
+        {!hasVerifiedDomain ? (
+          <a
+            href="/dashboard/account"
+            className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
+              <Globe className="h-4 w-4 text-text-2" />
+            </span>
+            <span className="text-[13px] font-semibold text-text">Install snippet</span>
+          </a>
+        ) : (
+          <a
+            href="/dashboard/tests"
+            className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
+              <FlaskConical className="h-4 w-4 text-text-2" />
+            </span>
+            <span className="text-[13px] font-semibold text-text">View all tests</span>
+          </a>
+        )}
+        <a
+          href="/dashboard/account"
+          className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
+            <User className="h-4 w-4 text-text-2" />
+          </span>
+          <span className="text-[13px] font-semibold text-text">Account settings</span>
+        </a>
+      </div>
+
+      {/* Auto-Optimize Agent — available for all users */}
+      {hasVerifiedDomain && (
+        <div className="mb-6">
+          <AgentPanel
+            domain={primaryDomain}
+            hasVerifiedDomain={hasVerifiedDomain}
+          />
+        </div>
+      )}
+
+      {/* What to test next — AI suggestions */}
+      {scopedTests.length > 0 && (
+        <div className="mb-6">
+          <WhatToTestNext
+            siteUrl={primaryDomain ? `https://${primaryDomain}` : null}
+            plan={plan}
+            setupComplete={hasVerifiedDomain}
+            domain={primaryDomain}
+          />
+        </div>
+      )}
+
       {/* Health warnings */}
       {hasHealthWarnings && (
-        <div className="mb-5 rounded-[10px] border border-pro/20 bg-pro-bg px-4 py-3">
+        <div className="mb-5 rounded-[var(--radius-lg)] border border-pro/20 bg-pro-bg px-4 py-3">
           <p className="text-[12px] text-pro/90">
             Some tests have health warnings. Check the test list below for details.
           </p>
@@ -261,7 +341,7 @@ export function DashboardClient({
       )}
 
       {/* Tests section */}
-      <div className="rounded-[10px] border border-border bg-bg-1">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1">
         {/* Toolbar */}
         <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
           <div className="relative flex-1">
@@ -270,14 +350,14 @@ export function DashboardClient({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search tests…"
-              className="w-full h-[36px] rounded-[6px] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="w-full h-[36px] rounded-[var(--radius-md)] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             />
           </div>
           <Tooltip content={sortAsc ? 'Newest first' : 'Oldest first'}>
             <button
               onClick={() => setSortAsc((v) => !v)}
               aria-label={sortAsc ? 'Sort: newest first' : 'Sort: oldest first'}
-              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
             </button>
@@ -287,7 +367,7 @@ export function DashboardClient({
             <button
               onClick={() => router.refresh()}
               aria-label="Refresh test list"
-              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
@@ -347,7 +427,7 @@ export function DashboardClient({
               {!query && (
                 <button
                   onClick={() => setNewTestOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   New test
@@ -357,67 +437,77 @@ export function DashboardClient({
           ) : (
             <ErrorBoundary label="Tests">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredTests.map((t, i) => (
+                {filteredTests.slice(0, 5).map((t, i) => (
                   <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true); setDrawerOpenCount((c) => c + 1) }} />
                 ))}
               </div>
+              {filteredTests.length > 5 && (
+                <div className="mt-3 text-center">
+                  <a href="/dashboard/tests" className="text-[12px] font-medium text-text-3 transition-colors hover:text-text-2">
+                    View all {filteredTests.length} tests →
+                  </a>
+                </div>
+              )}
             </ErrorBoundary>
           )}
         </div>
       </div>
 
-      {/* Auto-Optimize Agent — available for all users */}
-      {hasVerifiedDomain && (
-        <div className="mt-6">
-          <AgentPanel
-            domain={primaryDomain}
-            hasVerifiedDomain={hasVerifiedDomain}
-          />
-        </div>
-      )}
-
-      {/* What to test next — AI suggestions for Pro users */}
-      {scopedTests.length > 0 && (
-        <div className="mt-6">
-          <WhatToTestNext
-            siteUrl={primaryDomain ? `https://${primaryDomain}` : null}
-            plan={plan}
-            setupComplete={hasVerifiedDomain}
-            domain={primaryDomain}
-          />
-        </div>
-      )}
     </div>
   )
 }
 
 /* ── Sub-components ── */
 
-function PreviewReadyBanner({ test }: { test: TestRow }) {
-  return (
-    <div className="mb-5 flex flex-col gap-4 rounded-[10px] border border-pro/25 bg-pro/[0.05] p-4 sm:flex-row sm:items-center">
-      {test.preview_variant_screenshot_url && (
-        // eslint-disable-next-line @next/next/no-img-element -- Supabase-Storage-URL, kein next/image-Loader nötig
-        <img
-          src={test.preview_variant_screenshot_url}
-          alt=""
-          className="h-20 w-32 shrink-0 rounded-[6px] border border-border object-cover object-top"
-        />
-      )}
-      <div className="min-w-0 flex-1">
-        <h2 className="text-[14px] font-semibold text-text">Your variant is ready — one step left</h2>
-        <p className="mt-1 text-[12px] text-text-2">
-          <span className="font-medium text-text">{test.name}</span> is saved as a draft. Add the
-          one-line snippet to your site and this test goes live — real visitors, real numbers.
-        </p>
+function GettingStartedBanner({ hasDomain, previewTest }: { hasDomain: boolean; previewTest?: TestRow }) {
+  // State machine: no_domain → domain_unverified → no_tests
+  if (!hasDomain) {
+    return (
+      <div className="mb-5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
+            <Globe className="h-4 w-4 text-text-2" />
+          </span>
+          <div className="flex-1">
+            <p className="text-[14px] font-semibold text-text">Add your site to get started</p>
+            <p className="mt-0.5 text-[12px] text-text-2">Connect your website and install the snippet to run A/B tests.</p>
+          </div>
+          <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+            Connect site
+          </a>
+        </div>
       </div>
-      <a
-        href="/dashboard"
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
-      >
-        <Globe className="h-3.5 w-3.5" />
-        Install snippet
-      </a>
+    )
+  }
+
+  // Domain exists but snippet not verified
+  if (previewTest) {
+    return (
+      <div className="mb-5 flex flex-col gap-4 rounded-[var(--radius-lg)] border border-pro/25 bg-pro/[0.05] p-4 sm:flex-row sm:items-center">
+        {previewTest.preview_variant_screenshot_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewTest.preview_variant_screenshot_url} alt="" className="h-20 w-32 shrink-0 rounded-[var(--radius-md)] border border-border object-cover object-top" />
+        )}
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[14px] font-semibold text-text">Your variant is ready — one step left</h2>
+          <p className="mt-1 text-[12px] text-text-2">
+            <span className="font-medium text-text">{previewTest.name}</span> is saved as a draft. Add the one-line snippet to your site and this test goes live.
+          </p>
+        </div>
+        <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+          <Globe className="h-3.5 w-3.5" />
+          Install snippet
+        </a>
+      </div>
+    )
+  }
+
+  // Domain exists, no verified, but no preview test
+  return (
+    <div className="mb-5 rounded-[var(--radius-lg)] border border-pro/20 bg-pro/[0.03] px-4 py-3">
+      <p className="text-[12px] text-pro">
+        Snippet not detected yet — <a href="/dashboard/account" className="underline font-medium">verify your installation</a> to activate your tests.
+      </p>
     </div>
   )
 }
@@ -435,7 +525,7 @@ function OverviewCard({
   const colorClass = tone === 'ok' ? 'text-ok' : tone === 'pro' ? 'text-pro' : tone === 'err' ? 'text-err' : 'text-text'
   const bgTint = tone === 'ok' ? 'bg-ok/[0.04]' : tone === 'err' ? 'bg-err/[0.04]' : ''
   return (
-    <div className={`relative rounded-[10px] border border-border bg-bg-1 p-4 ${bgTint}`}>
+    <div className={`relative rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 ${bgTint}`}>
       <div className="flex items-center gap-1.5 mb-2">
         <span className="text-[11px] font-medium uppercase tracking-wider text-text-3">{label}</span>
       </div>
@@ -460,37 +550,21 @@ function EmptyDashboard({
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-bg-2">
         <FlaskConical className="h-6 w-6 text-text-3" />
       </div>
-      <h2 className="text-[15px] font-semibold text-text">
-        {hasVerifiedDomain ? 'Create your first test' : 'Start testing — even without a site yet'}
-      </h2>
+      <h2 className="text-[15px] font-semibold text-text">Create your first test</h2>
       <p className="mt-1.5 text-[13px] text-text-2 max-w-sm mx-auto">
         {hasVerifiedDomain
           ? 'Run your first A/B test in minutes. Pick a page element, let the AI generate a variant, and go live.'
-          : 'Create a draft test now and go live when you install the snippet. No domain required to explore.'}
+          : 'Tests are saved as drafts until you install the snippet on your site.'}
       </p>
       <div className="mt-5 flex items-center justify-center gap-3">
         <button
           onClick={onNewTest}
-          className="inline-flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+          className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
         >
           <Plus className="h-4 w-4" />
           New test
         </button>
-        {!hasVerifiedDomain && (
-          <a
-            href="/dashboard/account"
-            className="inline-flex items-center gap-1.5 rounded-[6px] border border-border px-4 py-2.5 text-[13px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
-          >
-            <Globe className="h-4 w-4" />
-            Add your site
-          </a>
-        )}
       </div>
-      {!hasVerifiedDomain && (
-        <p className="mt-2.5 text-[11px] text-text-3">
-          Tests are saved as drafts until you install the snippet on your site.
-        </p>
-      )}
       {!isPro && (
         <p className="mt-3 text-[11px] text-text-3">
           Free plan: 1 active test, 1 domain.{' '}

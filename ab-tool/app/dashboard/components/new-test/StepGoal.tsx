@@ -193,7 +193,7 @@ export function StepGoal({
       </div>
 
       {/* Mode Toggle — always visible so user can switch if picker fails */}
-      <div className="flex rounded-[6px] border border-border bg-bg-1 p-0.5">
+      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5">
         <button
           onClick={() => setMode('picker')}
           className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
@@ -222,7 +222,7 @@ export function StepGoal({
             <div key={g.type}>
               <button
                 onClick={() => handleTypeSelect(g.type)}
-                className={`flex w-full cursor-pointer items-start gap-3 rounded-[10px] px-4 py-3.5 text-left transition-all ${
+                className={`flex w-full cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] px-4 py-3.5 text-left transition-all ${
                   isSelected
                     ? 'border border-border-strong bg-bg-2 ring-1 ring-border-strong'
                     : 'border border-border bg-bg-1 hover:border-border-strong'
@@ -249,7 +249,7 @@ export function StepGoal({
 
               {/* Click: Picker / Manual section */}
               {isSelected && g.type === 'click' && (
-                <div className="mt-2 ml-8 rounded-[8px] border border-border bg-bg-0 p-3">
+                <div className="mt-2 ml-8 rounded-[var(--radius-md)] border border-border bg-bg-0 p-3">
                   {/* ── PICKER MODE ── */}
                   {mode === 'picker' && (
                     <>
@@ -261,7 +261,7 @@ export function StepGoal({
                               <span className="text-[10px] font-medium text-ok">Element selected</span>
                             </div>
                           </div>
-                          <div className="rounded-[6px] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
+                          <div className="rounded-[var(--radius-md)] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
                             <span className="text-text-3">Selector: </span>{pickedElement?.selector ?? selectedGoal?.selector}
                             {pickedElement?.text && (
                               <><br /><span className="text-text-3">Text: </span>&ldquo;{pickedElement.text}&rdquo;</>
@@ -281,7 +281,7 @@ export function StepGoal({
                           </p>
                           <button
                             onClick={openGoalPicker}
-                            className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
+                            className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                           >
                             <ExternalLink className="h-3 w-3" />
                             Pick on site
@@ -293,7 +293,7 @@ export function StepGoal({
                             </div>
                           )}
                           {pickerBlocked && (
-                            <div className="mt-2 rounded-[6px] border border-err/20 bg-err/5 px-3 py-2 text-[10px] text-err/80">
+                            <div className="mt-2 rounded-[var(--radius-md)] border border-err/20 bg-err/5 px-3 py-2 text-[10px] text-err/80">
                               Popup was blocked. Please allow popups for this site and try again — or switch to{' '}
                               <button onClick={() => setMode('manual')} className="underline hover:text-err cursor-pointer">Manual Selector</button>.
                             </div>
@@ -316,7 +316,7 @@ export function StepGoal({
                           onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
                           onKeyDown={(e) => e.key === 'Enter' && confirmManualGoal()}
                           placeholder=".buy-button, #checkout, button.cta"
-                          className="w-full rounded-[6px] border border-border bg-bg-1 py-2 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+                          className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 py-2 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
                         />
                         {manualSelectorError && (
                           <p className="mt-1 text-[10px] text-err">{manualSelectorError}</p>
@@ -329,7 +329,7 @@ export function StepGoal({
                       </div>
                       <button
                         onClick={confirmManualGoal}
-                        className="flex items-center gap-1.5 rounded-[6px] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
+                        className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
                       >
                         <Check className="h-3 w-3" />
                         Apply Selector
@@ -346,7 +346,7 @@ export function StepGoal({
                           <span className="text-[10px] font-medium text-ok">Element selected</span>
                         </div>
                       </div>
-                      <div className="rounded-[6px] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
+                      <div className="rounded-[var(--radius-md)] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
                         <span className="text-text-3">Selector: </span>{selectedGoal.selector}
                       </div>
                       <button

@@ -10,6 +10,16 @@ import { Tooltip } from '@/app/components/Tooltip'
 import { useToast } from '@/app/components/Toast'
 import { calcSignificance, MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 import {
+  formatCreatedAt,
+  exportCsv,
+  estimateDaysToSignificance,
+  progressPct,
+  parseGoal,
+  formatGoal,
+  type DailyRow,
+  type AnalyticsData,
+} from '@/lib/resultsHelpers'
+import {
   RefreshCw,
   Users,
   Target,
@@ -39,150 +49,11 @@ import {
   Bar,
   ReferenceLine,
 } from 'recharts'
-// ponytail: echte Recharts-Typen statt `as any`-Kaskaden. Bricht ein
-// Major-Update die Signatur, meldet das jetzt der Typecheck und nicht der
-// zahlende Pro-Kunde, der auf ein leeres Chart schaut.
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
-const C = {
-  ok: '#2fd76c',
-  pro: '#f5a623',
-  err: '#f5455c',
-}
-
-function formatCreatedAt(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(diff / 60000)
-  const h = Math.floor(diff / 3600000)
-  const d = Math.floor(diff / 86400000)
-  if (d > 0) return `${d}d ago`
-  if (h > 0) return `${h}h ago`
-  if (m > 0) return `${m}m ago`
-  return 'just now'
-}
-
-function exportCsv(daily: DailyRow[], testName: string) {
-  const rows = [['Date', 'Visitors A', 'Visitors B', 'Conversions A', 'Conversions B', 'CR A', 'CR B', 'Lift']]
-  for (const d of daily) {
-    const crA = d.visitors_a > 0 ? ((d.conversions_a / d.visitors_a) * 100).toFixed(1) : '—'
-    const crB = d.visitors_b > 0 ? ((d.conversions_b / d.visitors_b) * 100).toFixed(1) : '—'
-    const lift = d.visitors_a > 0 && d.conversions_a > 0 && d.visitors_b > 0
-      ? (((d.conversions_b / d.visitors_b) - (d.conversions_a / d.visitors_a)) / (d.conversions_a / d.visitors_a) * 100).toFixed(1)
-      : '—'
-    rows.push([
-      new Date(d.date).toISOString().slice(0, 10),
-      String(d.visitors_a),
-      String(d.visitors_b),
-      String(d.conversions_a),
-      String(d.conversions_b),
-      crA,
-      crB,
-      lift,
-    ])
-  }
-  const csv = rows.map(r => r.join(',')).join('\n')
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${testName.replace(/[^a-zA-Z0-9]/g, '_')}_data.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-// ── V4: Time-to-significance Schätzung ──
-// Schätzt, wie viele Tage es bei aktuellem täglichem Traffic-Durchschnitt
-// noch bis zur 95%-Signifikanz dauert. Konservativ: nimmt an, dass der
-// z-Wert mit sqrt(n) wächst (gültig für moderate Effektstärken).
-function estimateDaysToSignificance(
-  totalVisitors: number,
-  significance: number,
-  createdAt: string,
-  targetSignificance: number,
-  nowTs: number
-): number | null {
-  if (significance <= 0 || significance >= targetSignificance) return null
-  if (totalVisitors < 100) return null
-
-  // Tage seit Teststart
-  const daysRunning = Math.max(1, (nowTs - new Date(createdAt).getTime()) / 86_400_000)
-
-  // z-Werte: aktuell und Ziel
-  // significance = 1 - 2*(1-Phi(z)), also Phi(z) = 1 - (1-sig)/2 = (1+sig)/2
-  // Näherung: z ≈ sqrt(2) * erfinv(2*significance - 1)
-  // Für unsere Zwecke reicht eine einfache Tabelle:
-  function zForSig(s: number): number {
-    // Lineare Interpolation für typische Werte
-    const pairs = [
-      [0.50, 0.0], [0.60, 0.253], [0.70, 0.524], [0.75, 0.674],
-      [0.80, 0.842], [0.85, 1.036], [0.90, 1.282], [0.92, 1.405],
-      [0.95, 1.645], [0.98, 2.054], [0.99, 2.326],
-    ]
-    for (let i = 0; i < pairs.length - 1; i++) {
-      if (s <= pairs[i + 1][0]) {
-        const t = (s - pairs[i][0]) / (pairs[i + 1][0] - pairs[i][0])
-        return Number(pairs[i][1]) + t * (Number(pairs[i + 1][1]) - Number(pairs[i][1]))
-      }
-    }
-    return 2.5
-  }
-
-  const zNow = zForSig(significance)
-  const zTarget = zForSig(targetSignificance)
-  if (zNow <= 0) return null
-
-  // z ~ sqrt(n) * (pB - pA) / se₀
-  // zTarget / zNow = sqrt(nTarget / nNow)
-  // nTarget = nNow * (zTarget / zNow)²
-  const ratio = (zTarget / zNow) ** 2
-  const additionalVisitorsNeeded = totalVisitors * (ratio - 1)
-  const dailyTraffic = totalVisitors / daysRunning
-
-  if (dailyTraffic <= 0) return null
-  const daysEstimate = Math.ceil(additionalVisitorsNeeded / dailyTraffic)
-  return Math.max(1, daysEstimate)
-}
-
-// ── V3: Multi-Kriterien-Progress ──
-function progressPct(current: number, target: number): number {
-  return Math.min(100, Math.round((current / Math.max(1, target)) * 100))
-}
-
-type DailyRow = {
-  date: string
-  visitors_a: number
-  visitors_b: number
-  conversions_a: number
-  conversions_b: number
-}
-
-type AnalyticsData = {
-  current: {
-    visitors_a: number
-    visitors_b: number
-    conversions_a: number
-    conversions_b: number
-    significance: number
-    winner: string | null
-  }
-  daily: DailyRow[]
-}
-
-/** Parse DB goal format into UI state. Format: null=element is goal, "click:sel"=click goal, "url:/path"=URL goal */
-function parseGoal(dbGoal: string | null): { type: 'element' | 'click' | 'url'; value: string } {
-  if (!dbGoal) return { type: 'element', value: '' }
-  if (dbGoal.startsWith('click:')) return { type: 'click', value: dbGoal.slice(6) }
-  if (dbGoal.startsWith('url:')) return { type: 'url', value: dbGoal.slice(4) }
-  return { type: 'element', value: dbGoal }
-}
-
-/** Format UI state back into DB goal format */
-function formatGoal(type: 'element' | 'click' | 'url', value: string): string | null {
-  if (type === 'element') return null
-  if (type === 'click') return value ? `click:${value}` : null
-  if (type === 'url') return value ? `url:${value}` : null
-  return null
-}
+// CSS custom property helpers — SVGs support var() natively
+const OK = 'var(--color-ok)'
+const PRO = 'var(--color-pro)'
 
 export function ResultsClient({ initial, experimentId, pro }: { initial: ExperimentData; experimentId: string; pro: boolean }) {
   const [data, setData] = useState(initial)
@@ -205,6 +76,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const [goalValue, setGoalValue] = useState(() => parseGoal(initial.goal).value)
   const [goalSaving, setGoalSaving] = useState(false)
   const [goalSaved, setGoalSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Auto-dismiss error after 6 seconds
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => setError(null), 6000)
+    return () => clearTimeout(t)
+  }, [error])
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
   const { toast } = useToast()
@@ -257,7 +136,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     try {
       const res = await fetch(`/api/results/${experimentId}`)
       if (res.ok) setData(await res.json())
-    } catch {}
+    } catch {
+      setError('Failed to refresh data. Check your connection.')
+    }
     setRefreshing(false)
   }
 
@@ -326,7 +207,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch {} finally {
+    } catch {
+      setError('Failed to save configuration. Please try again.')
+    } finally {
       setBusy(false)
     }
   }
@@ -342,7 +225,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       })
       setEditingB(false)
       await refresh()
-    } catch {} finally {
+    } catch {
+      setError('Failed to save variant. Please try again.')
+    } finally {
       setBusy(false)
     }
   }
@@ -359,7 +244,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       setGoalSaved(true)
       setTimeout(() => setGoalSaved(false), 2000)
       await refresh()
-    } catch {} finally {
+    } catch {
+      setError('Failed to save goal. Please try again.')
+    } finally {
       setGoalSaving(false)
     }
   }
@@ -374,7 +261,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         body: JSON.stringify({ status: next }),
       })
       await refresh()
-    } catch {} finally {
+    } catch {
+      setError(`Failed to ${next === 'active' ? 'start' : 'pause'} test. Please try again.`)
+    } finally {
       setBusy(false)
     }
   }
@@ -392,7 +281,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           der Testname stand nur im Breadcrumb. */}
       <h1 className="sr-only">{name} — Results</h1>
       {/* Test toolbar */}
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
         <div className="flex items-center gap-3">
           <Breadcrumbs items={[{ label: from === 'tests' ? 'Tests' : 'Dashboard', href: backHref }, { label: name }]} />
           <span className="text-[11px] text-[#ededed]/50 ml-3">
@@ -400,14 +289,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`rounded-[6px] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
+          <span className={`rounded-[var(--radius-md)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
             {winner ? `${winner} won` : status}
           </span>
           {status === 'active' && (
             <button
               onClick={() => toggleStatus('paused')}
               disabled={busy}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-pro/20 bg-pro-bg px-3 py-1.5 text-xs text-pro transition-colors hover:bg-pro/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-pro/20 bg-pro-bg px-3 py-1.5 text-xs text-pro transition-colors hover:bg-pro/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Pause className="h-3 w-3" /> Pause
             </button>
@@ -416,7 +305,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <button
               onClick={() => toggleStatus('active')}
               disabled={busy}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[6px] border border-ok/20 bg-ok-bg px-3 py-1.5 text-xs text-ok transition-colors hover:bg-ok/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-ok/20 bg-ok-bg px-3 py-1.5 text-xs text-ok transition-colors hover:bg-ok/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play className="h-3 w-3" /> Resume
             </button>
@@ -424,7 +313,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           <Tooltip content="Refresh data">
             <button
               onClick={refresh}
-              className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-white/10 text-[#ededed]/40 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+              className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-border text-[#ededed]/40 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -433,14 +322,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <Tooltip content="Delete experiment">
               <button
                 onClick={() => setDeleteConfirm(true)}
-                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[6px] border border-white/10 text-[#ededed]/40 transition-colors hover:border-err/30 hover:text-err"
+                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-border text-[#ededed]/40 transition-colors hover:border-err/30 hover:text-err"
                 aria-label="Delete experiment"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             </Tooltip>
           ) : (
-            <div className="flex items-center gap-1.5 rounded-[6px] border border-err/20 bg-err-bg px-3 py-1.5">
+            <div className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-3 py-1.5">
               <button
                 onClick={deleteTest}
                 disabled={deleting}
@@ -460,19 +349,39 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         </div>
       </div>
 
+      {/* Error banner */}
+      {error && (
+        <div className="border-b border-err/20 bg-err-bg px-5 py-2.5" role="alert">
+          <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
+            <p className="text-[13px] text-err">{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="flex shrink-0 cursor-pointer h-6 w-6 items-center justify-center rounded-[var(--radius-sm)] text-err/60 transition-colors hover:text-err"
+              aria-label="Dismiss error"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-5">
 
         {/* ── Hero stat (V2: Significance-first layout) ── */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             {/* Left: Significance donut */}
             <div className="flex flex-col items-center">
-              <div className="relative h-[100px] w-[100px]">
+              <div
+                className="relative h-[100px] w-[100px]"
+                role="img"
+                aria-label={`Significance: ${Math.round(significance * 100)}% confidence, ${totalVisitors.toLocaleString()} total visitors`}
+              >
                 <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
                   <circle cx="18" cy="18" r="14" fill="none" stroke="#111111" strokeWidth="3" />
                   <circle
                     cx="18" cy="18" r="14" fill="none"
-                    stroke={significance >= significanceLevel ? C.ok : significance >= 0.7 ? C.pro : 'rgba(255,255,255,0.2)'}
+                    stroke={significance >= significanceLevel ? OK : significance >= 0.7 ? PRO : 'rgba(255,255,255,0.2)'}
                     strokeWidth="3"
                     strokeDasharray={`${Math.max(0.01, significance) * 87.96} 87.96`}
                     strokeLinecap="round"
@@ -625,7 +534,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
           {/* Win #3: "0 Visitors" — konkrete nächste Schritte */}
           {totalVisitors === 0 && (
-            <div className="mt-5 rounded-[8px] border border-pro/15 bg-pro/[0.03] p-4">
+            <div className="mt-5 rounded-[var(--radius-md)] border border-pro/15 bg-pro/[0.03] p-4">
               <p className="text-[12px] font-medium text-pro mb-2">Your test is live — now drive traffic</p>
               <ul className="space-y-1.5 text-[11px] text-text-2">
                 <li className="flex items-start gap-2">
@@ -649,14 +558,18 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Visitors over time — available for all plans */}
         {analytics && analytics.daily.length >= 2 ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Visitors over Time
               </span>
             </div>
-            <div className="h-[180px] w-full">
+            <div
+              className="h-[180px] w-full"
+              role="img"
+              aria-label={`Visitors chart: ${totalVisitors.toLocaleString()} total visitors over ${analytics.daily.length} days`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={analytics.daily.map((d) => ({
@@ -701,17 +614,17 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <Line
                     type="monotone"
                     dataKey="B"
-                    stroke={C.pro}
+                    stroke={PRO}
                     strokeWidth={2}
                     dot={false}
-                    activeDot={{ r: 4, fill: C.pro }}
+                    activeDot={{ r: 4, fill: PRO }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: C.pro }} /> Variant B
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: PRO }} /> Variant B
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.35)' }} /> Variant A
@@ -719,7 +632,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
           </div>
         ) : analyticsLoaded ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
@@ -732,14 +645,18 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
         {/* ── Cumulative Conversions over Time ── */}
         {analytics && analytics.daily.length >= 2 ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2 mb-3">
               <Target className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Cumulative Conversions
               </span>
             </div>
-            <div className="h-[180px] w-full">
+            <div
+              className="h-[180px] w-full"
+              role="img"
+              aria-label={`Cumulative conversions: ${(a.conversions + b.conversions).toLocaleString()} total conversions over ${analytics.daily.length} days`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={(() => {
@@ -791,17 +708,17 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <Line
                     type="monotone"
                     dataKey="B"
-                    stroke={C.ok}
+                    stroke={OK}
                     strokeWidth={2}
                     dot={false}
-                    activeDot={{ r: 4, fill: C.ok }}
+                    activeDot={{ r: 4, fill: OK }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: C.ok }} /> Variant B
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: OK }} /> Variant B
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'rgba(255,255,255,0.35)' }} /> Variant A
@@ -809,7 +726,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
           </div>
         ) : analyticsLoaded ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2">
               <Target className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
@@ -823,14 +740,18 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
         {/* ── Significance over Time ── */}
         {analytics && analytics.daily.length >= 2 ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
                 Significance over Time
               </span>
             </div>
-            <div className="h-[180px] w-full">
+            <div
+              className="h-[180px] w-full"
+              role="img"
+              aria-label={`Significance over time: currently ${Math.round(significance * 100)}% confidence over ${analytics.daily.length} days`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={(() => {
@@ -883,17 +804,17 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <Line
                     type="monotone"
                     dataKey="significance"
-                    stroke={C.ok}
+                    stroke={OK}
                     strokeWidth={2}
                     dot={false}
-                    activeDot={{ r: 4, fill: C.ok }}
+                    activeDot={{ r: 4, fill: OK }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#ededed]/40">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: C.ok }} /> Confidence
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: OK }} /> Confidence
               </span>
               <span className="flex items-center gap-1.5 text-[#ededed]/30">
                 <span className="inline-block h-0.5 w-4 rounded-full border-t border-dashed border-[#ededed]/20" /> 95% threshold
@@ -901,7 +822,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
           </div>
         ) : analyticsLoaded ? (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
@@ -920,14 +841,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             return (
               <div
                 key={v.id}
-                className={`rounded-[10px] border p-6 transition-all ${
+                className={`rounded-[var(--radius-lg)] border p-6 transition-all ${
                   isWinner
                     ? 'border-ok/30 bg-ok-bg'
-                    : 'border-white/10 bg-[#0a0a0a]'
+                    : 'border-border bg-bg-1'
                 }`}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <span className={`rounded-[6px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                  <span className={`rounded-[var(--radius-md)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
                     isVariantB
                       ? 'bg-pro-bg text-pro'
                       : 'bg-[#111111] text-[#ededed]/40'
@@ -935,7 +856,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     Variant {v.label}
                   </span>
                   {isWinner && (
-                    <span className="flex items-center gap-1 rounded-[6px] bg-ok-bg px-2.5 py-1 text-[11px] font-semibold text-ok">
+                    <span className="flex items-center gap-1 rounded-[var(--radius-md)] bg-ok-bg px-2.5 py-1 text-[11px] font-semibold text-ok">
                       <Check className="h-3 w-3" /> Winner
                     </span>
                   )}
@@ -958,7 +879,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
 
                 {lift !== null && isVariantB && (
-                  <div className={`mt-4 rounded-[6px] px-3 py-2 text-xs font-semibold ${
+                  <div className={`mt-4 rounded-[var(--radius-md)] px-3 py-2 text-xs font-semibold ${
                     lift > 0
                       ? 'bg-ok-bg text-ok'
                       : 'bg-err-bg text-err'
@@ -972,7 +893,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         </div>
 
         {/* Variant comparison bar chart — available for all plans */}
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="h-3.5 w-3.5 text-[#ededed]/40" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ededed]/40">
@@ -982,8 +903,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {/* Visitors bar chart */}
             <div>
-              <p className="mb-2 text-[10px] font-medium text-[#ededed]/40">Visitors</p>
-              <div className="h-[140px] w-full">
+              <p className="mb-2 text-[10px] font-medium text-[#ededed]/40" id="visitors-bar-label">Visitors</p>
+              <div className="h-[140px] w-full" role="img" aria-labelledby="visitors-bar-label" aria-label={`Variant A ${a.views.toLocaleString()} visitors, Variant B ${b.views.toLocaleString()} visitors`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={[
@@ -1018,7 +939,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             {/* Conversion rate bar chart */}
             <div>
               <p className="mb-2 text-[10px] font-medium text-[#ededed]/40">Conversion Rate</p>
-              <div className="h-[140px] w-full">
+              <div className="h-[140px] w-full" role="img" aria-label={`Conversion rate: Variant A ${a.cr}%, Variant B ${b.cr}%`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={[
@@ -1042,7 +963,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     <Bar
                       dataKey="value"
                       radius={[4, 4, 0, 0]}
-                      fill={C.pro}
+                      fill={PRO}
                       maxBarSize={48}
                       label={{ position: 'top', fill: 'rgba(255,255,255,0.5)', fontSize: 10, formatter: (v: unknown) => (typeof v === 'number' ? `${v}%` : String(v ?? '')) }}
                     />
@@ -1054,7 +975,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         </div>
 
         {/* Conversion Goal */} 
-        <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           {!editingGoal ? (
             <>
             <div className="flex items-center justify-between">
@@ -1112,10 +1033,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <button
                     key={opt.type}
                     onClick={() => { setGoalType(opt.type); setGoalSaved(false) }}
-                    className={`flex-1 cursor-pointer rounded-[6px] border px-3 py-2 text-left transition-colors ${
+                    className={`flex-1 cursor-pointer rounded-[var(--radius-md)] border px-3 py-2 text-left transition-colors ${
                       goalType === opt.type
                         ? 'border-white/20 bg-white/[0.06]'
-                        : 'border-white/10 bg-transparent hover:border-white/[0.14]'
+                        : 'border-border bg-transparent hover:border-white/[0.14]'
                     }`}
                   >
                     <div className="flex items-center gap-1.5">
@@ -1138,7 +1059,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     placeholder=".cta-button, #signup-link, a.btn-primary"
                     value={goalValue}
                     onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
+                    className="mt-1 w-full rounded-[var(--radius-md)] border border-border bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                   />
                 </div>
               )}
@@ -1151,7 +1072,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     placeholder="/thank-you, /checkout/success"
                     value={goalValue}
                     onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
+                    className="mt-1 w-full rounded-[var(--radius-md)] border border-border bg-[#111111] px-3 py-2 text-sm text-[#ededed] font-mono placeholder:text-[#ededed]/25 focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                   />
                 </div>
               )}
@@ -1171,13 +1092,13 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <button
                   onClick={saveGoal}
                   disabled={goalSaving || (goalType !== 'element' && !goalValue.trim())}
-                  className="cursor-pointer rounded-[6px] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-40"
+                  className="cursor-pointer rounded-[var(--radius-md)] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-40"
                 >
                   {goalSaving ? 'Saving…' : 'Save'}
                 </button>
                 <button
                   onClick={() => setEditingGoal(false)}
-                  className="cursor-pointer rounded-[6px] border border-white/10 px-3 py-2 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]"
+                  className="cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-2 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]"
                 >
                   Cancel
                 </button>
@@ -1193,7 +1114,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
         {/* Raw data table */}
         {analytics && analytics.daily.length > 0 && (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowRawData(!showRawData)}
@@ -1209,7 +1130,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               </span>
               <button
                 onClick={() => exportCsv(analytics!.daily, name)}
-                className="ml-auto flex cursor-pointer items-center gap-1 rounded-[6px] border border-white/10 px-2.5 py-1 text-[10px] text-[#ededed]/50 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
+                className="ml-auto flex cursor-pointer items-center gap-1 rounded-[var(--radius-md)] border border-border px-2.5 py-1 text-[10px] text-[#ededed]/50 transition-colors hover:border-white/[0.18] hover:text-[#ededed]"
               >
                 <Download className="h-3 w-3" /> CSV
               </button>
@@ -1218,7 +1139,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-[#ededed]/50">
+                    <tr className="border-b border-border text-[#ededed]/50">
                       <th className="pb-2 pr-3 font-medium">Date</th>
                       <th className="pb-2 pr-3 font-medium text-right">Vis A</th>
                       <th className="pb-2 pr-3 font-medium text-right">Vis B</th>
@@ -1256,7 +1177,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
         {/* Preview */}
         {(data.originalHtml || data.variantBHtml || editingB) && (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-[#ededed]">Preview</h2>
               <span className="text-[10px] text-[#ededed]/30">Live rendering of your variants</span>
@@ -1297,25 +1218,25 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
               )}
               {editingB && (
-                <div className="rounded-[6px] border border-white/10 bg-[#111111] p-4">
+                <div className="rounded-[var(--radius-md)] border border-border bg-[#111111] p-4">
                   <p className="mb-2 text-xs font-semibold text-[#ededed]/62">Edit Variant B HTML</p>
                   <textarea
                     value={draftB}
                     onChange={e => setDraftB(e.target.value)}
-                    className="w-full rounded-[6px] border border-white/10 bg-[#0a0a0a] px-3 py-2 font-mono text-xs text-ok focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
+                    className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-3 py-2 font-mono text-xs text-ok focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                     rows={10}
                   />
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={saveVariantB}
                       disabled={busy}
-                      className="cursor-pointer rounded-[6px] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="cursor-pointer rounded-[var(--radius-md)] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setEditingB(false)}
-                      className="cursor-pointer rounded-[6px] border border-white/10 px-3 py-1.5 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]"
+                      className="cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-xs text-[#ededed]/40 transition-colors hover:text-[#ededed]"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -1328,7 +1249,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
         {/* Auto-winner */}
         {pro && (
-          <div className="rounded-[10px] border border-white/10 bg-[#0a0a0a] p-6">
+          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
             <h2 className="mb-1 text-sm font-semibold text-[#ededed]">Auto Winner</h2>
             {done ? (
               <p className="mt-2 text-[13px] text-ok">
@@ -1350,7 +1271,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       min={1}
                       value={minVisitors}
                       onChange={e => setMinVisitors(Number(e.target.value))}
-                      className="w-full rounded-[6px] border border-white/10 bg-[#111111] px-3 py-2 text-sm text-[#ededed] focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
+                      className="w-full rounded-[var(--radius-md)] border border-border bg-[#111111] px-3 py-2 text-sm text-[#ededed] focus:border-[#ededed]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-[#ededed]/10"
                     />
                   </label>
                   <label className="block space-y-1.5">
@@ -1381,10 +1302,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         key={lvl}
                         type="button"
                         onClick={() => setSignificanceLevel(lvl)}
-                        className={`flex-1 cursor-pointer rounded-[6px] border px-3 py-2 text-xs font-semibold transition-colors ${
+                        className={`flex-1 cursor-pointer rounded-[var(--radius-md)] border px-3 py-2 text-xs font-semibold transition-colors ${
                           significanceLevel === lvl
                             ? 'border-white/30 bg-white text-black'
-                            : 'border-white/10 bg-[#111111] text-[#ededed]/60 hover:text-[#ededed]'
+                            : 'border-border bg-[#111111] text-[#ededed]/60 hover:text-[#ededed]'
                         }`}
                       >
                         {Math.round(lvl * 100)}%
@@ -1413,7 +1334,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <button
                     onClick={saveConfig}
                     disabled={busy}
-                    className="cursor-pointer rounded-[6px] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="cursor-pointer rounded-[var(--radius-md)] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Save
                   </button>
@@ -1429,7 +1350,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         )}
 
         {!pro && (
-          <div className="rounded-[10px] border border-dashed border-white/10 p-6 text-center">
+          <div className="rounded-[var(--radius-lg)] border border-dashed border-border p-6 text-center">
             <h2 className="text-sm font-semibold text-[#ededed]">Auto Winner</h2>
             <p className="mt-2 text-xs text-[#ededed]/40">
               Auto-Winner configuration is available from the Pro plan onward.
@@ -1437,7 +1358,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <button
               onClick={upgrade}
               disabled={busy}
-              className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+              className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
             >
               {busy ? 'Redirecting…' : 'Upgrade to Pro'}
             </button>

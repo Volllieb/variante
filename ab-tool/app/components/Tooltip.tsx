@@ -28,7 +28,7 @@ export function Tooltip({ content, children, side = 'top', maxWidth = 200 }: Too
       {children}
       <span
         role="tooltip"
-        className={`pointer-events-none absolute z-50 ${sideClasses[side]} rounded-[6px] border border-white/[0.14] bg-[#1a1a1a] px-2.5 py-1.5 text-[11px] leading-relaxed text-[#ededed]/90 opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100 group-hover/tip:delay-300 whitespace-nowrap shadow-lg`}
+        className={`pointer-events-none absolute z-50 ${sideClasses[side]} rounded-[var(--radius-md)] border border-white/[0.14] bg-[#1a1a1a] px-2.5 py-1.5 text-[11px] leading-relaxed text-[#ededed]/90 opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100 group-hover/tip:delay-300 whitespace-nowrap shadow-lg`}
         style={{ maxWidth: `${maxWidth}px` }}
       >
         {content}

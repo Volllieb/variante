@@ -45,7 +45,7 @@ export function BillingClient({ data }: { data: BillingData }) {
         <h1 className="text-[18px] font-semibold text-text">Billing</h1>
 
         {/* Plan */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-text-3" />
@@ -88,7 +88,7 @@ export function BillingClient({ data }: { data: BillingData }) {
                 <button
                   onClick={() => billing('checkout')}
                   disabled={busy}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-50"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-50"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Upgrade to Pro
@@ -101,7 +101,7 @@ export function BillingClient({ data }: { data: BillingData }) {
             <button
               onClick={() => billing('portal')}
               disabled={busy}
-              className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] border border-border py-2.5 text-[13px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
+              className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border py-2.5 text-[13px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
               Manage subscription in Stripe
@@ -110,7 +110,7 @@ export function BillingClient({ data }: { data: BillingData }) {
         </div>
 
         {/* Usage */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-5">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="h-4 w-4 text-text-3" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Current Usage</span>

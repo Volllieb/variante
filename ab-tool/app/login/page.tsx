@@ -189,7 +189,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-[10px] border border-border bg-bg-1 p-8">
+        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8">
           <h1 className="text-2xl font-semibold text-white">
             Welcome back
           </h1>
@@ -200,7 +200,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={googleLoading}
-            className="mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[6px] border border-border bg-bg-1 text-sm font-medium text-white/80 transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-40"
+            className="mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[var(--radius-md)] border border-border bg-bg-1 text-sm font-medium text-white/80 transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-40"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden={true}>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -231,7 +231,7 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
             </div>
 
@@ -248,7 +248,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-[6px] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                  className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                 />
                 <button
                   type="button"
@@ -263,17 +263,17 @@ export default function LoginPage() {
 
             {/* Error / success */}
             {err && (
-              <p className="rounded-[6px] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
+              <p className="rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
                 {err}
               </p>
             )}
             {googleErr && (
-              <p className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
+              <p className="rounded-[var(--radius-md)] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
                 {googleErr}
               </p>
             )}
             {notConfirmed && (
-              <div className="rounded-[6px] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
+              <div className="rounded-[var(--radius-md)] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
                 <p>Your email isn&rsquo;t confirmed yet — check your inbox or resend the confirmation link.</p>
                 <button
                   type="button"
@@ -286,12 +286,12 @@ export default function LoginPage() {
               </div>
             )}
             {confirmationSent && (
-              <p className="rounded-[6px] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
+              <p className="rounded-[var(--radius-md)] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
                 Confirmation link resent — check your email.
               </p>
             )}
             {resetSent && (
-              <p className="rounded-[6px] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
+              <p className="rounded-[var(--radius-md)] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
                 Password reset link sent — check your email.
               </p>
             )}
@@ -301,7 +301,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex h-11 items-center gap-2 rounded-[6px] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none"
+                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-md)] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? 'Signing in…' : 'Log in'}
                 {!loading && <ArrowRight className="h-4 w-4" />}

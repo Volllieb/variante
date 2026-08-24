@@ -80,7 +80,7 @@ const sections = [
     body: (
       <>
         <p>Add this snippet to the <code className="rounded-[5px] bg-white/[0.08] px-1.5 py-0.5 font-mono text-[13px] text-[#ededed]/62">&lt;head&gt;</code> of every page you want to test:</p>
-        <pre className="mt-3 overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+        <pre className="mt-3 overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
 {`<!-- A/B Testing: universal snippet — paste in <head> on EVERY page -->
 <link rel="preconnect" href="https://www.getvariante.com" crossorigin>
 <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
@@ -89,7 +89,7 @@ const sections = [
         </pre>
 
         <h3 className="mt-6 text-sm font-semibold text-white">Next.js App Router</h3>
-        <pre className="mt-2 overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+        <pre className="mt-2 overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
 {`// app/layout.tsx
 export default function RootLayout({ children }) {
   return (
@@ -109,7 +109,7 @@ export default function RootLayout({ children }) {
         </pre>
 
         <h3 className="mt-6 text-sm font-semibold text-white">Next.js Pages Router</h3>
-        <pre className="mt-2 overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+        <pre className="mt-2 overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
 {`// pages/_document.tsx
 import { Html, Head, Main, NextScript } from 'next/document'
 
@@ -131,7 +131,7 @@ export default function Document() {
         </pre>
 
         <h3 className="mt-6 text-sm font-semibold text-white">Plain HTML</h3>
-        <pre className="mt-2 overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+        <pre className="mt-2 overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
 {`<!DOCTYPE html>
 <html>
 <head>
@@ -183,12 +183,12 @@ export default function Document() {
             </a>
             {' '}in Figma (<strong className="font-semibold text-white/70">Plugins → Variante</strong>).
           </li>
-          <li>Paste your API token (find it in your dashboard under &quot;Plugin token&quot;).</li>
+          <li>Paste your API token (find it in <strong className="font-semibold text-white/70">Dashboard → Account Settings → API Token</strong>).</li>
           <li>Click &quot;+ New test&quot; in the dashboard to start a new experiment.</li>
           <li>Select your Variant B design in Figma — the plugin captures it and sends it to Variante.</li>
           <li>AI generates the variant code. It appears in your dashboard within seconds.</li>
         </ol>
-        <div className="mt-4 rounded-[6px] border border-white/10 bg-white/[0.02] p-4">
+        <div className="mt-4 rounded-[var(--radius-md)] border border-white/10 bg-white/[0.02] p-4">
           <p className="text-[13px] text-[#ededed]/50">
             <strong className="font-semibold text-white/70">Note:</strong> The plugin only handles
             creation. Results, analytics, and test management live in the web dashboard.
@@ -216,7 +216,7 @@ export default function Document() {
           conversion goals.</li>
           <li>Return to Figma — the captured element is ready for you to design Variant B.</li>
         </ol>
-        <div className="mt-4 rounded-[6px] border border-white/10 bg-white/[0.02] p-4">
+        <div className="mt-4 rounded-[var(--radius-md)] border border-white/10 bg-white/[0.02] p-4">
           <p className="text-[13px] text-[#ededed]/50">
             <strong className="font-semibold text-white/70">No extension needed:</strong> The picker
             runs directly from your snippet. Element data is only sent when you explicitly click an
@@ -243,7 +243,7 @@ export default function Document() {
           Variante tracks conversions via a simple JavaScript call. Add this wherever a conversion
           happens (button click, form submit, page view):
         </p>
-        <pre className="mt-2 overflow-x-auto rounded-[6px] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
+        <pre className="mt-2 overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-4 text-[11px] leading-relaxed text-[#ededed]/62 ring-1 ring-white/10">
 {`// Track a conversion for the currently running test
 window.__ab_track_conversion()`}
         </pre>
@@ -261,7 +261,7 @@ window.__ab_track_conversion()`}
     title: 'Pricing',
     body: (
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-[6px] border border-white/10 bg-white/[0.02] p-5">
+        <div className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.02] p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[#ededed]/40">Free</p>
           <p className="mt-1 text-2xl font-semibold text-white">0 €</p>
           <p className="mt-0.5 text-[11px] text-[#ededed]/40">Forever free. No credit card.</p>
@@ -272,7 +272,7 @@ window.__ab_track_conversion()`}
             <li>· &quot;Powered by Variante&quot; badge</li>
           </ul>
         </div>
-        <div className="rounded-[6px] border border-[#f5a623]/30 bg-white/[0.02] p-5">
+        <div className="rounded-[var(--radius-md)] border border-[#f5a623]/30 bg-white/[0.02] p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[#f5a623]">Pro</p>
           <p className="mt-1 text-2xl font-semibold text-white">35 €<span className="text-sm font-normal text-[#ededed]/40">/mo</span></p>
           <p className="mt-0.5 text-[11px] text-[#ededed]/40">Everything in Free, plus:</p>

@@ -2,7 +2,8 @@
 
 > **Stand:** 23.07.2026 · **Commit:** `743af9b` · **Scope:** `ab-tool/` (Next.js 16.2.9 App), `db/migrations/` (34 Migrationen), `public/ab.js`, CI/Deployment
 > **Migrationen (029–034):** schema_migrations-Tracking, RLS-Lückenschluss, Temp-Session-Budget, Integritäts-Constraints, Perf-Indizes & Retention, daily_stats-Retention + wizard_drafts-Härtung.
-> **Status:** ~55 von ~60 Items behoben (92 %). Keine kritischen/hohen Sicherheitslücken mehr offen. Verbleibende Items sind Infrastruktur (k6, Counter-Tabelle, E2E-Tests, Component-Splitting) — kein Launch-Blocker.
+> **Status:** ~55 von ~60 Items behoben (92 %). Keine kritischen/hohen Sicherheitslücken mehr offen. Verbleibende Items sind Infrastruktur (k6, Counter-Tabelle, E2E-Tests, Component-Splitting).
+> **⚠️ Re-Audit 24.07.2026:** Die pauschale Aussage „keine Launch-Blocker" war zu optimistisch. Eine unabhängige Nachprüfung fand einen **live wirksamen** Datenintegritäts-Fehler (`ASSIGN_SECRET` in Prod nie gesetzt) und einen Logik-Bug (Auto-Promotion pausierter Tests). Beide sind jetzt behoben, erfordern aber eine Env-Aktion. Details unten unter **„Re-Audit 24.07."**.
 
 ## Gesamturteil
 
@@ -19,11 +20,30 @@
 **Session 2 (23.07.): Waves 1–2** — 14 Quick Wins, Circuit-Breaker, Redis-Fallback, Avatar-Magic-Bytes, Sanitizer-Test, Safe-Next-Validator.
 **Session 3 (23.07.): Restbestand** — Signierte Assignment-Tokens, safeFetch-Refaktor, CORS-Trennung, Token-Hashing, OG-Font-Fallback, UX-Fixes (Passwort-Bestätigung, Ladezustände, Framer/Squarespace entfernt), Skip-Link, AVV-Vorlage.
 
-**Noch offen (5 Items, kein Launch-Blocker):**
+**Noch offen (Infrastruktur/Architektur):**
 - `PERF-01 Vollausbau`: Counter-Tabelle + k6-Loadtest
 - `CODE-02`: AccountClient/ResultsClient-Splitting (Komponenten-Architektur)
 - `TEST-01/02`: Unit-Tests für Domain-Gate/Statistik + E2E-Lücken
 - `Supabase CLI`: Migration auf `supabase db push` (Prozess-Verbesserung)
+
+---
+
+## Re-Audit 24.07.
+
+Unabhängige Nachprüfung des „92 % / keine Launch-Blocker"-Status. Ergebnis: Die
+Sicherheits- und Statistik-Grundlagen sind real und überdurchschnittlich, **aber**
+zwei konkrete Punkte waren im Status nicht abgebildet und einer war live wirksam.
+
+| # | Fund | Schwere | Status |
+|---|---|---|---|
+| RA-01 | **`ASSIGN_SECRET` war in keiner Env gesetzt** (weder `.env.local` aus `vercel env pull` noch dokumentiert in `.env.example`). Prod signierte Assignment-Tokens also mit dem im Repo stehenden Fallback `variante-assign-dev` → jeder konnte Tokens fälschen. Das Anti-Fälschungs-Token (DATA-01) war damit **wirkungslos**. | Hoch | **Behoben** — zentrales `lib/assignToken.ts`: Prod verweigert den öffentlichen Fallback (Fail-Closed), Token um Zufalls-Nonce erweitert, `/api/event` dedupliziert Nonces (Replay-Schutz). **Aktion nötig:** `ASSIGN_SECRET` in Vercel setzen, sonst 500 auf `/api/assign`+`/api/event`. |
+| RA-02 | **Auto-Promotion wertete auch `paused` Tests aus** (`check-winners`: `.in('status',['active','paused'])`) und setzte sie auf `done`+100 % B. Eine bewusste Pause des Users wurde über Nacht überschrieben. | Mittel | **Behoben** — Cron wertet nur noch `active` Tests aus. |
+| RA-03 | **Conversion-Trust-Grenze:** Tokenlose Conversions werden akzeptiert (Graceful Degradation), weil das Token im cookieless Default-Modus keinen Seitenwechsel überlebt. Cross-Page-Conversions sind dadurch serverseitig weder token-verifiziert noch deduplizierbar. | Design-Grenze | **Dokumentiert** — bewusste Folge der DSGVO-Entscheidung, keinen serverseitigen Besucher-State zu halten. Vollständige Absicherung bräuchte ein persistentes Assignment-Cookie mit Consent. |
+| RA-04 | **Onboarding-Verify-Step** framte den Normalfall (Snippet noch nicht deployt) als roten Fehler „Snippet not found". | UX | **Behoben** — neutrale Sprache („Not detected yet"), „das ist normal, wenn du noch nicht deployt hast", Checkliste statt Fehlerkasten. |
+| RA-05 | **Mobile-„Launch-Blocker" (Zeile 454)** re-verifiziert: Das Overview-Grid (`grid-cols-2`) ist ein normales Stat-Tile-Muster und auf 375 px bedienbar; `NewTestDrawer` nutzt inzwischen `100dvh`. Der Punkt war überzogen. | Niedrig | **Entschärft** — kein Blocker. |
+| RA-06 | **Tote Einstellung:** `profiles.notify_on_winner` existiert in DB + `/api/profile`, ist aber in keinem UI erreichbar. Ein Opt-out für die Auto-Promotion fehlt ganz. | Niedrig | **Offen** — braucht einen Settings-Bereich im Account (kein Blocker, aber empfohlen). |
+
+**Fazit:** Für einen kontrollierten Launch geeignet — **nachdem** `ASSIGN_SECRET` in Vercel gesetzt ist (RA-01). RA-06 (Auto-Promotion-Opt-out) sollte vor breiter Vermarktung folgen, da das Tool sonst Kunden-Livepages ohne Bestätigung ändert.
 
 ---
 

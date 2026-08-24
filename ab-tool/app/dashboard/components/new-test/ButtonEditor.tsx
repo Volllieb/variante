@@ -151,12 +151,12 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
   return (
     <div className="space-y-4">
       {/* Live Preview */}
-      <div className="rounded-[10px] border border-border bg-bg-1 p-4">
+      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
         <p className="mb-3 text-[11px] font-medium text-text-2">Live Preview</p>
-        <div className="flex items-center justify-center rounded-[8px] border border-border bg-bg-0 p-6 min-h-[100px]">
+        <div className="flex items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 p-6 min-h-[100px]">
           <button
             type="button"
-            className="inline-block rounded-[6px] text-center font-semibold transition-all"
+            className="inline-block rounded-[var(--radius-md)] text-center font-semibold transition-all"
             style={style}
           >
             {edits.text || originalText || 'Button'}
@@ -165,10 +165,10 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
         {edits.hoverEnabled && (
           <div className="mt-2">
             <p className="mb-1.5 text-[10px] text-text-3">Hover Preview:</p>
-            <div className="flex items-center justify-center rounded-[8px] border border-border/50 bg-bg-0/50 p-6">
+            <div className="flex items-center justify-center rounded-[var(--radius-md)] border border-border/50 bg-bg-0/50 p-6">
               <button
                 type="button"
-                className="inline-block rounded-[6px] text-center font-semibold"
+                className="inline-block rounded-[var(--radius-md)] text-center font-semibold"
                 style={{ ...style, ...hoverStyle }}
               >
                 {edits.text || originalText || 'Button'}
@@ -187,7 +187,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
           onChange={(e) => handleChange({ text: e.target.value })}
           placeholder="Button text"
           maxLength={120}
-          className="w-full rounded-[6px] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+          className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
         />
       </div>
 
@@ -237,7 +237,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
                 key={bs.value}
                 type="button"
                 onClick={() => handleChange({ borderStyle: bs.value })}
-                className={`flex-1 cursor-pointer rounded-[6px] px-2 py-1.5 text-[11px] font-medium transition-all ${
+                className={`flex-1 cursor-pointer rounded-[var(--radius-md)] px-2 py-1.5 text-[11px] font-medium transition-all ${
                   (edits.borderStyle ?? 'solid') === bs.value
                     ? 'bg-bg-2 text-text'
                     : 'bg-bg-1 text-text-3 hover:text-text'
@@ -322,14 +322,14 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded-[6px] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+            className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleApply}
-            className="cursor-pointer rounded-[6px] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
           >
             Apply
           </button>

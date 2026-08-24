@@ -47,7 +47,8 @@ export async function GET(req: Request) {
     return Response.json({ tests: [] }, { headers: corsHeadersPublic('GET, OPTIONS') })
   }
 
-  // Host-Filter passiert in der DB (site_host, Migration 021 — generierte Spalte,
+  try {
+    // Host-Filter passiert in der DB (site_host, Migration 021 — generierte Spalte,
   // normalisiert wie hostOf()). Vorher wurden ALLE non-paused Tests geladen und
   // erst in JS gefiltert: ab >200 Tests global fielen Kunden-Tests still aus der
   // Antwort, plus Full-Scan pro Pageview. Das Limit ist jetzt pro Host.
@@ -127,4 +128,8 @@ export async function GET(req: Request) {
       'Cache-Control': 'public, s-maxage=30',
     },
   })
+  } catch (err) {
+    safeError('resolve', err instanceof Error ? err : new Error(String(err)))
+    return Response.json({ error: 'service unavailable' }, { status: 503, headers: corsHeadersPublic('GET, OPTIONS') })
+  }
 }
