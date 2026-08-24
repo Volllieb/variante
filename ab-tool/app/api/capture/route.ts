@@ -1,10 +1,10 @@
 import { supabase } from '@/lib/supabase'
-import { corsHeaders, preflight } from '@/lib/cors'
+import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 
 export async function OPTIONS() {
-  return preflight('POST, OPTIONS')
+  return preflightPublic('POST, OPTIONS')
 }
 
 export async function POST(req: Request) {
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   try {
     body = await req.json()
   } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   const { testId, selector, original_html, site_css, framework, goal_candidates, reorder_selector } = body
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   if (!testId || !selector) {
     return Response.json(
       { error: 'testId and selector are required' },
-      { status: 400, headers: corsHeaders('POST, OPTIONS') }
+      { status: 400, headers: corsHeadersPublic('POST, OPTIONS') }
     )
   }
 
@@ -39,10 +39,10 @@ export async function POST(req: Request) {
   // dieselben Felder auf 50 000 Zeichen. Ohne Limit landet beliebig große
   // Nutzereingabe in einer Tabelle mit replica identity full im Pageview-Hotpath.
   if (original_html && typeof original_html === 'string' && original_html.length > 50_000) {
-    return Response.json({ error: 'original_html too long (max 50000)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'original_html too long (max 50000)' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
   }
   if (site_css && typeof site_css === 'string' && site_css.length > 50_000) {
-    return Response.json({ error: 'site_css too long (max 50000)' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'site_css too long (max 50000)' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   const isTemp = user.plan === 'temp'
@@ -73,10 +73,10 @@ export async function POST(req: Request) {
 
   if (error) {
     safeError('capture', error)
-    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'db error' }, { status: 500, headers: corsHeadersPublic('POST, OPTIONS') })
   }
   if (!updated || updated.length === 0) {
-    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('POST, OPTIONS') })
+    return Response.json({ error: 'not found' }, { status: 404, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
   // Plugin-Sync-Timestamp + Flag aktualisieren (Integration-Status).
@@ -89,5 +89,5 @@ export async function POST(req: Request) {
       .eq('has_figma_plugin', false)
   }
 
-  return Response.json({ ok: true }, { headers: corsHeaders('POST, OPTIONS') })
+  return Response.json({ ok: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
 }
