@@ -17,7 +17,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight, Globe } from 'lucide-react'
+import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight } from 'lucide-react'
 import { StepUrlAndElement } from './new-test/StepUrlAndElement'
 import type { TestRow } from './TestCard'
 import { StepVariantB } from './new-test/StepVariantB'
@@ -95,10 +95,11 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   // Local domain list — seeded from server, extended inline when user adds a site
   // from within the wizard without leaving the flow (Plan §5, Post-Signup UX).
   const [localDomains, setLocalDomains] = useState(verifiedDomains)
-  const [_addingDomain, _setAddingDomain] = useState(false)
-  const [addDomainUrl, setAddDomainUrl] = useState('')
-  const [addDomainState, setAddDomainState] = useState<'input' | 'saving' | 'not-found' | 'verified'>('input')
-  const [addDomainError, setAddDomainError] = useState('')
+  // Inline domain-connect (Step 0) — the hostname is derived from the URL the
+  // user already typed there, so there's no second "yoursite.com" input.
+  const [connectingDomain, setConnectingDomain] = useState('')
+  const [domainConnectState, setDomainConnectState] = useState<'idle' | 'saving' | 'not-found' | 'verified'>('idle')
+  const [domainConnectError, setDomainConnectError] = useState('')
   // Sync localDomains with prop when it changes externally
   const [syncedDomainsKey, setSyncedDomainsKey] = useState('')
   const currentDomainsKey = verifiedDomains.map((d) => d.url).join(',')
@@ -131,6 +132,9 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       setCreateError('')
       setCreatedTestId(null)
       setGoLiveConfirm(false)
+      setConnectingDomain('')
+      setDomainConnectState('idle')
+      setDomainConnectError('')
     }
   }
 
@@ -361,31 +365,19 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
     }
   }, [state, onClose, onTestCreated, resumeTest])
 
-  // ─── Inline Domain Add ───
+  // ─── Inline Domain Connect (triggered from within Step 0's URL field) ───
   const normalize = (raw: string) =>
     raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
 
-  // Bare hostname from a page URL — used to prefill the "connect your site"
-  // banner from the page URL typed in Step 0, so a user without a connected
-  // domain doesn't have to type the same site twice on the same screen.
-  const deriveHostname = (raw: string): string | null => {
-    if (!raw) return null
-    try {
-      const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
-      return parsed.hostname.replace(/^www\./, '') || null
-    } catch {
-      return null
-    }
-  }
-
-  const handleAddDomain = useCallback(async () => {
-    const normalized = normalize(addDomainUrl)
+  const handleConnectDomain = useCallback(async (hostname: string) => {
+    const normalized = normalize(hostname)
     if (!normalized || !normalized.includes('.')) {
-      setAddDomainError('Please enter a valid domain (e.g. yoursite.com)')
+      setDomainConnectError('Please enter a valid domain (e.g. yoursite.com)')
       return
     }
-    setAddDomainError('')
-    setAddDomainState('saving')
+    setConnectingDomain(normalized)
+    setDomainConnectError('')
+    setDomainConnectState('saving')
 
     try {
       const saveRes = await fetch('/api/domains', {
@@ -395,14 +387,14 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       })
       if (saveRes.status === 402) {
         const d = await saveRes.json().catch(() => ({}))
-        setAddDomainError(d.error || 'Domain limit reached.')
-        setAddDomainState('input')
+        setDomainConnectError(d.error || 'Domain limit reached.')
+        setDomainConnectState('idle')
         return
       }
       if (!saveRes.ok && saveRes.status !== 409) {
         const d = await saveRes.json().catch(() => ({}))
-        setAddDomainError(d.error || 'Failed to save domain.')
-        setAddDomainState('input')
+        setDomainConnectError(d.error || 'Failed to save domain.')
+        setDomainConnectState('idle')
         return
       }
 
@@ -414,7 +406,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       })
       const json = await checkRes.json()
       if (!json.detected) {
-        setAddDomainState('not-found')
+        setDomainConnectState('not-found')
         return
       }
 
@@ -431,12 +423,12 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       }
 
       setLocalDomains((prev) => [...prev, { url: normalized, verifiedAt: new Date().toISOString() }])
-      setAddDomainState('verified')
+      setDomainConnectState('verified')
     } catch {
-      setAddDomainError('Connection failed. Check your internet.')
-      setAddDomainState('input')
+      setDomainConnectError('Connection failed. Check your internet.')
+      setDomainConnectState('idle')
     }
-  }, [addDomainUrl])
+  }, [])
 
   // ─── Step Navigation ───
 
@@ -510,73 +502,6 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           </button>
         </div>
 
-        {/* Draft-mode banner with inline domain input — shown when no verified domain exists */}
-        {localDomains.length === 0 && (
-          <div className="border-b border-pro/20 bg-pro/[0.04] px-5 py-3">
-            {addDomainState === 'verified' ? (
-              <p className="flex items-center gap-1.5 text-[12px] text-ok font-medium">
-                <Check className="h-3.5 w-3.5" />
-                {addDomainUrl.trim()} connected — you can now go live.
-              </p>
-            ) : addDomainState === 'saving' ? (
-              <p className="flex items-center gap-2 text-[12px] text-pro font-medium">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Saving &amp; checking {addDomainUrl.trim()}…
-              </p>
-            ) : addDomainState === 'not-found' ? (
-              <div className="space-y-2">
-                <p className="text-[12px] text-pro font-medium">
-                  Snippet not found on {addDomainUrl.trim()}. Paste it in your site&apos;s &lt;head&gt; and retry.
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleAddDomain}
-                    className="inline-flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
-                  >
-                    Retry
-                  </button>
-                  <button
-                    onClick={() => { setAddDomainState('input'); setAddDomainError('') }}
-                    className="cursor-pointer text-[10px] text-text-3 underline hover:text-text-2"
-                  >
-                    Change URL
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-[12px] text-pro font-medium mb-2">
-                  Draft mode — add your domain to go live with real visitors.
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1 max-w-[220px]">
-                    <Globe className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
-                    <input
-                      type="text"
-                      value={addDomainUrl}
-                      onChange={(e) => { setAddDomainUrl(e.target.value); setAddDomainError('') }}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
-                      placeholder="yoursite.com"
-                      disabled={addDomainState !== 'input'}
-                      className="w-full h-[30px] rounded-[var(--radius-sm)] border border-border bg-bg-0 pl-7 pr-2 text-[11px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-text/30"
-                    />
-                  </div>
-                  <button
-                    onClick={handleAddDomain}
-                    disabled={!addDomainUrl.trim()}
-                    className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
-                  >
-                    Check
-                  </button>
-                </div>
-                {addDomainError && (
-                  <p className="mt-1.5 text-[10px] text-err">{addDomainError}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Step Indicator */}
         <div className="flex items-center gap-1 border-b border-border px-5 py-2.5">
           {stepLabels.map((label, i) => (
@@ -606,19 +531,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           {state.step === 0 && (
             <StepUrlAndElement
               url={state.url}
-              onUrlChange={(url) => {
-                updateState({ url, selectedElement: null, elementConfirmed: false })
-                // Only ever fills the still-empty, untouched banner field —
-                // never overwrites something the user is already typing there.
-                if (localDomains.length === 0 && addDomainState === 'input' && !addDomainUrl) {
-                  const host = deriveHostname(url)
-                  if (host) setAddDomainUrl(host)
-                }
-              }}
+              onUrlChange={(url) => updateState({ url, selectedElement: null, elementConfirmed: false })}
               selectedElement={state.selectedElement}
               onElementSelected={(el) => updateState({ selectedElement: el, elementConfirmed: false })}
               onConfirm={() => updateState({ elementConfirmed: true })}
               verifiedDomains={localDomains}
+              domainConnectState={domainConnectState}
+              domainConnectError={domainConnectError}
+              connectingDomain={connectingDomain}
+              onConnectDomain={handleConnectDomain}
             />
           )}
 

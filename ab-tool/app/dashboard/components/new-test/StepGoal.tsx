@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import type { GoalSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
+import { usePickerBridge } from '@/lib/pickerBridge'
 
 interface StepGoalProps {
   elementType: string
@@ -68,33 +69,23 @@ export function StepGoal({
     }
   }, [])
 
-  // Listen for postMessage from ab.js goal picker
-  useEffect(() => {
-    function handleMessage(e: MessageEvent) {
-      let userSiteOrigin: string | null = null
-      try {
-        userSiteOrigin = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).origin
-      } catch {
-        userSiteOrigin = null
-      }
-      if (!userSiteOrigin || e.origin !== userSiteOrigin) return
-
-      if (!e.data || e.data.type !== 'ab-goal') return
-      const { selector, text } = e.data
-      if (!selector) return
-      setPickedElement({ selector, text: text || '' })
+  // Auswahl aus dem ab.js-Goal-Picker entgegennehmen. Beide Transportwege
+  // (postMessage + /picker-return via localStorage) liegen in usePickerBridge.
+  usePickerBridge({
+    url,
+    mode: 'goal',
+    onPick: (p) => {
+      setPickedElement({ selector: p.selector, text: p.text || '' })
       onGoalSelected({
         type: 'click',
-        selector,
-        label: text ? `Clicks on "${text}"` : `Clicks on ${selector}`,
+        selector: p.selector,
+        label: p.text ? `Clicks on "${p.text}"` : `Clicks on ${p.selector}`,
       })
       setWaitingForPicker(false)
       setPickerBlocked(false)
       if (pickerTimeoutRef.current) clearTimeout(pickerTimeoutRef.current)
-    }
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [url, onGoalSelected])
+    },
+  })
 
   function openGoalPicker() {
     if (!url) return

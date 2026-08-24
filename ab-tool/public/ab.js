@@ -205,7 +205,10 @@
           card.innerHTML =
             '<div style=\"width:56px;height:56px;border-radius:28px;background:rgba(20,174,92,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;color:#14AE5C;border:1px solid rgba(20,174,92,.20)\">\u2713</div>' +
             '<div style=\"font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.4;color:#14AE5C\">' + title + '</div>' +
-            '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:4px\">Return to Figma to continue</div>' +
+            // Ohne Token läuft der Picker aus dem Dashboard-Wizard, nicht aus Figma.
+            '<div style=\"font-size:12px;color:rgba(237,237,237,.35);margin-bottom:4px\">' +
+            ((cfg.token || cfg.tempToken) ? 'Return to Figma to continue' : 'Return to the dashboard to continue') +
+            '</div>' +
             selDisplay +
             '<div style=\"display:flex;gap:8px;justify-content:center;margin-top:20px\">' +
             '<button id=\"__ab_overlay_reselect\" style=\"display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#ededed;font:600 12px -apple-system,Segoe UI,sans-serif;cursor:pointer;transition:background .15s\" onmouseover=\"this.style.background=\'rgba(255,255,255,.10)\'\" onmouseout=\"this.style.background=\'rgba(255,255,255,.06)\'\" onclick=\"(function(e){e.stopPropagation();var o=document.getElementById(\'__ab_picker_overlay\');if(o)o.remove();if(window.__abRekindlePicker)window.__abRekindlePicker()})(event)\">' +
@@ -264,23 +267,55 @@
           return fetch(cfg.apiBase + '/api/capture', { method: 'POST', headers: headers, body: body })
         }
 
+        // PostMessage an öffnendes Dashboard-Fenster (Wizard-Picker-Flow).
+        // Dashboard-Komponenten lauschen auf 'ab-pick' / 'ab-goal' messages.
+        // Unabhängig vom API-Call — funktioniert auch ohne Auth-Token.
+        // Liefert true, wenn die Zustellung geklappt hat.
+        function postToOpener(el, sel, text) {
+          try {
+            if (!window.opener || window.opener.closed) return false
+            if (cfg.mode === 'goal') {
+              window.opener.postMessage({ type: 'ab-goal', selector: sel, text: text }, '*')
+            } else {
+              window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text }, '*')
+            }
+            return true
+          } catch (_) { return false }
+        }
+
+        // Fallback, wenn window.opener gekappt ist. Das passiert häufiger als
+        // erwartet — COOP-Header der Zielseite, Wiederverwendung eines benannten
+        // Fensters (window.open setzt opener dabei nicht neu), Privacy-Settings.
+        // Bisher verschwand die Auswahl in dem Fall still und der User sah nur
+        // "Save failed (401)" bzw. "Network error while saving".
+        //
+        // /picker-return liegt auf unserer Origin und reicht die Auswahl per
+        // localStorage an das offene Dashboard-Tab weiter. Nutzdaten stehen im
+        // Fragment, gehen also nie an den Server.
+        function returnToDashboard(el, sel, text) {
+          try {
+            var payload = {
+              mode: cfg.mode === 'goal' ? 'goal' : 'element',
+              selector: sel,
+              html: cfg.mode === 'goal' ? '' : (el.outerHTML || '').slice(0, 10000),
+              tagName: el.tagName,
+              text: text,
+              origin: location.origin,
+            }
+            // Bewusst `origin` (Herkunft des ab.js-Scripts) statt cfg.apiBase:
+            // apiBase ist über ?ab_api= steuerbar, und eine Navigation dorthin
+            // wäre ein Open-Redirect mit angehängten Auswahldaten.
+            location.href = (origin || 'https://www.getvariante.com') +
+              '/picker-return#' + encodeURIComponent(JSON.stringify(payload))
+            return true
+          } catch (_) { return false }
+        }
+
         function onClick(e) {
           e.preventDefault(); e.stopPropagation()
           var el = e.target, sel = cssSelector(el)
-
-          // PostMessage an öffnendes Dashboard-Fenster (Wizard-Picker-Flow).
-          // Dashboard-Komponenten lauschen auf 'ab-pick' / 'ab-goal' messages.
-          // Unabhängig vom API-Call — funktioniert auch ohne Auth-Token.
-          try {
-            if (window.opener && !window.opener.closed) {
-              var text = (el.innerText || el.textContent || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 200)
-              if (cfg.mode === 'goal') {
-                window.opener.postMessage({ type: 'ab-goal', selector: sel, text: text }, '*')
-              } else {
-                window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text }, '*')
-              }
-            }
-          } catch (_) {}
+          var text = (el.innerText || el.textContent || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 200)
+          var sentToOpener = postToOpener(el, sel, text)
 
           // --- Reorder-Modus: erster Klick → Element A speichern, auf B warten
           if (cfg.mode === 'reorder') {
@@ -338,18 +373,26 @@
           // --- Normaler / Goal Modus ---------------------------------------
           cleanup(); hideBanner()
 
-          // Wenn via window.open vom Dashboard-Wizard geöffnet:
-          // Daten wurden bereits via postMessage gesendet → Erfolg zeigen,
-          // auch wenn der API-Call fehlschlägt (kein Auth-Token).
-          var hasOpener = false
-          try { hasOpener = !!(window.opener && !window.opener.closed) } catch (_) {}
+          // Dashboard-Wizard: Der Picker wird ohne Token und ohne echte testId
+          // geöffnet (?ab_pick=1) — /api/capture kann dort per Definition nur
+          // 401 liefern. Der Call bleibt deshalb ganz weg; die Auswahl läuft
+          // ausschliesslich über postMessage bzw. /picker-return.
+          if (!cfg.token && !cfg.tempToken) {
+            if (sentToOpener) {
+              showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
+            } else if (!returnToDashboard(el, sel, text)) {
+              showOverlay('Could not send the selection back', '', true)
+            }
+            return
+          }
 
+          // Figma-/Plugin-Flow: echter Test + Token → Auswahl serverseitig sichern.
           doCaptureRequest(el, sel).then(function (r) {
             if (r.ok) showOverlay(cfg.mode === 'goal' ? 'Goal saved' : 'Element captured', sel, false)
-            else if (hasOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
+            else if (sentToOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
             else showOverlay('Save failed (' + r.status + ')', '', true)
           }).catch(function () {
-            if (hasOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
+            if (sentToOpener) showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
             else showOverlay('Network error while saving.', '', true)
           })
         }
