@@ -559,6 +559,11 @@ export function StepUrlAndElement({
               <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">
                 Element Type
               </label>
+              {/* Only types with a real editor behind them: button/link open the
+                  button editor (colors, border, hover), headline/text open the
+                  text editor. "Image" and "Form" used to be offered here but had
+                  no editor at all — picking them silently produced a button
+                  editor, which made no sense for an image or a form. */}
               <select
                 value={manualElementType}
                 onChange={(e) => setManualElementType(e.target.value)}
@@ -566,11 +571,9 @@ export function StepUrlAndElement({
               >
                 <option value="element">Generic Element</option>
                 <option value="button">Button</option>
-                <option value="headline">Headline</option>
-                <option value="image">Image</option>
-                <option value="paragraph">Text / Paragraph</option>
-                <option value="form">Form</option>
                 <option value="link">Link</option>
+                <option value="headline">Headline</option>
+                <option value="text">Text / Paragraph</option>
               </select>
             </div>
             <div>
