@@ -619,9 +619,9 @@ Ohne diesen Punkt bleibt jeder andere Fix in diesem Dokument ungeschützt gegen 
 
 ---
 
-## DB-02 — `020_test_health.sql` kann laufende Kundentests abschalten
+## DB-02 — `020_test_health.sql` kann laufende Kundentests abschalten ✅
 
-**Schweregrad: Hoch** · Datenbank
+**Schweregrad: Hoch** · Datenbank · **[BEHOBEN — Migration 037, 24.08.2026] Downgrade nur noch bei Aktivierung, API-Validierung**
 
 **Problem:** [`db/migrations/020_test_health.sql:81`](../db/migrations/020_test_health.sql): `UPDATE tests SET name = name;` — ein `UPDATE` ohne `WHERE` über die gesamte Tabelle, nur um den frisch angelegten Trigger `trg_test_health` (`:67-70`) auf jeder Zeile feuern zu lassen. Der Trigger enthält (`:52-55`):
 
@@ -632,6 +632,8 @@ IF NEW.status = 'active' THEN NEW.status := 'draft'; END IF;
 **Warum problematisch:** Zwei Effekte. Erstens wird jeder `active` Test, dem eines von fünf Feldern fehlt, **retroaktiv auf `draft` gesetzt** — laufende, bezahlte Kundentests werden ohne Benachrichtigung aus allen Cron-Filtern (`.in('status',['active','paused'])`) entfernt. Zweitens: Full-Table-Rewrite auf der heißesten Tabelle des Systems, und wegen `replica identity full` (`016_realtime.sql:7`) ein WAL-Schwall in Tabellengröße plus ein Realtime-Broadcast pro Zeile.
 
 **Lösung:** Backfill batchen; den automatischen `active → draft`-Downgrade aus dem Trigger nehmen und stattdessen im API-Layer beim *Aktivieren* prüfen. Ein Schema-Deploy darf niemals Kundentests abschalten. (`:74-77` ist zusätzlich toter Code — `health_status` wurde in `:7` mit `DEFAULT 'issues'` angelegt und ist nie NULL.)
+
+**Umgesetzt (24.08.2026):** [`db/migrations/037_test_health_activation_guard.sql`](../db/migrations/037_test_health_activation_guard.sql) — `compute_test_health()` berechnet `health_status`/`health_issues` weiterhin bei jedem INSERT/UPDATE, der `active → draft`-Downgrade greift aber nur noch beim Übergang IN `active`, nicht mehr auf einem bereits aktiven Test. `ab_assign()` prüft beim Aktivieren durch den ersten Besucher zusätzlich `health_status = 'ok'`. API-seitig validieren [`lib/testHealth.ts`](../ab-tool/lib/testHealth.ts) + `tests/[id]` PATCH + `test-wizard/create` vor dem Schreiben und liefern bei fehlenden Pflichtfeldern einen expliziten `422` statt eines stillen No-Ops. Das ursprüngliche Full-Table-`UPDATE tests SET name = name` in `020_test_health.sql` bleibt unverändert (bereits auf Prod gelaufen, siehe Kommentar dort) — betrifft nur den einmaligen historischen Backfill, nicht den laufenden Betrieb.
 
 ---
 
