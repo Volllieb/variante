@@ -368,6 +368,18 @@
      The parent uses this to sync overlay removal with actual animation state. */
   try { window.parent.postMessage('hero-animation-ready', '*'); } catch(e){}
 
+  /* Reduced Motion (A11Y-05): keine Endlos-Animation, stattdessen ein
+     statischer Frame von Variante A. Muss hier abzweigen — pausiert man
+     stattdessen erst die (noch leere) Timeline weiter unten, bleibt die
+     Stage für immer bei opacity:0 hängen (Timeline pausiert vor dem ersten
+     Tween, der Stage erst sichtbar macht). */
+  if (__reduceMotion) {
+    resetState();
+    gsap.set(stage, {autoAlpha:1});
+    gsap.set(cursor, {autoAlpha:0});
+    return;
+  }
+
   /* ---- measure click targets (stage-space coordinates) ---- */
   function pt(el, dx=0, dy=0){
     const s = stage.getBoundingClientRect();
@@ -422,8 +434,6 @@
     onRepeat: resetState
   });
   resetState();
-  // Reduced Motion: keine Endlos-Animation. Statischer Frame (Variante A).
-  if (__reduceMotion) { tl.pause(); }
 
   function click(t, pressTarget){
     tl.fromTo(ripple, {scale:.2, opacity:.5}, {scale:1, opacity:0, duration:.45, ease:"power1.out"}, t);
