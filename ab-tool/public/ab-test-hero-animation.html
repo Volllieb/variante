@@ -326,12 +326,6 @@
 
 <script>
 (function(){
-  // A11Y (Plan A11Y-05): prefers-reduced-motion respektieren. Dieses HTML läuft
-  // in einem eigenen iframe-Dokument — der globals.css-Block des Parents greift
-  // hier nicht, und GSAP-JS-Tweens sind ohnehin nicht per CSS abschaltbar.
-  // Bei reduzierter Bewegung: GSAP-Timeline pausieren, Endzustand direkt setzen.
-  var __reduceMotion = false;
-  try { __reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){}
   const $ = id => document.getElementById(id);
   const stage = $("stage"), scaler = $("scaler");
   const cardA = $("cardA"), cardB = $("cardB");
@@ -367,18 +361,6 @@
   /* Signal parent that the animation is ready (post first fade-in).
      The parent uses this to sync overlay removal with actual animation state. */
   try { window.parent.postMessage('hero-animation-ready', '*'); } catch(e){}
-
-  /* Reduced Motion (A11Y-05): keine Endlos-Animation, stattdessen ein
-     statischer Frame von Variante A. Muss hier abzweigen — pausiert man
-     stattdessen erst die (noch leere) Timeline weiter unten, bleibt die
-     Stage für immer bei opacity:0 hängen (Timeline pausiert vor dem ersten
-     Tween, der Stage erst sichtbar macht). */
-  if (__reduceMotion) {
-    resetState();
-    gsap.set(stage, {autoAlpha:1});
-    gsap.set(cursor, {autoAlpha:0});
-    return;
-  }
 
   /* ---- measure click targets (stage-space coordinates) ---- */
   function pt(el, dx=0, dy=0){
