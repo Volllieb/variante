@@ -17,17 +17,17 @@ const inter = Inter({
 export const metadata = {
   metadataBase: new URL('https://www.getvariante.com'),
   title: {
-    default: 'A/B Testing for Designers — No Developer Needed | Variante',
+    default: 'A/B Testing Without a Developer | Variante',
     template: '%s | Variante',
   },
   description:
-    'Every designer can now run A/B tests. Pick an element, redesign in Figma, AI ships Variant B. No dev, no pipeline.',
+    'Pick an element on your site. AI generates a better version, traffic splits, the winner ships. No dev, no pipeline.',
   alternates: {
     canonical: 'https://www.getvariante.com',
   },
   openGraph: {
-    title: 'A/B Testing for Designers — No Developer Needed | Variante',
-    description: 'Every designer can now improve conversions with A/B testing. Pick → Generate → Ship. No developer needed.',
+    title: 'A/B Testing Without a Developer | Variante',
+    description: 'Pick an element, AI generates a better version, the winner ships. No developer needed.',
     url: 'https://www.getvariante.com',
     siteName: 'Variante',
     images: [
@@ -35,14 +35,14 @@ export const metadata = {
         url: 'https://www.getvariante.com/og',
         width: 1200,
         height: 630,
-        alt: 'Variante — A/B Testing from Figma',
+        alt: 'Variante — A/B Testing for your site',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'A/B Testing for Designers — No Developer Needed | Variante',
-    description: 'Every designer can now improve conversions with A/B testing. No developer needed.',
+    title: 'A/B Testing Without a Developer | Variante',
+    description: 'Pick an element, AI generates a better version, the winner ships. No developer needed.',
     images: ['https://www.getvariante.com/og'],
   },
 }
@@ -87,7 +87,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               url: 'https://www.getvariante.com',
               logo: 'https://www.getvariante.com/icon.svg',
               description:
-                'A/B Testing from Figma — pick, generate, ship without a developer.',
+                'AI-powered A/B testing — pick an element, generate a better version, ship the winner. No developer needed.',
               sameAs: ['https://github.com/valentinbu/variante'],
             }),
           }}

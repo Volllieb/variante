@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     'Complete guide to A/B testing with Variante. Learn how to install the snippet, use the Figma plugin, pick elements, and run your first experiment.',
   openGraph: {
-    title: 'Variante Documentation — A/B Testing from Figma',
-    description: 'Complete guide: installation, Figma plugin, element picker, experiment setup, and pricing.',
+    title: 'Variante Documentation — AI-Powered A/B Testing',
+    description: 'Complete guide: installation, AI variant generation, element picker, experiment setup, and pricing.',
     url: 'https://www.getvariante.com/docs',
     siteName: 'Variante',
     images: [{ url: 'https://www.getvariante.com/og', width: 1200, height: 630, alt: 'Variante Docs' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Variante Documentation — A/B Testing from Figma',
-    description: 'Complete guide: installation, Figma plugin, element picker, experiment setup, and pricing.',
+    title: 'Variante Documentation — AI-Powered A/B Testing',
+    description: 'Complete guide: installation, AI variant generation, element picker, experiment setup, and pricing.',
     images: ['https://www.getvariante.com/og'],
   },
   alternates: { canonical: 'https://www.getvariante.com/docs' },
@@ -32,13 +32,14 @@ const sections = [
     body: (
       <>
         <p>
-          Variante lets designers run A/B tests without a developer. Pick any element on your live
-          site, redesign it in Figma, and AI generates the variant code. Paste one snippet into your
-          site — Variante handles traffic splitting, variant serving, and conversion tracking.
+          Variante lets you run A/B tests without a developer. Pick any element on your live
+          site, and AI generates a better version — or build it yourself in the editor. Paste one
+          snippet into your site — Variante handles traffic splitting, variant serving, and
+          conversion tracking.
         </p>
         <p>
           No deploy pipeline. No Git. No waiting for engineering. The entire experiment lifecycle
-          lives between your browser, Figma, and the Variante dashboard.
+          lives in the Variante dashboard.
         </p>
       </>
     ),
@@ -62,9 +63,9 @@ const sections = [
           framework context automatically — no extension needed.
         </li>
         <li>
-          <strong className="font-semibold text-white">Redesign in Figma.</strong> Select your
-          replacement design in the Figma plugin. AI reads both sides and writes Variant B —
-          pixel-perfect, responsive, matching your existing styles.
+          <strong className="font-semibold text-white">AI generates Variant B.</strong> Review the
+          proposal, tweak it in the built-in editor, or write it yourself — matching your existing
+          styles.
         </li>
         <li>
           <strong className="font-semibold text-white">Ship &amp; track.</strong> The variant goes
@@ -167,8 +168,9 @@ export default function Document() {
     body: (
       <>
         <p>
-          The Figma plugin is where you create variants. Open it in Figma, paste your API token from the
-          dashboard, and select the frame or component you want to use as Variant B.
+          The Figma plugin is a stats viewer, not a design tool. Open it in Figma, paste your API
+          token from the dashboard, and see your running tests — visitors, conversions, and which
+          variant is leading — without leaving the file you&apos;re working in.
         </p>
         <ol className="list-decimal space-y-2 pl-5">
           <li>
@@ -184,14 +186,13 @@ export default function Document() {
             {' '}in Figma (<strong className="font-semibold text-white/70">Plugins → Variante</strong>).
           </li>
           <li>Paste your API token (find it in <strong className="font-semibold text-white/70">Dashboard → Account Settings → API Token</strong>).</li>
-          <li>Click &quot;+ New test&quot; in the dashboard to start a new experiment.</li>
-          <li>Select your Variant B design in Figma — the plugin captures it and sends it to Variante.</li>
-          <li>AI generates the variant code. It appears in your dashboard within seconds.</li>
+          <li>See your tests and their live stats, right inside Figma.</li>
         </ol>
         <div className="mt-4 rounded-[var(--radius-md)] border border-white/10 bg-white/[0.02] p-4">
           <p className="text-[13px] text-[#ededed]/50">
-            <strong className="font-semibold text-white/70">Note:</strong> The plugin only handles
-            creation. Results, analytics, and test management live in the web dashboard.
+            <strong className="font-semibold text-white/70">Note:</strong> Test creation happens in
+            the web dashboard — click &quot;+ New test&quot; there, or from the plugin&apos;s
+            &quot;Create Test in Dashboard&quot; link.
           </p>
         </div>
       </>
@@ -204,17 +205,17 @@ export default function Document() {
       <>
         <p>
           The element picker is built directly into the site snippet — no extra installation needed.
-          When you start a test from the Figma plugin, it opens your live site with the picker
+          When you start a test in the dashboard wizard, it opens your live site with the picker
           activated. Hover over any element to highlight it, click to capture its HTML, CSS, and
           context.
         </p>
         <ol className="list-decimal space-y-2 pl-5">
-          <li>Start a test in the Figma plugin — enter your site URL and test name.</li>
-          <li>The plugin opens your live site. A banner at the top confirms picker mode is active.</li>
+          <li>Click &quot;+ New test&quot; in the dashboard — enter your site URL and test name.</li>
+          <li>The wizard opens your live site. A banner at the top confirms picker mode is active.</li>
           <li>Hover over the element you want to test — it highlights with a blue outline.</li>
           <li>Click the element. The picker captures its HTML, CSS, framework info, and suggests
           conversion goals.</li>
-          <li>Return to Figma — the captured element is ready for you to design Variant B.</li>
+          <li>Return to the wizard — the captured element is ready for Variant B.</li>
         </ol>
         <div className="mt-4 rounded-[var(--radius-md)] border border-white/10 bg-white/[0.02] p-4">
           <p className="text-[13px] text-[#ededed]/50">
@@ -307,7 +308,7 @@ window.__ab_track_conversion()`}
           },
           {
             q: 'How does AI variant generation work?',
-            a: 'You pick an element on your site (built-in picker, no extension) and select a replacement design in Figma. The AI reads the original HTML/CSS and your Figma design, then generates a pixel-perfect variant that matches your existing code style and framework conventions.',
+            a: 'You pick an element on your site (built-in picker, no extension). The AI reads the original HTML/CSS and generates a variant that matches your existing code style and framework conventions — you can accept it, edit it, or write your own from scratch.',
           },
           {
             q: 'What happens when a winner is detected?',

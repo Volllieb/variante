@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Variante — A/B Testing from Figma',
+    name: 'Variante — A/B Testing Without a Developer',
     short_name: 'Variante',
     description: 'Pick, generate, ship. A/B testing without a developer.',
     start_url: '/',

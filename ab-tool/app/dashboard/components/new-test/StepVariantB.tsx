@@ -349,9 +349,9 @@ export function StepVariantB({
               <Palette className="h-4 w-4 text-text-2" />
             </div>
             <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-text">Design your variant in Figma</p>
+              <p className="text-[13px] font-semibold text-text">Use Figma for inspiration</p>
               <p className="mt-1 text-[12px] leading-relaxed text-text-2">
-                Open the variante Figma plugin, select the element you want to redesign, and let the AI generate the variant code. The generated HTML and CSS will appear here automatically.
+                The variante Figma plugin shows your live test stats inside Figma — it&apos;s not a design tool. Sketch or reference your redesign in Figma, then come back here and build it with the Manual editor or describe it for AI Generate.
               </p>
             </div>
           </div>
@@ -361,19 +361,11 @@ export function StepVariantB({
             <ol className="space-y-2 text-[12px] text-text-2">
               <li className="flex items-start gap-2">
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">1</span>
-                <span>Open the <strong className="text-text">variante plugin</strong> in Figma — or install it from the <a href="https://www.figma.com/community/plugin/1653734891132085565" target="_blank" rel="noopener noreferrer" className="underline hover:text-text transition-colors">Figma Community <ExternalLink className="inline h-2.5 w-2.5" /></a></span>
+                <span>Open Figma and design or reference the look you want for Variant B</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">2</span>
-                <span>Click <strong className="text-text">&quot;Create Test in Dashboard&quot;</strong> in the plugin to open the test wizard here</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">3</span>
-                <span>Select the variant layer in Figma — the AI translates it to HTML/CSS code</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 text-[10px] font-bold text-text-3 mt-0.5">4</span>
-                <span>The generated code appears in this wizard — review and continue</span>
+                <span>Come back to this wizard and switch to <strong className="text-text">Manual</strong> to recreate it, or describe the change under <strong className="text-text">AI Generate</strong></span>
               </li>
             </ol>
           </div>
@@ -381,18 +373,18 @@ export function StepVariantB({
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => {
-                // Open the Figma plugin page — user needs the desktop app for the plugin itself
                 window.open('https://www.figma.com/community/plugin/1653734891132085565', '_blank', 'noopener,noreferrer')
               }}
-              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               <Palette className="h-3.5 w-3.5" />
               Open Figma Plugin
+              <ExternalLink className="h-3 w-3" />
             </button>
           </div>
 
           <p className="text-[11px] text-text-3">
-            Don&apos;t have Figma? Use the <button onClick={() => setMode('manual')} className="underline hover:text-text-2 transition-colors">Manual Editor</button> instead.
+            Ready with a design? Switch to <button onClick={() => setMode('manual')} className="underline hover:text-text-2 transition-colors">Manual</button> or <button onClick={() => setMode('ai')} className="underline hover:text-text-2 transition-colors">AI Generate</button> to build it.
           </p>
         </div>
       )}

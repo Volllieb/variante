@@ -11,7 +11,7 @@
 |---|---|
 | **Produkt** | variante — autonomer KI-Agent für A/B-Testing, kein Dev nötig. "Total Control, Minimum Effort": KI macht alles, User greift nur ein wenn er will. |
 | **ICP** | Designer, Indie Hacker & Gründer (Solopreneure & kleine Teams) auf beliebigen Plattformen (Custom HTML, WordPress, Next/React, Shopify) |
-| **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 5-Step Drawer-Wizard (`NewTestDrawer`: Scan → Picker → Variant → Metric → Review). StepVariantB: 3-Tab-Layout (Code/Visual/Inspiration) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns). Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
+| **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 4-Step Drawer-Wizard (`NewTestDrawer`: Element → Goal → Variant → Review). StepVariantB: 3-Way-Switcher (AI Generate/Manual/Figma) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns) im Manual-Modus; Figma-Tab ist reine Design-Inspiration, kein Datenimport. Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
 | **Stand** | 24.07.2026 — 🛡️ **Produktionsreife ~92%**: Security-Audit (SEC-01–12), DB-Härtung (Migrationen 029–036), UX/A11Y-Fixes (15+), Consent-API, AVV-Vorlage. **Re-Audit 24.07.:** 1 live wirksamer Datenintegritäts-Fehler (`ASSIGN_SECRET` in Prod nie gesetzt) + 1 Logik-Bug (Auto-Promotion pausierter Tests) gefunden & behoben — **Env-Aktion nötig** (`ASSIGN_SECRET` in Vercel setzen). Siehe `docs/produktionsreife-massnahmenplan.md` §Re-Audit. **Kursdefinition 20.08.:** Erfolgskriterium = erster zahlender Pro-Kunde (90 Tage), Metriken = Sales-Pipeline, 2 Lead-Kanäle (Figma + Landingpage). Siehe `docs/kursdefinition.md`. |
@@ -53,8 +53,10 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 |---|---|---|
 | ab-tool | `www.getvariante.com` | Git-Connected: Push auf master → Production. Feature-Branches → Preview. Promotion via `vercel promote` |
 
-**Preview-First-Workflow (seit 16.07.2026):**
-1. Auf Feature-Branch arbeiten, nicht auf master.
+**Preview-First-Workflow (seit 16.07.2026) — für risikoreiche Änderungen:**
+Standard ist Arbeit direkt auf `master` (siehe `AGENTS.md`). Nur bei echten Risiken
+(große Refactorings, DB-Schema-Änderungen, Breaking Changes) auf Feature-Branch:
+1. Auf Feature-Branch arbeiten.
 2. `git push origin feature-branch` → Vercel deployt automatisch Preview (unique URL).
 3. Preview testen, reviewen, iterieren.
 4. `vercel promote <preview-url>` → Production (instant, kein Rebuild).
@@ -124,7 +126,7 @@ docs/                   # Doku — Brand, GTM, Leads, Marktrecherche, E2E, Futur
 | 10.07.2026 | **Domain-First Architecture.** User müssen eine verified Domain haben bevor Tests laufen. Neue `domains`-Tabelle (initial: Free/Pro: 1, Agency: unlimited). `DomainGate.tsx`: Post-Login-Gate mit URL-Eingabe + Snippet-Check + Auto-Verify. `POST /api/tests` validiert gegen verified domains. Account-Settings: Domain-Sektion (Anzeige, Re-Verify, Löschen, Hinzufügen). Dashboard: EmptyState zeigt Domain-Hinweis, Health-Card zeigt Website-Status. Figma-Plugin: `fetchVerifiedDomain()` nach Token-Load. Migration 015: `count_verified_domains`/`count_domains` RPCs. (15.07.: Auf Multi-Domain mit Plan-Limits Free=1/Pro=5/Agency=100 umgestellt.) |
 | 09.07.2026 | **First-Touch Source-Tracking.** Migration 014: `profiles.signup_source` + `signup_plan`. Auth-Callback parst `next`-Param und speichert source/plan per `ensureProfile()` first-touch (nur wenn row neu oder signup_source null). Deckt alle 3 Auth-Flows ab (OAuth, Email-Token, Token-Hash). |
 | 09.07.2026 | **Conversion-Testsuite + event/route.ts 404-Fix.** `conversion-goal-click.mjs` (11 Tests): 5 Unit (sendBeacon-Payload, sessionStorage-Dedup, Key-Isolation, Fetch-Fallback, Storage-Fehler-Grace), 4 Integration (400-Validierung), 2 CORS. Bugfix: `.single()`→`.maybeSingle()` + 404 statt 500 bei nicht-existenter snippet_key in `/api/event`. |
-| 28.03. | **Onboarding entfernt** — /dashboard/setup (Health-Check) deckt Setup-Flow komplett ab, separates onboarding-Gate ist redundant. Signup/Login routen direkt auf /dashboard. |
+| 08.07.2026 | **Onboarding entfernt** — /dashboard/setup (Health-Check) deckt Setup-Flow komplett ab, separates onboarding-Gate ist redundant. Signup/Login routen direkt auf /dashboard. |
 | 08.07.2026 | **🎉 Figma-Plugin LIVE im Community Store!** [Plugin #1653734891132085565](https://www.figma.com/community/plugin/1653734891132085565) freigegeben nach 9 Tagen Review. Der Burggraben steht. Erster Design-Partner angefragt. |
 | 08.07.2026 | **Dashboard Overview-Redesign: 30/70-Layout, Metric-Cards, Pie-Chart-TestCards.** Overview-Seite komplett umgebaut: Zweispaltig (30% Metric-Cards / 70% Test-Grid). Linke Spalte: Overview-Card (Active Tests, Total Visitors, Overall CR, Overall Uplift — Icon+Name+Wert pro Zeile, getrennt durch subtile Linien) + Health/Setup-Card (Snippet/Plugin/Extension-Status, verlinkt auf `/dashboard/setup`). Rechte Spalte: Tests-Überschrift + Toolbar (Suchleiste, Sort-Icon, New-Test-Button) + TestCard-Grid (3 pro Zeile). Stats-Bar, CRO-Snapshot, Winner-Alert, Overview-Tabelle, HealthBanner entfernt. TestCard neu designt: Row 1 (Favicon, Name+URL, Significance-Pie-Chart mit Visitor-Count im Zentrum), Row 2 (Status-Dot, Dauer d/h/m/s, Variant-Leader A/B). Build grün, deployed. |
 | 07.07.2026 | **Chrome-Extension deprecated — Picker jetzt direkt im Snippet.** `content-picker.js` in `ab.js` integriert: Element-Picker läuft ohne Extension direkt auf der Kundenseite. `chrome-extension/` auf Read-only-Archiv gesetzt (DEPRECATED.md). `ab.js` von ~8 KB auf ~14 KB gewachsen. Build grün. |
@@ -248,7 +250,7 @@ Der Happy Path für neue User:
 
 ## §11 Offene Baustellen
 
-> Stand: 24.07.2026 — Sync mit `docs/baustellen.md` und `docs/produktionsreife-massnahmenplan.md`.
+> Stand: 24.08.2026 — Sync mit `docs/baustellen.md` und `docs/produktionsreife-massnahmenplan.md`.
 
 | # | Thema | Status | Aktion |
 |---|---|---|---|
@@ -270,8 +272,8 @@ Der Happy Path für neue User:
 | Ebene | Ort | Zweck |
 |---|---|---|
 | **Health** | `/dashboard/health` | Health-Check: Snippet, Figma Plugin — permanenter Check, kein One-Time-Gate. |
-| **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. **Test-Erstellung hier** (TestCreationPanel). |
-| **Creation** | Web (Dashboard) | 4-Step Wizard: Scan → Variant → Goal → Create. AI-generierte Varianten mit urlbox-Screenshot-Preview. |
+| **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. **Test-Erstellung hier** (`NewTestDrawer`). |
+| **Creation** | Web (Dashboard) | 4-Step Wizard: Element → Goal → Variant → Review. AI-generierte Varianten (Auto-Trigger in Step Variant), Manual-Editor und Figma-Inspiration als Alternativen. |
 | **Figma Plugin** | Figma | Referenz-Picker (Element-Selektor für `?ab_pick=`) + Akquise-Kanal. Keine Variant-Erstellung mehr. |
 
 ### 12.2 „New test"-Flow
@@ -281,10 +283,10 @@ Der Happy Path für neue User:
 ```
 User klickt [+ New test]
          │
-         └─ TestCreationPanel öffnet (4 Steps)
-              Step 1: URL scannen → AI CRO-Vorschläge
-              Step 2: Element wählen → Variante generieren → Preview (urlbox)
-              Step 3: Conversion-Goal definieren
+         └─ NewTestDrawer öffnet (4 Steps)
+              Step 1: URL + Element wählen (Built-in-Picker auf der Live-Seite)
+              Step 2: Conversion-Goal definieren
+              Step 3: Variante bauen — AI Generate (Default) / Manual / Figma-Inspiration
               Step 4: Review → Test erstellen
 ```
 
@@ -313,7 +315,7 @@ User klickt [+ New test]
   - Rechte Spalte (70%): **Tests-Überschrift** + Toolbar (Suchleiste breit, Sort-Icon, Filter-Dropdown für Status/Zeitraum/Winner, New-Test-Button) + **TestCard-Grid** (3 pro Zeile).
 - **TestCard (neu):** Row 1: Favicon | Name+URL | Significance-Pie-Chart (Visitor-Count im Zentrum, Arc-Füllung = Signifikanz-Fortschritt). Row 2: Status-Dot (grün/orange/grau) | Dauer (d/h/m/s granular) | Variant-Leader (A/B-Pill).
 - **Health:** `/dashboard/health` — Health-Check-Seite mit 2 expandable CheckCards (Snippet auto-check via API, Plugin via Server-Flag).
-- **Tests:** `/dashboard/tests` — Grid mit Search, Filter-Dropdown (Status/Zeitraum/Winner), TestCreationPanel-Trigger.
+- **Tests:** `/dashboard/tests` — Grid mit Search, Filter-Dropdown (Status/Zeitraum/Winner), NewTestDrawer-Trigger.
 
 ### 12.4 Gateway-Architektur
 
@@ -363,13 +365,15 @@ User klickt [+ New test]
 |---|---|---|
 | **Onboarding** | `webOnboarding` / `figmaOnboarding` | Hybrid-Onboarding v4: User gibt URL ein → Server extrahiert HTML/CSS (Option A) → GPT-4o analysiert echten Code → Dual-Screenshot (Original + CSS-Injection via urlbox.io) → A/B-Toggle → Aha-Moment in ~40s. Sign-up + Snippet erst am Gate. SSR-Seiten: 99% Selektor-Genauigkeit. SPAs: Snippet-zu-erst-Fallback (§0b). Web auf Landingpage, Figma im Plugin. |
 | **Health Check** | `/dashboard/health` | Permanente Status-Seite: Lebt das Snippet? Plugin verbunden? Domain verifiziert? Kein One-Time-Gate. |
-| **New test** | `figmaWizard` / `webWizard` | Wizard zum Erstellen eines A/B-Tests. 6 Steps: Test Details → Snippet → Element → Design → Generate → Goal. Aktuell nur im Figma-Plugin (`figmaWizard`), Dashboard (`webWizard`) folgt. |
+| **New test** | `NewTestDrawer` | Wizard zum Erstellen eines A/B-Tests. 4 Steps: Element → Goal → Variant → Review. Läuft ausschließlich im Dashboard; der frühere Figma-Plugin-Wizard (`figmaWizard`, 6 Steps) ist entfernt — das Plugin ist Stats-Only. |
 | **Test Details** | `s-setup` (Figma), Step 1 | Erster Wizard-Step: Test-Name + URL. Heißt im Figma-Code noch `s-setup` (Legacy). |
 | **Connect Website** | `ConnectWebsite`-Komponente | Domain-Verifikation: URL eingeben → Snippet prüfen → verifizieren. Teil des Health Checks. |
 | **Temp Session** | `tempToken` | Anonymer User ohne Account (vor Sign-up). Erlaubt Test-Erstellung ohne Login. |
 | **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. |
+| **Wizard-Draft** | `wizard_drafts`-Tabelle | Autosave des *unfertigen NewTestDrawer-Formulars* (debounced PUT alle 500ms, ein Draft pro User, `unique(user_id)`). Existiert nur solange der Wizard offen ist — wird beim erfolgreichen Test-Erstellen gelöscht. Nicht zu verwechseln mit `tests.status='draft'`. |
+| **Draft-Test** | `tests.status = 'draft'` | Ein bereits **angelegter** Test-Datensatz, dem noch Pflichtfelder fehlen (z. B. Goal). Erscheint in der Test-Liste, nicht im Wizard-Autosave. |
 
 **Abgrenzung zu alten Begriffen:**
-- ❌ **Onboarding-Gate** (entfernt 28.03.2026): War eine separate Page zwischen Sign-up und Dashboard. Existiert nicht mehr.
+- ❌ **Onboarding-Gate** (entfernt 08.07.2026): War eine separate Page zwischen Sign-up und Dashboard. Existiert nicht mehr.
 - ❌ **Setup** (umbenannt 17.07.2026): War der Sidebar-Link für den Health Check. Jetzt »Health«.
 - ❌ **DomainGate** (deprecated): Wurde durch `ConnectWebsite` ersetzt.

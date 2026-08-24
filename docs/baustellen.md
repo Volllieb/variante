@@ -1,6 +1,6 @@
 # Offene Baustellen
 
-> Stand: 24.07.2026 — Sync mit PROJEKT.md §11 und `docs/produktionsreife-massnahmenplan.md`.
+> Stand: 24.08.2026 — Sync mit PROJEKT.md §11 und `docs/produktionsreife-massnahmenplan.md`.
 
 | # | Thema | Status | Aktion |
 |---|---|---|---|
@@ -11,4 +11,3 @@
 | 5 | Supabase CLI Migration | 🟡 Später | Von manuellem SQL-Editor auf `supabase db push` umstellen. |
 | 6 | `paused`-State-Machine | 🟡 Dokumentation | Erlaubte Status-Übergänge dokumentieren und in CHECK-Constraints abbilden. |
 | 7 | Counter-Tabelle (PERF-01 Vollausbau) | 🟡 Später | `test_counters`-Tabelle für Hot-Path-Entlastung von `tests`-Row-Locks. |
-| 8 | TODO in TestCreationPanel.tsx:167 | 🟡 Später | `pageContext: undefined` — Page-Context aus ab.js-Picker für bessere AI-Vorschläge nutzen. File liegt in `docs/future-features/components/`. |

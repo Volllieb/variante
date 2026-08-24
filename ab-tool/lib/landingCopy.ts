@@ -117,7 +117,7 @@ const copy: LandingCopy = {
       sub: 'Forever free. No credit card.',
       cta: 'Start free',
       features: [
-        { label: '1 active experiment', exclusive: false },
+        { label: '1 active test', exclusive: false },
         { label: 'AI-powered page analysis', exclusive: false },
         { label: 'Automated variant generation', exclusive: false },
         { label: 'Test full sections — hero, pricing, CTAs', exclusive: false },
@@ -130,7 +130,7 @@ const copy: LandingCopy = {
       sub: 'Everything in Free, plus:',
       cta: 'Start Pro',
       features: [
-        { label: 'Unlimited experiments', exclusive: true },
+        { label: 'Unlimited tests', exclusive: true },
         { label: 'Statistical significance — know when to stop', exclusive: true },
         { label: 'Auto-winner — the best variant ships itself', exclusive: true },
         { label: 'Dynamic content — tailored copy per traffic source', exclusive: true },
@@ -201,17 +201,17 @@ const copy: LandingCopy = {
   badgeText: 'A/B by Variante',
 
   jsonldDescription:
-    'A/B testing for designers, indie hackers & founders. No developer, no pipeline.',
-  jsonldProDescription: 'Unlimited experiments, significance analysis, auto-winner detection',
+    'AI-powered A/B testing for indie hackers and founders. No developer, no pipeline.',
+  jsonldProDescription: 'Unlimited tests, significance analysis, auto-winner detection',
 
-  metaTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
+  metaTitle: 'A/B Testing Without a Developer | Variante',
   metaDescription:
-    'A/B testing made simple. Analyze your page, generate variants, track conversions — no developer needed. Works with WordPress, Next.js, Shopify.',
-  ogTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
+    'Pick any element on your site. AI generates a better version, traffic splits, the winner ships. No developer needed. Works with WordPress, Next.js, Shopify.',
+  ogTitle: 'A/B Testing Without a Developer | Variante',
   ogDescription:
-    'A/B testing made simple. Generate variants, run tests, ship winners — no dev needed.',
-  twitterTitle: 'A/B Testing for Designers, Indie Hackers & Founders | Variante',
-  twitterDescription: 'A/B testing made simple. No developer needed.',
+    'AI generates a better version of any element on your site. You approve, traffic splits, the winner ships. No developer needed.',
+  twitterTitle: 'A/B Testing Without a Developer | Variante',
+  twitterDescription: 'AI generates a better version of any element on your site. No developer needed.',
   ogImageAlt: 'Variante — A/B Testing for your site',
 }
 

@@ -89,7 +89,7 @@ export async function GET() {
             lineHeight: 1.1,
           }}
         >
-          A/B Testing from Figma
+          A/B Testing Without a Developer
         </div>
         <div
           style={{
@@ -100,7 +100,7 @@ export async function GET() {
             marginTop: 16,
           }}
         >
-          No Dev Needed
+          AI picks the change. You ship the winner.
         </div>
       </div>
     ),

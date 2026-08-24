@@ -368,11 +368,12 @@ Avatar mit Gravatar + JS-Fallback am unteren Rand.
 Avg Conv Rate, Avg Uplift) — nur sichtbar wenn Tests > 0. Test-Liste als Card mit Toolbar
 (Search/Sort/Filter) + Grid von TestCards.
 
-**Wizard-Pattern (Test-Erstellung):** 5-Step-Wizard im Dashboard (nicht Figma-Plugin):
-1. URL → 2. Goal (Conversion-Event) → 3. Design (AI-Vorschlag + Edit) → 4. Variant → 5. Review/Launch.
-3 Intervention-Points mit "Take control"-Pattern: User sieht KI-Vorschlag, kann akzeptieren
-oder manuell eingreifen. Figma-Plugin dient als optionale Design-Inspiration, nicht als Pflicht.
-Wizard speichert Drafts.
+**Wizard-Pattern (Test-Erstellung):** 4-Step-Wizard im Dashboard (`NewTestDrawer`, nicht
+Figma-Plugin): 1. Element (URL + Picker) → 2. Goal → 3. Variant → 4. Review. Der Variant-Step hat
+einen 3-Way-Switcher (AI Generate / Manual / Figma): AI schlägt automatisch eine Variante vor,
+User akzeptiert, editiert oder baut manuell. Figma dient dort nur als visuelle Inspiration (Link
+zum Plugin öffnet Figma in neuem Tab) — keine automatische Übernahme, keine Pflicht.
+Wizard speichert Drafts (`wizard_drafts`-Tabelle, ein Draft pro User).
 
 **State-Management:** Leerzustand (EmptyDashboard: Icon + Title + "Create your first test"-CTA),
 Partial-Data-Zustände, Error-Zustände. Gating: Free-Badge + Lock-Icon für Pro-Features,
@@ -400,17 +401,16 @@ anfühlen wie ein natives Figma-Feature, nicht wie eine eingebettete Fremd-App.
   Details und Token-Mapping siehe §2.4.
 - **Kein `#0D99FF`-Akzent mehr** — Buttons, Fokus, Hover nutzen Figmas native Darstellung.
 - **Keine eigenen Schatten, Gradients, Blur** — Figma hebt Elemente selbst.
-- **Gating:** Lock-Icon + Pro-Badge-Konvention aus Abschnitt 6 für gesperrte Wizard-Optionen
-  (z. B. Multivariate-Test-Option).
 - **Status:** Dot/Ring aus 5.4 für Test-/Ergebnis-Zustände.
-- **Struktur:** Wizard, 360×560px, bestehende Screen-Flow- und Polling-Pattern bleiben gültig.
+- **Struktur:** Stats-Only, 320×360px. Kein Wizard, keine Test-Erstellung im Plugin — zwei Screens
+  (Connect, Dashboard/Stats), sonst Link ins Web-Dashboard.
 
-**Migration (konkret):**
-1. `--brand`/`--brand-hover`/`--brand-subtle`/`--brand-border` entfernen
-2. Buttons, Inputs, Cards auf `--figma-color-bg`, `--figma-color-border`, `--figma-color-text` umstellen
-3. Funktionsfarben mappen (siehe §2.4 Token-Mapping)
-4. Status-Badges und Dots visuell 1:1 wie Dashboard, aber mit Figma-Tokens gerendert
-5. Keine eigenen Schatten mehr
+**Migration (abgeschlossen):**
+1. `--brand`/`--brand-hover`/`--brand-subtle`/`--brand-border` entfernt, Figma-native Tokens durchgängig.
+2. Wizard-Screens (Setup/Snippet/Preview/Gate/Element/Design/Generate/Metric) aus `ui.html` entfernt —
+   Test-Erstellung läuft ausschließlich über den Dashboard-Wizard (Abschnitt 7.1).
+3. Funktionsfarben gemappt (siehe 2.4 Token-Mapping).
+4. Keine eigenen Schatten.
 
 ---
 
@@ -430,9 +430,9 @@ anfühlen wie ein natives Figma-Feature, nicht wie eine eingebettete Fremd-App.
 
 ---
 
-## 9. Migration — was sich ändert
+## 9. Migration — Historie (abgeschlossen)
 
-Betroffene Dateien (Umsetzung folgt in separaten Schritten, nicht Teil dieses Dokuments):
+Betroffene Dateien — alle Punkte sind umgesetzt, Stand siehe `docs/historie.md`:
 
 - [ab-tool/app/dashboard/DashboardClient.tsx](ab-tool/app/dashboard/DashboardClient.tsx) —
   komplett von Dark-Aurora/Glass (Violet/Fuchsia-Gradients, `bg-white/[0.03]`) auf die neue
@@ -442,8 +442,8 @@ Betroffene Dateien (Umsetzung folgt in separaten Schritten, nicht Teil dieses Do
 - Landingpage (`ab-tool/app/page.tsx`) — Hero/Features/Pricing im „gleiches System, mehr Luft"-Ansatz
 - [ab-tool/app/globals.css](ab-tool/app/globals.css) — `@theme`-Block auf die Tokens aus
   Abschnitt 2 umstellen, `lp-*`-Aurora-Utilities (Zeilen 58–143) entfernen
-- [figma-plugin/src/ui.html](figma-plugin/src/ui.html) — `#0D99FF`-Brand-Variablen entfernen,
-  Lock/Pro-Badge-Konvention aus Abschnitt 6 in Wizard-Screens 4 (Metric Options) einbauen
+- [figma-plugin/src/ui.html](figma-plugin/src/ui.html) — erledigt: `#0D99FF`-Brand-Variablen entfernt,
+  Wizard-Screens komplett entfernt (Plugin ist Stats-Only) — keine Gating-Konvention im Plugin nötig
 
 ---
 

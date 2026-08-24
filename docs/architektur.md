@@ -7,19 +7,19 @@
 | Ebene | Ort | Zweck |
 |---|---|---|
 | **Health** | `/dashboard/health` | Health-Check: Snippet, Figma Plugin — permanenter Check, kein One-Time-Gate. |
-| **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. **Test-Erstellung hier** (TestCreationPanel). |
-| **Creation** | Web (Dashboard) | 4-Step Wizard: Scan → Variant → Goal → Create. AI-generierte Varianten mit urlbox-Screenshot-Preview. |
-| **Figma Plugin** | Figma | Referenz-Picker (Element-Selektor für `?ab_pick=`) + Akquise-Kanal. Keine Variant-Erstellung mehr. |
+| **Dashboard** | `/dashboard` | Täglicher Arbeitsplatz: Tests verwalten, Results checken, Billing. **Test-Erstellung hier** (`NewTestDrawer`). |
+| **Creation** | Web (Dashboard) | 4-Step Wizard: Element → Goal → Variant → Review. AI-generierte Variante als Default in Step Variant, Manual-Editor und Figma-Inspiration als Alternativen. |
+| **Figma Plugin** | Figma | Stats-Viewer (320×360px) + Akquise-Kanal. Kein Element-Picker, keine Variant-Erstellung. Der Built-in-Picker (`?ab_pick=`) läuft über `ab.js`, ausgelöst aus dem Dashboard-Wizard. |
 
 ## "New test"-Flow
 
 ```
 User klickt [+ New test]
          │
-         └─ TestCreationPanel öffnet (4 Steps)
-              Step 1: URL scannen → AI CRO-Vorschläge
-              Step 2: Element wählen → Variante generieren → Preview (urlbox)
-              Step 3: Conversion-Goal definieren
+         └─ NewTestDrawer öffnet (4 Steps)
+              Step 1: URL + Element wählen (Built-in-Picker auf der Live-Seite)
+              Step 2: Conversion-Goal definieren
+              Step 3: Variante bauen — AI Generate (Default) / Manual / Figma-Inspiration
               Step 4: Review → Test erstellen
 ```
 
