@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
-import { getApiUser, unauthorized } from '@/lib/auth'
+import { getApiUser } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 
 export async function OPTIONS() {
@@ -9,7 +9,18 @@ export async function OPTIONS() {
 
 export async function POST(req: Request) {
   const user = await getApiUser(req)
-  if (!user) return unauthorized('POST, OPTIONS')
+  if (!user) {
+    // Public CORS statt lib/auth.ts unauthorized() (die nur getvariante.com
+    // erlaubt): der New-Test-Wizard oeffnet den Picker OHNE Token (das Element
+    // kommt per postMessage, /api/capture ist hier nur ein Best-effort-Sync).
+    // Mit der restriktiven CORS-Origin konnte der Browser die 401-Antwort auf
+    // Kundendomains nicht lesen -> ab.js' fetch warf "Network error while
+    // saving." statt sauber auf den postMessage-Fallback zurueckzufallen.
+    return Response.json(
+      { error: 'unauthorized', hint: 'API token missing or invalid — copy it from the dashboard.' },
+      { status: 401, headers: corsHeadersPublic('POST, OPTIONS') }
+    )
+  }
 
   let body: {
     testId?: string
