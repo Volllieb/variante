@@ -1,8 +1,42 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
-import { sanitizeHtml, sanitizeCss } from '@/lib/sanitize'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
+
+// Sanitizer wird LAZY geladen und darf scheitern.
+//
+// Am 25.08.2026 riss der statische Import diese Route komplett mit: lib/sanitize
+// zieht jsdom nach, und jsdom laesst sich in einer Vercel Function nicht laden
+// (CJS-Pakete in seinem Baum require()n ESM-Dateien, was Vercels Node-Runtime
+// nicht unterstuetzt — lokal schon, deshalb war es mit `next start` unsichtbar).
+// Der Fehler fiel beim Modul-Init, also vor jedem Handler-Code: /api/resolve
+// lieferte auf JEDER Methode die statische /500 und keine einzige Kundenseite
+// bekam noch eine Variante, waehrend alle anderen Routen normal liefen.
+//
+// Eine einzige nicht ladbare Transitive darf das Produkt nicht abschalten.
+// Faellt der Import, werden die Tests OHNE variant_b_html/css ausgeliefert:
+// Zuweisung, Conversion-Tracking, Path-Matching und Badge laufen weiter,
+// Variante B wird nur nicht angewandt. Fail-closed — ungeprueftes HTML geht
+// unter keinen Umstaenden raus. /api/health meldet den Zustand als
+// sanitize: "import-failed".
+type Sanitizer = {
+  sanitizeHtml: (v: string | null | undefined) => string
+  sanitizeCss: (v: string | null | undefined) => string
+}
+
+let sanitizerPromise: Promise<Sanitizer | null> | null = null
+
+function loadSanitizer(): Promise<Sanitizer | null> {
+  if (!sanitizerPromise) {
+    sanitizerPromise = import('@/lib/sanitize')
+      .then((m) => ({ sanitizeHtml: m.sanitizeHtml, sanitizeCss: m.sanitizeCss }))
+      .catch((err) => {
+        safeError('resolve:sanitize', err instanceof Error ? err : new Error(String(err)))
+        return null
+      })
+  }
+  return sanitizerPromise
+}
 
 export async function OPTIONS() {
   return preflightPublic('GET, OPTIONS')
@@ -101,6 +135,8 @@ export async function GET(req: Request) {
     badge = matched.some(t => !t.user_id || !proOwners.has(t.user_id))
   }
 
+  const sanitizer = await loadSanitizer()
+
   const tests = matched.map(t => ({
     snippet_key: t.snippet_key,
     selector: t.selector,
@@ -110,8 +146,8 @@ export async function GET(req: Request) {
     // Security: XSS-Sanitization vor Auslieferung an ab.js.
     // ponytail: variant_b_css ging vorher ROH raus — sanitizeCss existierte,
     // wurde aber nur in lib/previewAnalyze.ts verwendet (Plan SEC-01c).
-    variant_b_html: sanitizeHtml(t.variant_b_html),
-    variant_b_css: sanitizeCss(t.variant_b_css) || null,
+    variant_b_html: sanitizer ? sanitizer.sanitizeHtml(t.variant_b_html) : null,
+    variant_b_css: sanitizer ? sanitizer.sanitizeCss(t.variant_b_css) || null : null,
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
     // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
     // Extrahiert aus site_url, damit der Client filtern kann, ohne
