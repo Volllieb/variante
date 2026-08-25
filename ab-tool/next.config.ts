@@ -44,18 +44,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: '.',
   },
-  // isomorphic-dompurify zieht jsdom nach (706 getracte Dateien). jsdom laedt
-  // seine Ressourcen ueber dynamische require()- und fs-Zugriffe — gebundelt
-  // findet es sie auf Vercel nicht und wirft schon beim Modul-Import.
-  //
-  // Folge war ein Totalausfall des Produkts: /api/resolve ist die EINZIGE Route,
-  // die lib/sanitize importiert, und sie lieferte auf jeder Methode (auch OPTIONS,
-  // also vor jedem Handler-Code) die statische /500-Seite. Kein Kunde bekam mehr
-  // eine Variante ausgeliefert, waehrend alle 19 anderen API-Routen normal liefen.
-  // Lokal war das unsichtbar, weil `next start` neben dem echten node_modules laeuft.
-  //
-  // serverExternalPackages laesst beide Pakete ungebundelt aus node_modules laden.
-  serverExternalPackages: ['isomorphic-dompurify', 'jsdom'],
+  // isomorphic-dompurify zieht jsdom nach. Erster Versuch war, beide per
+  // serverExternalPackages ungebundelt aus node_modules zu laden — das hat den
+  // Ausfall nicht behoben, sondern nur den ERR_REQUIRE_ESM sichtbar gemacht:
+  // Vercels Node-Runtime kann aus CJS heraus keine ESM-Datei require()n, lokal
+  // geht es. Turbopack loest genau diese Mischung beim Bundeln auf, deshalb
+  // wird jsdom hier bewusst NICHT externalisiert.
   async redirects() {
     return [
       {
