@@ -77,7 +77,7 @@ vercel rollback                # oder: vercel promote <alte-deployment-url>
 
 - Sofort-Entlastung für den Kunden: Test im Dashboard pausieren (paused wird bei resolve nicht ausgeliefert).
 - ab.js wird mit 1h-Cache (`must-revalidate`) serviert — ein Fix ist nach spätestens 1h überall. Kein Kill-Switch nötig: Snippet entfernen können Kunden selbst.
-- Bei ab.js-Release: SRI-Hash neu generieren (Baustelle #2).
+- Bei ab.js-Release ist **nichts** am Snippet nachzuziehen — es pinnt seit 25.08.2026 keinen SRI-Hash mehr. Meldet ein Kunde "läuft plötzlich nicht mehr": Console auf `Failed to find a valid digest in the 'integrity' attribute` prüfen → Altsnippet, einmal neu einfügen lassen. `/api/snippet-check` liefert dafür `outdated: true`.
 
 ## Backups & Datenverlust
 

@@ -4,7 +4,7 @@
 
 | # | Thema | Status | Aktion |
 |---|---|---|---|
-| 1 | SRI-Hash bei ab.js-Update | 🟡 Prozess | Bei jedem `ab.js`-Release: `sha384`-Hash neu generieren und in Snippet-Referenzen aktualisieren. Langfristig: Hash aus `lib/snippetCode.ts` als Single Source generieren. |
+| 1 | ~~SRI-Hash bei ab.js-Update~~ | ✅ Erledigt (25.08.2026) | SRI aus dem Snippet entfernt — ein fester Hash im Kunden-`<head>` blockierte `ab.js` nach jedem Release still (zuletzt vallisride.com). Begründung: `README.md` §Security. Bestandsinstallationen mit `integrity` meldet `/api/snippet-check` als `outdated`; der Kunde muss das Snippet einmal neu einfügen. |
 | 2 | k6-Loadtest ausführen | 🟡 Offen | `ab-tool/__tests__/load/main.k6.js` (smoke/load/stress). p95 <2s, Error <1%. |
 | 3 | E2E-Coverage-Lücken | 🟡 Offen | Domain-Verification, Agent-Run, Stripe-Checkout ohne E2E-Spec. |
 | 4 | Component-Splitting | 🟡 Später | `AccountClient.tsx` (876 Z.) + `ResultsClient.tsx` (1248 Z.) aufteilen. |

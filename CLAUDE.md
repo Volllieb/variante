@@ -121,4 +121,4 @@ vercel promote <url>              # Promote preview → production
 - Rate limiting (`lib/rateLimit.ts`) via Upstash Redis
 - Signed Assignment Tokens, bcrypt IP hashing
 - No third-party CDN analytics. No credit cards on own server.
-- SRI hash for `ab.js` deliveries
+- **Kein SRI** im Snippet (bewusst, seit 25.08.2026): ein fester `integrity`-Hash im Kunden-`<head>` blockiert `ab.js` bei jedem Release still auf allen Bestandsinstallationen. Begründung: `README.md` §Security. `/api/snippet-check` meldet Altinstallationen mit `integrity` als `outdated`.

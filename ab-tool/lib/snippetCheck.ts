@@ -14,7 +14,19 @@ export type SnippetCheckResult = {
   detected: boolean
   checkedUrl: string
   reason?: string
+  /**
+   * Snippet ist da, traegt aber noch das alte `integrity`-Attribut. Der Hash
+   * wurde einmal in den <head> kopiert und passt nach jedem ab.js-Release nicht
+   * mehr — der Browser blockiert das Script dann komplett und still. Seit dem
+   * Wegfall von SRI (siehe lib/snippetCode.ts) ist JEDES integrity am ab.js-Tag
+   * eine Altinstallation, die neu eingefuegt werden muss.
+   */
+  outdated?: boolean
 }
+
+// <script ... src=".../ab.js" ...> — Attributreihenfolge ist beliebig, deshalb
+// erst das Tag greifen und dann darin nach integrity suchen.
+const AB_SCRIPT_TAG_RE = /<script\b[^>]*\bsrc=["'][^"']*\/ab\.js[^"']*["'][^>]*>/i
 
 export function normalizeUrl(raw: string): string {
   const trimmed = raw.trim()
@@ -63,13 +75,24 @@ export async function checkSnippet(siteUrl: string): Promise<SnippetCheckResult>
       reader.cancel().catch(() => {})
     }
 
-    const detected =
+    const present =
       /ab\.js/.test(html) || /__ab_hide/.test(html) || /__ab_pending/.test(html)
 
+    // Ein integrity-Attribut am ab.js-Tag heisst: der Browser laedt das Script
+    // gar nicht erst. `detected` beschreibt eine FUNKTIONIERENDE Installation —
+    // sonst wuerde /api/domains/verify eine tote Seite als verifiziert buchen.
+    const tag = html.match(AB_SCRIPT_TAG_RE)?.[0] ?? ''
+    const outdated = present && /\bintegrity=/i.test(tag)
+
     return {
-      detected,
+      detected: present && !outdated,
       checkedUrl: url,
-      reason: detected ? undefined : 'Snippet not found in the first 200 KB of the page.',
+      ...(outdated ? { outdated: true } : {}),
+      reason: outdated
+        ? 'Outdated snippet: the integrity hash blocks ab.js. Paste the current snippet again.'
+        : present
+          ? undefined
+          : 'Snippet not found in the first 200 KB of the page.',
     }
   } catch {
     return { detected: false, checkedUrl: url, reason: 'Site unreachable or timed out' }

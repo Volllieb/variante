@@ -21,7 +21,7 @@ type BannerState =
   | { phase: 'input'; error?: string }
   | { phase: 'saving' }
   | { phase: 'checking'; url: string; progress?: number }
-  | { phase: 'not-found'; url: string; timeout?: boolean; retries?: number }
+  | { phase: 'not-found'; url: string; timeout?: boolean; outdated?: boolean; retries?: number }
   | { phase: 'verified'; url: string }
 
 /* ── Main Component ── */
@@ -229,7 +229,12 @@ function SnippetBanner({
       })
       if (!mountedRef.current) return
       const json = await res.json()
-      if (json.detected) {
+      // Altes Snippet mit integrity-Hash: das Script IST auf der Seite, der
+      // Browser blockiert es aber. Als "verifiziert" durchzuwinken wuerde eine
+      // tote Installation gruen anzeigen.
+      if (json.outdated) {
+        onChange({ phase: 'not-found', url, outdated: true, retries })
+      } else if (json.detected) {
         if (pollRef.current) clearInterval(pollRef.current)
         // Verify the domain
         try {
@@ -463,18 +468,22 @@ function SnippetBanner({
               <p className="text-[14px] font-semibold text-white">
                 {state.timeout
                   ? 'Site unreachable'
-                  : <>Snippet not found on <strong>{state.url}</strong></>
+                  : state.outdated
+                    ? <>Outdated snippet on <strong>{state.url}</strong></>
+                    : <>Snippet not found on <strong>{state.url}</strong></>
                 }
               </p>
               <p className="mt-1 text-[12px] text-text-3">
                 {state.timeout
                   ? 'Make sure your site is publicly accessible (no localhost or login walls).'
-                  : 'We checked your site but couldn\'t find the variante snippet. Here\'s what to check:'}
+                  : state.outdated
+                    ? 'Your snippet still carries an integrity="sha384-…" hash from an older release. The browser blocks ab.js because of it — no tracking, no variants, no element picker. Replace the snippet in your <head> with the one below (it no longer pins a hash).'
+                    : 'We checked your site but couldn\'t find the variante snippet. Here\'s what to check:'}
               </p>
             </div>
 
             {/* Troubleshooting list */}
-            {!state.timeout && (
+            {!state.timeout && !state.outdated && (
               <ul className="space-y-1 text-[11px] text-text-2">
                 <li className="flex items-start gap-2">
                   <span className="text-err mt-0.5 shrink-0">1.</span>

@@ -45,6 +45,7 @@ export async function POST(req: Request) {
       {
         detected: result.detected,
         checked_url: result.checkedUrl,
+        ...(result.outdated ? { outdated: true } : {}),
         ...(result.reason ? { reason: result.reason } : {}),
       },
       { headers: corsHeaders('POST, OPTIONS') }

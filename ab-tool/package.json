@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "npm run sri:check && next build",
-    "sri": "node scripts/sri.mjs --write",
-    "sri:check": "node scripts/sri.mjs --check",
+    "vercel-build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test --project=chromium",

@@ -55,16 +55,27 @@ Zwei Dateien liegen bewusst **außerhalb** der Kette und dürfen nicht mitlaufen
 
 ## Security
 
-### Subresource Integrity (SRI)
+### Kein SRI im Snippet (bewusst)
 
-Das `ab.js`-Snippet wird auf fremden Websites geladen. Zum Schutz vor Supply-Chain-Angriffen empfehlen wir das `integrity`-Attribut:
+Das Snippet lädt `ab.js` **ohne** `integrity`-Attribut:
 
 ```html
-<script async src="https://www.getvariante.com/ab.js"
-  integrity="sha384-Qsq0oyC/klf8KDvsWI3jckOstviKGPHtSCEicmoe3rtTKka0ynosZsW4yRMhLFUl"
-  crossorigin="anonymous"></script>
+<script async src="https://www.getvariante.com/ab.js"></script>
 ```
 
-> Der Hash wird bei jedem `ab.js`-Release neu generiert (`sha384`). Ohne SRI könnte ein kompromittierter Vercel-Account Schadcode auf allen Kunden-Sites ausführen.
+SRI und ein selbst-aktualisierendes Snippet schließen sich aus: Der Hash steht
+fest im `<head>` der Kundenseite, `ab.js` ändert sich bei jedem Release. Sobald
+beide auseinanderlaufen, **blockiert der Browser `ab.js` auf jeder bereits
+installierten Seite** — still, nur mit einer Console-Meldung, und damit ohne
+Tracking, ohne Variante, ohne Picker. Genau das ist zweimal passiert (zuletzt
+auf `vallisride.com`).
 
-> **Pflege:** `npm run sri` (in `ab-tool/`) schreibt den aktuellen Hash in diesen Block und in `lib/snippetCode.ts`. `npm run sri:check` läuft als Teil von `vercel-build` und bricht den Build ab, wenn der Hash nicht zu `public/ab.js` passt — ein veralteter Hash blockiert `ab.js` auf jeder Kundenseite.
+Der Restnutzen von SRI wäre hier klein: `ab.js` kommt von unserer eigenen Origin
+über HTTPS + HSTS, der Angriffsvektor ist ausschließlich ein kompromittiertes
+eigenes Vercel-Deployment — und dagegen schützt ein Hash nicht, den derselbe
+Build erzeugt. Wer das Risiko trotzdem pinnen will, kopiert eine Version von
+`ab.js` auf die eigene Domain und hostet sie selbst.
+
+**Altinstallationen:** Snippets mit `integrity="sha384-…"` sind kaputt, sobald
+`ab.js` neu ausgeliefert wurde. `/api/snippet-check` meldet solche Seiten als
+`outdated`; das Dashboard weist auf das Neu-Einfügen des Snippets hin.
