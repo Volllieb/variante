@@ -10,6 +10,47 @@
   <style id="__ab_hide">html.__ab_pending{opacity:0!important}</style>
   <script>document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)</script>
 
+  <!-- ab.js-Probe — MUSS vor dem Snippet stehen.
+       ab.js schreibt localStorage nur mit window.varianteConsent === true
+       (cookieless Default, siehe ab.js §Consent & Storage). Ohne Probe sieht
+       das Debug-Panel deshalb NICHTS. Die Probe liest die Zuweisung direkt aus
+       den API-Antworten — unabhängig vom Consent-Modus. -->
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      // ?ab_consent=1 → sticky wie mit Cookie-Consent (Variante bleibt über Reloads gleich).
+      // Default: cookieless → jeder Reload würfelt neu, ideal um A und B zu sehen.
+      if (q.get('ab_consent') === '1') window.varianteConsent = true;
+
+      var state = { tests: [], assign: {}, resolveOk: null, error: null };
+      window.__abDebugState = state;
+
+      var origFetch = window.fetch;
+      window.fetch = function (input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        return origFetch.apply(this, arguments).then(function (res) {
+          try {
+            if (url.indexOf('/api/resolve') !== -1) {
+              state.resolveOk = res.ok;
+              res.clone().json().then(function (j) {
+                state.tests = (j && j.tests) || [];
+              }, function () {});
+            } else if (url.indexOf('/api/assign') !== -1) {
+              var id = decodeURIComponent((url.split('testId=')[1] || '').split('&')[0]);
+              res.clone().json().then(function (j) {
+                if (j && j.variant) state.assign[id] = j.variant;
+              }, function () {});
+            }
+          } catch (_) {}
+          return res;
+        }, function (err) {
+          if (url.indexOf('/api/') !== -1) state.error = String(err);
+          throw err;
+        });
+      };
+    })();
+  </script>
+
   <!-- A/B Testing snippet — replace src for local dev -->
   <!-- Local:  http://localhost:3000/ab.js -->
   <!-- Prod:   https://www.getvariante.com/ab.js -->
@@ -507,53 +548,48 @@
       var debug = document.getElementById('__ab_debug');
       var debugTests = document.getElementById('__ab_debug_tests');
 
-      // Lies Varianten aus localStorage (ab.js speichert "ab_<snippet_key>" = {variant:"A"|"B"})
-      function readVariants() {
-        var variants = {};
-        try {
-          for (var i = 0; i < localStorage.length; i++) {
-            var key = localStorage.key(i);
-            if (key && key.indexOf('ab_') === 0 && key.indexOf('ab_conv_') !== 0) {
-              try {
-                var data = JSON.parse(localStorage.getItem(key));
-                variants[key] = data.variant || '?';
-              } catch (_) {}
-            }
+      var state = window.__abDebugState || { tests: [], assign: {} };
+
+      // Eine Zeile pro Test: zugewiesene Variante + ob B wirklich im DOM steckt.
+      function render() {
+        var tests = state.tests || [];
+        if (!tests.length) {
+          debugTests.innerHTML = state.resolveOk === false || state.error
+            ? '<span class="dim">/api/resolve fehlgeschlagen — läuft der Dev-Server?</span>'
+            : '<span class="dim">No active tests for this host/path</span>';
+          return;
+        }
+        var html = '';
+        for (var i = 0; i < tests.length; i++) {
+          var t = tests[i];
+          var key = t.snippet_key;
+          var v = t.force === 'B' ? 'B' : (state.assign[key] || '…');
+          var domB = !!document.querySelector('[data-ab-el="' + key + '"]') ||
+                     !!document.querySelector('style[data-ab-css="' + key + '"]');
+          var mark = v === 'B' ? (domB ? ' ✓ im DOM' : ' ⚠ nicht angewandt') : '';
+          html += '<span class="tag' + (v === 'B' ? ' b' : '') + '">' +
+            String(key).slice(0, 8) + ' → Var ' + v + mark + '</span> ';
+          if (v === 'B' && !domB) {
+            html += '<div class="dim">Selektor trifft nichts: <code>' +
+              String(t.selector || '?').replace(/</g, '&lt;') + '</code></div>';
           }
-        } catch (_) {}
-        return variants;
+        }
+        debugTests.innerHTML = html;
       }
+      // Manuell neu zeichnen: __abDebugRender() in der Konsole.
+      window.__abDebugRender = render;
 
-      // Poll bis ab.js Varianten gespeichert hat UND __ab_pending entfernt wurde
+      // Poll bis resolve + assign durch sind (bzw. Timeout nach 5s).
       var attempts = 0;
-      var poll = setInterval(function() {
+      var poll = setInterval(function () {
         attempts++;
-        var resolved = !document.documentElement.classList.contains('__ab_pending');
-        var variants = readVariants();
-        var keys = Object.keys(variants);
-
-        if (keys.length > 0) {
-          clearInterval(poll);
-          debug.classList.add('visible');
-          var html = '';
-          keys.forEach(function(key) {
-            var variant = variants[key];
-            html += '<span class="tag' + (variant === 'B' ? ' b' : '') + '">' +
-              key.replace('ab_', '').slice(0, 8) + ' → Var ' + variant +
-              '</span> ';
-          });
-          debugTests.innerHTML = html || '<span class="dim">No active tests</span>';
-        }
-
-        if (attempts > 60) { // 3 Sekunden
-          clearInterval(poll);
-          if (keys.length === 0) {
-            debug.classList.add('visible');
-            debugTests.innerHTML = resolved
-              ? '<span class="dim">No active tests (ab.js loaded)</span>'
-              : '<span class="dim">ab.js not loaded (check snippet)</span>';
-          }
-        }
+        var tests = state.tests || [];
+        var pending = tests.some(function (t) {
+          return t.force !== 'B' && !state.assign[t.snippet_key];
+        });
+        debug.classList.add('visible');
+        render();
+        if ((tests.length && !pending) || attempts > 100) clearInterval(poll);
       }, 50);
     })();
 
