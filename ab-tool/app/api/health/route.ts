@@ -25,46 +25,29 @@ export const dynamic = 'force-dynamic'
 // node_modules), deshalb prüft der Health-Check es jetzt IN der Produktion.
 // Nach außen geht nur ein grober Code — die eigentliche Fehlermeldung landet
 // über safeError im Vercel-Log, nicht in der Antwort.
-type Probe = { status: 'ok' | 'import-failed'; detail?: string; node?: string }
-
-// TEMPORAER (25.08.2026): detail + node sind Diagnose fuer den laufenden
-// Ausfall und fliegen raus, sobald die Ursache behoben ist. Beides ist
-// unkritisch — Modul-Aufloesefehler enthalten nur Pfade und Paketnamen,
-// keine Secrets.
-function detailOf(err: unknown): string {
-  const e = err as { code?: string; message?: string }
-  const code = e?.code ? String(e.code) : 'ERROR'
-  return (code + ': ' + String(e?.message ?? err)).slice(0, 200)
-}
-
-async function probeSanitize(): Promise<Probe> {
-  const node = process.version
-  // Einzeln pruefen, damit sichtbar wird, WELCHE Stufe der Kette bricht:
-  // lib/sanitize -> isomorphic-dompurify -> jsdom.
-  for (const spec of ['jsdom', 'dompurify', 'isomorphic-dompurify'] as const) {
-    try {
-      await import(/* webpackIgnore: true */ spec)
-    } catch (err) {
-      safeError('health:sanitize:' + spec, err instanceof Error ? err : new Error(String(err)))
-      return { status: 'import-failed', detail: spec + ' -> ' + detailOf(err), node }
-    }
-  }
+// Der Ausfall vom 25.08.2026 ist diagnostiziert (siehe app/api/resolve/route.ts):
+// jsdom laesst sich in der Vercel-Runtime nicht laden. Die ausfuehrliche
+// Fehlerausgabe hat ihren Zweck erfuellt und ist wieder raus — nach aussen geht
+// nur noch der grobe Zustand, die Meldung selbst landet ueber safeError im Log.
+//
+// "import-failed" heisst: /api/resolve laeuft, liefert aber keine Varianten aus
+// (fail-closed). Der Check bleibt drin, damit dieser Zustand nicht wieder
+// unbemerkt ueber Tage laeuft.
+async function probeSanitize(): Promise<'ok' | 'import-failed'> {
   try {
     const mod = await import('@/lib/sanitize')
     mod.sanitizeHtml('<b>probe</b>')
     mod.sanitizeCss('a{color:red}')
-    return { status: 'ok', node }
+    return 'ok'
   } catch (err) {
     safeError('health:sanitize', err instanceof Error ? err : new Error(String(err)))
-    return { status: 'import-failed', detail: 'lib/sanitize -> ' + detailOf(err), node }
+    return 'import-failed'
   }
 }
 
 export async function GET() {
   const startedAt = Date.now()
-  const probe = await probeSanitize()
-  const sanitize = probe.status
-  const diag = { sanitize, sanitizeDetail: probe.detail, node: probe.node }
+  const sanitize = await probeSanitize()
 
   try {
     // Leichtester mögliche Roundtrip: count über eine kleine Tabelle, head-only.
@@ -74,7 +57,7 @@ export async function GET() {
 
     if (error) {
       return Response.json(
-        { status: 'degraded', db: 'error', ...diag, latencyMs: Date.now() - startedAt },
+        { status: 'degraded', db: 'error', sanitize, latencyMs: Date.now() - startedAt },
         { status: 503, headers: { 'Cache-Control': 'no-store' } }
       )
     }
@@ -82,18 +65,18 @@ export async function GET() {
     // sanitize kaputt = /api/resolve ist tot, auch wenn die DB antwortet.
     if (sanitize !== 'ok') {
       return Response.json(
-        { status: 'degraded', db: 'ok', ...diag, latencyMs: Date.now() - startedAt },
+        { status: 'degraded', db: 'ok', sanitize, latencyMs: Date.now() - startedAt },
         { status: 503, headers: { 'Cache-Control': 'no-store' } }
       )
     }
 
     return Response.json(
-      { status: 'ok', db: 'ok', ...diag, latencyMs: Date.now() - startedAt },
+      { status: 'ok', db: 'ok', sanitize, latencyMs: Date.now() - startedAt },
       { headers: { 'Cache-Control': 'no-store' } }
     )
   } catch {
     return Response.json(
-      { status: 'down', ...diag, latencyMs: Date.now() - startedAt },
+      { status: 'down', sanitize, latencyMs: Date.now() - startedAt },
       { status: 503, headers: { 'Cache-Control': 'no-store' } }
     )
   }
