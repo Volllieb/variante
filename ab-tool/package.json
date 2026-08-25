@@ -1,9 +1,6 @@
 {
   "name": "ab-tool",
   "version": "0.1.0",
-  "engines": {
-    "node": "24.x"
-  },
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -59,10 +56,13 @@
     "@vitejs/plugin-react": "^6.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
-    "jsdom": "^29.1.1",
+    "jsdom": "27.3.0",
     "tailwindcss": "^4",
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "jsdom": "27.3.0"
   }
 }
