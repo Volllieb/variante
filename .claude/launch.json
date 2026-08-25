@@ -4,8 +4,27 @@
     {
       "name": "ab-tool",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "ab-tool"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "ab-tool"
+      ],
       "port": 3000
+    },
+    {
+      "name": "ab-tool-prod",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "start",
+        "--prefix",
+        "ab-tool",
+        "--",
+        "-p",
+        "3001"
+      ],
+      "port": 3001
     }
   ]
 }
