@@ -651,6 +651,27 @@
     setTimeout(function () { applying = false }, 0)
   }
 
+  // CSS wird gegen den ORIGINAL-Selektor generiert. Ersetzt die B-Variante das
+  // Element durch anderes Markup (anderes Tag, andere Klassen), trifft dieser
+  // Selektor das neue Element nicht mehr und die Variante rendert voellig
+  // ungestylt — der Test verliert dann aus einem Grund, der nichts mit dem
+  // getesteten Inhalt zu tun hat.
+  //
+  // Auf einer echten Kundenseite gemessen: CSS auf
+  // "#hero-meta-right > div.hero-actions > a.hover-btn.hover-btn--white",
+  // B rendert "<button class=\"ab-variant-b\">". Statt weiss/schwarz gerahmt,
+  // 16px, radius 11 kam der nackte Browser-Default (grau, outset, radius 0,
+  // padding 0, 13px).
+  //
+  // Der Selektor wird deshalb literal durch die B-Wurzel ersetzt, sobald B
+  // wirklich im DOM gelandet ist. Literal, damit Suffixe wie ":hover" oder
+  // " > span" erhalten bleiben. Wurde B NICHT angewandt, steht das
+  // Originalelement noch da und der Selektor stimmt weiterhin.
+  function scopeCssToVariant(css, selector, key) {
+    if (!css || !selector || css.indexOf(selector) === -1) return css
+    return css.split(selector).join('[data-ab-el="' + key + '"]')
+  }
+
   var injectedStyles = {} // key → style-element, für SPA-Cleanup
   function applyCss(key, css) {
     if (!css) return
@@ -711,8 +732,15 @@
     if (!key || !selector) return Promise.resolve()
     var goalSel = normGoal(t.goal, selector)
 
-    function finish(variant, html) {
+    function finish(variant, html, css) {
       var applied = applyDom(selector, variant, html, key)
+      // Reihenfolge ist wichtig: erst der DOM-Tausch, dann das CSS. Vorher
+      // wurde applyCss VOR applyDom aufgerufen, dann ist noch gar nicht
+      // bekannt, ob B ueberhaupt angewandt wurde — und genau davon haengt ab,
+      // auf welchen Selektor das CSS zeigen muss.
+      if (variant === 'B') {
+        applyCss(key, applied ? scopeCssToVariant(css, selector, key) : css)
+      }
       // Goal-Selektor für Variante B:
       // 1. EXPLIZITES Goal (t.goal gesetzt, z.B. #signup-button) → goalSel behalten.
       //    Das Goal-Element liegt außerhalb des ersetzten Containers, data-ab-el würde
@@ -749,8 +777,8 @@
     // Abgeschlossener Test mit Gewinner B: ALLE Besucher bekommen B ausgeliefert,
     // ohne Assign-Counter und ohne Conversion-Tracking. HTML kommt aus resolve.
     if (t.force === 'B') {
-      applyCss(key, t.variant_b_css)
-      if (t.variant_b_html) applyDom(selector, 'B', t.variant_b_html, key)
+      var forced = t.variant_b_html ? applyDom(selector, 'B', t.variant_b_html, key) : false
+      applyCss(key, forced ? scopeCssToVariant(t.variant_b_css, selector, key) : t.variant_b_css)
       return Promise.resolve()
     }
 
@@ -760,8 +788,7 @@
       try {
         var d = JSON.parse(cached)
         if (d && (d.variant === 'A' || d.variant === 'B')) {
-          if (d.variant === 'B') applyCss(key, d.css)
-          finish(d.variant, d.html)
+          finish(d.variant, d.html, d.css)
           return Promise.resolve()
         }
       } catch (_) {}
@@ -781,21 +808,20 @@
         var token = res.token || null
         if (res.variant === 'A') {
           lsSet('ab_' + key, JSON.stringify({ variant: 'A', token: token }))
-          finish('A', null)
+          finish('A', null, null)
           return
         }
         var html = t.variant_b_html
         var css = t.variant_b_css
         if (html || css) {
           lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html || null, css: css || null, token: token }))
-          applyCss(key, css)
-          finish('B', html)
+          finish('B', html, css)
         } else {
           // Noch kein generiertes HTML/CSS → assign wurde trotzdem aufgerufen,
           // Besucher ist gezählt. A anzeigen, aber nicht cachen (damit beim
           // nächsten Page-View erneut assign aufgerufen wird und ggf. B-HTML
           // inzwischen existiert).
-          finish('A', null)
+          finish('A', null, null)
         }
       })
       .catch(function () {})
