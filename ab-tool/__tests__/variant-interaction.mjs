@@ -127,6 +127,24 @@ check('target="_blank" öffnet ein neues Fenster statt zu navigieren', () => {
   assert.equal(nav.href, null, 'darf nicht zusaetzlich navigieren')
 })
 
+check('Mittelklick öffnet einen neuen Tab, wie beim echten Link', () => {
+  const { dom, doc, api, nav } = page('<a id="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
+  doc.querySelector(`[data-ab-el="${KEY}"]`)
+    .dispatchEvent(new dom.window.MouseEvent('auxclick', { button: 1, bubbles: true, cancelable: true }))
+  assert.equal(nav.opened, 'https://kunde.example/signup')
+  assert.equal(nav.href, null, 'darf die aktuelle Seite nicht verlassen')
+})
+
+check('Strg-Klick öffnet einen neuen Tab', () => {
+  const { dom, doc, api, nav } = page('<a id="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
+  doc.querySelector(`[data-ab-el="${KEY}"]`)
+    .dispatchEvent(new dom.window.MouseEvent('click', { ctrlKey: true, bubbles: true, cancelable: true }))
+  assert.equal(nav.opened, 'https://kunde.example/signup')
+  assert.equal(nav.href, null)
+})
+
 check('Klick bubbelt weiter — der Conversion-Listener sieht ihn', () => {
   const { dom, doc, api } = page('<a id="cta" href="/signup">Get started</a>')
   api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
@@ -221,7 +239,46 @@ check('nicht-interaktives B wird per Tastatur bedienbar', () => {
   assert.equal(nav.href, 'https://kunde.example/signup')
 })
 
-// ── Fall 7: unveränderte Pfade ─────────────────────────────────────────────
+// ── Fall 7: Mauszeiger und Beschriftung ────────────────────────────────────
+// Der Cursor kommt nicht vom Aussehen: <a href> bekommt vom Browser
+// cursor:pointer, <button> nicht. Wird der Link zur <button>-Variante, zeigt
+// der Zeiger dort einen Pfeil — B wirkt tot, obwohl der Klick funktioniert.
+console.log('\n── Mauszeiger & Beschriftung ──\n')
+
+check('cursor des Originals landet auf der Variante', () => {
+  const { doc, api } = page('<style>.cta{cursor:pointer}</style><a id="cta" class="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
+  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).style.cursor, 'pointer')
+})
+
+check('abweichender cursor (not-allowed) wird nicht zu pointer verbogen', () => {
+  const { doc, api } = page('<style>.cta{cursor:not-allowed}</style><button id="cta" class="cta">Ausverkauft</button>', false)
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Ausverkauft</button>', KEY)
+  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).style.cursor, 'not-allowed')
+})
+
+check('bringt B den cursor selbst mit, wird nichts gesetzt', () => {
+  const { doc, api } = page('<style>.cta{cursor:pointer}.ab-variant-b{cursor:pointer}</style><a id="cta" class="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
+  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).style.cursor, '')
+})
+
+check('title, aria-label und disabled wandern mit', () => {
+  const { doc, api } = page('<button id="cta" title="Jetzt starten" aria-label="Kostenlos starten" disabled>Get started</button>', false)
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
+  const b = doc.querySelector(`[data-ab-el="${KEY}"]`)
+  assert.equal(b.getAttribute('title'), 'Jetzt starten')
+  assert.equal(b.getAttribute('aria-label'), 'Kostenlos starten')
+  assert.ok(b.hasAttribute('disabled'))
+})
+
+check('eigenes aria-label der Variante bleibt', () => {
+  const { doc, api } = page('<button id="cta" aria-label="Alt">Get started</button>', false)
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b" aria-label="Neu">Start free</button>', KEY)
+  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).getAttribute('aria-label'), 'Neu')
+})
+
+// ── Fall 8: unveränderte Pfade ─────────────────────────────────────────────
 console.log('\n── Regression: bestehende Pfade ──\n')
 
 check('Plain-Text-Variante behält das Original-Element samt href', () => {

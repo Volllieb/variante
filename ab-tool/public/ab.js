@@ -750,6 +750,10 @@
   //   'bridge'   B muss den Klick an das versteckte A weiterreichen
   function portInteraction(src, dst) {
     if (!src || !dst || src === dst) return null
+    // Beschriftung und Zustand gehören zum Verhalten, nicht zum Design:
+    // Tooltip, Screenreader-Label und ein deaktivierter Button müssen in B
+    // genauso ankommen. Nur wo B nichts Eigenes mitbringt.
+    copyMissing(src, dst, ['title', 'aria-label', 'disabled'])
     if (realHref(dst)) return 'own'
     var href = realHref(src)
     if (href) {
@@ -785,13 +789,41 @@
     if (tag === 'a' || tag === 'button' || tag === 'input') return
     if (!dst.hasAttribute('role')) dst.setAttribute('role', 'button')
     if (!dst.hasAttribute('tabindex')) dst.setAttribute('tabindex', '0')
-    try { if (dst.style && !dst.style.cursor) dst.style.cursor = 'pointer' } catch (_) {}
     dst.addEventListener('keydown', function (ev) {
       if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
         ev.preventDefault()
         dst.click()
       }
     })
+  }
+
+  // --- Mauszeiger von A übernehmen ------------------------------------------
+  // "Sieht klickbar aus" entscheidet der Cursor, und der kommt NICHT vom
+  // Aussehen: <a href> bekommt vom Browser cursor:pointer, <button> dagegen
+  // cursor:default. Wird aus dem Link <a class="cta"> die Variante
+  // <button class="ab-variant-b">, zeigt der Zeiger dort also einen Pfeil —
+  // B wirkt tot, obwohl der Klick längst funktioniert. Dasselbe gilt für
+  // Seiten, die cursor:pointer per Klasse setzen: die Klasse ist in B weg.
+  //
+  // Deshalb: den EFFEKTIVEN Cursor an A messen (solange A noch im Dokument
+  // steht) und auf B setzen, falls er dort anders herauskommt. Kein pauschales
+  // "pointer" — wenn A z. B. cursor:not-allowed hat, gehört das zum Verhalten.
+  function readCursor(el) {
+    try {
+      return window.getComputedStyle(el).cursor || null
+    } catch (_) {
+      return null
+    }
+  }
+
+  function alignCursor(dst, srcCursor) {
+    if (!srcCursor || !dst || !dst.style) return
+    try {
+      // Erst nach dem Einfügen messbar — vorher hat B keinen Style-Kontext.
+      if (window.getComputedStyle(dst).cursor !== srcCursor) {
+        dst.style.setProperty('cursor', srcCursor)
+      }
+    } catch (_) {}
   }
 
   // Navigation für B-Elemente, die kein href tragen können.
@@ -803,8 +835,12 @@
     if (!href) return
     ev.preventDefault()
     var target = el.getAttribute('data-ab-target')
+    // Mittelklick und Strg/Cmd-Klick öffnen bei einem echten Link einen neuen
+    // Tab. Ein <button> täte von sich aus nichts — also nachbauen, sonst
+    // verhält sich B an dieser Stelle anders als A.
+    var newTab = ev.button === 1 || ev.metaKey || ev.ctrlKey
     try {
-      if (target === '_blank' || ev.metaKey || ev.ctrlKey) window.open(href, '_blank', 'noopener')
+      if (target === '_blank' || newTab) window.open(href, '_blank', 'noopener')
       else if (target && target !== '_self') window.open(href, target)
       else window.location.href = href
     } catch (_) {
@@ -870,8 +906,11 @@
         var src = findAction(el, ACTION_SEL_SRC)
         var dst = findAction(node, ACTION_SEL_DST) || node
         var mode = src ? portInteraction(src, dst) : null
+        // Cursor jetzt lesen: im navigate-Zweig ist A gleich weg.
+        var srcCursor = src ? readCursor(src) : null
         if (mode === 'navigate') {
           makeClickable(dst, navigateFromAttr)
+          dst.addEventListener('auxclick', navigateFromAttr)
           el.replaceWith(node)
         } else if (mode === 'bridge' && el.parentNode) {
           // A muss im Dokument bleiben, sonst erreicht der weitergeleitete Klick
@@ -884,6 +923,7 @@
         } else {
           el.replaceWith(node)
         }
+        alignCursor(dst, srcCursor)
         return true
       }
       el.outerHTML = html // Fallback: kein Einzel-Wurzelelement im Fragment
