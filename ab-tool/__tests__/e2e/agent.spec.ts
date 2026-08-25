@@ -9,9 +9,11 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Agent API (@agent)', () => {
-  test('OPTIONS /api/agent → 200 + CORS-Header', async ({ request }) => {
+  // 204: preflight() in lib/cors.ts antwortet ohne Body. Der Test erwartete
+  // 200 und war damit seit der Umstellung dauerhaft rot.
+  test('OPTIONS /api/agent → 204 + CORS-Header', async ({ request }) => {
     const res = await request.fetch('/api/agent', { method: 'OPTIONS' })
-    expect(res.status()).toBe(200)
+    expect(res.status()).toBe(204)
     expect(res.headers()['access-control-allow-methods']).toContain('POST')
   })
 
