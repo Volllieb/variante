@@ -34,7 +34,6 @@
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
     "@upstash/redis": "^1.38.0",
-    "@vercel/og": "^0.11.1",
     "ai": "^7.0.26",
     "cheerio": "^1.2.0",
     "isomorphic-dompurify": "^3.19.0",

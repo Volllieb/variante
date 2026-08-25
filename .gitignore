@@ -1,11 +1,17 @@
+# dependencies
 node_modules/
+
+# build output
 .next/
-.vercel/
-ab-tool/.next/
 *.tsbuildinfo
 
-__pycache__/
+# test output
+playwright-report/
+test-results/
 
-.vercel
+# vercel
+.vercel/
+
+# env — nur .env.example ist committed
 .env*.local
 .env.vercel
