@@ -307,6 +307,64 @@ async function runCorsTests() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PART D: Goal-Selektor-Wahl für Variante B (aus ab.js applyTest/finish)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Regression zu einem Bug, der Tests systematisch gegen B kippen liess: bei
+// Wizard-Tests ist goal identisch mit dem Selektor ("click:<selector>"). ab.js
+// behandelte das als "separates Goal" und trackte Klicks weiter ueber den
+// ORIGINAL-Selektor — obwohl B genau dieses Element ersetzt hatte. Sobald die
+// KI-Variante Klassen oder Tag aenderte, matchte nichts mehr: A zaehlte
+// Conversions, B nie.
+async function runGoalSelectorTests() {
+  console.log('\n── Part D: Goal-Selektor-Wahl fuer Variante B ──\n')
+
+  // 1:1 aus public/ab.js
+  function normGoal(goal, selector) {
+    let g = (goal || '').trim()
+    if (g.indexOf('click:') === 0) g = g.slice(6).trim()
+    return g || selector
+  }
+
+  function goalSelectorFor(variant, goal, selector, key) {
+    const goalSel = normGoal(goal, selector)
+    const hasSeparateGoal = !!goal && goalSel !== selector
+    if (variant === 'B' && hasSeparateGoal) return goalSel
+    if (variant === 'B') return `[data-ab-el="${key}"]`
+    return goalSel
+  }
+
+  const SEL = '#hero .cta'
+  const KEY = 'abc-123'
+  const DATA = `[data-ab-el="${KEY}"]`
+
+  await check('B, goal == selector mit click:-Prefix -> data-ab-el', () => {
+    assert.equal(goalSelectorFor('B', `click:${SEL}`, SEL, KEY), DATA)
+  })
+
+  await check('B, goal == selector ohne Prefix -> data-ab-el', () => {
+    assert.equal(goalSelectorFor('B', SEL, SEL, KEY), DATA)
+  })
+
+  await check('B, goal mit Whitespace == selector -> data-ab-el', () => {
+    assert.equal(goalSelectorFor('B', `click: ${SEL} `, SEL, KEY), DATA)
+  })
+
+  await check('B, kein goal -> data-ab-el', () => {
+    assert.equal(goalSelectorFor('B', null, SEL, KEY), DATA)
+  })
+
+  await check('B, echtes separates Goal -> Goal-Selektor bleibt', () => {
+    assert.equal(goalSelectorFor('B', 'click:#signup-button', SEL, KEY), '#signup-button')
+  })
+
+  await check('A behaelt immer den Goal-Selektor', () => {
+    assert.equal(goalSelectorFor('A', `click:${SEL}`, SEL, KEY), SEL)
+    assert.equal(goalSelectorFor('A', 'click:#signup-button', SEL, KEY), '#signup-button')
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN
 // ═══════════════════════════════════════════════════════════════════════════
 async function main() {
@@ -318,6 +376,7 @@ async function main() {
   await runUnitTests()
   await runIntegrationTests()
   await runCorsTests()
+  await runGoalSelectorTests()
 
   console.log(`\n${'─'.repeat(46)}`)
   console.log(`  ${passed} passed, ${failed} failed`)

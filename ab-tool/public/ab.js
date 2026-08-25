@@ -723,9 +723,21 @@
       // 3. MutationObserver-Race: applyDom schlägt fehl (Element bereits weg beim
       //    zweiten finish-Aufruf), aber data-ab-el steckt noch im DOM vom ersten
       //    Durchlauf → Fallback funktioniert.
+      //
+      // ponytail: Die Bedingung fragte nur, OB t.goal gesetzt ist. Bei den vom
+      // Wizard erzeugten Tests ist goal aber identisch mit dem Selektor
+      // ("click:<selector>") — es gibt gar kein separates Goal-Element. Damit
+      // landete genau der Fall in Zweig 1 und das Klickziel war der originale
+      // CSS-Selektor, obwohl B dieses Element ersetzt hatte. Sobald die
+      // KI-Variante Klassen oder Tag aendert (also praktisch immer), matchte
+      // e.target.closest(goalSel) nicht mehr: A zaehlte Conversions, B nie.
+      // Der Test kippt dann systematisch gegen B. Verifiziert auf einer echten
+      // Kundenseite: B mit gleichen Klassen -> Treffer, B mit neuen Klassen
+      // oder als <button> -> kein Treffer, waehrend [data-ab-el] immer passt.
+      var hasSeparateGoal = !!t.goal && goalSel !== selector
       var gsel
-      if (variant === 'B' && t.goal) {
-        gsel = goalSel          // explizites Goal → originaler Selektor
+      if (variant === 'B' && hasSeparateGoal) {
+        gsel = goalSel          // echtes separates Goal → originaler Selektor
       } else if (variant === 'B') {
         gsel = '[data-ab-el="' + key + '"]'  // kein separates Goal → data-ab-el
       } else {
