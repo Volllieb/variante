@@ -253,6 +253,24 @@ export interface BestPracticeInput {
   pageContext?: string  // Style-Kontext (Farbpalette, Klassen-Prefixe)
 }
 
+/**
+ * Zieht die Ziel-URL aus dem Original-Markup.
+ *
+ * stripHtml() wirft alle Attribute weg — das Modell sieht dadurch nie, dass das
+ * Element ein Link war, und liefert für <a href="/signup">Get started</a>
+ * bereitwillig <button>Start free</button> zurück: optisch ein CTA, funktional
+ * eine Sackgasse. ab.js reicht das href zwar zur Laufzeit nach, aber eine
+ * Variante, die den Link von vornherein mitbringt, ist die ehrlichere Vorlage
+ * (und die einzige, die in der Dashboard-Vorschau korrekt aussieht).
+ */
+function extractHref(html: string): string | null {
+  const m = /<a\b[^>]*\shref\s*=\s*["']([^"']+)["']/i.exec(html)
+  if (!m) return null
+  const href = m[1].trim()
+  if (!href || href.startsWith('#') || /^javascript:/i.test(href)) return null
+  return href.slice(0, 500)
+}
+
 /** Entfernt HTML-Tags und normalisiert Whitespace für die AI-Eingabe */
 function stripHtml(html: string): string {
   return html
@@ -276,11 +294,18 @@ export async function generateBestPracticeVariant(
 
   // Strip HTML from original — the model only needs text content for best-practice generation
   const cleanOriginal = stripHtml(input.original)
+  const href = extractHref(input.original)
+  const hrefHint = href
+    ? `Ziel-URL des Originals: ${href}\n` +
+      `PFLICHT: variant_html MUSS ein <a href="${href}">…</a> sein — kein <button>. ` +
+      `Ohne den Link ist die Variante nicht klickbar und kann nicht konvertieren.`
+    : ''
 
   const userPrompt = [
     `Element-Typ: ${input.elementType}`,
     `Element: ${input.element}`,
     `Original: ${cleanOriginal}`,
+    hrefHint,
     selectorHint,
     contextHint,
     '',

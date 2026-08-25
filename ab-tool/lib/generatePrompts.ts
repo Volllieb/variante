@@ -113,6 +113,15 @@ export function outputRules(scope: string): string {
     '- Pflicht: klickbare Elemente (Button/Link) brauchen .ab-v …:hover UND .ab-v …:focus-visible',
     '  mit sichtbarem Feedback, plus "transition: all .2s ease" im Grundzustand.',
     '- Nutze die :hover/transition-Werte aus dem Site-CSS als Referenz, damit das Hover-Feedback zum Look der Seite passt.',
+    // Ohne diese Regel wird aus <a href="/signup" class="cta">Get started</a>
+    // regelmässig <button class="ab-variant-b">Start free</button>: sieht aus
+    // wie der CTA, führt aber nirgendwo hin. Der Test kippt dann gegen B, weil
+    // B gar nicht konvertieren KANN. ab.js reicht fehlende hrefs zur Laufzeit
+    // nach — das hier ist die saubere Quelle.
+    '- War das Original ein Link (<a href="…">), MUSS die Variante wieder ein <a> mit',
+    '  demselben href/target/rel sein. Niemals einen Link zu einem <button> machen.',
+    '- name- und type-Attribute des Originals übernehmen (Formular-Buttons).',
+    '  Die id NICHT kopieren — sie bleibt beim Original.',
     '- Alles Übrige als Inline-Styles. Keine Tailwind-Utilities.',
     '- Gib NUR das HTML-Fragment zurück, kein DOCTYPE, kein <html>, kein <body>.',
     '- Keine Erklärungen, kein Markdown, keine Code-Fences.',

@@ -688,18 +688,174 @@
     endApply()
   }
 
+  // --- Interaktivität von A nach B übertragen --------------------------------
+  // Die KI erzeugt B aus dem TEXT des Originals, nicht aus dessen Markup: aus
+  // <a href="/signup" class="cta">Get started</a> wird regelmäßig
+  // <button class="ab-variant-b">Start free</button>. Das ist dann ein BILD von
+  // einem Button — kein Klickziel. B kann per Definition nicht konvertieren,
+  // der Test kippt systematisch gegen B, und jeder Besucher in B verliert den
+  // Weg zum Ziel. (Der Sanitizer erlaubt href — es steht nur nie eins drin.)
+  //
+  // Drei Fälle, absteigend nach Treue zum Original:
+  //   1. A ist ein echter Link → href/target/rel/download auf B übertragen.
+  //      Kann B kein href tragen (<button>, <div>), navigiert ein Klick-Handler.
+  //   2. A hat ein Inline-onclick → Attribut mitnehmen.
+  //   3. A hängt an addEventListener (React, SPA-Router, Analytics) → der
+  //      Handler klebt am ELEMENT, nicht am Selektor, und ist nicht kopierbar.
+  //      A bleibt deshalb versteckt im DOM stehen und B reicht Klicks dorthin
+  //      weiter. Ein abgehängtes A würde delegierte Handler (React-Root,
+  //      jQuery-on-document) nie erreichen — deshalb display:none statt remove.
+  // Im ORIGINAL zählt nur, was auch wirklich klickbar ist — ein <a> ohne href
+  // ist dort typischerweise Deko.
+  var ACTION_SEL_SRC = 'a[href], button, [role="button"], input[type="submit"], input[type="button"], [onclick]'
+  // In der VARIANTE dagegen ist genau das der Normalfall: die KI schreibt
+  // <a class="cta">Start free</a> ohne href, weil sie das href nie gesehen hat.
+  // Deshalb hier auch das nackte <a> als Ziel akzeptieren.
+  var ACTION_SEL_DST = 'a, button, [role="button"], input[type="submit"], input[type="button"], [onclick]'
+
+  // href-Werte, die keine Navigation sind: dort hängt ein JS-Listener dran
+  // ("#", "#tab", "javascript:void(0)"). Für uns wie "kein href".
+  function realHref(el) {
+    var h = el && el.getAttribute ? el.getAttribute('href') : null
+    if (!h) return null
+    var t = h.replace(/[\u0000-\u0020]/g, '')
+    if (!t || t.charAt(0) === '#') return null
+    if (/^javascript:/i.test(t)) return null
+    return h.trim()
+  }
+
+  // Das klickbare Element in einem Teilbaum: die Wurzel selbst, sonst das erste
+  // interaktive Kind (der Picker trifft oft den Wrapper, nicht den Button).
+  function findAction(root, sel) {
+    if (!root || root.nodeType !== 1) return null
+    try {
+      if (root.matches && root.matches(sel)) return root
+      return root.querySelector ? root.querySelector(sel) : null
+    } catch (_) {
+      return null
+    }
+  }
+
+  function copyMissing(src, dst, attrs) {
+    for (var i = 0; i < attrs.length; i++) {
+      var v = src.getAttribute(attrs[i])
+      if (v !== null && !dst.hasAttribute(attrs[i])) dst.setAttribute(attrs[i], v)
+    }
+  }
+
+  // Liefert, wie B klickbar gemacht werden muss:
+  //   'own'      B bringt eigene Navigation mit → nichts anfassen
+  //   'attr'     Attribute reichen (B ist selbst <a>, bzw. onclick geerbt)
+  //   'navigate' B braucht einen Handler, der den Link nachbaut
+  //   'bridge'   B muss den Klick an das versteckte A weiterreichen
+  function portInteraction(src, dst) {
+    if (!src || !dst || src === dst) return null
+    if (realHref(dst)) return 'own'
+    var href = realHref(src)
+    if (href) {
+      if ((dst.tagName || '').toLowerCase() === 'a') {
+        // Relativ bleibt relativ — der Browser löst gegen dieselbe Seite auf.
+        dst.setAttribute('href', href)
+        copyMissing(src, dst, ['target', 'rel', 'download'])
+        return 'attr'
+      }
+      // <button>/<div> können kein href. Absolute URL merken (src.href ist
+      // bereits aufgelöst), der Handler übernimmt die Navigation.
+      dst.setAttribute('data-ab-href', src.href || href)
+      var tgt = src.getAttribute('target')
+      if (tgt) dst.setAttribute('data-ab-target', tgt)
+      return 'navigate'
+    }
+    var onclick = src.getAttribute('onclick')
+    if (onclick && !dst.hasAttribute('onclick')) {
+      dst.setAttribute('onclick', onclick)
+      copyMissing(src, dst, ['type', 'name', 'value', 'form'])
+      return 'attr'
+    }
+    // Weder Link noch Inline-Handler: A wird von JS gesteuert.
+    copyMissing(src, dst, ['type', 'name', 'value', 'form'])
+    return 'bridge'
+  }
+
+  // Nicht-interaktives B (z. B. <div class="ab-v">) bekommt Tastaturzugang,
+  // sonst ist die Variante für Keyboard- und Screenreader-Nutzer eine Sackgasse.
+  function makeClickable(dst, handler) {
+    dst.addEventListener('click', handler)
+    var tag = (dst.tagName || '').toLowerCase()
+    if (tag === 'a' || tag === 'button' || tag === 'input') return
+    if (!dst.hasAttribute('role')) dst.setAttribute('role', 'button')
+    if (!dst.hasAttribute('tabindex')) dst.setAttribute('tabindex', '0')
+    try { if (dst.style && !dst.style.cursor) dst.style.cursor = 'pointer' } catch (_) {}
+    dst.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+        ev.preventDefault()
+        dst.click()
+      }
+    })
+  }
+
+  // Navigation für B-Elemente, die kein href tragen können.
+  // Der Conversion-Listener hängt in der Capture-Phase auf document und läuft
+  // damit VOR diesem Handler — sendBeacon ist raus, bevor die Seite wechselt.
+  function navigateFromAttr(ev) {
+    var el = ev.currentTarget
+    var href = el.getAttribute('data-ab-href')
+    if (!href) return
+    ev.preventDefault()
+    var target = el.getAttribute('data-ab-target')
+    try {
+      if (target === '_blank' || ev.metaKey || ev.ctrlKey) window.open(href, '_blank', 'noopener')
+      else if (target && target !== '_self') window.open(href, target)
+      else window.location.href = href
+    } catch (_) {
+      window.location.href = href
+    }
+  }
+
+  // Klick auf B → derselbe Klick auf dem versteckten A. Das ist der einzige Weg
+  // an Handler, die per addEventListener registriert wurden.
+  function bridgeTo(src) {
+    return function (ev) {
+      if (ev.__abBridged) return
+      ev.preventDefault()
+      try {
+        var forwarded = new MouseEvent('click', {
+          bubbles: true, cancelable: true, view: window,
+          ctrlKey: ev.ctrlKey, metaKey: ev.metaKey, shiftKey: ev.shiftKey, altKey: ev.altKey,
+        })
+        forwarded.__abBridged = true
+        src.dispatchEvent(forwarded)
+      } catch (_) {
+        try { src.click() } catch (__) {}
+      }
+    }
+  }
+
+  function hideOriginal(el, key) {
+    try {
+      el.setAttribute('data-ab-original', key || '1')
+      el.setAttribute('aria-hidden', 'true')
+      if (el.style) el.style.setProperty('display', 'none', 'important')
+    } catch (_) {}
+  }
+
   // --- Variante auf den DOM anwenden -----------------------------------------
   // Markiert die eingefügte B-Wurzel mit data-ab-el="<key>", damit Conversions
   // auch nach dem Element-Tausch zuverlässig zugeordnet werden können. Gibt true
   // zurück, wenn B tatsächlich angewandt wurde.
   function applyDom(selector, variant, html, key) {
     if (variant !== 'B' || !html) return false
+    // Schon angewandt? MutationObserver und popstate rufen run() erneut auf.
+    // Im Bridge-Fall steht A noch (versteckt) im DOM und würde beim zweiten
+    // Durchlauf ein ZWEITES B daneben setzen.
+    if (key && document.querySelector('[data-ab-el="' + key + '"]')) return true
     var el = document.querySelector(selector)
     if (!el) return false
     beginApply()
     try {
       // Plain-Text (keine HTML-Tags): textContent statt DOM-Tausch.
       // Verhindert, dass z.B. <button> durch "Neuer Text" ersetzt wird.
+      // Das Element bleibt dasselbe — href und Listener bleiben unangetastet.
       if (!/<[a-zA-Z]/.test(html)) {
         el.textContent = html
         if (key) el.setAttribute('data-ab-el', key)
@@ -711,7 +867,23 @@
       var node = tmp.firstElementChild
       if (node) {
         if (key) node.setAttribute('data-ab-el', key)
-        el.replaceWith(node)
+        var src = findAction(el, ACTION_SEL_SRC)
+        var dst = findAction(node, ACTION_SEL_DST) || node
+        var mode = src ? portInteraction(src, dst) : null
+        if (mode === 'navigate') {
+          makeClickable(dst, navigateFromAttr)
+          el.replaceWith(node)
+        } else if (mode === 'bridge' && el.parentNode) {
+          // A muss im Dokument bleiben, sonst erreicht der weitergeleitete Klick
+          // keine delegierten Handler. Nebenwirkung: :nth-child der Geschwister
+          // verschiebt sich um eins — der Preis dafür, dass B überhaupt
+          // funktioniert statt nur so auszusehen.
+          makeClickable(dst, bridgeTo(src))
+          el.parentNode.insertBefore(node, el)
+          hideOriginal(el, key)
+        } else {
+          el.replaceWith(node)
+        }
         return true
       }
       el.outerHTML = html // Fallback: kein Einzel-Wurzelelement im Fragment
