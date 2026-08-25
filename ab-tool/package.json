@@ -17,7 +17,7 @@
     "test:ci:smoke": "playwright test --project=chromium-ci --grep \"@smoke\"",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:node": "node --import tsx __tests__/sanitize.mjs && node --import tsx __tests__/winner-guards.mjs && node --import tsx __tests__/domain-gate.mjs && node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs && node __tests__/resolve-host-parity.mjs",
+    "test:node": "node --import tsx __tests__/sanitize.mjs && node __tests__/sanitize-runtime.mjs && node --import tsx __tests__/winner-guards.mjs && node --import tsx __tests__/domain-gate.mjs && node __tests__/significance-auto.mjs && node __tests__/conversion-goal-click.mjs && node __tests__/resolve-host-parity.mjs",
     "test:report": "playwright show-report",
     "loadtest": "k6 run __tests__/load/main.k6.js",
     "loadtest:smoke": "k6 run __tests__/load/main.k6.js -e STAGE=smoke",
@@ -61,5 +61,10 @@
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "isomorphic-dompurify": {
+      "jsdom": "26.1.0"
+    }
   }
 }
