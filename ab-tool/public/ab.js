@@ -1117,8 +1117,18 @@
   // sieht nur den Host, nicht welche Seiten ein Besucher aufruft.
   function pathMatches(testPath, currentPath) {
     // testPath stammt aus site_url und wurde serverseitig via pathOf extrahiert.
-    // Leerer testPath = Test gilt für alle Seiten dieser Domain.
+    // Die drei Fälle müssen exakt zu pathOf() in /api/resolve passen —
+    // abgesichert durch __tests__/resolve-path-semantics.mjs.
+
+    // Kein Pfad angegeben: der Test gilt für jede Seite dieser Domain.
     if (!testPath) return true
+
+    // Nur die Wurzel: ausschließlich die Startseite. Ein Prefix-Match wäre hier
+    // gleichbedeutend mit "überall" — unter '/' liegt jeder Pfad.
+    if (testPath === '/') return currentPath === '/'
+
+    // Sonst der Pfad selbst und alles darunter: '/blog' matcht auch
+    // '/blog/post-1', aber nicht '/blog-archiv' (daher das '/' im Vergleich).
     return currentPath === testPath || currentPath.indexOf(testPath + '/') === 0
   }
 

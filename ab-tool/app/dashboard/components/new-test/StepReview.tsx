@@ -32,7 +32,15 @@ export function StepReview({
   const bare = url.replace(/^https?:\/\//i, '')
   const slashAt = bare.indexOf('/')
   const displayDomain = slashAt === -1 ? bare : bare.slice(0, slashAt)
-  const displayPath = slashAt === -1 ? '/' : bare.slice(slashAt) || '/'
+  // Der Pfad wird als Geltungsbereich gezeigt, nicht roh: ein fehlender Pfad
+  // heisst "ganze Domain", ein blosses "/" heisst "nur Startseite". Wer hier
+  // nur den Rohwert liest, verwechselt genau diese beiden.
+  const rawPath = slashAt === -1 ? '' : bare.slice(slashAt)
+  const trimmedPath = rawPath.replace(/\/+$/, '')
+  const displayPath =
+    rawPath === '' ? 'All pages'
+      : trimmedPath === '' ? 'Homepage only'
+        : `${trimmedPath} and below`
 
   return (
     <div className="space-y-4">

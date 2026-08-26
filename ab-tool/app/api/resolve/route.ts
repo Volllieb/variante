@@ -49,13 +49,30 @@ function hostOf(u: string | null | undefined): string {
   return s
 }
 
+// Extrahiert den Geltungsbereich eines Tests aus site_url. Drei Rueckgabewerte,
+// die ab.js in pathMatches() spiegelt:
+//
+//   ''      keine Pfad-Angabe (example.com)  -> ganze Domain, jede Unterseite
+//   '/'     nur die Wurzel   (example.com/)  -> ausschliesslich die Startseite
+//   '/blog' ein Pfad         (example.com/blog) -> /blog und alles darunter
+//
+// Vorher fiel die Wurzel mit dem ersten Fall zusammen: das Slash-Stripping
+// machte aus '/' ein '', und pathMatches() liest '' als "gilt ueberall". Der
+// Wizard schreibt beim Auswaehlen einer Domain aber genau `https://domain/` —
+// jeder so angelegte Test lief also sitewide, waehrend die UI "Leave as / for
+// the homepage" versprach. Ein Hero-CTA-Test auf der Startseite griff damit
+// auch auf /pricing und /blog, und beide Kontexte landeten in einer Statistik.
 function pathOf(u: string | null | undefined): string {
   if (!u) return ''
   const s = u.trim().replace(/^https?:\/\//, '')
   const slash = s.indexOf('/')
   if (slash === -1) return ''
-  const p = s.slice(slash).split('?')[0].split('#')[0].replace(/\/+$/, '')
-  return p === '' ? '' : p
+  const raw = s.slice(slash).split('?')[0].split('#')[0]
+  const p = raw.replace(/\/+$/, '')
+  // Nur die Wurzel ueberlebt das Stripping als '/'. Alles andere behaelt
+  // seinen Pfad ohne trailing slash ('/blog/' und '/blog' sind derselbe Test).
+  if (p === '') return raw === '' ? '' : '/'
+  return p
 }
 
 export async function GET(req: Request) {
