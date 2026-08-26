@@ -1,6 +1,7 @@
 import { corsHeaders, preflight } from '@/lib/cors'
 import { checkRateLimit } from '@/lib/rateLimit'
 import { checkSnippet, checkSnippetPages, normalizeUrl } from '@/lib/snippetCheck'
+import type { SnippetCheckResult } from '@/lib/snippetCheck'
 import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { parseBody } from '@/lib/apiHelpers'
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
   try {
     const result = await checkSnippet(site_url)
 
-    const pages = include_pages ? await checkTestPages(user.userId, site_url) : undefined
+    const pages = include_pages ? await checkTestPages(user.userId, site_url, result) : undefined
 
     return Response.json(
       {
@@ -94,14 +95,26 @@ type PageReport = {
   tests: string[]
 }
 
+/** Vergleicht zwei normalisierte URLs als "dieselbe Seite" (trailing slash egal). */
+function samePage(a: string, b: string): boolean {
+  return a.replace(/\/+$/, '') === b.replace(/\/+$/, '')
+}
+
 /**
  * Sammelt die Seiten, auf denen der User Tests fuer diese Domain laufen hat,
  * und prueft dort das Snippet.
  *
- * Die Wurzel bleibt aussen vor — die hat der Aufrufer bereits geprueft, und
- * sitewide-Tests (site_url ohne Pfad) zeigen ohnehin genau dorthin.
+ * Die Wurzel wird MITGELISTET, aber nicht erneut gefetcht: seit der Wizard
+ * jeden Test auf genau eine Seite legt, ist die Startseite eine ganz normale
+ * Test-Seite ('https://domain/'). Sie zu ueberspringen haette ausgerechnet den
+ * haeufigsten Fall aus der Liste fallen lassen. Das Ergebnis der ohnehin schon
+ * gelaufenen Wurzelpruefung wird stattdessen wiederverwendet.
  */
-async function checkTestPages(userId: string, siteUrl: string): Promise<PageReport[]> {
+async function checkTestPages(
+  userId: string,
+  siteUrl: string,
+  rootResult: SnippetCheckResult
+): Promise<PageReport[]> {
   const host = hostOf(siteUrl)
   const rootUrl = normalizeUrl(host)
 
@@ -119,15 +132,13 @@ async function checkTestPages(userId: string, siteUrl: string): Promise<PageRepo
   }
 
   // Nach Seite gruppieren: mehrere Tests koennen auf derselben URL liegen, und
-  // die soll trotzdem nur einmal gefetcht werden.
+  // die soll trotzdem nur einmal gefetcht werden. Der Vergleich laeuft ueber den
+  // normalisierten String, damit 'x.com' und 'https://x.com' als dieselbe Seite
+  // zaehlen.
   const byUrl = new Map<string, string[]>()
   for (const t of data ?? []) {
     if (!t.site_url) continue
     const normalized = normalizeUrl(t.site_url)
-    // Wurzel ueberspringen — schon geprueft. Der Vergleich laeuft ueber den
-    // normalisierten String, damit 'x.com', 'https://x.com' und 'https://x.com/'
-    // als dieselbe Seite zaehlen.
-    if (normalized.replace(/\/+$/, '') === rootUrl.replace(/\/+$/, '')) continue
     const names = byUrl.get(normalized) ?? []
     names.push(t.name)
     byUrl.set(normalized, names)
@@ -136,13 +147,26 @@ async function checkTestPages(userId: string, siteUrl: string): Promise<PageRepo
   const urls = [...byUrl.keys()]
   if (urls.length === 0) return []
 
-  const results = await checkSnippetPages(urls)
+  // Alles ausser der Wurzel fetchen; fuer die Wurzel steht das Ergebnis schon fest.
+  const toFetch = urls.filter((u) => !samePage(u, rootUrl))
+  const fetched = await checkSnippetPages(toFetch)
 
-  return results.map((r, i) => ({
-    url: r.checkedUrl,
-    detected: r.detected,
-    ...(r.outdated ? { outdated: true } : {}),
-    ...(r.reason ? { reason: r.reason } : {}),
-    tests: byUrl.get(urls[i]!) ?? [],
-  }))
+  const byResult = new Map<string, SnippetCheckResult>()
+  toFetch.forEach((u, i) => {
+    const r = fetched[i]
+    if (r) byResult.set(u, r)
+  })
+
+  return urls.map((u) => {
+    const r = samePage(u, rootUrl) ? rootResult : byResult.get(u)
+    return {
+      url: r?.checkedUrl ?? u,
+      // Ohne Ergebnis (ueber MAX_PAGES hinaus abgeschnitten) nichts behaupten:
+      // ungeprueft ist nicht dasselbe wie "kein Snippet gefunden".
+      detected: r?.detected ?? true,
+      ...(r?.outdated ? { outdated: true } : {}),
+      ...(r ? (r.reason ? { reason: r.reason } : {}) : { reason: 'Not checked (page limit reached)' }),
+      tests: byUrl.get(u) ?? [],
+    }
+  })
 }

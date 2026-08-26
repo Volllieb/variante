@@ -231,11 +231,13 @@ export function StepUrlAndElement({
     const withProtocol = `https://${d.url}`
     return url === withProtocol || url.startsWith(`${withProtocol}/`)
   })
-  // Drei Zustaende, exakt wie pathOf() in /api/resolve sie liest:
-  //   ''        -> ganze Domain      '/'  -> nur Startseite     '/x' -> /x und darunter
-  // Das `|| '/'` stand hier frueher und machte den ersten Fall unerreichbar.
-  const pathValue = matchedDomain ? url.slice(`https://${matchedDomain.url}`.length) : ''
-  const scope: 'all' | 'page' = pathValue === '' ? 'all' : 'page'
+  // Ein Test gehoert auf GENAU EINE Seite. Der Wizard erzeugt deshalb immer
+  // einen Pfad; '/' ist die Startseite. Das Backend kann zwar weiterhin
+  // sitewide (site_url ohne Pfad, pathOf -> ''), aber nur fuer Bestandstests —
+  // anbieten tun wir es nicht mehr: ein Selektor wie '.cta' trifft auf jeder
+  // Unterseite etwas anderes, und die Zaehler mischen dann Publikum, das nie
+  // dieselbe Seite gesehen hat.
+  const pathValue = matchedDomain ? url.slice(`https://${matchedDomain.url}`.length) || '/' : ''
 
   // Inline domain-connect status for the CURRENTLY typed hostname. If the user
   // edits the URL after a connect attempt, the status reverts to idle rather
@@ -262,9 +264,9 @@ export function StepUrlAndElement({
             <select
               value={matchedDomain?.url ?? ''}
               onChange={(e) => {
-                // Ohne trailing slash = ganze Domain. Das ist der Geltungsbereich,
-                // den der bisherige Default (`/`) faktisch schon hatte.
-                const nextUrl = e.target.value ? `https://${e.target.value}` : ''
+                // Mit trailing slash = Startseite. Seit pathOf() die Wurzel als
+                // '/' erhaelt, meint dieser Default genau das, was er aussieht.
+                const nextUrl = e.target.value ? `https://${e.target.value}/` : ''
                 onUrlChange(nextUrl)
                 setScanState('idle'); setScanResult(null); setScanError('')
                 if (selectedElement) {
@@ -289,57 +291,29 @@ export function StepUrlAndElement({
         {matchedDomain ? (
           <div>
             <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Page</label>
-
-            {/* Der Geltungsbereich wird gewaehlt, nicht aus einem Slash erraten.
-                Vorher stand hier nur das Pfad-Feld mit dem Hinweis, "/" bedeute
-                Startseite — tatsaechlich lief so ein Test auf der ganzen Domain
-                (Migration 040). Wer den Hero-CTA testete, mass ihn ungewollt
-                gegen /pricing und /blog mit. */}
-            <div className="mb-2 inline-flex rounded-[7px] border border-border bg-bg-1 p-0.5">
-              {([['all', 'All pages'], ['page', 'One page']] as const).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={scope === value}
-                  onClick={() => {
-                    onUrlChange(value === 'all' ? `https://${matchedDomain.url}` : `https://${matchedDomain.url}/`)
-                    if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
-                  }}
-                  className={`rounded-[5px] px-3 py-1.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 ${
-                    scope === value ? 'bg-fill-invert text-text-on-invert' : 'text-text-2 hover:text-text'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="flex items-stretch overflow-hidden rounded-[7px] border border-border bg-bg-1 focus-within:border-border-strong focus-within:ring-2 focus-within:ring-text/10">
+              <span className="flex shrink-0 select-none items-center border-r border-border bg-bg-2 px-3 text-[13px] text-text-3">
+                {matchedDomain.url}
+              </span>
+              <input
+                type="text"
+                value={pathValue}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  // Leeres Feld faellt auf die Startseite zurueck, nicht auf
+                  // "ganze Domain" — der Test soll immer eine Seite meinen.
+                  const path = raw === '' ? '/' : raw.startsWith('/') ? raw : `/${raw}`
+                  onUrlChange(`https://${matchedDomain.url}${path}`)
+                  if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
+                }}
+                placeholder="/pricing"
+                className="w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none"
+              />
             </div>
-
-            {scope === 'page' && (
-              <div className="flex items-stretch overflow-hidden rounded-[7px] border border-border bg-bg-1 focus-within:border-border-strong focus-within:ring-2 focus-within:ring-text/10">
-                <span className="flex shrink-0 select-none items-center border-r border-border bg-bg-2 px-3 text-[13px] text-text-3">
-                  {matchedDomain.url}
-                </span>
-                <input
-                  type="text"
-                  value={pathValue}
-                  onChange={(e) => {
-                    const raw = e.target.value
-                    const path = raw.startsWith('/') ? raw : `/${raw}`
-                    onUrlChange(`https://${matchedDomain.url}${path}`)
-                    if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
-                  }}
-                  placeholder="/pricing"
-                  className="w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none"
-                />
-              </div>
-            )}
-
             <p className="mt-1 text-[10px] text-text-3">
-              {scope === 'all'
-                ? `Runs on every page of ${matchedDomain.url} that has the snippet installed.`
-                : pathValue === '/'
-                  ? 'Runs on the homepage only.'
-                  : `Runs on ${pathValue.replace(/\/+$/, '')} and everything below it.`}
+              {pathValue === '/'
+                ? 'Runs on the homepage only.'
+                : `Runs on ${pathValue.replace(/\/+$/, '')} and everything below it.`}
             </p>
           </div>
         ) : (
