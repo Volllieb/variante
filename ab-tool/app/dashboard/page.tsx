@@ -5,6 +5,7 @@ import { claimDemoUrlForUser } from '@/lib/demoClaim'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { DashboardClient } from './DashboardClient'
+import { statsWindowStart, type DailyStatRow } from '@/lib/dashboardStats'
 
 export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
   const user = await getSessionUser()
@@ -12,8 +13,13 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
 
   const searchParams = await props.searchParams
 
-  // Parallel: Profile + Tests + Domains gleichzeitig starten (kein Waterfall)
-  const [profileRes, testsRes, domainsRes] = await Promise.all([
+  // 60 Tage, damit der 30-Tage-Zeitraum eine vollständige Vorperiode zum
+  // Vergleich hat. Das Embedding über tests!inner spart den zweiten Roundtrip
+  // — die Test-IDs stehen erst nach der Test-Query fest.
+  const statsSince = statsWindowStart()
+
+  // Parallel: Profile + Tests + Domains + Tagesstatistik (kein Waterfall)
+  const [profileRes, testsRes, domainsRes, dailyRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('api_token, plan, has_figma_plugin')
@@ -29,11 +35,26 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       .select('url, verified, verified_at')
       .eq('user_id', user.id)
       .limit(5),
+    supabase
+      .from('daily_stats')
+      .select('test_id, date, visitors_a, visitors_b, conversions_a, conversions_b, tests!inner(user_id)')
+      .eq('tests.user_id', user.id)
+      .gte('date', statsSince),
   ])
 
   const profile = profileRes.data
   const tests = testsRes.data ?? []
   const domains = domainsRes.data ?? []
+  // Das eingebettete `tests`-Objekt dient nur dem Filter und gehört nicht in
+  // den Client-Payload.
+  const dailyStats: DailyStatRow[] = (dailyRes.data ?? []).map((r) => ({
+    test_id: r.test_id,
+    date: r.date,
+    visitors_a: r.visitors_a,
+    visitors_b: r.visitors_b,
+    conversions_a: r.conversions_a,
+    conversions_b: r.conversions_b,
+  }))
   const hasVerifiedDomain = domains.some((d) => d.verified)
   const primaryDomain = domains.find((d) => d.verified)?.url ?? domains[0]?.url ?? null
   const verifiedAt = domains.find((d) => d.verified)?.verified_at ?? null
@@ -67,13 +88,14 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" tests={[]} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} domainCount={0} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} userId={user.id} />
+    return <DashboardClient plan="free" tests={[]} dailyStats={[]} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} domainCount={0} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} userId={user.id} />
   }
 
   return (
     <DashboardClient
       plan={profile.plan ?? 'free'}
       tests={tests}
+      dailyStats={dailyStats}
       hasVerifiedDomain={hasVerifiedDomain}
       primaryDomain={primaryDomain}
       verifiedAt={verifiedAt}

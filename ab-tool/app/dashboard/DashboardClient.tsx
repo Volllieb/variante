@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { deriveDecisions, sortByDecisionReadiness } from '@/lib/decisions'
+import { aggregatePeriod, buildTrend, type DailyStatRow } from '@/lib/dashboardStats'
 import { Tooltip } from '@/app/components/Tooltip'
 import { NewTestDrawer } from './components/NewTestDrawer'
 import { TestCard, type TestRow } from './components/TestCard'
@@ -11,6 +12,8 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
 import { AgentPanel } from './components/AgentPanel'
 import { DecisionList } from './components/DecisionList'
+import { PeriodSelector, parsePeriod, periodLabel, type Period } from './components/PeriodSelector'
+import { TrendChart } from './components/TrendChart'
 import {
   FlaskConical,
   Plus,
@@ -30,6 +33,7 @@ const TOP_TESTS = 5
 export function DashboardClient({
   plan,
   tests,
+  dailyStats,
   hasVerifiedDomain,
   primaryDomain,
   verifiedAt,
@@ -42,6 +46,8 @@ export function DashboardClient({
 }: {
   plan: string
   tests: TestRow[]
+  /** Tagesdeltas der letzten 60 Tage (Migration 039) — Basis für Zeitraum und Trend. */
+  dailyStats: DailyStatRow[]
   hasVerifiedDomain: boolean
   primaryDomain: string | null
   verifiedAt: string | null
@@ -79,6 +85,18 @@ export function DashboardClient({
   // Vorher korrigierte das ein Effect — also ein Render mit ungueltigem Scope
   // (leeres Dashboard), dann ein zweiter mit 'all'. Jetzt abgeleitet: ein Render.
   const scope = domainOptions.includes(storedScope) ? storedScope : 'all'
+
+  // ── Zeitraum (localStorage-persisted, nach demselben Muster) ──
+  const periodKey = `dashboard-period:${userId}`
+  const [period, setPeriod] = useState<Period>(() => {
+    if (typeof window === 'undefined') return 30
+    return parsePeriod(localStorage.getItem(periodKey))
+  })
+
+  const setPeriodAndPersist = (val: Period) => {
+    setPeriod(val)
+    try { localStorage.setItem(periodKey, String(val)) } catch { /* noop */ }
+  }
 
   // ── Testliste ──
   // Die Overview filtert und sortiert nicht mehr selbst (das ist die Aufgabe
@@ -138,11 +156,32 @@ export function DashboardClient({
   /* ── Ebene 2: Entscheidungen ── */
   const decisions = useMemo(() => deriveDecisions(scopedTests), [scopedTests])
 
-  /* ── Ebene 3: Aggregate stats (scoped) ── */
+  /* ── Ebene 3: Aggregate stats (scoped, zeitraumbezogen) ── */
   const activeTests = scopedTests.filter((t) => t.status === 'active').length
-  const totalVisitors = scopedTests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
-  const totalConversions = scopedTests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
-  const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
+  const lifetimeVisitors = scopedTests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
+  const lifetimeConversions = scopedTests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
+
+  const scopedIds = useMemo(() => scopedTests.map((t) => t.id), [scopedTests])
+
+  // "All time" liest die Zähler aus `tests` statt aus daily_stats: ein heute
+  // angelegter Test hat noch keine Tageszeile, und die Kachel muss zu dem
+  // passen, was auf der Testkarte steht. Für 7/30 Tage ist daily_stats die
+  // einzige Quelle mit Zeitbezug.
+  const periodStats = useMemo(
+    () => (period === 'all' ? null : aggregatePeriod(dailyStats, scopedIds, period)),
+    [dailyStats, scopedIds, period]
+  )
+
+  const visitors = periodStats ? periodStats.current.visitors : lifetimeVisitors
+  const conversions = periodStats ? periodStats.current.conversions : lifetimeConversions
+  const overallCR = visitors > 0 ? (conversions / visitors) * 100 : 0
+
+  /* ── Ebene 4: Trend ── */
+  const trend = useMemo(
+    () => buildTrend(dailyStats, scopedIds, period === 'all' ? 60 : period),
+    [dailyStats, scopedIds, period]
+  )
+  const hasTrendData = trend.length >= 2 && trend.some((p) => p.visitors > 0 || p.conversions > 0)
 
   // ponytail: Der Durchschnitt lief vorher über ALLE Tests — auch über solche
   // mit zwölf Besuchern, deren "Uplift" reines Rauschen ist. Eine Kachel, die
@@ -220,15 +259,20 @@ export function DashboardClient({
             </p>
           )}
         </div>
-        <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Saved as draft until snippet is installed'}>
-          <button
-            onClick={() => setNewTestOpen(true)}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New test
-          </button>
-        </Tooltip>
+        <div className="flex shrink-0 items-center gap-2">
+          {scopedTests.length > 0 && (
+            <PeriodSelector period={period} onChange={setPeriodAndPersist} />
+          )}
+          <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Saved as draft until snippet is installed'}>
+            <button
+              onClick={() => setNewTestOpen(true)}
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New test
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       {/* ── Ebene 1: genau EIN Blocker ──
@@ -264,7 +308,9 @@ export function DashboardClient({
           />
           <OverviewCard
             label="Visitors"
-            value={totalVisitors.toLocaleString()}
+            value={visitors.toLocaleString()}
+            hint={periodLabel(period)}
+            delta={periodStats ? { value: periodStats.delta.visitors, unit: '%' } : undefined}
           />
           <OverviewCard
             label="Winning Tests"
@@ -274,6 +320,8 @@ export function DashboardClient({
           <OverviewCard
             label="Avg Conv Rate"
             value={`${overallCR.toFixed(1)}%`}
+            hint={periodLabel(period)}
+            delta={periodStats ? { value: periodStats.delta.crPoints, unit: 'pp' } : undefined}
           />
           <OverviewCard
             label="Avg Uplift"
@@ -283,6 +331,9 @@ export function DashboardClient({
           />
         </div>
       )}
+
+      {/* ── Ebene 4: Trend ── */}
+      {hasTrendData && <TrendChart data={trend} label={periodLabel(period)} />}
 
       {/* New test flow — Drawer Wizard. Liegt außerhalb der Test-Karte, damit er
           auch im Leerzustand und aus der Entscheidungs-Liste heraus öffnen kann. */}
@@ -414,15 +465,24 @@ function OverviewCard({
   label,
   value,
   hint,
+  delta,
   tone,
 }: {
   label: string
   value: string
   hint?: string
+  /** Veränderung zur Vorperiode. `value: null` = keine Vorperiode zum Vergleichen. */
+  delta?: { value: number | null; unit: '%' | 'pp' }
   tone?: 'ok' | 'pro' | 'err'
 }) {
   const colorClass = tone === 'ok' ? 'text-ok' : tone === 'pro' ? 'text-pro' : tone === 'err' ? 'text-err' : 'text-text'
   const bgTint = tone === 'ok' ? 'bg-ok/[0.04]' : tone === 'err' ? 'bg-err/[0.04]' : ''
+
+  // Ein Δ von exakt 0 ist eine Aussage ("unverändert"), null dagegen heißt:
+  // die Vorperiode war leer — dann ist jede Prozentangabe erfunden.
+  const d = delta?.value ?? null
+  const deltaClass = d === null || Math.abs(d) < 0.05 ? 'text-text-3' : d > 0 ? 'text-ok' : 'text-err'
+
   return (
     <div className={`relative rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 ${bgTint}`}>
       <div className="flex items-center gap-1.5 mb-2">
@@ -431,7 +491,16 @@ function OverviewCard({
       <p className={`text-[24px] font-semibold tabular-nums leading-none tracking-tight ${colorClass}`}>
         {value}
       </p>
-      {hint && <p className="mt-1.5 text-[11px] text-text-3">{hint}</p>}
+      {(hint || delta) && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-text-3">
+          {delta && (
+            <span className={`tabular-nums font-medium ${deltaClass}`}>
+              {d === null ? '—' : `${d > 0 ? '+' : ''}${d.toFixed(1)}${delta.unit}`}
+            </span>
+          )}
+          {hint && <span className="truncate">{hint}</span>}
+        </p>
+      )}
     </div>
   )
 }
