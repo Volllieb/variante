@@ -7,7 +7,7 @@
  * Name wird manuell vom User eingegeben (kein KI-Auto-Name).
  */
 
-import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info } from 'lucide-react'
+import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info, FileText } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 
@@ -24,7 +24,15 @@ interface StepReviewProps {
 export function StepReview({
   url, element, variantResult, goal, testName, onTestNameChange, hasDomain,
 }: StepReviewProps) {
-  const displayUrl = /^https?:\/\//i.test(url) ? url.replace(/^https?:\/\//, '') : url
+  // Domain und Pfad getrennt anzeigen. "Site" stand hier fuer die volle URL,
+  // waehrend dasselbe Wort im Dashboard die verbundene Domain meint — zwei
+  // verschiedene Dinge unter einem Label. Der Test haengt an beidem: die Domain
+  // entscheidet, ob /api/resolve ihn ueberhaupt ausliefert (site_host), der Pfad
+  // entscheidet, auf welcher Unterseite ab.js ihn anwendet (pathMatches).
+  const bare = url.replace(/^https?:\/\//i, '')
+  const slashAt = bare.indexOf('/')
+  const displayDomain = slashAt === -1 ? bare : bare.slice(0, slashAt)
+  const displayPath = slashAt === -1 ? '/' : bare.slice(slashAt) || '/'
 
   return (
     <div className="space-y-4">
@@ -46,7 +54,8 @@ export function StepReview({
 
         {/* Details */}
         <div className="space-y-2.5">
-          <DetailRow icon={Globe} label="Site" value={displayUrl} />
+          <DetailRow icon={Globe} label="Domain" value={displayDomain} />
+          <DetailRow icon={FileText} label="Page" value={displayPath} />
           <DetailRow icon={Crosshair} label="Element" value={element.elementName} />
           <DetailRow
             icon={MousePointerClick}
