@@ -163,6 +163,10 @@ export const eventBody = z.object({
 
 export const snippetCheckBody = z.object({
   site_url: z.string().min(1),
+  // Zusaetzlich zu site_url auch die Seiten pruefen, auf denen der User Tests
+  // laufen hat. Optional und default aus, damit der Onboarding-Flow
+  // (Domain verbinden -> verify) unveraendert nur die eine URL prueft.
+  include_pages: z.boolean().optional(),
 })
 
 // ═══════════════════════════════════════════════════════════════════

@@ -1,13 +1,28 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Globe, Check, X, Loader2, Copy, ChevronDown, ExternalLink } from 'lucide-react'
+import { Globe, Check, X, Loader2, Copy, ChevronDown, ExternalLink, AlertTriangle } from 'lucide-react'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
 import { FrameworkExamples } from './FrameworkExamples'
 
 /* ── Types ── */
 
 type VerifiedDomain = { url: string; verifiedAt: string | null }
+
+/** Eine Seite, auf der Tests laufen, samt Snippet-Befund (/api/snippet-check). */
+type PageReport = {
+  url: string
+  detected: boolean
+  outdated?: boolean
+  reason?: string
+  tests: string[]
+}
+
+type PageCheckState =
+  | { phase: 'idle' }
+  | { phase: 'loading' }
+  | { phase: 'done'; pages: PageReport[] }
+  | { phase: 'error' }
 
 type SnippetStatusBadgeProps = {
   hasVerifiedDomain: boolean
@@ -112,6 +127,31 @@ function SnippetVerifiedBadge({
 
   const otherDomains = (allVerifiedDomains ?? []).filter((d) => d.url !== domain)
 
+  // Seiten-Check erst beim Aufklappen — er kostet pro Lauf bis zu zehn Fetches
+  // auf die Kundendomain und hat auf einem Dashboard-Load nichts verloren.
+  // Bewusst an der Nutzeraktion aufgehaengt und nicht an einem Effect auf
+  // `expanded`: der Fetch ist eine Folge des Klicks, nicht des Renderns.
+  const [pageCheck, setPageCheck] = useState<PageCheckState>({ phase: 'idle' })
+  const startPageCheck = useCallback(() => {
+    setPageCheck({ phase: 'loading' })
+    fetch('/api/snippet-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_url: domain, include_pages: true }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('check failed'))))
+      .then((json) => setPageCheck({ phase: 'done', pages: json.pages ?? [] }))
+      .catch(() => setPageCheck({ phase: 'error' }))
+  }, [domain])
+
+  const handleToggle = useCallback(() => {
+    if (!expanded && pageCheck.phase === 'idle') startPageCheck()
+    onToggle()
+  }, [expanded, pageCheck.phase, startPageCheck, onToggle])
+
+  const missingPages =
+    pageCheck.phase === 'done' ? pageCheck.pages.filter((p) => !p.detected) : []
+
   return (
     <div className="mb-5 rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.04] px-4 py-2.5">
       <div className="flex items-center justify-between">
@@ -143,7 +183,8 @@ function SnippetVerifiedBadge({
             + Add site
           </a>
           <button
-            onClick={onToggle}
+            onClick={handleToggle}
+            aria-expanded={expanded}
             className="flex cursor-pointer items-center justify-center h-5 w-5 rounded-[var(--radius-sm)] text-text-3 transition-colors hover:bg-ok/10 hover:text-text"
           >
             <ChevronDown
@@ -156,8 +197,53 @@ function SnippetVerifiedBadge({
       {expanded && (
         <div className="mt-3 border-t border-ok/10 pt-3 space-y-2">
           <p className="text-[12px] text-text-2 leading-relaxed">
-            Data is flowing. Visitors and conversions are being tracked.
+            {missingPages.length > 0
+              ? 'The snippet is missing on some pages you are testing. Those tests cannot record anything.'
+              : 'Data is flowing. Visitors and conversions are being tracked.'}
           </p>
+
+          {/* Pro Seite, nicht pro Domain: das Snippet muss im <head> jeder Seite
+              stehen. Eine verifizierte Domain sagt nur, dass es auf EINER Seite
+              gefunden wurde — meist der Startseite. */}
+          {pageCheck.phase === 'loading' && (
+            <p className="flex items-center gap-1.5 text-[11px] text-text-3">
+              <Loader2 className="h-3 w-3 animate-spin" /> Checking the pages your tests run on…
+            </p>
+          )}
+
+          {pageCheck.phase === 'error' && (
+            <p className="text-[11px] text-text-3">Could not check the individual pages right now.</p>
+          )}
+
+          {pageCheck.phase === 'done' && pageCheck.pages.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">
+                Pages with tests
+              </p>
+              {pageCheck.pages.map((page) => (
+                <div key={page.url} className="flex items-start gap-2 text-[12px]">
+                  {page.detected ? (
+                    <Check className="mt-0.5 h-3 w-3 shrink-0 text-ok" />
+                  ) : (
+                    <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-err" />
+                  )}
+                  <div className="min-w-0">
+                    <span className={page.detected ? 'text-text-2' : 'text-text'}>
+                      {pathLabel(page.url)}
+                    </span>
+                    {!page.detected && (
+                      <span className="block text-[11px] text-err">
+                        {page.outdated
+                          ? 'Outdated snippet — paste the current one again.'
+                          : 'No snippet in the <head> of this page.'}
+                        {page.tests.length > 0 && ` Affects: ${page.tests.join(', ')}`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {otherDomains.length > 0 && (
             <div className="space-y-1">
@@ -565,4 +651,14 @@ function SnippetBanner({
   }
 
   return null
+}
+
+/** Zeigt '/pricing' statt der vollen URL — die Domain steht schon im Kopf des Badges. */
+function pathLabel(url: string): string {
+  try {
+    const u = new URL(url)
+    return u.pathname === '/' ? '/' : u.pathname.replace(/\/+$/, '')
+  } catch {
+    return url
+  }
 }

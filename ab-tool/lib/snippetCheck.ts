@@ -10,6 +10,13 @@ import { isBlockedHost } from '@/lib/ssrf'
 const FETCH_TIMEOUT_MS = 8_000
 const MAX_BYTES = 200_000 // Das Snippet steht im <head>.
 
+// Obergrenzen fuer die Mehrseiten-Pruefung. Jede gepruefte Seite ist ein Fetch
+// von unserer IP auf eine fremde Domain — das bleibt eng begrenzt, damit der
+// Endpunkt kein Traffic-Amplifier wird (derselbe Grund, aus dem er ueberhaupt
+// Auth verlangt, siehe Plan SEC-08 in der Route).
+const MAX_PAGES = 10
+const PAGE_CONCURRENCY = 4
+
 export type SnippetCheckResult = {
   detected: boolean
   checkedUrl: string
@@ -99,4 +106,52 @@ export async function checkSnippet(siteUrl: string): Promise<SnippetCheckResult>
   } finally {
     clearTimeout(timeout)
   }
+}
+
+/**
+ * Prueft mehrere Seiten derselben Site auf das Snippet.
+ *
+ * WARUM: Das Snippet muss im <head> JEDER Seite stehen — ab.js wird pro
+ * Pageview geladen und fragt dort /api/resolve. Die Einzelpruefung sieht aber
+ * nur die eine URL, die ihr uebergeben wird (in der Praxis die Wurzel). Ein
+ * Test auf /pricing meldet deshalb heute "installed", misst aber nichts,
+ * wenn genau dort das Snippet fehlt: kein Fehler, kein Log, nur ein Test, der
+ * ewig bei null Visitors steht.
+ *
+ * Reihenfolge und Anzahl der Ergebnisse folgen der deduplizierten Eingabe;
+ * ueberzaehlige URLs werden verworfen (MAX_PAGES).
+ */
+export async function checkSnippetPages(urls: string[]): Promise<SnippetCheckResult[]> {
+  // Nach Normalisierung deduplizieren: '/pricing' und 'https://x.com/pricing'
+  // sind dieselbe Seite und duerfen nicht zweimal gefetcht werden.
+  const seen = new Set<string>()
+  const targets: string[] = []
+  for (const raw of urls) {
+    if (!raw || typeof raw !== 'string') continue
+    const normalized = normalizeUrl(raw)
+    if (seen.has(normalized)) continue
+    seen.add(normalized)
+    targets.push(normalized)
+    if (targets.length >= MAX_PAGES) break
+  }
+
+  const results: SnippetCheckResult[] = new Array(targets.length)
+  let next = 0
+
+  // Kleiner Worker-Pool statt Promise.all ueber alles: bei 10 Seiten waeren das
+  // 10 gleichzeitige Verbindungen auf EINE fremde Domain — das sieht von deren
+  // Seite aus wie ein Lastspitzchen und kann in ein Rate-Limit laufen.
+  async function worker() {
+    while (true) {
+      const i = next++
+      if (i >= targets.length) return
+      results[i] = await checkSnippet(targets[i]!)
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(PAGE_CONCURRENCY, targets.length) }, worker)
+  )
+
+  return results
 }
