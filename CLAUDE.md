@@ -29,7 +29,7 @@
 variante/
 ├── ab-tool/          # Next.js App — API, Dashboard, Landing (Vercel Root Dir)
 ├── figma-plugin/     # Figma Plugin (Stats-Only, 320×360px, zeigt Live-Test-Daten im Editor)
-├── db/migrations/    # Supabase SQL (001–038, migration-tracking via schema_migrations)
+├── db/migrations/    # Supabase SQL (001–039, migration-tracking via schema_migrations)
 ├── docs/             # Brand, GTM, Architecture, Runbook, Future Features
 ├── .claude/          # Projekt-Skills (seo, stripe-*, ai-architect, performance-optimizer) + settings
 ├── .github/          # CI (e2e.yml), Copilot agents, copilot-instructions.md

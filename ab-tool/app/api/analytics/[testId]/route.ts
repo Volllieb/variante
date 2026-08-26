@@ -25,7 +25,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ testId: 
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, OPTIONS') })
   }
 
-  // Snapshot des aktuellen Stands für heute (idempotent)
+  // Snapshot des aktuellen Stands für heute (idempotent, überschreibt die
+  // heutige Zeile bei jedem Aufruf — siehe Migration 039). p_date bleibt
+  // ungesetzt: "heute" bestimmt die DB, damit App- und DB-Zeitzone nicht
+  // auseinanderlaufen.
   await supabase.rpc('snapshot_daily_stats', { p_test_id: testId })
 
   // Zeitreihe der letzten 90 Tage

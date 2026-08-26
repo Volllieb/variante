@@ -6,7 +6,12 @@ import { cronRoute } from '@/lib/cronAuth'
 export const maxDuration = 300
 
 // POST /api/cron/snapshot-stats — Täglicher Snapshot aller aktiven Tests
-// Wird von Vercel Cron täglich um Mitternacht aufgerufen.
+// Wird von Vercel Cron täglich um Mitternacht (UTC) aufgerufen.
+//
+// Bewusst finalize_daily_stats (= Snapshot auf current_date - 1): Um 00:00 ist
+// der noch nicht verbuchte Traffic gestern entstanden. Vorher landete er in der
+// Zeile des NEUEN Tages, wodurch der Vortag im Chart auf 0 stehen blieb
+// (Migration 039).
 
 export const { GET, POST } = cronRoute(async (_req) => {
 
@@ -38,7 +43,7 @@ export const { GET, POST } = cronRoute(async (_req) => {
     }
     const results = await Promise.all(
       rows.slice(i, i + BATCH).map(async (t) => {
-        const { error: rpcError } = await supabase.rpc('snapshot_daily_stats', { p_test_id: t.id })
+        const { error: rpcError } = await supabase.rpc('finalize_daily_stats', { p_test_id: t.id })
         return !rpcError
       })
     )
