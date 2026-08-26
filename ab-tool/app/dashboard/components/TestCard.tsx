@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X } from 'lucide-react'
+import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X, Target } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
+import { estimateTimeToDecision } from '@/lib/decisions'
+import { describeDbGoal } from '@/lib/resultsHelpers'
 
 // SVG-Farben via CSS custom properties — SVGs unterstützen var() nativ
 const OK = 'var(--color-ok)'
@@ -212,6 +214,19 @@ export function TestCard({
   const isDraft = status === 'draft'
   const hasIssues = Array.isArray(t.health_issues) && t.health_issues.length > 0
 
+  // Conversion-Ziel: "worauf wartet dieser Test eigentlich?" stand bisher nur
+  // auf der Results-Seite — eine Karte ohne Ziel ist ein Test ohne Zweck.
+  const goal = describeDbGoal(t.goal ?? null, t.selector)
+
+  // Restweg bis zur Entscheidung. Nur solange es etwas zu warten gibt: bei
+  // erreichter Schwelle entscheidet nicht mehr die Menge, sondern die Statistik.
+  const estimate = isLive && t.winner === null ? estimateTimeToDecision(t) : null
+  const remaining = estimate && estimate.visitorsNeeded > 0
+    ? estimate.daysNeeded !== null
+      ? `~${estimate.daysNeeded}d to decision`
+      : `~${estimate.visitorsNeeded.toLocaleString()} visitors to go`
+    : null
+
   const cardClassName = `group/card relative block w-full text-left rounded-[var(--radius-lg)] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
     isDraft ? 'border-dashed border-border bg-bg-0/60 cursor-pointer' : 'border-border bg-bg-1'
   }`
@@ -356,6 +371,14 @@ export function TestCard({
         </div>
       )}
 
+      {/* ── Row 1c: Conversion-Ziel ── */}
+      {!isDraft && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-text-3">
+          <Target className="h-3 w-3 shrink-0" />
+          <span className="truncate" title={goal.short}>{goal.short}</span>
+        </div>
+      )}
+
       {/* ── Row 2: status pill | health | duration | leader | winner ── */}
       <div className="mt-1.5 flex items-center gap-1 flex-wrap">
         {/* Status pill */}
@@ -399,6 +422,16 @@ export function TestCard({
         <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-text-3">
           {formatDuration(t.created_at)}
         </span>
+
+        {/* Restweg bis zur Entscheidung */}
+        {remaining && (
+          <span
+            className="rounded-full border border-border px-2 py-0.5 text-[11px] text-text-3"
+            title="Estimated from the traffic this test has seen so far"
+          >
+            {remaining}
+          </span>
+        )}
 
         {/* Variant leader pill */}
         {leader && isLive && (

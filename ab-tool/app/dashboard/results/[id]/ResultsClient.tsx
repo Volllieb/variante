@@ -16,6 +16,7 @@ import {
   progressPct,
   parseGoal,
   formatGoal,
+  describeGoal,
   type DailyRow,
   type AnalyticsData,
 } from '@/lib/resultsHelpers'
@@ -1055,15 +1056,15 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               </button>
             </div>
             <p className="mt-2 text-[13px] text-[#ededed]/62">
-              {goalType === 'element' && data.selector ? (
-                <>Clicks on the replaced element <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{data.selector}</code></>
-              ) : goalType === 'element' && !data.selector ? (
-                'No conversion goal set — conversions can’t be tracked yet.'
-              ) : goalType === 'click' ? (
-                <>Clicks on <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{goalValue}</code></>
-              ) : (
-                <>Page view: <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{goalValue}</code></>
-              )}
+              {(() => {
+                // Dieselbe Zuordnung wie auf der Testkarte (lib/resultsHelpers).
+                const g = describeGoal(goalType, goalValue, data.selector)
+                return g.code ? (
+                  <>{g.label} <code className="text-[11px] font-mono text-[#ededed]/50 bg-[#111111] px-1.5 py-0.5 rounded">{g.code}</code></>
+                ) : (
+                  g.label
+                )
+              })()}
             </p>
             </>
           ) : (

@@ -118,6 +118,54 @@ export function parseGoal(dbGoal: string | null): { type: 'element' | 'click' | 
   return { type: 'element', value: dbGoal }
 }
 
+export type GoalType = 'element' | 'click' | 'url'
+
+export type GoalDescription = {
+  type: GoalType
+  /** Einzeiler für die Testkarte — schon vollständig, ohne Markup. */
+  short: string
+  /** Fließtext für die Results-Seite; `code` ist der hervorgehobene Teil. */
+  label: string
+  /** Selektor bzw. URL, oder null wenn kein Ziel gesetzt ist. */
+  code: string | null
+}
+
+/**
+ * Ein Conversion-Ziel in Klartext.
+ *
+ * Lag vorher nur als JSX-Kaskade auf der Results-Seite. Die Testkarte braucht
+ * dieselbe Zuordnung — zweimal getippt hätte sie garantiert auseinandergelebt,
+ * und zwei Antworten auf "was zählt hier als Conversion" sind eine zu viel.
+ */
+export function describeGoal(type: GoalType, value: string, selector?: string | null): GoalDescription {
+  if (type === 'click') {
+    return { type, short: `Click: ${value}`, label: 'Clicks on', code: value }
+  }
+  if (type === 'url') {
+    return { type, short: `Page view: ${value}`, label: 'Page view:', code: value }
+  }
+  if (selector) {
+    return {
+      type,
+      short: `Click: ${selector}`,
+      label: 'Clicks on the replaced element',
+      code: selector,
+    }
+  }
+  return {
+    type,
+    short: 'No conversion goal',
+    label: 'No conversion goal set — conversions can’t be tracked yet.',
+    code: null,
+  }
+}
+
+/** Wie describeGoal, aber direkt aus dem DB-Wert. */
+export function describeDbGoal(dbGoal: string | null, selector?: string | null): GoalDescription {
+  const { type, value } = parseGoal(dbGoal)
+  return describeGoal(type, value, selector)
+}
+
 /** Format UI state back into DB goal format. */
 export function formatGoal(type: 'element' | 'click' | 'url', value: string): string | null {
   if (type === 'element') return null
