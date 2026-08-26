@@ -249,7 +249,7 @@ export function StepUrlAndElement({
       {/* ── Page URL ── */}
       <div>
         {verifiedDomains.length > 0 && (
-          <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Your site</label>
+          <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Domain</label>
         )}
 
         {verifiedDomains.length > 0 && (
@@ -270,7 +270,7 @@ export function StepUrlAndElement({
               {verifiedDomains.map((d) => (
                 <option key={d.url} value={d.url}>{d.url}</option>
               ))}
-              <option value="">Different site or page…</option>
+              <option value="">Other domain…</option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
           </div>

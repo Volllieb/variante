@@ -195,17 +195,17 @@ export function DashboardClient({
             <select
               value={scope}
               onChange={(e) => setScopeAndPersist(e.target.value)}
-              aria-label="Filter by site"
+              aria-label="Filter by domain"
               className="appearance-none bg-transparent text-[15px] font-semibold text-text pr-5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
             >
-              <option value="all">All sites</option>
+              <option value="all">All domains</option>
               {domainOptions.filter((d) => d !== 'all').map((url) => (
                 <option key={url} value={url}>{url}</option>
               ))}
             </select>
           ) : (
             <p className="text-[15px] font-semibold text-text">
-              {primaryDomain ? primaryDomain : 'All sites'}
+              {primaryDomain ? primaryDomain : 'All domains'}
             </p>
           )}
           {domainOptions.length > 1 && (
@@ -469,11 +469,11 @@ function GettingStartedBanner({ hasDomain, previewTest }: { hasDomain: boolean; 
             <Globe className="h-4 w-4 text-text-2" />
           </span>
           <div className="flex-1">
-            <p className="text-[14px] font-semibold text-text">Add your site to get started</p>
-            <p className="mt-0.5 text-[12px] text-text-2">Connect your website and install the snippet to run A/B tests.</p>
+            <p className="text-[14px] font-semibold text-text">Add your domain to get started</p>
+            <p className="mt-0.5 text-[12px] text-text-2">Install the snippet once on every page of your domain, then verify it here.</p>
           </div>
           <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
-            Connect site
+            Connect domain
           </a>
         </div>
       </div>

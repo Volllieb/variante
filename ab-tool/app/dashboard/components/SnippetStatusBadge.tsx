@@ -161,7 +161,7 @@ function SnippetVerifiedBadge({
 
           {otherDomains.length > 0 && (
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">All sites</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">All domains</p>
               {[domain, ...otherDomains.map((d) => d.url)].map((url) => (
                 <div key={url} className="flex items-center gap-2 text-[12px] text-text-2">
                   <Check className="h-3 w-3 shrink-0 text-ok" />
@@ -360,11 +360,11 @@ function SnippetBanner({
           <div className="min-w-0 flex-1 space-y-3">
             <div>
               <p className="text-[14px] font-semibold text-white">
-                Connect your site to start A/B testing
+                Connect your domain to start A/B testing
               </p>
               <p className="mt-1 text-[12px] text-text-3 max-w-prose">
-                Paste the variante snippet into your site&apos;s <code className="text-text-2 bg-bg-2 px-1 rounded text-[11px]">&lt;head&gt;</code>,
-                then enter your domain to verify the installation.
+                Paste the variante snippet into the <code className="text-text-2 bg-bg-2 px-1 rounded text-[11px]">&lt;head&gt;</code> of every page on your domain,
+                then enter the domain below to verify.
               </p>
             </div>
 
