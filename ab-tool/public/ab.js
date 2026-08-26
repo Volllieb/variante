@@ -867,6 +867,50 @@
     }
   }
 
+  // --- Einblend-Animationen der eingefuegten Variante abschliessen -----------
+  // B landet erst NACH dem Seitenaufbau im DOM: /api/resolve und /api/assign
+  // sind zwei Roundtrips, und die Seite haengt so lange auf opacity:0. Jede
+  // einmalige Entrance-Animation, die auf das neue Element matcht — aus dem CSS
+  // der Kundenseite (fade-in-up, AOS-artige Keyframes) oder aus dem generierten
+  // Varianten-CSS, in das der Picker `animation` des Originals mit hineinreicht
+  // — startet damit genau in dem Moment, in dem reveal() die Seite sichtbar
+  // macht. Alle anderen Elemente haben ihre Animation da laengst hinter sich:
+  // B "baut sich auf", erscheint erst kleiner und waechst nach. Fuer den
+  // Besucher sieht das aus wie verspaetetes CSS — und es verfaelscht den Test,
+  // weil B anders wirkt als A.
+  //
+  // Web Animations API: laufende Animationen auf ihren Endzustand vorspulen
+  // statt sie zu unterdruecken (unterdruecken wuerde sie nur verschieben — ein
+  // wieder aktiviertes animation-name startet von vorn). Endlos laufende
+  // Animationen (Puls, Spinner) bleiben unangetastet; finish() wuerde dort
+  // ohnehin werfen.
+  function settleAnimations(node) {
+    if (!node || !node.getAnimations) return
+    var anims
+    // getAnimations() erzwingt selbst einen Style-Recalc — die Animationen des
+    // gerade eingefuegten Knotens existieren dadurch bereits.
+    try { anims = node.getAnimations({ subtree: true }) } catch (_) { return }
+    for (var i = 0; i < anims.length; i++) {
+      try {
+        var t = anims[i].effect && anims[i].effect.getTiming ? anims[i].effect.getTiming() : null
+        if (t && t.iterations === Infinity) continue
+        anims[i].finish()
+      } catch (_) {}
+    }
+  }
+
+  // Zweimal: sofort (fuer alles, was das eigene CSS ausloest) und im naechsten
+  // Frame (fuer Animationen, die Skripte der Kundenseite erst als Reaktion auf
+  // den neuen Knoten setzen, z. B. per IntersectionObserver oder Klassen-Toggle).
+  function settleSoon(node) {
+    settleAnimations(node)
+    try {
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(function () { settleAnimations(node) })
+      }
+    } catch (_) {}
+  }
+
   function hideOriginal(el, key) {
     try {
       el.setAttribute('data-ab-original', key || '1')
@@ -879,7 +923,7 @@
   // Markiert die eingefügte B-Wurzel mit data-ab-el="<key>", damit Conversions
   // auch nach dem Element-Tausch zuverlässig zugeordnet werden können. Gibt true
   // zurück, wenn B tatsächlich angewandt wurde.
-  function applyDom(selector, variant, html, key) {
+  function applyDom(selector, variant, html, key, css) {
     if (variant !== 'B' || !html) return false
     // Schon angewandt? MutationObserver und popstate rufen run() erneut auf.
     // Im Bridge-Fall steht A noch (versteckt) im DOM und würde beim zweiten
@@ -888,6 +932,13 @@
     var el = document.querySelector(selector)
     if (!el) return false
     beginApply()
+    // CSS VOR der Mutation: vorher wurde erst getauscht und das <style> danach
+    // vom Aufrufer nachgereicht. Solange in diesem Fenster nichts den Style
+    // flusht, faellt das nicht auf — sobald doch (Fremdskript, Extension,
+    // Layout-Read), rendert B einen Recalc lang ungestylt und springt dann auf
+    // seine echte Groesse. Der Knoten traegt data-ab-el schon vor dem Einfuegen,
+    // der gescopte Selektor greift also sofort.
+    applyCss(key, scopeCssToVariant(css, selector, key))
     try {
       // Plain-Text (keine HTML-Tags): textContent statt DOM-Tausch.
       // Verhindert, dass z.B. <button> durch "Neuer Text" ersetzt wird.
@@ -924,6 +975,7 @@
           el.replaceWith(node)
         }
         alignCursor(dst, srcCursor)
+        settleSoon(node)
         return true
       }
       el.outerHTML = html // Fallback: kein Einzel-Wurzelelement im Fragment
@@ -931,6 +983,10 @@
       sanitizeSvgs(el.parentNode || el)
       return true
     } catch (_) {
+      // Mutation fehlgeschlagen → das Original steht noch da. Das gescopte CSS
+      // zeigt dann auf ein [data-ab-el], das es nicht gibt: ungescopt neu
+      // injizieren, damit A wenigstens gestylt bleibt.
+      applyCss(key, css)
       return false
     } finally {
       endApply()
@@ -945,13 +1001,15 @@
     var goalSel = normGoal(t.goal, selector)
 
     function finish(variant, html, css) {
-      var applied = applyDom(selector, variant, html, key)
-      // Reihenfolge ist wichtig: erst der DOM-Tausch, dann das CSS. Vorher
-      // wurde applyCss VOR applyDom aufgerufen, dann ist noch gar nicht
-      // bekannt, ob B ueberhaupt angewandt wurde — und genau davon haengt ab,
-      // auf welchen Selektor das CSS zeigen muss.
-      if (variant === 'B') {
-        applyCss(key, applied ? scopeCssToVariant(css, selector, key) : css)
+      // applyDom injiziert das gescopte CSS selbst, unmittelbar VOR dem Tausch —
+      // nur so existiert B nie ungestylt im DOM. Es weiss an dieser Stelle auch
+      // als einziges, ob getauscht wurde, und genau davon haengt ab, auf welchen
+      // Selektor das CSS zeigen muss.
+      var applied = applyDom(selector, variant, html, key, css)
+      // Nicht angewandt (CSS-only-Test, Selektor trifft nichts): das Original
+      // steht noch, also gilt der Original-Selektor — CSS ungescopt injizieren.
+      if (variant === 'B' && !applied) {
+        applyCss(key, css)
       }
       // Goal-Selektor für Variante B:
       // 1. EXPLIZITES Goal (t.goal gesetzt, z.B. #signup-button) → goalSel behalten.
@@ -989,8 +1047,10 @@
     // Abgeschlossener Test mit Gewinner B: ALLE Besucher bekommen B ausgeliefert,
     // ohne Assign-Counter und ohne Conversion-Tracking. HTML kommt aus resolve.
     if (t.force === 'B') {
-      var forced = t.variant_b_html ? applyDom(selector, 'B', t.variant_b_html, key) : false
-      applyCss(key, forced ? scopeCssToVariant(t.variant_b_css, selector, key) : t.variant_b_css)
+      var forced = t.variant_b_html
+        ? applyDom(selector, 'B', t.variant_b_html, key, t.variant_b_css)
+        : false
+      if (!forced) applyCss(key, t.variant_b_css)
       return Promise.resolve()
     }
 

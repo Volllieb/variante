@@ -38,7 +38,10 @@ function check(label, fn) {
 const AB_JS = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'ab.js')
 const source = readFileSync(AB_JS, 'utf8')
 
-const START = source.indexOf('  var ACTION_SEL_SRC')
+// scopeCssToVariant und applyCss stehen direkt ueber ACTION_SEL_SRC und werden
+// von applyDom benutzt (das CSS geht VOR dem Tausch rein) — mit extrahieren
+// statt nachbauen, sonst driftet der Test vom echten Verhalten weg.
+const START = source.indexOf('  function scopeCssToVariant')
 const END = source.indexOf('  // --- Einen Test auflösen')
 assert.ok(START > 0 && END > START, 'Interaktions-Block in ab.js nicht gefunden')
 const BLOCK = source.slice(START, END)
@@ -52,7 +55,7 @@ function loadInto(dom, win) {
      var endApply = function () {}
      var sanitizeSvgs = function () {}
      ${BLOCK}
-     return { applyDom: applyDom, portInteraction: portInteraction, findAction: findAction, realHref: realHref }`
+     return { applyDom: applyDom, portInteraction: portInteraction, findAction: findAction, realHref: realHref, scopeCssToVariant: scopeCssToVariant }`
   )
   return factory(dom.window.document, win || dom.window, dom.window.MouseEvent)
 }
@@ -302,6 +305,87 @@ check('Variante A und fehlendes HTML ändern nichts', () => {
   assert.equal(api.applyDom('#cta', 'A', '<button>x</button>', KEY), false)
   assert.equal(api.applyDom('#cta', 'B', '', KEY), false)
   assert.equal(api.applyDom('#weg', 'B', '<button>x</button>', KEY), false)
+})
+
+// ── Kein ungestyltes Zwischenbild ───────────────────────────────────────────
+// B wird erst nach zwei Roundtrips eingehaengt. Ging das <style> danach rein,
+// existierte B einen Style-Recalc lang ohne sein CSS: das Element erscheint in
+// Browser-Defaults (kleiner) und springt dann auf seine echte Groesse — sieht
+// aus wie verspaetetes CSS und verfaelscht den Test.
+console.log('')
+console.log('── Kein ungestyltes Zwischenbild ──')
+console.log('')
+
+check('Varianten-CSS ist im DOM, bevor B eingehaengt wird', () => {
+  const { doc, api } = page('<a id="cta" href="/signup">Get started</a>')
+  const bAtInject = []
+  const origAppend = doc.head.appendChild.bind(doc.head)
+  doc.head.appendChild = function (n) {
+    if (n.tagName === 'STYLE') bAtInject.push(doc.querySelector(`[data-ab-el="${KEY}"]`))
+    return origAppend(n)
+  }
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, '#cta { color: red }')
+  assert.equal(bAtInject.length, 1, 'kein <style> injiziert')
+  assert.equal(bAtInject[0], null, 'B stand beim CSS-Inject schon im DOM')
+})
+
+check('das injizierte CSS ist auf die B-Wurzel gescopt', () => {
+  const { doc, api } = page('<a id="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, '#cta { color: red }')
+  const style = doc.querySelector(`style[data-ab-css="${KEY}"]`)
+  assert.ok(style, 'kein <style data-ab-css> im head')
+  assert.equal(style.textContent, `[data-ab-el="${KEY}"] { color: red }`)
+})
+
+check('ohne CSS wird auch kein leeres <style> gesetzt', () => {
+  const { doc, api } = page('<a id="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY)
+  assert.equal(doc.querySelector('style[data-ab-css]'), null)
+})
+
+// ── Einblend-Animationen ────────────────────────────────────────────────────
+// Die Seite haengt bis reveal() auf opacity:0. Alle Entrance-Animationen der
+// Seite sind dann durch — die des frisch eingefuegten B faengt genau dann erst
+// an: B "baut sich auf", waehrend alles andere sofort da ist.
+console.log('')
+console.log('── Einblend-Animationen ──')
+console.log('')
+
+function withAnimations(dom, anims) {
+  dom.window.Element.prototype.getAnimations = function () { return anims }
+}
+function anim(iterations, log, name) {
+  return {
+    effect: { getTiming: () => ({ iterations }) },
+    finish() { log.push(name) },
+  }
+}
+
+check('einmalige Animation der Variante wird auf den Endzustand vorgespult', () => {
+  const { dom, api } = page('<a id="cta" href="/signup">Get started</a>')
+  const finished = []
+  withAnimations(dom, [anim(1, finished, 'fade-in-up')])
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY)
+  assert.deepEqual(finished, ['fade-in-up'])
+})
+
+check('endlos laufende Animation (Puls, Spinner) bleibt unangetastet', () => {
+  const { dom, api } = page('<a id="cta" href="/signup">Get started</a>')
+  const finished = []
+  withAnimations(dom, [anim(Infinity, finished, 'puls'), anim(1, finished, 'fade-in-up')])
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY)
+  assert.deepEqual(finished, ['fade-in-up'])
+})
+
+check('eine werfende Animation stoppt die uebrigen nicht', () => {
+  const { dom, api } = page('<a id="cta" href="/signup">Get started</a>')
+  const finished = []
+  withAnimations(dom, [
+    { effect: null, finish() { throw new Error('InvalidState') } },
+    anim(1, finished, 'fade-in-up'),
+  ])
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY)
+  assert.deepEqual(finished, ['fade-in-up'])
 })
 
 console.log(`\n${passed} passed, ${failed} failed\n`)
