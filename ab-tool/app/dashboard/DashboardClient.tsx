@@ -1,32 +1,28 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { useTestList } from '@/lib/useTestList'
+import { deriveDecisions, sortByDecisionReadiness } from '@/lib/decisions'
 import { Tooltip } from '@/app/components/Tooltip'
-import { EmptyState } from '@/app/components/EmptyState'
 import { NewTestDrawer } from './components/NewTestDrawer'
 import { TestCard, type TestRow } from './components/TestCard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
 import { AgentPanel } from './components/AgentPanel'
-import {
-  FilterDropdown,
-} from './components/FilterDropdown'
+import { DecisionList } from './components/DecisionList'
 import {
   FlaskConical,
-  Search,
-  ArrowUpDown,
-  RefreshCw,
   Plus,
   Check,
   Globe,
-  User,
   ChevronDown,
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
 import { PlanUsageBar } from './components/PlanUsageBar'
+
+/** So viele Tests zeigt die Overview — die vollständige Liste lebt in /dashboard/tests. */
+const TOP_TESTS = 5
 
 // ponytail: apiToken/hasFigmaPlugin/email waren tote Props — nie im Body
 // verwendet, aber vom Server in den HTML-Payload serialisiert. Bei apiToken
@@ -84,24 +80,39 @@ export function DashboardClient({
   // (leeres Dashboard), dann ein zweiter mit 'all'. Jetzt abgeleitet: ein Render.
   const scope = domainOptions.includes(storedScope) ? storedScope : 'all'
 
-  const {
-    testList,
-    setTestList,
-    query,
-    setQuery,
-    filter,
-    setFilter,
-    sortAsc,
-    setSortAsc,
-    filteredTests,
-    handleDeleteTest,
-    addTest,
-  } = useTestList({ initial: tests, sort: true })
+  // ── Testliste ──
+  // Die Overview filtert und sortiert nicht mehr selbst (das ist die Aufgabe
+  // von /dashboard/tests), braucht aber weiterhin lokale Mutationen: der
+  // NewTestDrawer und die Karten-Menüs melden Anlegen und Löschen zurück.
+  const [testList, setTestList] = useState(tests)
+  const [prevTests, setPrevTests] = useState(tests)
+  if (prevTests !== tests) {
+    // Frische Server-Daten nach router.refresh() im Render übernehmen statt
+    // per Effect — sonst rendert die Seite erst mit der alten Liste.
+    setPrevTests(tests)
+    setTestList(tests)
+  }
+
+  const handleDeleteTest = useCallback((id: string) => {
+    setTestList((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  const addTest = useCallback((test: TestRow) => {
+    setTestList((prev) => [test, ...prev])
+  }, [])
 
   const scopedTests = useMemo(() => {
     if (scope === 'all') return testList
     return testList.filter((t) => t.site_url === scope || t.site_url?.includes(scope))
   }, [testList, scope])
+
+  const openDraftWizard = useCallback((testId: string) => {
+    const test = testList.find((t) => t.id === testId)
+    if (!test) return
+    setResumeTest(test)
+    setNewTestOpen(true)
+    setDrawerOpenCount((c) => c + 1)
+  }, [testList])
 
   // Deep-Link ?newTest=1 waehrend Client-Navigation: Prop-Wechsel im Render
   // auswerten statt per Effect (sonst blitzt das Dashboard ohne Drawer auf).
@@ -110,8 +121,6 @@ export function DashboardClient({
     setPrevOpenNewTest(openNewTest)
     if (openNewTest) setNewTestOpen(true)
   }
-
-  /* ── Aggregate stats (scoped) ── */
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
@@ -126,13 +135,22 @@ export function DashboardClient({
     return () => subscription.unsubscribe()
   }, [router])
 
-  /* ── Aggregate stats (scoped) ── */
+  /* ── Ebene 2: Entscheidungen ── */
+  const decisions = useMemo(() => deriveDecisions(scopedTests), [scopedTests])
+
+  /* ── Ebene 3: Aggregate stats (scoped) ── */
   const activeTests = scopedTests.filter((t) => t.status === 'active').length
   const totalVisitors = scopedTests.reduce((s, t) => s + (t.visitors_a ?? 0) + (t.visitors_b ?? 0), 0)
   const totalConversions = scopedTests.reduce((s, t) => s + (t.conversions_a ?? 0) + (t.conversions_b ?? 0), 0)
   const overallCR = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0
 
+  // ponytail: Der Durchschnitt lief vorher über ALLE Tests — auch über solche
+  // mit zwölf Besuchern, deren "Uplift" reines Rauschen ist. Eine Kachel, die
+  // "+340 %" zeigt, weil ein Draft zufällig eine Conversion mehr hat, ist keine
+  // Kennzahl, sondern eine Falschaussage. Gemittelt wird nur über entschiedene
+  // Tests — die einzigen, deren Uplift belastbar ist.
   const lifts = scopedTests
+    .filter((t) => t.winner !== null)
     .map((t) => {
       const crA = (t.visitors_a ?? 0) > 0 ? (t.conversions_a ?? 0) / (t.visitors_a ?? 0) : 0
       const crB = (t.visitors_b ?? 0) > 0 ? (t.conversions_b ?? 0) / (t.visitors_b ?? 0) : 0
@@ -142,7 +160,12 @@ export function DashboardClient({
   const avgUplift = lifts.length > 0 ? lifts.reduce((s, l) => s + l, 0) / lifts.length : null
 
   const winningTests = scopedTests.filter((t) => t.winner !== null).length
-  const hasHealthWarnings = scopedTests.some((t) => t.health_status === 'warning' || (t.health_issues && t.health_issues.length > 0))
+
+  /* ── Ebene 5: Top-Tests nach Entscheidungsreife ── */
+  const topTests = useMemo(
+    () => sortByDecisionReadiness(scopedTests, decisions).slice(0, TOP_TESTS),
+    [scopedTests, decisions]
+  )
 
   /* Hybrid-Onboarding: der User hat seine Variante schon VOR dem Sign-up gesehen,
      aber ohne Snippet geht sie nie live. Das ist der einzige Schritt der jetzt noch
@@ -164,33 +187,13 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* Snippet Status Badge — immer sichtbar */}
-      <SnippetStatusBadge
-        hasVerifiedDomain={hasVerifiedDomain}
-        primaryDomain={primaryDomain}
-        verifiedAt={verifiedAt}
-        allVerifiedDomains={allVerifiedDomains}
-        onDomainVerified={() => router.refresh()}
-      />
-
-      {/* Getting Started Banner — zeigt immer den nächsten logischen Schritt */}
-      {!hasVerifiedDomain && (
-        <GettingStartedBanner
-          hasDomain={domainCount > 0}
-          previewTest={pendingPreviewTest ?? undefined}
-        />
-      )}
-
-      {/* Free plan usage — proactive limit visibility before hitting a wall */}
-      <PlanUsageBar plan={plan} activeTests={activeTests} domainCount={domainCount} />
-
-      {/* Content header: scope selector + CTA */}
+      {/* ── Ebene 0: Kontextleiste — Domain-Scope + CTA ── */}
       {/* A11Y-05: Bei mehreren Domains ersetzte das <select> das <h1> — die Seite
           hatte dann gar keine Überschrift. sr-only-h1 sorgt für einen stabilen
           Einstiegspunkt, unabhängig von der Domain-Zahl. */}
       <h1 className="sr-only">Dashboard</h1>
-      <div className="mb-5 flex items-center justify-between">
-        <div className="relative">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="relative min-w-0">
           {domainOptions.length > 1 ? (
             <select
               value={scope}
@@ -213,7 +216,7 @@ export function DashboardClient({
           )}
           {hasVerifiedDomain && (
             <p className="text-[12px] text-text-3 mt-0.5">
-              {filteredTests.length} test{filteredTests.length !== 1 ? 's' : ''}
+              {scopedTests.length} test{scopedTests.length !== 1 ? 's' : ''}
             </p>
           )}
         </div>
@@ -228,7 +231,31 @@ export function DashboardClient({
         </Tooltip>
       </div>
 
-      {/* Overview cards */}
+      {/* ── Ebene 1: genau EIN Blocker ──
+          Verifiziert ist der Snippet-Status Kontext (kompakter Badge), sonst ist
+          er DER offene Schritt. Der Preview-Draft ersetzt den Setup-Banner, statt
+          sich darüber zu stapeln: zwei Banner untereinander, die dasselbe fordern,
+          sind kein doppelter Hinweis, sondern ein halber. */}
+      {pendingPreviewTest ? (
+        <PreviewReadyBlocker test={pendingPreviewTest} />
+      ) : (
+        <SnippetStatusBadge
+          hasVerifiedDomain={hasVerifiedDomain}
+          primaryDomain={primaryDomain}
+          verifiedAt={verifiedAt}
+          allVerifiedDomains={allVerifiedDomains}
+          onDomainVerified={() => router.refresh()}
+        />
+      )}
+
+      {/* Free plan usage — proactive limit visibility before hitting a wall */}
+      <PlanUsageBar plan={plan} activeTests={activeTests} domainCount={domainCount} />
+
+      {/* ── Ebene 2: Entscheidungen ── */}
+      <DecisionList decisions={decisions} onFinishDraft={openDraftWizard} />
+
+      {/* ── Ebene 3: KPI-Grid ── */}
+      {scopedTests.length > 0 && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <OverviewCard
             label="Active Tests"
@@ -251,65 +278,85 @@ export function DashboardClient({
           <OverviewCard
             label="Avg Uplift"
             value={avgUplift !== null ? `${avgUplift > 0 ? '+' : ''}${avgUplift.toFixed(1)}%` : '—'}
+            hint={avgUplift !== null ? `Across ${lifts.length} decided test${lifts.length !== 1 ? 's' : ''}` : 'No decided test yet'}
             tone={avgUplift !== null && avgUplift > 0 ? 'ok' : avgUplift !== null && avgUplift < 0 ? 'err' : undefined}
           />
         </div>
-
-
-      {/* Winner banner — highlights tests with declared winners */}
-      {winningTests > 0 && (
-        <div className="mb-5 rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.05] px-5 py-3.5">
-          <p className="text-[13px] text-ok">
-            🎉 <strong className="font-semibold">{winningTests} test{winningTests !== 1 ? 's' : ''}</strong> ha{winningTests === 1 ? 's' : 've'} a winner.{' '}
-            <a href="/dashboard/tests" className="underline transition-opacity hover:opacity-80">View results →</a>
-          </p>
-        </div>
       )}
 
-      {/* Quick Actions row */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <button
-          onClick={() => setNewTestOpen(true)}
-          className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-fill-invert">
-            <Plus className="h-4 w-4 text-text-on-invert" />
-          </span>
-          <span className="text-[13px] font-semibold text-text">Create test</span>
-        </button>
-        {!hasVerifiedDomain ? (
-          <a
-            href="/dashboard/account"
-            className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
-              <Globe className="h-4 w-4 text-text-2" />
-            </span>
-            <span className="text-[13px] font-semibold text-text">Install snippet</span>
-          </a>
-        ) : (
-          <a
-            href="/dashboard/tests"
-            className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
-              <FlaskConical className="h-4 w-4 text-text-2" />
-            </span>
-            <span className="text-[13px] font-semibold text-text">View all tests</span>
-          </a>
-        )}
-        <a
-          href="/dashboard/account"
-          className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5 text-left transition-colors hover:border-border-strong cursor-pointer"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
-            <User className="h-4 w-4 text-text-2" />
-          </span>
-          <span className="text-[13px] font-semibold text-text">Account settings</span>
-        </a>
+      {/* New test flow — Drawer Wizard. Liegt außerhalb der Test-Karte, damit er
+          auch im Leerzustand und aus der Entscheidungs-Liste heraus öffnen kann. */}
+      <NewTestDrawer
+        key={`drawer-${newTestOpen ? 'open' : 'closed'}-${drawerOpenCount}`}
+        isOpen={newTestOpen}
+        onClose={() => { setNewTestOpen(false); setResumeTest(null) }}
+        userId={userId}
+        resumeTest={resumeTest}
+        onTestCreated={(createdTest) => {
+          setNewTestOpen(false)
+          setResumeTest(null)
+          setDrawerOpenCount((c) => c + 1)
+          if (resumeTest) {
+            // Resume: update the existing draft test in the list
+            setTestList((prev) => prev.map((t) =>
+              t.id === resumeTest.id
+                ? { ...t, name: createdTest.name, site_url: createdTest.site_url, status: createdTest.status, health_status: null, health_issues: null }
+                : t
+            ))
+          } else {
+            addTest({
+              id: createdTest.id,
+              name: createdTest.name,
+              site_url: createdTest.site_url,
+              status: createdTest.status,
+              visitors_a: 0,
+              visitors_b: 0,
+              conversions_a: 0,
+              conversions_b: 0,
+              winner: null,
+              created_at: new Date().toISOString(),
+            })
+          }
+        }}
+        verifiedDomains={allVerifiedDomains}
+      />
+
+      {/* ── Ebene 5: die dringendsten Tests ── */}
+      <div className="mb-6 rounded-[var(--radius-lg)] border border-border bg-bg-1">
+        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <h2 className="text-[11px] font-medium uppercase tracking-wider text-text-3">
+            Your tests
+          </h2>
+          {scopedTests.length > 0 && (
+            <a
+              href="/dashboard/tests"
+              className="text-[12px] font-medium text-text-3 transition-colors hover:text-text-2"
+            >
+              View all {scopedTests.length} →
+            </a>
+          )}
+        </div>
+
+        <div className="p-4">
+          {scopedTests.length === 0 ? (
+            <EmptyDashboard
+              hasVerifiedDomain={hasVerifiedDomain}
+              isPro={isPro}
+              onNewTest={() => setNewTestOpen(true)}
+            />
+          ) : (
+            <ErrorBoundary label="Tests">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {topTests.map((t, i) => (
+                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true); setDrawerOpenCount((c) => c + 1) }} />
+                ))}
+              </div>
+            </ErrorBoundary>
+          )}
+        </div>
       </div>
 
-      {/* Auto-Optimize Agent — available for all users */}
+      {/* ── Ebene 6: Agent + AI-Vorschläge ── */}
       {hasVerifiedDomain && (
         <div className="mb-6">
           <AgentPanel
@@ -319,7 +366,6 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* What to test next — AI suggestions */}
       {scopedTests.length > 0 && (
         <div className="mb-6">
           <WhatToTestNext
@@ -331,183 +377,34 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* Health warnings */}
-      {hasHealthWarnings && (
-        <div className="mb-5 rounded-[var(--radius-lg)] border border-pro/20 bg-pro-bg px-4 py-3">
-          <p className="text-[12px] text-pro/90">
-            Some tests have health warnings. Check the test list below for details.
-          </p>
-        </div>
-      )}
-
-      {/* Tests section */}
-      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1">
-        {/* Toolbar */}
-        <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search tests…"
-              className="w-full h-[36px] rounded-[var(--radius-md)] border border-border bg-bg-0 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
-            />
-          </div>
-          <Tooltip content={sortAsc ? 'Newest first' : 'Oldest first'}>
-            <button
-              onClick={() => setSortAsc((v) => !v)}
-              aria-label={sortAsc ? 'Sort: newest first' : 'Sort: oldest first'}
-              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
-            >
-              <ArrowUpDown className="h-3.5 w-3.5" />
-            </button>
-          </Tooltip>
-          <FilterDropdown filter={filter} onChange={setFilter} />
-          <Tooltip content="Refresh test list">
-            <button
-              onClick={() => router.refresh()}
-              aria-label="Refresh test list"
-              className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-            </button>
-          </Tooltip>
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          {/* New test flow — Drawer Wizard */}
-          <NewTestDrawer
-            key={`drawer-${newTestOpen ? 'open' : 'closed'}-${drawerOpenCount}`}
-            isOpen={newTestOpen}
-            onClose={() => { setNewTestOpen(false); setResumeTest(null) }}
-            userId={userId}
-            resumeTest={resumeTest}
-            onTestCreated={(createdTest) => {
-              setNewTestOpen(false)
-              setResumeTest(null)
-              setDrawerOpenCount((c) => c + 1)
-              if (resumeTest) {
-                // Resume: update the existing draft test in the list
-                setTestList((prev) => prev.map((t) =>
-                  t.id === resumeTest.id
-                    ? { ...t, name: createdTest.name, site_url: createdTest.site_url, status: createdTest.status, health_status: null, health_issues: null }
-                    : t
-                ))
-              } else {
-                addTest({
-                  id: createdTest.id,
-                  name: createdTest.name,
-                  site_url: createdTest.site_url,
-                  status: createdTest.status,
-                  visitors_a: 0,
-                  visitors_b: 0,
-                  conversions_a: 0,
-                  conversions_b: 0,
-                  winner: null,
-                  created_at: new Date().toISOString(),
-                })
-              }
-            }}
-            verifiedDomains={allVerifiedDomains}
-          />
-
-          {scopedTests.length === 0 ? (
-            <EmptyDashboard
-              hasVerifiedDomain={hasVerifiedDomain}
-              isPro={isPro}
-              onNewTest={() => setNewTestOpen(true)}
-            />
-          ) : filteredTests.length === 0 ? (
-            <EmptyState
-              icon={Search}
-              title={query ? `No tests match "${query}"` : 'No tests found'}
-              description={query ? 'Try a different search term or clear the filter.' : 'Create your first test to get started.'}
-            >
-              {!query && (
-                <button
-                  onClick={() => setNewTestOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  New test
-                </button>
-              )}
-            </EmptyState>
-          ) : (
-            <ErrorBoundary label="Tests">
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredTests.slice(0, 5).map((t, i) => (
-                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true); setDrawerOpenCount((c) => c + 1) }} />
-                ))}
-              </div>
-              {filteredTests.length > 5 && (
-                <div className="mt-3 text-center">
-                  <a href="/dashboard/tests" className="text-[12px] font-medium text-text-3 transition-colors hover:text-text-2">
-                    View all {filteredTests.length} tests →
-                  </a>
-                </div>
-              )}
-            </ErrorBoundary>
-          )}
-        </div>
-      </div>
-
     </div>
   )
 }
 
 /* ── Sub-components ── */
 
-function GettingStartedBanner({ hasDomain, previewTest }: { hasDomain: boolean; previewTest?: TestRow }) {
-  // State machine: no_domain → domain_unverified → no_tests
-  if (!hasDomain) {
-    return (
-      <div className="mb-5 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-2">
-            <Globe className="h-4 w-4 text-text-2" />
-          </span>
-          <div className="flex-1">
-            <p className="text-[14px] font-semibold text-text">Add your domain to get started</p>
-            <p className="mt-0.5 text-[12px] text-text-2">Install the snippet once on every page of your domain, then verify it here.</p>
-          </div>
-          <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
-            Connect domain
-          </a>
-        </div>
-      </div>
-    )
-  }
-
-  // Domain exists but snippet not verified
-  if (previewTest) {
-    return (
-      <div className="mb-5 flex flex-col gap-4 rounded-[var(--radius-lg)] border border-pro/25 bg-pro/[0.05] p-4 sm:flex-row sm:items-center">
-        {previewTest.preview_variant_screenshot_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewTest.preview_variant_screenshot_url} alt="" className="h-20 w-32 shrink-0 rounded-[var(--radius-md)] border border-border object-cover object-top" />
-        )}
-        <div className="min-w-0 flex-1">
-          <h2 className="text-[14px] font-semibold text-text">Your variant is ready — one step left</h2>
-          <p className="mt-1 text-[12px] text-text-2">
-            <span className="font-medium text-text">{previewTest.name}</span> is saved as a draft. Add the one-line snippet to your site and this test goes live.
-          </p>
-        </div>
-        <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
-          <Globe className="h-3.5 w-3.5" />
-          Install snippet
-        </a>
-      </div>
-    )
-  }
-
-  // Domain exists, no verified, but no preview test
+/**
+ * Der Blocker für den Hybrid-Onboarding-Fall: Variante existiert schon, das
+ * Snippet fehlt. Ersetzt den Snippet-Banner, statt ihn zu verdoppeln — die
+ * Verifikation selbst läuft dann über /dashboard/account.
+ */
+function PreviewReadyBlocker({ test }: { test: TestRow }) {
   return (
-    <div className="mb-5 rounded-[var(--radius-lg)] border border-pro/20 bg-pro/[0.03] px-4 py-3">
-      <p className="text-[12px] text-pro">
-        Snippet not detected yet — <a href="/dashboard/account" className="underline font-medium">verify your installation</a> to activate your tests.
-      </p>
+    <div className="mb-5 flex flex-col gap-4 rounded-[var(--radius-lg)] border border-pro/25 bg-pro/[0.05] p-4 sm:flex-row sm:items-center">
+      {test.preview_variant_screenshot_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={test.preview_variant_screenshot_url} alt="" className="h-20 w-32 shrink-0 rounded-[var(--radius-md)] border border-border object-cover object-top" />
+      )}
+      <div className="min-w-0 flex-1">
+        <h2 className="text-[14px] font-semibold text-text">Your variant is ready — one step left</h2>
+        <p className="mt-1 text-[12px] text-text-2">
+          <span className="font-medium text-text">{test.name}</span> is saved as a draft. Add the one-line snippet to your site and this test goes live.
+        </p>
+      </div>
+      <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+        <Globe className="h-3.5 w-3.5" />
+        Install snippet
+      </a>
     </div>
   )
 }
@@ -516,10 +413,12 @@ function GettingStartedBanner({ hasDomain, previewTest }: { hasDomain: boolean; 
 function OverviewCard({
   label,
   value,
+  hint,
   tone,
 }: {
   label: string
   value: string
+  hint?: string
   tone?: 'ok' | 'pro' | 'err'
 }) {
   const colorClass = tone === 'ok' ? 'text-ok' : tone === 'pro' ? 'text-pro' : tone === 'err' ? 'text-err' : 'text-text'
@@ -532,6 +431,7 @@ function OverviewCard({
       <p className={`text-[24px] font-semibold tabular-nums leading-none tracking-tight ${colorClass}`}>
         {value}
       </p>
+      {hint && <p className="mt-1.5 text-[11px] text-text-3">{hint}</p>}
     </div>
   )
 }

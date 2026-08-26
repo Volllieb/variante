@@ -363,10 +363,25 @@ Das Produkt muss immer zeigen: „du hast Kontrolle, aber manche Bereiche sind e
 Sidebar-Logo oben, Nav in der Mitte (Overview, Tests), collapsible Settings (Billing, Account),
 Avatar mit Gravatar + JS-Fallback am unteren Rand.
 
-**Content:** Card-basiert, einspaltig. Scope-Selector im Header (Dropdown: "All sites" oder Domain-Name
-+ Test-Count + "New test"-CTA). KPI-Card-Grid (5 Cards: Active Tests, Visitors, Winning Tests,
-Avg Conv Rate, Avg Uplift) — nur sichtbar wenn Tests > 0. Test-Liste als Card mit Toolbar
-(Search/Sort/Filter) + Grid von TestCards.
+**Content (Overview `/dashboard`):** Card-basiert, einspaltig, in einer festen Ebenen-Reihenfolge —
+die Seite beantwortet erst „was hindert mich", dann „was will eine Entscheidung", dann „wie läuft es".
+
+| Ebene | Inhalt | sichtbar |
+|---|---|---|
+| 0 | Kontextleiste: Scope-Selector (Dropdown „All domains" / Domain-Name) + Test-Count + „New test"-CTA, Snippet-Status, Plan-Verbrauch | immer |
+| 1 | Blocker — genau **einer**. Snippet-Banner *oder* Preview-Draft-Karte, nie beide gestapelt | bis das Snippet verifiziert ist |
+| 2 | `DecisionList` („Needs your decision"): eine Zeile pro Test mit offener Handlung (Gewinner, entscheidungsreif, kaputte Datenbasis, Health, Draft, stehengeblieben), max. 5 + „more waiting" | wenn Entscheidungen anstehen |
+| 3 | KPI-Card-Grid (5 Cards: Active Tests, Visitors, Winning Tests, Avg Conv Rate, Avg Uplift) | ab 1 Test |
+| 5 | „Your tests": Top-5 nach **Entscheidungsreife** (nicht nach Besuchern) + „View all" | immer (sonst EmptyDashboard) |
+| 6 | Agent-Panel, „What to test next" | wie bisher |
+
+**Avg Uplift** mittelt ausschließlich über Tests mit deklariertem Gewinner — ein Mittel über alle
+Tests ist eine Zahl aus Rauschen. **Keine Toolbar auf der Overview:** Suche, Sortierung und Filter
+gehören zu `/dashboard/tests`, wo sie auf die vollständige Liste wirken; eine Toolbar über einer auf
+fünf Einträge gekürzten Liste filtert etwas, das der User gar nicht sieht.
+
+**Content (`/dashboard/tests`):** Vollständige Test-Liste als Card mit Toolbar (Search/Sort/Filter)
++ Grid von TestCards.
 
 **Wizard-Pattern (Test-Erstellung):** 4-Step-Wizard im Dashboard (`NewTestDrawer`, nicht
 Figma-Plugin): 1. Element (URL + Picker) → 2. Goal → 3. Variant → 4. Review. Der Variant-Step hat

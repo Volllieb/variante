@@ -31,6 +31,10 @@ export type TestRow = {
   variant_b_css?: string | null
   /** Gesetzt, wenn der Test aus dem Hybrid-Onboarding stammt (Preview vor Sign-up). */
   preview_variant_screenshot_url?: string | null
+  /** Gewinner-Konfiguration — Grundlage der Entscheidungs-Ableitung (lib/decisions.ts). */
+  traffic_split?: number | null
+  min_visitors?: number | null
+  min_uplift?: number | null
 }
 
 function extractDomain(url: string | null): string | null {
