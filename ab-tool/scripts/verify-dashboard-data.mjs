@@ -37,7 +37,18 @@ if (!url || !key) {
   process.exit(2)
 }
 if (url.includes('placeholder') || key.includes('placeholder')) {
-  console.error('✗ Platzhalter-Credentials — das prüft nichts. Echte Werte via `vercel env pull` holen.')
+  console.error('✗ Platzhalter-Credentials — das prüft nichts.')
+  process.exit(2)
+}
+// `vercel env pull` schreibt für als "Sensitive" markierte Variablen den
+// Literalwert [SENSITIVE]. Die Supabase-Keys dieses Projekts sind so markiert
+// (Stand 27.08.2026) — sie lassen sich nicht per CLI abrufen und müssen aus
+// dem Supabase-Dashboard kommen.
+if (url.includes('[SENSITIVE]') || key.includes('[SENSITIVE]')) {
+  console.error('✗ Die Env-Datei enthält [SENSITIVE]-Platzhalter statt echter Werte.')
+  console.error('  Die Supabase-Variablen sind in Vercel als Sensitive markiert und')
+  console.error('  kommen per `vercel env pull` nicht mit. Werte aus dem Supabase-')
+  console.error('  Dashboard (Settings → API) in die Datei eintragen.')
   process.exit(2)
 }
 
@@ -84,6 +95,20 @@ const embedded = await supabase
   .select('test_id, date, visitors_a, visitors_b, conversions_a, conversions_b, tests!inner(user_id)')
   .eq('tests.user_id', probeUser)
   .gte('date', statsSince)
+
+// Kontrollfall: Ohne ihn wäre ein "hat funktioniert" nichts wert — eine leere
+// Antwort sieht genauso aus wie eine erfolgreiche. Eine erfundene Beziehung
+// MUSS PGRST200 liefern, sonst prüft der Check oben gar nichts.
+const control = await supabase
+  .from('daily_stats')
+  .select('test_id, nonexistent_table!inner(user_id)')
+  .limit(1)
+
+if (!control.error) {
+  bad('Kontrollfall: eine erfundene Beziehung wurde NICHT abgelehnt — der Embedding-Check ist wertlos.')
+} else {
+  ok(`Kontrollfall greift (${control.error.code ?? 'error'}: kaputtes Embedding wird abgelehnt)`)
+}
 
 if (embedded.error) {
   bad(`Embedding tests!inner(user_id) schlägt fehl: ${embedded.error.message}`)
