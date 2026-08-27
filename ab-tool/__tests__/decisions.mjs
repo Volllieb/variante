@@ -201,6 +201,14 @@ check('ein höherer min_visitors-Wert verschiebt die Schwelle nach oben', () => 
   assert.equal(estimateTimeToDecision(t, NOW).visitorsNeeded, 1700)
 })
 
+check('die Tage-Hochrechnung wackelt nicht wegen ein paar Millisekunden', () => {
+  // created_at exakt 10 Tage her, ausgewertet 5 ms später: ohne Kürzung vor
+  // dem Aufrunden zeigt dieselbe Datenlage mal "~10d" und mal "~11d".
+  const t = test({ visitors_a: 400, visitors_b: 600, created_at: daysAgo(10) })
+  assert.equal(estimateTimeToDecision(t, NOW).daysNeeded, 10)
+  assert.equal(estimateTimeToDecision(t, NOW + 5).daysNeeded, 10)
+})
+
 check('frischer Test ohne messbares Tempo wird nicht hochgerechnet', () => {
   const t = test({ visitors_a: 5, visitors_b: 5, created_at: new Date(NOW - 3600_000).toISOString() })
   assert.equal(estimateTimeToDecision(t, NOW).daysNeeded, null)

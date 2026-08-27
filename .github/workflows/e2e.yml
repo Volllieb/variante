@@ -76,6 +76,13 @@ jobs:
         run: npm run test:node
         working-directory: ab-tool
 
+      # Komponenten-Tests (vitest + jsdom). Sie decken die Dashboard-Zustände
+      # ab, die die Playwright-Specs ohne Testaccount nicht erreichen: ein
+      # Blocker statt zwei, Entscheidungs-Zeilen, Leerzustand.
+      - name: Run Component Tests
+        run: npm run test:unit
+        working-directory: ab-tool
+
       - name: Build Next.js
         run: npm run build
         working-directory: ab-tool

@@ -113,7 +113,11 @@ export function estimateTimeToDecision(t: DecisionTest, now = Date.now()): Decis
   }
   const perDay = total / elapsedDays
   if (perDay <= 0) return { visitorsNeeded, daysNeeded: null }
-  return { visitorsNeeded, daysNeeded: Math.ceil(visitorsNeeded / perDay) }
+  // Vor dem Aufrunden auf vier Nachkommastellen kürzen. Ohne das macht
+  // Math.ceil() aus 10.0000000058 Tagen "~11d" — die paar Millisekunden
+  // zwischen created_at und dem Render entscheiden dann über einen ganzen Tag.
+  const days = Math.ceil(Number((visitorsNeeded / perDay).toFixed(4)))
+  return { visitorsNeeded, daysNeeded: Math.max(1, days) }
 }
 
 /* ── Klassifizierung ── */
