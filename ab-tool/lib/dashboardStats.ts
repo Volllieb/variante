@@ -9,6 +9,15 @@
 //
 // Alle Tagesgrenzen sind UTC — dieselbe Zeitbasis, in der der Cron die Zeilen
 // schreibt. Eine lokale Zeitzone würde je nach Browser einen Tag verschieben.
+//
+// Die Zeiträume enden GESTERN, nicht heute. Geschrieben wird `daily_stats` nur
+// von finalize_daily_stats() um Mitternacht — und das schließt den VORTAG ab
+// (Migration 039). Für heute existiert im Normalfall gar keine Zeile;
+// snapshot_daily_stats(heute) läuft nur, wenn jemand zufällig die
+// Results-Seite eines Tests öffnet. Heute mitzuzählen hieße also: der Trend
+// fällt am rechten Rand jeden Tag auf null, und "letzte 7 Tage" wäre je nach
+// Zufall mal mit und mal ohne heutigen Traffic. Lieber sieben vollständige
+// Tage als acht, von denen einer gelogen ist.
 
 export type DailyStatRow = {
   test_id: string
@@ -54,6 +63,11 @@ export function dayKey(ms: number): string {
 export function shiftDay(key: string, days: number): string {
   const [y, m, d] = key.split('-').map(Number)
   return dayKey(Date.UTC(y, m - 1, d) + days * 86_400_000)
+}
+
+/** Letzter Tag, für den `daily_stats` vollständig ist: gestern (UTC). */
+export function lastCompleteDay(now: number = Date.now()): string {
+  return shiftDay(dayKey(now), -1)
 }
 
 /**
@@ -115,12 +129,15 @@ export function aggregatePeriod(
     }
   }
 
-  const today = dayKey(now)
-  const currentFrom = shiftDay(today, -(days - 1))
-  const previousTo = shiftDay(today, -days)
-  const previousFrom = shiftDay(today, -(2 * days - 1))
+  // Fenster endet gestern (siehe Kopfkommentar). Für days=30 reicht die
+  // Vorperiode bis gestern−59 = heute−60 zurück — genau das Ladefenster aus
+  // statsWindowStart().
+  const end = lastCompleteDay(now)
+  const currentFrom = shiftDay(end, -(days - 1))
+  const previousTo = shiftDay(end, -days)
+  const previousFrom = shiftDay(end, -(2 * days - 1))
 
-  const current = sumRange(rows, ids, currentFrom, today)
+  const current = sumRange(rows, ids, currentFrom, end)
   const previous = sumRange(rows, ids, previousFrom, previousTo)
 
   return {
@@ -148,10 +165,10 @@ export function buildTrend(
   const ids = new Set(testIds)
   if (ids.size === 0 || days <= 0) return []
 
-  const today = dayKey(now)
+  const end = lastCompleteDay(now)
   const series = new Map<string, TrendPoint>()
   for (let i = days - 1; i >= 0; i--) {
-    const date = shiftDay(today, -i)
+    const date = shiftDay(end, -i)
     series.set(date, { date, visitors: 0, conversions: 0 })
   }
 

@@ -23,6 +23,21 @@ export function periodLabel(period: Period): string {
   return period === 'all' ? 'all time' : `last ${period} days`
 }
 
+/**
+ * Der Zusatz zum Zeitraum. `daily_stats` wird nachts abgeschlossen, die
+ * Zeiträume enden deshalb gestern — das gehört an die Zahl, nicht ins
+ * Kleingedruckte. "All time" liest die Zähler aus `tests` und ist aktuell.
+ */
+export function periodNote(period: Period): string | undefined {
+  if (period === 'all') return undefined
+  return 'Complete days only — today is counted after the nightly snapshot.'
+}
+
+/** Zeitraum-Beschriftung für den Trend-Chart. */
+export function trendLabel(period: Period): string {
+  return period === 'all' ? 'all time · through yesterday' : `last ${period} days · through yesterday`
+}
+
 export function PeriodSelector({
   period,
   onChange,

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { deriveDecisions, sortByDecisionReadiness } from '@/lib/decisions'
 import { aggregatePeriod, buildTrend, type DailyStatRow } from '@/lib/dashboardStats'
+import { usePersistedValue } from '@/lib/usePersistedValue'
 import { Tooltip } from '@/app/components/Tooltip'
 import { NewTestDrawer } from './components/NewTestDrawer'
 import { TestCard, type TestRow } from './components/TestCard'
@@ -12,7 +13,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { WhatToTestNext } from './components/WhatToTestNext'
 import { AgentPanel } from './components/AgentPanel'
 import { DecisionList } from './components/DecisionList'
-import { PeriodSelector, parsePeriod, periodLabel, type Period } from './components/PeriodSelector'
+import { PeriodSelector, parsePeriod, periodLabel, periodNote, trendLabel, type Period } from './components/PeriodSelector'
 import { TrendChart } from './components/TrendChart'
 import {
   FlaskConical,
@@ -65,38 +66,22 @@ export function DashboardClient({
   const isPro = plan === 'pro' || plan === 'agency'
 
   // ── Scope selector (localStorage-persisted) ──
-  const scopeKey = `dashboard-scope:${userId}`
-  const [storedScope, setScope] = useState<string>(() => {
-    if (typeof window === 'undefined') return 'all'
-    return localStorage.getItem(scopeKey) ?? 'all'
-  })
+  const [storedScope, setScopeAndPersist] = usePersistedValue(`dashboard-scope:${userId}`)
 
   const domainOptions = useMemo(() => {
     const urls = allVerifiedDomains.map((d) => d.url)
     return ['all', ...urls]
   }, [allVerifiedDomains])
 
-  const setScopeAndPersist = (val: string) => {
-    setScope(val)
-    try { localStorage.setItem(scopeKey, val) } catch { /* noop */ }
-  }
-
   // ponytail: Eine geloeschte Domain machte den gespeicherten Scope ungueltig.
   // Vorher korrigierte das ein Effect — also ein Render mit ungueltigem Scope
   // (leeres Dashboard), dann ein zweiter mit 'all'. Jetzt abgeleitet: ein Render.
-  const scope = domainOptions.includes(storedScope) ? storedScope : 'all'
+  const scope = storedScope && domainOptions.includes(storedScope) ? storedScope : 'all'
 
   // ── Zeitraum (localStorage-persisted, nach demselben Muster) ──
-  const periodKey = `dashboard-period:${userId}`
-  const [period, setPeriod] = useState<Period>(() => {
-    if (typeof window === 'undefined') return 30
-    return parsePeriod(localStorage.getItem(periodKey))
-  })
-
-  const setPeriodAndPersist = (val: Period) => {
-    setPeriod(val)
-    try { localStorage.setItem(periodKey, String(val)) } catch { /* noop */ }
-  }
+  const [storedPeriod, setStoredPeriod] = usePersistedValue(`dashboard-period:${userId}`)
+  const period = parsePeriod(storedPeriod)
+  const setPeriodAndPersist = (val: Period) => setStoredPeriod(String(val))
 
   // ── Testliste ──
   // Die Overview filtert und sortiert nicht mehr selbst (das ist die Aufgabe
@@ -310,6 +295,7 @@ export function DashboardClient({
             label="Visitors"
             value={visitors.toLocaleString()}
             hint={periodLabel(period)}
+            hintTitle={periodNote(period)}
             delta={periodStats ? { value: periodStats.delta.visitors, unit: '%' } : undefined}
           />
           <OverviewCard
@@ -321,6 +307,7 @@ export function DashboardClient({
             label="Avg Conv Rate"
             value={`${overallCR.toFixed(1)}%`}
             hint={periodLabel(period)}
+            hintTitle={periodNote(period)}
             delta={periodStats ? { value: periodStats.delta.crPoints, unit: 'pp' } : undefined}
           />
           <OverviewCard
@@ -333,7 +320,7 @@ export function DashboardClient({
       )}
 
       {/* ── Ebene 4: Trend ── */}
-      {hasTrendData && <TrendChart data={trend} label={periodLabel(period)} />}
+      {hasTrendData && <TrendChart data={trend} label={trendLabel(period)} />}
 
       {/* New test flow — Drawer Wizard. Liegt außerhalb der Test-Karte, damit er
           auch im Leerzustand und aus der Entscheidungs-Liste heraus öffnen kann. */}
@@ -465,12 +452,15 @@ function OverviewCard({
   label,
   value,
   hint,
+  hintTitle,
   delta,
   tone,
 }: {
   label: string
   value: string
   hint?: string
+  /** Erklärung zum Zeitbezug, als title auf der Hint-Zeile. */
+  hintTitle?: string
   /** Veränderung zur Vorperiode. `value: null` = keine Vorperiode zum Vergleichen. */
   delta?: { value: number | null; unit: '%' | 'pp' }
   tone?: 'ok' | 'pro' | 'err'
@@ -498,7 +488,7 @@ function OverviewCard({
               {d === null ? '—' : `${d > 0 ? '+' : ''}${d.toFixed(1)}${delta.unit}`}
             </span>
           )}
-          {hint && <span className="truncate">{hint}</span>}
+          {hint && <span className="truncate" title={hintTitle}>{hint}</span>}
         </p>
       )}
     </div>

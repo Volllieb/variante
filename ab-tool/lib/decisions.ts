@@ -83,6 +83,20 @@ export const STALLED_PROJECTION_DAYS = 30
 
 /* ── Restweg bis zur Entscheidung ── */
 
+/**
+ * Zeitbasis für alles, was gerendert wird: Mitternacht UTC des laufenden Tages.
+ *
+ * ponytail: Die Testkarte rechnete mit Date.now(). Zwischen dem Server-Render
+ * und der Hydration im Browser liegen ein paar Millisekunden — bei einem Test
+ * mit ein paar Besuchern pro Tag kippt das die Hochrechnung um einen ganzen Tag
+ * ("~991d" gegen "~990d"), und React verwirft wegen des Unterschieds das
+ * komplette Server-HTML. Auf den Tag quantisiert rendern beide Seiten dieselbe
+ * Zahl — und die Anzeige springt nicht mehr bei jedem Reload.
+ */
+export function displayDay(now: number = Date.now()): number {
+  return Math.floor(now / 86_400_000) * 86_400_000
+}
+
 export type DecisionEstimate = {
   /** Fehlende Besucher über beide Arme summiert. 0 = Schwelle erreicht. */
   visitorsNeeded: number

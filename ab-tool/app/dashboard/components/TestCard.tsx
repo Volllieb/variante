@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X, Target } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
-import { estimateTimeToDecision } from '@/lib/decisions'
+import { displayDay, estimateTimeToDecision } from '@/lib/decisions'
 import { describeDbGoal } from '@/lib/resultsHelpers'
 
 // SVG-Farben via CSS custom properties — SVGs unterstützen var() nativ
@@ -220,7 +220,7 @@ export function TestCard({
 
   // Restweg bis zur Entscheidung. Nur solange es etwas zu warten gibt: bei
   // erreichter Schwelle entscheidet nicht mehr die Menge, sondern die Statistik.
-  const estimate = isLive && t.winner === null ? estimateTimeToDecision(t) : null
+  const estimate = isLive && t.winner === null ? estimateTimeToDecision(t, displayDay()) : null
   const remaining = estimate && estimate.visitorsNeeded > 0
     ? estimate.daysNeeded !== null
       ? `~${estimate.daysNeeded}d to decision`

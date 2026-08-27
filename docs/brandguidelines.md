@@ -375,6 +375,11 @@ die Seite beantwortet erst „was hindert mich", dann „was will eine Entscheid
 | 5 | „Your tests": Top-5 nach **Entscheidungsreife** (nicht nach Besuchern) + „View all" | immer (sonst EmptyDashboard) |
 | 6 | Agent-Panel, „What to test next" | wie bisher |
 
+**Zeitbezug:** Der Zeitraum-Selektor (7 / 30 / All time) steuert Visitors und Avg Conv Rate samt Δ
+zur Vorperiode. Die Tages-Zeiträume enden **gestern** — `daily_stats` wird vom Cron nachts
+abgeschlossen, für heute existiert keine vollständige Zeile. „All time" liest stattdessen die Zähler
+aus `tests` und ist damit aktuell. Active/Winning Tests sind Zustände, kein Zeitraum.
+
 **Avg Uplift** mittelt ausschließlich über Tests mit deklariertem Gewinner — ein Mittel über alle
 Tests ist eine Zahl aus Rauschen. **Keine Toolbar auf der Overview:** Suche, Sortierung und Filter
 gehören zu `/dashboard/tests`, wo sie auf die vollständige Liste wirken; eine Toolbar über einer auf
