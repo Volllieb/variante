@@ -7,9 +7,18 @@ type PlanUsageBarProps = {
   plan: string
   activeTests: number
   domainCount: number
+  /**
+   * Verbrauchte AI-Scans im laufenden Monat.
+   *
+   * ponytail: Stand hier fest auf 0. Der Balken, dessen einziger Zweck es ist,
+   * das Limit spuerbar zu machen BEVOR der User dagegen laeuft, behauptete
+   * damit dauerhaft "noch nichts verbraucht" — und der naechste Scan lief in
+   * einen 429. Gezaehlt wird jetzt dasselbe wie in /api/test-wizard/scan.
+   */
+  aiScansUsed: number
 }
 
-export function PlanUsageBar({ plan, activeTests, domainCount }: PlanUsageBarProps) {
+export function PlanUsageBar({ plan, activeTests, domainCount, aiScansUsed }: PlanUsageBarProps) {
   if (plan !== 'free') return null
 
   const limits = PLAN_LIMITS.free
@@ -32,7 +41,7 @@ export function PlanUsageBar({ plan, activeTests, domainCount }: PlanUsageBarPro
     {
       icon: Zap,
       label: 'AI scans',
-      used: 0,
+      used: aiScansUsed,
       limit: limits.aiScans,
       proLabel: `${PLAN_LIMITS.pro.aiScans}/mo`,
     },

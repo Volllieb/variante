@@ -35,6 +35,21 @@ export const PLAN_LIMITS = {
 
 export type Plan = keyof typeof PLAN_LIMITS
 
+/**
+ * Beginn des laufenden Monats — Bezugsrahmen für alle Monatslimits.
+ *
+ * Liegt hier, damit Anzeige und Durchsetzung dieselbe Grenze verwenden: die
+ * Verbrauchsanzeige im Dashboard und der 429 in /api/test-wizard/scan müssen
+ * denselben Zeitraum zählen, sonst zeigt der Balken "0/1" während der Scan
+ * bereits abgelehnt wird.
+ */
+export function startOfBillingMonth(now: Date = new Date()): Date {
+  const d = new Date(now)
+  d.setDate(1)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
 export function getDomainLimit(plan: string): number {
   return PLAN_LIMITS[plan as Plan]?.domains ?? PLAN_LIMITS.free.domains
 }

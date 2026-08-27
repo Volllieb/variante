@@ -77,6 +77,7 @@ function renderDashboard(props: Partial<Parameters<typeof DashboardClient>[0]> =
       plan="pro"
       tests={[]}
       dailyStats={[]}
+      aiScansUsed={0}
       hasVerifiedDomain
       primaryDomain="example.com"
       verifiedAt={null}

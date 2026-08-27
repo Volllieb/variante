@@ -35,6 +35,7 @@ export function DashboardClient({
   plan,
   tests,
   dailyStats,
+  aiScansUsed,
   hasVerifiedDomain,
   primaryDomain,
   verifiedAt,
@@ -49,6 +50,8 @@ export function DashboardClient({
   tests: TestRow[]
   /** Tagesdeltas der letzten 60 Tage (Migration 039) — Basis für Zeitraum und Trend. */
   dailyStats: DailyStatRow[]
+  /** Verbrauchte AI-Scans im laufenden Monat (site_insights). */
+  aiScansUsed: number
   hasVerifiedDomain: boolean
   primaryDomain: string | null
   verifiedAt: string | null
@@ -278,7 +281,7 @@ export function DashboardClient({
       )}
 
       {/* Free plan usage — proactive limit visibility before hitting a wall */}
-      <PlanUsageBar plan={plan} activeTests={activeTests} domainCount={domainCount} />
+      <PlanUsageBar plan={plan} activeTests={activeTests} domainCount={domainCount} aiScansUsed={aiScansUsed} />
 
       {/* ── Ebene 2: Entscheidungen ── */}
       <DecisionList decisions={decisions} onFinishDraft={openDraftWizard} />

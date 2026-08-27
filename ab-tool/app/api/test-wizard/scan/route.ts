@@ -14,7 +14,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { getPlanForUser } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
-import { getPlanAiLimits } from '@/lib/planLimits'
+import { getPlanAiLimits, startOfBillingMonth } from '@/lib/planLimits'
 import { analyzePageWithPrimary, stripForCRO, extractStructure } from '@/lib/croAnalyze'
 import { safeFetch } from '@/lib/safeFetch'
 import { checkRateLimit } from '@/lib/rateLimit'
@@ -66,10 +66,9 @@ export async function POST(req: Request) {
   const limits = getPlanAiLimits(plan)
 
   if (limits.scans !== Infinity) {
-    // Zähle Scans diesen Monat (site_insights-Einträge)
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+    // Zähle Scans diesen Monat (site_insights-Einträge). Dieselbe Grenze
+    // benutzt die Verbrauchsanzeige im Dashboard (PlanUsageBar).
+    const startOfMonth = startOfBillingMonth()
 
     const { count, error: countErr } = await supabase
       .from('site_insights')

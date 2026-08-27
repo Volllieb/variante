@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { DashboardClient } from './DashboardClient'
 import { statsWindowStart, type DailyStatRow } from '@/lib/dashboardStats'
+import { startOfBillingMonth } from '@/lib/planLimits'
 
 export default async function DashboardPage(props: { searchParams: Promise<Record<string, string>> }) {
   const user = await getSessionUser()
@@ -19,7 +20,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   const statsSince = statsWindowStart()
 
   // Parallel: Profile + Tests + Domains + Tagesstatistik (kein Waterfall)
-  const [profileRes, testsRes, domainsRes, dailyRes] = await Promise.all([
+  const [profileRes, testsRes, domainsRes, dailyRes, aiScanRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('api_token, plan, has_figma_plugin')
@@ -40,6 +41,14 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       .select('test_id, date, visitors_a, visitors_b, conversions_a, conversions_b, tests!inner(user_id)')
       .eq('tests.user_id', user.id)
       .gte('date', statsSince),
+    // AI-Scan-Verbrauch für die PlanUsageBar. Gezählt wird genau das, was
+    // /api/test-wizard/scan durchsetzt: site_insights-Zeilen dieses Monats.
+    // head:true überträgt keine Zeilen, nur den Zähler.
+    supabase
+      .from('site_insights')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('analyzed_at', startOfBillingMonth().toISOString()),
   ])
 
   const profile = profileRes.data
@@ -55,6 +64,9 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     conversions_a: r.conversions_a,
     conversions_b: r.conversions_b,
   }))
+  // Bei einem Fehler in der Count-Query bleibt es bei 0 — dieselbe Annahme,
+  // unter der /api/test-wizard/scan den Request dann durchlaesst.
+  const aiScansUsed = aiScanRes.count ?? 0
   const hasVerifiedDomain = domains.some((d) => d.verified)
   const primaryDomain = domains.find((d) => d.verified)?.url ?? domains[0]?.url ?? null
   const verifiedAt = domains.find((d) => d.verified)?.verified_at ?? null
@@ -88,7 +100,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
   // Fallback: Fehlt der profiles-Eintrag (Trigger-Race bei OAuth)
   if (!profile) {
     await ensureProfile(user.id)
-    return <DashboardClient plan="free" tests={[]} dailyStats={[]} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} domainCount={0} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} userId={user.id} />
+    return <DashboardClient plan="free" tests={[]} dailyStats={[]} aiScansUsed={0} hasVerifiedDomain={false} primaryDomain={null} verifiedAt={null} allVerifiedDomains={[]} domainCount={0} highlightNew={searchParams.new === '1'} upgraded={false} openNewTest={false} userId={user.id} />
   }
 
   return (
@@ -96,6 +108,7 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
       plan={profile.plan ?? 'free'}
       tests={tests}
       dailyStats={dailyStats}
+      aiScansUsed={aiScansUsed}
       hasVerifiedDomain={hasVerifiedDomain}
       primaryDomain={primaryDomain}
       verifiedAt={verifiedAt}

@@ -44,6 +44,7 @@ function tree() {
       plan="pro"
       tests={tests}
       dailyStats={[]}
+      aiScansUsed={0}
       hasVerifiedDomain
       primaryDomain="example.com"
       verifiedAt={null}
