@@ -343,6 +343,40 @@ check('ohne CSS wird auch kein leeres <style> gesetzt', () => {
   assert.equal(doc.querySelector('style[data-ab-css]'), null)
 })
 
+// ── CSS ueberlebt den zweiten Durchlauf ─────────────────────────────────────
+// reobserve() (MutationObserver, popstate) raeumte frueher alle injizierten
+// <style> ab und rief run() erneut auf. applyDom stieg beim zweiten Durchlauf
+// frueh aus ("B steht schon da") — und injizierte das CSS nie wieder. Auf jeder
+// Seite, die ueberhaupt mutiert (Lazy-Loading, Karussell, Chat-Widget), stand B
+// ab da im Browser-Default. Gemeldet als: nach einem Klick auf B (Ankerlink)
+// und Zurueckscrollen hat das Element kein CSS mehr.
+console.log('')
+console.log('── CSS ueberlebt den zweiten Durchlauf ──')
+console.log('')
+
+const CSS = '#cta { color: red }'
+const SCOPED = `[data-ab-el="${KEY}"] { color: red }`
+
+check('entferntes <style> wird beim zweiten Durchlauf neu injiziert', () => {
+  const { doc, api } = page('<a id="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, CSS)
+  doc.querySelector(`style[data-ab-css="${KEY}"]`).remove()
+
+  const applied = api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, CSS)
+  assert.equal(applied, true)
+  const style = doc.querySelector(`style[data-ab-css="${KEY}"]`)
+  assert.ok(style, 'CSS der Variante wurde nicht neu injiziert')
+  assert.equal(style.textContent, SCOPED, 'neu injiziertes CSS ist nicht auf B gescopt')
+})
+
+check('lebendes <style> wird nicht dupliziert', () => {
+  const { doc, api } = page('<a id="cta" href="/signup">Get started</a>')
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, CSS)
+  api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, CSS)
+  assert.equal(doc.querySelectorAll('style[data-ab-css]').length, 1)
+  assert.equal(doc.querySelectorAll(`[data-ab-el="${KEY}"]`).length, 1)
+})
+
 // ── Einblend-Animationen ────────────────────────────────────────────────────
 // Die Seite haengt bis reveal() auf opacity:0. Alle Entrance-Animationen der
 // Seite sind dann durch — die des frisch eingefuegten B faengt genau dann erst

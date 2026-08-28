@@ -673,8 +673,37 @@
   }
 
   var injectedStyles = {} // key → style-element, für SPA-Cleanup
+
+  // Keys, deren injiziertes CSS im laufenden run() noch gebraucht wird. run()
+  // legt die Map bei jedem Durchlauf neu an und entfernt am Ende genau das
+  // CSS, das kein Test mehr beansprucht hat (dropUnusedCss).
+  var cssInUse = {}
+  function keepCss(key) { if (key) cssInUse[key] = true }
+
+  // Steht das <style> zu diesem Key noch im Dokument? Es fehlt entweder, weil
+  // nie eines injiziert wurde — oder weil die Kundenseite den <head> ersetzt
+  // hat (Framework-Router, Consent-Tool, Browser-Extension).
+  function cssAlive(key) {
+    var el = key && injectedStyles[key]
+    if (!el) return false
+    try { return !!(el.parentNode && document.documentElement.contains(el)) } catch (_) { return false }
+  }
+
+  // Nach einem Resolve-Durchlauf: CSS der Tests entfernen, die auf dieser Seite
+  // nicht mehr gelten. Hat ein zweites run() den Durchlauf ueberholt, raeumt
+  // der alte nicht mehr auf — sonst loescht er das frische CSS des neuen.
+  function dropUnusedCss(scope) {
+    if (scope !== cssInUse) return
+    for (var k in injectedStyles) {
+      if (cssInUse[k]) continue
+      try { injectedStyles[k].remove() } catch (_) {}
+      delete injectedStyles[k]
+    }
+  }
+
   function applyCss(key, css) {
     if (!css) return
+    keepCss(key)
     // Remove previous style for this key (SPA re-navigation)
     if (injectedStyles[key]) {
       try { injectedStyles[key].remove() } catch (_) {}
@@ -928,7 +957,17 @@
     // Schon angewandt? MutationObserver und popstate rufen run() erneut auf.
     // Im Bridge-Fall steht A noch (versteckt) im DOM und würde beim zweiten
     // Durchlauf ein ZWEITES B daneben setzen.
-    if (key && document.querySelector('[data-ab-el="' + key + '"]')) return true
+    if (key && document.querySelector('[data-ab-el="' + key + '"]')) {
+      // B steht noch im DOM — sein <style> aber moeglicherweise nicht mehr.
+      // Genau hier verlor die Variante ihr CSS: reobserve() entfernte bei jeder
+      // DOM-Mutation der Seite alle injizierten Styles, und dieser fruehe
+      // Ausstieg hat sie nie wieder gesetzt. B blieb ab dann im Browser-Default
+      // stehen — auffallend, sobald der Besucher (z. B. nach einem Ankerklick)
+      // zum Element zurueckscrollt.
+      if (cssAlive(key)) keepCss(key)
+      else applyCss(key, scopeCssToVariant(css, selector, key))
+      return true
+    }
     var el = document.querySelector(selector)
     if (!el) return false
     beginApply()
@@ -1104,11 +1143,12 @@
   // gerenderten DOM) und führt run() erneut aus.
   function reobserve() {
     active = []
-    // Clean up injected CSS styles from previous render cycle
-    for (var k in injectedStyles) {
-      try { injectedStyles[k].remove() } catch (_) {}
-    }
-    injectedStyles = {}
+    // Die injizierten <style> bleiben absichtlich stehen: run() ersetzt sie pro
+    // Key und entfernt am Ende nur, was kein Test mehr beansprucht
+    // (dropUnusedCss). Wurden sie hier sofort entfernt, stand die Variante
+    // zwischen Aufraeumen und Neu-Injektion einen /api/resolve-Roundtrip lang
+    // ungestylt da — und auf jeder Seite, die ueberhaupt mutiert
+    // (Lazy-Loading, Karussell, Chat-Widget), dauerhaft.
     run()
   }
 
@@ -1136,6 +1176,11 @@
   function run() {
     installDelegation()
 
+    // Aufraeum-Bereich dieses Durchlaufs: applyCss/keepCss tragen hier ein,
+    // welches injizierte CSS noch gebraucht wird.
+    var cssScope = {}
+    cssInUse = cssScope
+
     // DSGVO: Nur Host senden, nicht den Pfad. Der Server gibt ALLE aktiven
     // Tests für diesen Host zurück. Client filtert per pathMatches().
     var q = '?host=' + encodeURIComponent(location.host)
@@ -1154,10 +1199,14 @@
           if (pathMatches(all[i].path, curPath)) tests.push(all[i])
         }
         if (!tests.length) {
+          dropUnusedCss(cssScope)
           reveal()
           return
         }
-        return Promise.all(tests.map(applyTest)).then(reveal)
+        return Promise.all(tests.map(applyTest)).then(function () {
+          dropUnusedCss(cssScope)
+          reveal()
+        })
       })
       .catch(reveal)
   }
