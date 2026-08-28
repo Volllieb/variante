@@ -28,6 +28,8 @@ export type TestRow = {
   /** Draft resume fields — needed to re-open the wizard for incomplete tests. */
   selector?: string | null
   original_html?: string | null
+  /** Styles der Zielseite — Basis beider Vorschauen, siehe lib/previewDoc.ts. */
+  site_css?: string | null
   goal?: string | null
   variant_b_html?: string | null
   variant_b_css?: string | null

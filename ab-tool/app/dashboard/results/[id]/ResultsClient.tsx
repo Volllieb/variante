@@ -2,6 +2,7 @@
 
 import { ExperimentData } from '@/lib/getExperimentStats'
 import { VariantPreview } from '@/app/components/VariantPreview'
+import { extractTextFromHtml } from '@/lib/previewDoc'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTestUpdate } from '@/lib/useRealtime'
@@ -182,6 +183,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   // Steuert alles, was Fortschritts- statt Ergebnisdarstellung zeigt.
   const decided = done || winnerPending
   const visitorPct = Math.min(100, Math.round((totalVisitors / Math.max(1, minVisitors)) * 100))
+  // Ohne die Styles der Zielseite ist eine visuelle Vorschau irrefuehrend statt
+  // hilfreich — siehe lib/previewDoc.ts. Betrifft alle Tests, die vor 08/2026
+  // im Wizard angelegt wurden: dort wurde site_css nie gespeichert.
+  const hasSiteCss = !!data.siteCss?.trim()
 
   // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
   // Bei < 10 Conversions pro Arm ist die Uplift-Schätzung statistisches Rauschen
@@ -1232,8 +1237,26 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-[#ededed]">Preview</h2>
-              <span className="text-[10px] text-[#ededed]/30">Live rendering of your variants</span>
+              <span className="text-[10px] text-[#ededed]/30">
+                {hasSiteCss ? 'Live rendering of your variants' : 'Text-only — no site styles captured'}
+              </span>
             </div>
+            {!hasSiteCss && (data.originalHtml || data.variantBHtml) && !editingB ? (
+              /* Ohne die Styles der Zielseite wuerde das iframe einen nackten
+                 Browser-Default rendern, der mit dem echten Element nichts zu tun
+                 hat. Tests, die vor 08/2026 im Wizard angelegt wurden, haben kein
+                 site_css — dort ist der Textvergleich die ehrlichere Auskunft. */
+              <div>
+                <div className="grid grid-cols-2 gap-5">
+                  <TextPane label="A · Original" value={extractTextFromHtml(data.originalHtml || '')} />
+                  <TextPane label="B · Variant" value={extractTextFromHtml(data.variantBHtml || '')} />
+                </div>
+                <p className="mt-2 text-[11px] text-[#ededed]/40">
+                  This test was created without the visual picker, so your site&apos;s styles for
+                  this element were never captured. Re-pick the element to get a rendered preview.
+                </p>
+              </div>
+            ) : (
             <div className="grid grid-cols-2 gap-5">
               {data.originalHtml && (
                 <VariantPreview
@@ -1248,6 +1271,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <VariantPreview
                     html={data.variantBHtml}
                     css={data.siteCss}
+                    variantCss={data.variantBCss}
                     label="B · Variant"
                     winner={winner === 'B'}
                   />
@@ -1296,6 +1320,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
               )}
             </div>
+            )}
           </div>
         )}
 
@@ -1440,6 +1465,21 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </button>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Textspalte des Vorschau-Fallbacks. Bewusst keine gemeinsame Komponente mit
+ * StepReview: dort gilt die kompakte Wizard-Typo, hier die der Results-Seite.
+ */
+function TextPane({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-[#ededed]/40">{label}</p>
+      <div className="flex min-h-[120px] items-center rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+        <p className="text-sm leading-relaxed text-[#ededed] break-words">{value || '—'}</p>
       </div>
     </div>
   )

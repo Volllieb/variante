@@ -81,6 +81,9 @@ export const updateTestBody = z.object({
   variant_b_html: z.string().nullable().optional(),
   variant_b_css: z.string().nullable().optional(),
   original_html: z.string().nullable().optional(),
+  // Styles der Zielseite — Basis der Varianten-Vorschau (lib/previewDoc.ts).
+  // Limit wie in captureBody, das denselben collectCss-Output entgegennimmt.
+  site_css: z.string().max(50_000).nullable().optional(),
 })
 
 export const captureBody = z.object({
@@ -115,6 +118,7 @@ export const wizardCreateBody = z.object({
   variant_b_html: z.string().nullable().optional(),
   variant_b_css: z.string().nullable().optional(),
   original_html: z.string().nullable().optional(),
+  site_css: z.string().max(50_000).nullable().optional(),
   name: testName.optional(),
 })
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { isSameSite } from '@/lib/pickerBridge'
+import { renderHook } from '@testing-library/react'
+import { isSameSite, usePickerBridge, type PickerPayload } from '@/lib/pickerBridge'
 
 /**
  * isSameSite entscheidet, ob eine Picker-Auswahl zur im Wizard eingetippten
@@ -49,5 +50,54 @@ describe('isSameSite', () => {
     expect(isSameSite('https://example.com', null)).toBe(false)
     expect(isSameSite('', '')).toBe(false)
     expect(isSameSite('not a url', 'https://example.com')).toBe(false)
+  })
+})
+
+/**
+ * Der Picker liefert seit 08/2026 auch die Styles des gewaehlten Elements mit.
+ * Ohne sie rendert die Wizard-Vorschau einen Browser-Default-Button statt des
+ * echten Elements (lib/previewDoc.ts) — der Rueckkanal muss das Feld also
+ * durchreichen, ohne die Herkunftspruefung aufzuweichen.
+ */
+describe('usePickerBridge — css im Payload', () => {
+  function listen(url: string) {
+    const picks: PickerPayload[] = []
+    renderHook(() => usePickerBridge({ url, mode: 'element', onPick: (p) => { picks.push(p) } }))
+    return picks
+  }
+
+  function post(origin: string, data: Record<string, unknown>) {
+    window.dispatchEvent(new MessageEvent('message', { data, origin }))
+  }
+
+  it('reicht css aus einer postMessage der Zielseite durch', () => {
+    const picks = listen('https://example.com')
+    post('https://example.com', {
+      type: 'ab-pick',
+      selector: '.cta',
+      html: '<button class="cta">Buy</button>',
+      css: '.cta { color: red; }',
+    })
+    expect(picks).toHaveLength(1)
+    expect(picks[0].css).toBe('.cta { color: red; }')
+  })
+
+  it('verwirft weiterhin Nachrichten fremder Origins — auch mit css', () => {
+    const picks = listen('https://example.com')
+    post('https://evil.com', {
+      type: 'ab-pick',
+      selector: '.cta',
+      html: '<button>Buy</button>',
+      css: '.cta { color: red; }',
+    })
+    expect(picks).toHaveLength(0)
+  })
+
+  // Alte Picker-Installationen (ab.js im Cache des Kunden) senden kein css.
+  it('nimmt Picks ohne css unveraendert an', () => {
+    const picks = listen('https://example.com')
+    post('https://example.com', { type: 'ab-pick', selector: '.cta', html: '<button>Buy</button>' })
+    expect(picks).toHaveLength(1)
+    expect(picks[0].css).toBeUndefined()
   })
 })
