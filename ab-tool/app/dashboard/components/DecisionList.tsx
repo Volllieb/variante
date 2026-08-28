@@ -62,17 +62,21 @@ export function DecisionList({
           return (
             <li
               key={d.testId}
-              className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+              className="surface-interactive flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
             >
               <Icon className={`h-4 w-4 shrink-0 ${TONE[d.severity]}`} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-text">{d.testName}</p>
-                <p className="mt-0.5 truncate text-[12px] text-text-2">{d.headline}</p>
+                <p className="truncate text-[13px] font-medium text-text" title={d.testName}>
+                  {d.testName}
+                </p>
+                <p className="mt-0.5 truncate text-[12px] text-text-2" title={d.headline}>
+                  {d.headline}
+                </p>
               </div>
               {d.action.href ? (
                 <Link
                   href={d.action.href}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-md)] border border-border bg-bg-0 px-2.5 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-md)] border border-border bg-bg-0 px-2.5 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
                 >
                   {d.action.label}
                   <ArrowRight className="h-3 w-3" />
@@ -80,7 +84,7 @@ export function DecisionList({
               ) : (
                 <button
                   onClick={() => onFinishDraft?.(d.testId)}
-                  className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[var(--radius-md)] border border-border bg-bg-0 px-2.5 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+                  className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[var(--radius-md)] border border-border bg-bg-0 px-2.5 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
                 >
                   {d.action.label}
                   <ArrowRight className="h-3 w-3" />

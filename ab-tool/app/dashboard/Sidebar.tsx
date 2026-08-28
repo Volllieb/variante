@@ -104,7 +104,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           aria-label="Open navigation"
           aria-expanded={mobileOpen}
           aria-controls="dashboard-sidebar"
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -133,7 +133,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         <button
           onClick={() => setMobileOpen(false)}
           aria-label="Close navigation"
-          className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+          className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

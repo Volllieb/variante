@@ -30,15 +30,15 @@ export function VariantPreview({
       <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06]">
         {/* Traffic lights */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#f5455c]/60" />
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#f5a623]/60" />
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#2fd76c]/60" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-err/60" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-pro/60" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-ok/60" />
         </div>
         {/* Label badge */}
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
           winner
             ? 'bg-emerald-400/10 text-emerald-400'
-            : 'bg-white/[0.06] text-[#ededed]/40'
+            : 'bg-white/[0.06] text-text-3'
         }`}>
           {label}
         </span>

@@ -97,7 +97,7 @@ export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
           {!hasRun && !isRunning && (
             <button
               onClick={handleRun}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:bg-pro/90 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Optimize {host}
@@ -168,7 +168,7 @@ export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
               {(isDone || error) && (
                 <button
                   onClick={handleRun}
-                  className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+                  className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
                 >
                   <Sparkles className="h-3 w-3" />
                   Run again

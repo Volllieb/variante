@@ -271,7 +271,7 @@ export function StepGoal({
                     onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
                     onKeyDown={(e) => e.key === 'Enter' && confirmManualGoal()}
                     placeholder=".buy-button, #checkout, button.cta"
-                    className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 py-2 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+                    className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 py-2 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   />
                   {manualSelectorError && (
                     <p className="mt-1 text-[10px] text-err">{manualSelectorError}</p>

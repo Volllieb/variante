@@ -496,7 +496,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           <button
             onClick={onClose}
             aria-label="Close new test wizard"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -681,17 +681,6 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           </div>
         )}
       </div>
-
-      {/* Slide-in animation */}
-      <style jsx>{`
-        @keyframes slideInRight {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-        .animate-slide-in-right {
-          animation: slideInRight 0.25s ease-out;
-        }
-      `}</style>
     </>
   )
 }

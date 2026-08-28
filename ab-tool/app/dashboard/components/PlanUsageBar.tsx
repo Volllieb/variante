@@ -2,6 +2,7 @@
 
 import { TrendingUp, Globe, FlaskConical, Zap } from 'lucide-react'
 import { PLAN_LIMITS } from '@/lib/planLimits'
+import { formatCompact } from '@/lib/formatNumber'
 
 type PlanUsageBarProps = {
   plan: string
@@ -78,18 +79,18 @@ export function PlanUsageBar({ plan, activeTests, domainCount, aiScansUsed }: Pl
               <span className="w-[90px] shrink-0 text-[11px] text-text-2">{item.label}</span>
               <div className="flex-1 h-1.5 rounded-full bg-bg-2 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
+                  className={`h-full rounded-full transition-[width] duration-slow ease-out ${
                     atLimit ? 'bg-pro' : 'bg-text-3/40'
                   }`}
                   style={{ width: `${Math.max(pct, 4)}%` }}
                 />
               </div>
               <span
-                className={`w-[36px] text-right text-[10px] tabular-nums font-medium ${
+                className={`min-w-[36px] shrink-0 whitespace-nowrap text-right text-[10px] tabular-nums font-medium ${
                   atLimit ? 'text-pro' : 'text-text-3'
                 }`}
               >
-                {item.used}/{item.limit === Infinity ? '∞' : item.limit}
+                {formatCompact(item.used)}/{formatCompact(item.limit)}
               </span>
               <span className="hidden sm:inline text-[10px] text-text-3/50 w-[80px] text-right">
                 Pro: {item.proLabel}

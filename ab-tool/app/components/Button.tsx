@@ -16,7 +16,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-fill-invert text-text-on-invert font-semibold hover:opacity-90',
+  primary: 'bg-fill-invert text-text-on-invert font-semibold hover:bg-fill-invert-hover',
   secondary: 'border border-border text-text-2 font-medium hover:border-border-strong hover:text-text',
   danger: 'bg-err-bg text-err font-semibold hover:bg-err/15',
   ghost: 'text-text-3 font-medium hover:text-text hover:bg-bg-2',

@@ -422,13 +422,13 @@ export function StepVariantB({
                       value={editCss}
                       onChange={(e) => setEditCss(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => { onVariantUpdate({ variant_css: editCss }); setEditingCss(false) }}
-                        className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
+                        className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover cursor-pointer"
                       >
                         <Check className="h-2.5 w-2.5" /> Apply
                       </button>
@@ -468,13 +468,13 @@ export function StepVariantB({
                       value={editHtml}
                       onChange={(e) => setEditHtml(e.target.value)}
                       rows={6}
-                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 p-3 text-[11px] text-text font-mono leading-relaxed resize-y focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                       spellCheck={false}
                     />
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => { onVariantUpdate({ variant_html: editHtml }); setEditingHtml(false) }}
-                        className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 cursor-pointer"
+                        className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover cursor-pointer"
                       >
                         <Check className="h-2.5 w-2.5" /> Apply
                       </button>

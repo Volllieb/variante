@@ -30,10 +30,10 @@ const icons: Record<ToastType, React.ComponentType<{ className?: string }>> = {
 }
 
 const colors: Record<ToastType, { border: string; bg: string; text: string }> = {
-  success: { border: 'border-[#2fd76c]/20', bg: 'bg-[#2fd76c]/5', text: 'text-[#2fd76c]' },
-  error: { border: 'border-[#f5455c]/20', bg: 'bg-[#f5455c]/5', text: 'text-[#f5455c]' },
-  warning: { border: 'border-[#f5a623]/20', bg: 'bg-[#f5a623]/5', text: 'text-[#f5a623]' },
-  info: { border: 'border-white/20', bg: 'bg-white/5', text: 'text-[#ededed]' },
+  success: { border: 'border-ok/20', bg: 'bg-ok/5', text: 'text-ok' },
+  error: { border: 'border-err/20', bg: 'bg-err/5', text: 'text-err' },
+  warning: { border: 'border-pro/20', bg: 'bg-pro/5', text: 'text-pro' },
+  info: { border: 'border-white/20', bg: 'bg-white/5', text: 'text-text' },
 }
 
 /* ── Provider ── */

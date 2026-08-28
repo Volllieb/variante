@@ -470,13 +470,13 @@ function SnippetBanner({
                   autoFocus
                   aria-label="Domain to check"
                   aria-describedby="snippet-input-error"
-                  className="w-full h-[38px] rounded-[var(--radius-md)] border border-border bg-bg-0 px-3.5 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none disabled:opacity-40"
+                  className="w-full h-[38px] rounded-[var(--radius-md)] border border-border bg-bg-0 px-3.5 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none disabled:opacity-40"
                 />
               </div>
               <button
                 onClick={submitDomain}
                 disabled={isChecking || !urlInput.trim()}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-30"
               >
                 {isChecking ? (
                   <span className="flex items-center gap-1.5">
@@ -508,7 +508,7 @@ function SnippetBanner({
                 className="h-1 w-full max-w-[320px] rounded-full bg-bg-2 overflow-hidden"
               >
                 <div
-                  className="h-full rounded-full bg-pro transition-all duration-500"
+                  className="h-full rounded-full bg-pro transition-[width] duration-slow"
                   style={{ width: `${Math.max(progress, 5)}%` }}
                 />
               </div>

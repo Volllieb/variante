@@ -1,34 +1,37 @@
 'use client'
 
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { TrendingUp } from 'lucide-react'
 import type { TrendPoint } from '@/lib/dashboardStats'
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/app/components/ui/chart'
+import { chartMargin, gridProps, lineProps, xAxisProps, yAxisProps, SERIES } from './chartTheme'
+import { formatCount } from '@/lib/formatNumber'
 
 /**
  * Trend über den gewählten Zeitraum: Besucher und Conversions.
- *
- * Achsen- und Tooltip-Styling stammen aus der Results-Seite, aber über die
- * Tokens statt über die dort hartcodierten #ededed-Werte — sonst hat das
- * Dashboard zwei Farbsysteme für dieselbe Art Chart.
  *
  * Zwei Y-Achsen, weil Conversions ein bis zwei Größenordnungen unter den
  * Besuchern liegen: auf einer gemeinsamen Achse wäre die Conversion-Linie eine
  * Gerade auf dem Nullpunkt.
  */
+
+const chartConfig = {
+  Visitors: { label: 'Visitors', color: SERIES.neutral },
+  Conversions: { label: 'Conversions', color: SERIES.ok },
+} satisfies ChartConfig
+
 export function TrendChart({ data, label }: { data: TrendPoint[]; label: string }) {
   const totalVisitors = data.reduce((s, d) => s + d.visitors, 0)
   const totalConversions = data.reduce((s, d) => s + d.conversions, 0)
 
   const chartData = data.map((d) => ({
-    date: new Date(`${d.date}T00:00:00Z`).toLocaleDateString(undefined, {
+    date: new Date(`${d.date}T00:00:00Z`).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       timeZone: 'UTC',
@@ -49,66 +52,35 @@ export function TrendChart({ data, label }: { data: TrendPoint[]; label: string 
         <span className="text-[11px] text-text-3">{label}</span>
       </div>
 
-      <div
+      <ChartContainer
+        config={chartConfig}
         className="h-[180px] w-full"
         role="img"
-        aria-label={`Trend over ${data.length} days: ${totalVisitors.toLocaleString()} visitors, ${totalConversions.toLocaleString()} conversions`}
+        aria-label={`Trend over ${data.length} days: ${formatCount(totalVisitors)} visitors, ${formatCount(totalConversions)} conversions`}
       >
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-            <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              tick={{ fill: 'var(--color-text-3)', fontSize: 10 }}
-              axisLine={{ stroke: 'var(--color-border)' }}
-              tickLine={false}
-              interval="preserveStartEnd"
-              minTickGap={24}
-            />
-            <YAxis
-              yAxisId="visitors"
-              tick={{ fill: 'var(--color-text-3)', fontSize: 10 }}
-              axisLine={false}
-              tickLine={false}
-              width={40}
-            />
-            <YAxis
-              yAxisId="conversions"
-              orientation="right"
-              tick={{ fill: 'var(--color-text-3)', fontSize: 10 }}
-              axisLine={false}
-              tickLine={false}
-              width={32}
-            />
-            <RechartsTooltip
-              contentStyle={{
-                background: 'var(--color-bg-2)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 8,
-                fontSize: 12,
-                color: 'var(--color-text)',
-              }}
-              labelStyle={{ color: 'var(--color-text-3)', marginBottom: 4 }}
-            />
-            <Line
-              yAxisId="visitors"
-              type="monotone"
-              dataKey="Visitors"
-              stroke="var(--color-text-2)"
-              strokeWidth={1.5}
-              dot={false}
-            />
-            <Line
-              yAxisId="conversions"
-              type="monotone"
-              dataKey="Conversions"
-              stroke="var(--color-ok)"
-              strokeWidth={1.5}
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+        <LineChart data={chartData} margin={chartMargin}>
+          <CartesianGrid {...gridProps} />
+          <XAxis dataKey="date" {...xAxisProps} />
+          <YAxis yAxisId="visitors" {...yAxisProps} />
+          <YAxis yAxisId="conversions" orientation="right" {...yAxisProps} />
+          <ChartTooltip
+            content={<ChartTooltipContent valueFormatter={(v) => formatCount(v)} />}
+          />
+          <Line
+            yAxisId="visitors"
+            dataKey="Visitors"
+            stroke={SERIES.neutral}
+            {...lineProps}
+          />
+          <Line
+            yAxisId="conversions"
+            dataKey="Conversions"
+            stroke={SERIES.ok}
+            {...lineProps}
+          />
+        </LineChart>
+      </ChartContainer>
+      <ChartLegend />
     </div>
   )
 }

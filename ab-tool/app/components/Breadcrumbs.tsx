@@ -18,7 +18,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[12px]">
       <Link
         href="/dashboard"
-        className="text-[#ededed]/40 transition-colors hover:text-[#ededed]/70"
+        className="text-text-3 transition-colors hover:text-text-2"
         aria-label="Dashboard"
       >
         <Home className="h-3.5 w-3.5" />
@@ -27,13 +27,13 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
         const isLast = i === items.length - 1
         return (
           <span key={i} className="flex items-center gap-1.5">
-            <ChevronRight className="h-3 w-3 text-[#ededed]/25" />
+            <ChevronRight className="h-3 w-3 text-text/25" />
             {isLast || !item.href ? (
-              <span className="text-[#ededed]/60 truncate max-w-[200px]">{item.label}</span>
+              <span className="text-text-2 truncate max-w-[200px]">{item.label}</span>
             ) : (
               <Link
                 href={item.href}
-                className="text-[#ededed]/40 transition-colors hover:text-[#ededed]/70 truncate max-w-[200px]"
+                className="text-text-3 transition-colors hover:text-text-2 truncate max-w-[200px]"
               >
                 {item.label}
               </Link>

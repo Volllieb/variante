@@ -23,7 +23,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Sidebar email={user.email ?? ''} plan={plan} avatarUrl={avatarUrl} />
       {/* UX-02: pt-12 macht Platz für die mobile Topbar, md:pt-0 + md:pl-[220px]
           für die feste Sidebar ab Tablet. */}
-      <main id="main" className="pt-12 md:pt-0 md:pl-[220px]">
+      {/* tabular-nums global statt siebenmal opt-in: Proportionalziffern liefen
+          ausgerechnet bei den größten, live aktualisierten Werten (Confidence-
+          Donut, text-4xl-Stats) und hebelten in der Rohdaten-Tabelle das
+          text-right aus, weil eine 1 schmaler ist als eine 8. */}
+      <main id="main" className="pt-12 tabular-nums md:pt-0 md:pl-[220px]">
         {children}
       </main>
     </div>

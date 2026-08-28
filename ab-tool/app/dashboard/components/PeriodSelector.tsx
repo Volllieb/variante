@@ -58,7 +58,7 @@ export function PeriodSelector({
             key={String(o.value)}
             onClick={() => onChange(o.value)}
             aria-pressed={active}
-            className={`cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
+            className={`cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none ${
               active ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
             }`}
           >

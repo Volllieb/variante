@@ -25,6 +25,15 @@
   --color-pro-bg: rgba(245, 166, 35, 0.12);
   --color-err: #f5455c;
   --color-err-bg: rgba(245, 69, 92, 0.12);
+  /* Motion-Skala. Vorher gab es keine Tokens: das Dashboard lief auf Tailwinds
+     implizitem 150ms, die Landingpage auf duration-200, Progress-Bars auf 500ms,
+     und daneben standen drei Easing-Familien (ease, ease-out, Tailwind-Default).
+     Dieselbe Geste fühlte sich je nach Seite anders an. */
+  --duration-fast: 120ms;   /* Farb- und Opacity-Wechsel */
+  --duration-base: 160ms;   /* Hover auf Flächen */
+  --duration-slow: 320ms;   /* Progress-Bars, Donut-Sweeps */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Border-radius scale */
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -55,6 +64,17 @@
   --color-pro-bg: var(--color-pro-bg);
   --color-err: var(--color-err);
   --color-err-bg: var(--color-err-bg);
+  /* Tailwind-Defaults auf die Tokens ziehen. Damit erben alle 214
+     transition-*-Utilities dieselbe Dauer und dieselbe Kurve, ohne dass an
+     jeder Klasse ein duration-/ease- hängt. Explizite Angaben (duration-slow
+     auf Progress-Bars, duration-200 auf der Landingpage) gewinnen weiterhin. */
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out);
+
+  --duration-fast: var(--duration-fast);
+  --duration-base: var(--duration-base);
+  --duration-slow: var(--duration-slow);
+  --ease-out: var(--ease-out);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -233,6 +253,40 @@ html {
     transform: translateY(-2px);
     border-color: var(--color-border-strong);
   }
+}
+
+/* ── Interaktive Flächen (Dashboard) ──
+
+   Eine Hover-Geste statt drei. Vorher: Dashboard-Cards nur border-color,
+   .card-lift translateY(-2px), Landing-Buttons scale(1.02) — und die
+   KPI-Kacheln gar nichts. Bewusst ohne transform: in einem dichten
+   Datenraster verschiebt ein Lift die Zahl unter dem Cursor, und bei fünf
+   Kacheln nebeneinander wird das unruhig. .card-lift bleibt der Landingpage
+   vorbehalten, wo der Lift richtig ist. */
+
+.surface-interactive {
+  transition: border-color var(--duration-base) var(--ease-out),
+              background-color var(--duration-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .surface-interactive:hover {
+    border-color: var(--color-border-strong);
+    background-color: var(--color-bg-2);
+  }
+}
+
+/* ── Drawer-Einblendung ──
+   Lag als <style jsx> in NewTestDrawer.tsx und war die einzige Keyframe
+   außerhalb dieser Datei. */
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--duration-slow) var(--ease-out);
 }
 
 /* ── Hero-specific ── */

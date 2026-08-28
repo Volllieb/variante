@@ -3,6 +3,7 @@ import { calcSignificance, evaluateWinner, hasSampleRatioMismatch } from '@/lib/
 import { safeError, safeLog } from '@/lib/safeLog'
 import { sendEmail } from '@/lib/email'
 import { cronRoute } from '@/lib/cronAuth'
+import { formatCount, formatDelta } from '@/lib/formatNumber'
 
 // Der erste Lauf nach dem GET-Fix (Plan OPS-01) arbeitet einen aufgestauten
 // Bestand ab — E-Mail-Versand pro Test kostet Zeit.
@@ -104,7 +105,7 @@ export const { GET, POST } = cronRoute(async (_req) => {
           user_id: t.user_id,
           type: 'significance',
           title: `"${t.name}" is approaching significance`,
-          body: `Your test has reached ${Math.round(sig * 100)}% confidence with ${(t.visitors_a + t.visitors_b).toLocaleString()} visitors. Variant B shows ${uplift > 0 ? '+' : ''}${uplift.toFixed(1)}% uplift.`,
+          body: `Your test has reached ${Math.round(sig * 100)}% confidence with ${formatCount(t.visitors_a + t.visitors_b)} visitors. Variant B shows ${formatDelta(uplift)} uplift.`,
           href: `/dashboard/results/${t.id}`,
         })
       }
@@ -150,7 +151,7 @@ export const { GET, POST } = cronRoute(async (_req) => {
       const crAWin = t.visitors_a > 0 ? t.conversions_a / t.visitors_a : 0
       const crBWin = t.visitors_b > 0 ? t.conversions_b / t.visitors_b : 0
       const upliftWin = crAWin > 0 ? Math.round(((crBWin - crAWin) / crAWin) * 10000) / 100 : 0
-      const statsSuffix = `${(sig * 100).toFixed(1)}% confidence, ${upliftWin > 0 ? '+' : ''}${upliftWin.toFixed(1)}% uplift`
+      const statsSuffix = `${(sig * 100).toFixed(1)}% confidence, ${formatDelta(upliftWin)} uplift`
       await supabase.from('notifications').insert(
         autoPromote
           ? {
@@ -233,7 +234,7 @@ export const { GET, POST } = cronRoute(async (_req) => {
             user_id: t.user_id,
             type: 'tip',
             title: 'Your first winner! 🎉',
-            body: `${upliftWin > 0 ? '+' : ''}${upliftWin.toFixed(1)}% uplift detected. Pro unlocks unlimited tests — keep optimizing every page.`,
+            body: `${formatDelta(upliftWin)} uplift detected. Pro unlocks unlimited tests — keep optimizing every page.`,
             href: `/dashboard/results/${t.id}`,
           })
         }

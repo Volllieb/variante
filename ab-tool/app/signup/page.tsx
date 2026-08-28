@@ -242,7 +242,7 @@ export default function SignupPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
             </div>
 
@@ -259,7 +259,7 @@ export default function SignupPage() {
                   placeholder="Min. 6 characters"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                  className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                 />
                 <button
                   type="button"
@@ -285,7 +285,7 @@ export default function SignupPage() {
                   placeholder="Type your password again"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                  className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                 />
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function SignupPage() {
               id="signup-terms"
               checked={termsAccepted}
               onChange={(e) => { setTermsAccepted(e.target.checked); setErr('') }}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded-[var(--radius-sm)] border-border bg-bg-1 text-white accent-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded-[var(--radius-sm)] border-border bg-bg-1 text-white accent-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
               aria-required="true"
             />
             <label htmlFor="signup-terms" className="text-[12px] leading-relaxed text-text-3 cursor-pointer select-none">

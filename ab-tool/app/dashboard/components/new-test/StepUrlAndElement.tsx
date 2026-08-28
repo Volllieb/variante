@@ -273,7 +273,7 @@ export function StepUrlAndElement({
                   onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
                 }
               }}
-              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
             >
               {verifiedDomains.map((d) => (
                 <option key={d.url} value={d.url}>{d.url}</option>
@@ -328,7 +328,7 @@ export function StepUrlAndElement({
                   if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
                 }}
                 placeholder="https://example.com/pricing"
-                className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+                className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
               />
             </div>
 
@@ -527,7 +527,7 @@ export function StepUrlAndElement({
               onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
               onKeyDown={(e) => e.key === 'Enter' && confirmManual()}
               placeholder=".cta-button, #hero-headline, button.primary"
-              className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 px-3 text-[13px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+              className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 px-3 text-[13px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
             />
             {manualSelectorError && (
               <p className="mt-1 text-[11px] text-err">{manualSelectorError}</p>
@@ -565,7 +565,7 @@ export function StepUrlAndElement({
                   <select
                     value={manualElementType}
                     onChange={(e) => setManualElementType(e.target.value)}
-                    className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[13px] text-text cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+                    className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[13px] text-text cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   >
                     <option value="element">Generic Element</option>
                     <option value="button">Button</option>
@@ -583,7 +583,7 @@ export function StepUrlAndElement({
                     value={manualElementName}
                     onChange={(e) => setManualElementName(e.target.value)}
                     placeholder='e.g. "Hero CTA Button"'
-                    className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+                    className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   />
                 </div>
               </div>
@@ -597,7 +597,7 @@ export function StepUrlAndElement({
                   onChange={(e) => setManualHtml(e.target.value)}
                   placeholder='<button class="cta">Get Started</button>'
                   rows={3}
-                  className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 resize-none"
+                  className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 resize-none"
                 />
               </div>
             </div>

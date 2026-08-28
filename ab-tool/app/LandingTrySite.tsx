@@ -145,14 +145,14 @@ export function LandingTrySite() {
                 onChange={(e) => { setUrl(e.target.value); setErrMsg(''); if (phase === 'error') setPhase('input') }}
                 placeholder="yoursite.com"
                 autoComplete="url"
-                className={`flex-1 h-[42px] rounded-[var(--radius-md)] border px-4 text-sm text-white placeholder:text-text-3 bg-bg-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-text/20 ${
+                className={`flex-1 h-[42px] rounded-[var(--radius-md)] border px-4 text-sm text-white placeholder:text-text-3 bg-bg-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-text/30 ${
                   phase === 'error' ? 'border-err/40' : 'border-border focus:border-border-strong'
                 }`}
               />
               <button
                 type="submit"
                 disabled={!url.trim()}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-5 py-2.5 text-sm font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-5 py-2.5 text-sm font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-30"
               >
                 Try it
                 <ArrowRight className="h-3.5 w-3.5" />

@@ -229,7 +229,7 @@ export default function OnboardingPage() {
                     value={domainUrl}
                     aria-label="Your domain (optional)"
                     onChange={(e) => setDomainUrl(e.target.value)}
-                    className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-2.5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40"
+                    className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-2.5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   />
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function OnboardingPage() {
                       disabled={isChecking}
                       aria-label="Domain to verify"
                       aria-describedby="onboarding-domain-error"
-                      className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 disabled:opacity-50"
+                      className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 disabled:opacity-50"
                     />
                     <button
                       type="submit"
@@ -376,7 +376,7 @@ export default function OnboardingPage() {
                       className="mt-3 h-1 w-full rounded-full bg-bg-2 overflow-hidden"
                     >
                       <div
-                        className="h-full rounded-full bg-pro transition-all duration-500"
+                        className="h-full rounded-full bg-pro transition-[width] duration-slow"
                         style={{ width: `${checkState.progress}%` }}
                       />
                     </div>

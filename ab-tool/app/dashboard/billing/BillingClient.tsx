@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/app/components/Toast'
 import type { BillingData } from './page'
+import { formatCount, formatDelta } from '@/lib/formatNumber'
 
 export function BillingClient({ data }: { data: BillingData }) {
   const [busy, setBusy] = useState(false)
@@ -88,7 +89,7 @@ export function BillingClient({ data }: { data: BillingData }) {
                 <button
                   onClick={() => billing('checkout')}
                   disabled={busy}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-50"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-50"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Upgrade to Pro
@@ -132,18 +133,18 @@ export function BillingClient({ data }: { data: BillingData }) {
             <QuotaRow
               icon={Zap}
               label="Total visitors"
-              value={data.totalVisitors.toLocaleString()}
+              value={formatCount(data.totalVisitors)}
             />
             <QuotaRow
               icon={TrendingUp}
               label="Total conversions"
-              value={data.totalConversions.toLocaleString()}
+              value={formatCount(data.totalConversions)}
             />
             {data.avgLift !== null && (
               <QuotaRow
                 icon={TrendingUp}
                 label="Avg lift"
-                value={`${data.avgLift > 0 ? '+' : ''}${(data.avgLift * 100).toFixed(1)}%`}
+                value={formatDelta(data.avgLift * 100)}
                 tone={data.avgLift > 0 ? 'ok' : data.avgLift < 0 ? 'err' : undefined}
               />
             )}
@@ -185,7 +186,7 @@ function QuotaRow({
         <Icon className="h-3.5 w-3.5 shrink-0" />
         {label}
       </span>
-      <span className={`font-mono text-[13px] ${colorClass}`}>
+      <span className={`text-[13px] tabular-nums ${colorClass}`}>
         {value}
       </span>
       {proValue && (

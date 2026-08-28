@@ -28,16 +28,16 @@ export function Tooltip({ content, children, side = 'top', maxWidth = 200 }: Too
       {children}
       <span
         role="tooltip"
-        className={`pointer-events-none absolute z-50 ${sideClasses[side]} rounded-[var(--radius-md)] border border-white/[0.14] bg-[#1a1a1a] px-2.5 py-1.5 text-[11px] leading-relaxed text-[#ededed]/90 opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100 group-hover/tip:delay-300 whitespace-nowrap shadow-lg`}
+        className={`pointer-events-none absolute z-50 ${sideClasses[side]} rounded-[var(--radius-md)] border border-white/[0.14] bg-bg-2 px-2.5 py-1.5 text-[11px] leading-relaxed text-text/90 opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100 group-hover/tip:delay-300 whitespace-nowrap shadow-lg`}
         style={{ maxWidth: `${maxWidth}px` }}
       >
         {content}
         {/* Arrow for top/bottom */}
         {side === 'top' && (
-          <span className="absolute left-1/2 top-full -translate-x-1/2 border-[5px] border-transparent border-t-[#1a1a1a]" />
+          <span className="absolute left-1/2 top-full -translate-x-1/2 border-[5px] border-transparent border-t-bg-2" />
         )}
         {side === 'bottom' && (
-          <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-b-[#1a1a1a]" />
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-b-bg-2" />
         )}
       </span>
     </span>

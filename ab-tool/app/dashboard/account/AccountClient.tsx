@@ -22,7 +22,7 @@ function Toggle({ checked, onChange, label, id }: { checked: boolean; onChange: 
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 ${
+      className={`relative h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 ${
         checked ? 'border-transparent bg-fill-invert' : 'border-border bg-bg-2'
       }`}
     >
@@ -520,12 +520,12 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <button
                 onClick={changeEmail}
                 disabled={busy || emailSent}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-40"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-40"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emailSent ? <Check className="h-3.5 w-3.5" /> : null}
                 {emailSent ? 'Sent' : 'Change'}
@@ -562,7 +562,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               </div>
               <button
                 onClick={() => { setAddingPage(true); setAddState('input'); setAddError(''); setAddUrl('') }}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover"
               >
                 Seite hinzufügen
               </button>
@@ -606,7 +606,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                         <button
                           onClick={() => deleteDomain(d.id)}
                           disabled={domainBusy}
-                          className="cursor-pointer rounded-[var(--radius-sm)] bg-err px-2 py-0.5 text-[9px] font-semibold text-white hover:opacity-85 disabled:opacity-40"
+                          className="cursor-pointer rounded-[var(--radius-sm)] bg-err px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-err/90 disabled:opacity-40"
                         >
                           {domainBusy ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : 'Confirm'}
                         </button>
@@ -667,7 +667,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       placeholder="yoursite.com"
                       disabled={addState !== 'input'}
                       autoFocus
-                      className="flex-1 bg-transparent text-[12px] text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="flex-1 bg-transparent text-[12px] text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                     />
                   </div>
                   {addError && <p className="text-[11px] text-err">{addError}</p>}
@@ -675,7 +675,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     <button
                       onClick={addAdditionalPage}
                       disabled={addState !== 'input' || !addUrl.trim()}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-30"
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-30"
                     >
                       {addState === 'saving' ? (
                         <>
@@ -700,7 +700,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 <div className="space-y-2">
                   <p className="text-[11px] text-pro">Snippet not found on <strong>{normalize(addUrl)}</strong>. Add it to the page&apos;s &lt;head&gt; and retry.</p>
                   <div className="flex gap-1.5">
-                    <button onClick={addAdditionalPage} className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+                    <button onClick={addAdditionalPage} className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">
                       <Loader2 className="h-2.5 w-2.5" /> Retry
                     </button>
                     <button onClick={() => { setAddState('input'); setAddError('') }} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Change URL</button>
@@ -720,7 +720,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                         We&apos;ll confirm the new snippet is live first — your current page stays connected until then.
                       </p>
                       <div className="flex gap-1.5">
-                        <button onClick={replaceExistingPage} className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+                        <button onClick={replaceExistingPage} className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">
                           Replace page
                         </button>
                         <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
@@ -728,7 +728,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     </>
                   ) : (
                     <div className="flex gap-1.5">
-                      <a href="/dashboard/billing" className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">Upgrade plan</a>
+                      <a href="/dashboard/billing" className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">Upgrade plan</a>
                       <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
                     </div>
                   )}
@@ -744,7 +744,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               {addState === 'verified' && (
                 <div className="space-y-2">
                   <p className="flex items-center gap-1.5 text-[11px] text-ok"><Check className="h-3 w-3" /> <strong>{normalize(addUrl)}</strong> added &amp; verified.</p>
-                  <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">Done</button>
+                  <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">Done</button>
                 </div>
               )}
             </div>
@@ -862,7 +862,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               <button
                 onClick={regenerateToken}
                 disabled={tokenBusy}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 disabled:opacity-40"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-40"
               >
                 {tokenBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Key className="h-3.5 w-3.5" />}
                 Generate token
@@ -911,7 +911,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     <button
                       onClick={regenerateToken}
                       disabled={tokenBusy}
-                      className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-err px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                      className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-err px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:bg-err/90 disabled:opacity-40"
                     >
                       {tokenBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                       Confirm
@@ -963,13 +963,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-[var(--radius-md)] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="w-full rounded-[var(--radius-md)] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <div className="flex items-center gap-2">
                 <button
                   onClick={deleteAccount}
                   disabled={deleting || deleteConfirm !== dangerConfirm}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-err px-4 py-2 text-[11px] font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-30"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-err px-4 py-2 text-[11px] font-semibold text-white transition-opacity hover:bg-err/90 disabled:opacity-30"
                 >
                   {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                   {deleting ? 'Deleting…' : 'Yes, delete my account'}

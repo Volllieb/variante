@@ -23,10 +23,10 @@ const iconMap = {
 }
 
 const colorMap = {
-  test_done: { bg: 'bg-[#2fd76c]/10', text: 'text-[#2fd76c]' },
-  significance: { bg: 'bg-[#f5a623]/10', text: 'text-[#f5a623]' },
-  warning: { bg: 'bg-[#f5455c]/10', text: 'text-[#f5455c]' },
-  tip: { bg: 'bg-white/5', text: 'text-[#ededed]/60' },
+  test_done: { bg: 'bg-ok/10', text: 'text-ok' },
+  significance: { bg: 'bg-pro/10', text: 'text-pro' },
+  warning: { bg: 'bg-err/10', text: 'text-err' },
+  tip: { bg: 'bg-white/5', text: 'text-text-2' },
 }
 
 function timeAgo(d: Date): string {
@@ -157,12 +157,12 @@ export function NotificationCenter() {
       <Tooltip content="Notifications">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-[#ededed]/50 transition-colors hover:bg-[#111111] hover:text-[#ededed]/80"
+          className="relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text/80"
           aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#f5455c] px-1 text-[9px] font-bold text-white leading-none">
+            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-err px-1 text-[9px] font-bold text-white leading-none">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -170,15 +170,15 @@ export function NotificationCenter() {
       </Tooltip>
 
       {open && (
-        <div className="absolute left-0 bottom-full z-50 mb-1.5 w-80 rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] shadow-xl">
+        <div className="absolute left-0 bottom-full z-50 mb-1.5 w-80 rounded-[var(--radius-lg)] border border-white/10 bg-bg-1 shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
-            <span className="text-[12px] font-semibold text-[#ededed]">Notifications</span>
+            <span className="text-[12px] font-semibold text-text">Notifications</span>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="cursor-pointer text-[11px] text-[#ededed]/50 hover:text-[#ededed]"
+                  className="cursor-pointer text-[11px] text-text-3 hover:text-text"
                 >
                   Mark all read
                 </button>
@@ -186,7 +186,7 @@ export function NotificationCenter() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="cursor-pointer text-[11px] text-[#ededed]/50 hover:text-[#f5455c]"
+                  className="cursor-pointer text-[11px] text-text-3 hover:text-err"
                 >
                   Clear
                 </button>
@@ -198,8 +198,8 @@ export function NotificationCenter() {
           <div className="max-h-72 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
-                <Bell className="h-6 w-6 text-[#ededed]/20" />
-                <p className="text-[12px] text-[#ededed]/40">All caught up!</p>
+                <Bell className="h-6 w-6 text-text/20" />
+                <p className="text-[12px] text-text-3">All caught up!</p>
               </div>
             ) : (
               [...notifications]
@@ -210,18 +210,18 @@ export function NotificationCenter() {
                   const content = (
                     <div
                       key={n.id}
-                      className={`flex items-start gap-2.5 border-b border-white/[0.04] px-4 py-2.5 last:border-b-0 transition-colors hover:bg-[#111111] ${n.read ? 'opacity-60' : ''}`}
+                      className={`flex items-start gap-2.5 border-b border-white/[0.04] px-4 py-2.5 last:border-b-0 transition-colors hover:bg-bg-2 ${n.read ? 'opacity-60' : ''}`}
                     >
                       <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${c.bg}`}>
                         <Icon className={`h-3.5 w-3.5 ${c.text}`} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-medium text-[#ededed] truncate">{n.title}</p>
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-[#ededed]/50 line-clamp-2">{n.body}</p>
-                        <p className="mt-1 text-[10px] text-[#ededed]/30">{timeAgo(new Date(n.created_at))}</p>
+                        <p className="text-[12px] font-medium text-text truncate">{n.title}</p>
+                        <p className="mt-0.5 text-[11px] leading-relaxed text-text-3 line-clamp-2">{n.body}</p>
+                        <p className="mt-1 text-[10px] text-text-3">{timeAgo(new Date(n.created_at))}</p>
                       </div>
                       {!n.read && (
-                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#2fd76c]" title="Unread" />
+                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-ok" title="Unread" />
                       )}
                     </div>
                   )

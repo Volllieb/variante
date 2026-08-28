@@ -6,6 +6,7 @@ import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X, Target } from 'l
 import { calcSignificance } from '@/lib/significance'
 import { displayDay, estimateTimeToDecision } from '@/lib/decisions'
 import { describeDbGoal } from '@/lib/resultsHelpers'
+import { formatCompact, formatPercent, formatDelta } from '@/lib/formatNumber'
 
 // SVG-Farben via CSS custom properties — SVGs unterstützen var() nativ
 const OK = 'var(--color-ok)'
@@ -95,10 +96,10 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
         strokeLinecap="round"
         strokeDasharray={`${circ * pct} ${circ * (1 - pct)}`}
         transform={`rotate(-90 ${c} ${c})`}
-        style={{ transition: 'stroke-dasharray 0.5s ease' }}
+        style={{ transition: 'stroke-dasharray var(--duration-slow) var(--ease-out)' }}
       />
       <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="600" fill="var(--color-text)">
-        {visitors >= 1000 ? `${(visitors / 1000).toFixed(0)}k` : visitors}
+        {formatCompact(visitors)}
       </text>
     </svg>
   )
@@ -227,7 +228,7 @@ export function TestCard({
       : `~${estimate.visitorsNeeded.toLocaleString()} visitors to go`
     : null
 
-  const cardClassName = `group/card relative block w-full text-left rounded-[var(--radius-lg)] border p-2.5 transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none ${
+  const cardClassName = `group/card surface-interactive relative block w-full text-left rounded-[var(--radius-lg)] border p-2.5 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none ${
     isDraft ? 'border-dashed border-border bg-bg-0/60 cursor-pointer' : 'border-border bg-bg-1'
   }`
 
@@ -242,7 +243,7 @@ export function TestCard({
       href={isDraft && onCompleteDraft ? '#' : `/dashboard/results/${t.id}${from ? `?from=${from}` : ''}`}
       onClick={isDraft && onCompleteDraft ? handleDraftClick : undefined}
       className={cardClassName}
-      style={highlight ? { animation: 'testPulse 2s ease-out' } : undefined}
+      style={highlight ? { animation: 'testPulse 2s var(--ease-out)' } : undefined}
     >
       {/* Live-Pulse: subtile Signatur für aktive Tests */}
       {status === 'active' && (
@@ -274,7 +275,7 @@ export function TestCard({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
                 autoFocus
-                className="flex-1 rounded-[var(--radius-sm)] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+                className="flex-1 rounded-[var(--radius-sm)] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
               />
               <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3 hover:text-text">
                 <Check className="h-3 w-3" />
@@ -304,7 +305,7 @@ export function TestCard({
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               aria-label="Test actions"
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/15 focus-visible:outline-none"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
@@ -350,11 +351,11 @@ export function TestCard({
       {isLive && totalV > 0 && (
         <div className="mt-1.5 flex items-center gap-2 text-[10px]">
           <span className="text-text-3">
-            A <strong className="text-text-2">{(crA * 100).toFixed(1)}%</strong>
+            A <strong className="text-text-2">{formatPercent(crA * 100)}</strong>
           </span>
           <span className="text-text-3">·</span>
           <span className="text-text-3">
-            B <strong className="text-text-2">{(crB * 100).toFixed(1)}%</strong>
+            B <strong className="text-text-2">{formatPercent(crB * 100)}</strong>
           </span>
           {crA > 0 && (() => {
             const l = ((crB - crA) / crA) * 100
@@ -363,7 +364,7 @@ export function TestCard({
               <>
                 <span className="text-text-3">·</span>
                 <span className={l > 0 ? 'text-ok' : 'text-err'}>
-                  {l > 0 ? '+' : ''}{l.toFixed(1)}%
+                  {formatDelta(l)}
                 </span>
               </>
             )

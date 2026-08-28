@@ -15,6 +15,7 @@ import { AgentPanel } from './components/AgentPanel'
 import { DecisionList } from './components/DecisionList'
 import { PeriodSelector, parsePeriod, periodLabel, periodNote, trendLabel, type Period } from './components/PeriodSelector'
 import { TrendChart } from './components/TrendChart'
+import { formatCompact, formatPercent, formatDelta } from '@/lib/formatNumber'
 import {
   FlaskConical,
   Plus,
@@ -226,7 +227,7 @@ export function DashboardClient({
               value={scope}
               onChange={(e) => setScopeAndPersist(e.target.value)}
               aria-label="Filter by domain"
-              className="appearance-none bg-transparent text-[15px] font-semibold text-text pr-5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+              className="appearance-none bg-transparent text-[15px] font-semibold text-text pr-5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
             >
               <option value="all">All domains</option>
               {domainOptions.filter((d) => d !== 'all').map((url) => (
@@ -254,7 +255,7 @@ export function DashboardClient({
           <Tooltip content={hasVerifiedDomain ? 'Create new test' : 'Saved as draft until snippet is installed'}>
             <button
               onClick={() => setNewTestOpen(true)}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-text/20 focus-visible:outline-none"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
             >
               <Plus className="h-3.5 w-3.5" />
               New test
@@ -296,7 +297,7 @@ export function DashboardClient({
           />
           <OverviewCard
             label="Visitors"
-            value={visitors.toLocaleString()}
+            value={formatCompact(visitors)}
             hint={periodLabel(period)}
             hintTitle={periodNote(period)}
             delta={periodStats ? { value: periodStats.delta.visitors, unit: '%' } : undefined}
@@ -308,14 +309,14 @@ export function DashboardClient({
           />
           <OverviewCard
             label="Avg Conv Rate"
-            value={`${overallCR.toFixed(1)}%`}
+            value={formatPercent(overallCR)}
             hint={periodLabel(period)}
             hintTitle={periodNote(period)}
             delta={periodStats ? { value: periodStats.delta.crPoints, unit: 'pp' } : undefined}
           />
           <OverviewCard
             label="Avg Uplift"
-            value={avgUplift !== null ? `${avgUplift > 0 ? '+' : ''}${avgUplift.toFixed(1)}%` : '—'}
+            value={avgUplift !== null ? formatDelta(avgUplift) : '—'}
             hint={avgUplift !== null ? `Across ${lifts.length} decided test${lifts.length !== 1 ? 's' : ''}` : 'No decided test yet'}
             tone={avgUplift !== null && avgUplift > 0 ? 'ok' : avgUplift !== null && avgUplift < 0 ? 'err' : undefined}
           />
@@ -442,7 +443,7 @@ function PreviewReadyBlocker({ test }: { test: TestRow }) {
           <span className="font-medium text-text">{test.name}</span> is saved as a draft. Add the one-line snippet to your site and this test goes live.
         </p>
       </div>
-      <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-85">
+      <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">
         <Globe className="h-3.5 w-3.5" />
         Install snippet
       </a>
@@ -477,18 +478,21 @@ function OverviewCard({
   const deltaClass = d === null || Math.abs(d) < 0.05 ? 'text-text-3' : d > 0 ? 'text-ok' : 'text-err'
 
   return (
-    <div className={`relative rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 ${bgTint}`}>
+    <div className={`relative min-w-0 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 ${bgTint}`}>
       <div className="flex items-center gap-1.5 mb-2">
         <span className="text-[11px] font-medium uppercase tracking-wider text-text-3">{label}</span>
       </div>
-      <p className={`text-[24px] font-semibold tabular-nums leading-none tracking-tight ${colorClass}`}>
+      <p
+        className={`truncate text-[24px] font-semibold tabular-nums leading-none tracking-tight ${colorClass}`}
+        title={value}
+      >
         {value}
       </p>
       {(hint || delta) && (
         <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-text-3">
           {delta && (
             <span className={`tabular-nums font-medium ${deltaClass}`}>
-              {d === null ? '—' : `${d > 0 ? '+' : ''}${d.toFixed(1)}${delta.unit}`}
+              {d === null ? '—' : `${formatDelta(d).replace('%', '')}${delta.unit}`}
             </span>
           )}
           {hint && <span className="truncate" title={hintTitle}>{hint}</span>}
@@ -521,7 +525,7 @@ function EmptyDashboard({
       <div className="mt-5 flex items-center justify-center gap-3">
         <button
           onClick={onNewTest}
-          className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-85"
+          className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover"
         >
           <Plus className="h-4 w-4" />
           New test
