@@ -19,6 +19,7 @@ import { ColorPicker } from './ColorPicker'
 import { PropertySlider } from './PropertySlider'
 import type { UserEdits } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
+import { extractTextFromHtml } from '@/lib/previewDoc'
 
 interface ButtonEditorProps {
   element: ElementSelection
@@ -33,10 +34,6 @@ const BORDER_STYLES = [
   { value: 'dotted', label: 'Dotted' },
   { value: 'none', label: 'None' },
 ] as const
-
-function extractTextFromHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim()
-}
 
 function generateButtonHtml(text: string): string {
   return `<button class="ab-variant-b">${text}</button>`

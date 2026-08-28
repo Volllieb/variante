@@ -103,14 +103,23 @@
       function computedBlock(el) {
         try {
           var cs = getComputedStyle(el)
-          var props = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
+          // Ohne width/height/transform-origin: das sind Pixel-Snapshots der Box
+          // des Originals. In der Dashboard-Vorschau wuerden sie die Variante auf
+          // dessen Masse einfrieren, obwohl laengerer Text wachsen soll — Padding
+          // und Font bestimmen die Box ohnehin.
+          var props = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-radius','padding','margin','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','animation','backdrop-filter','cursor','opacity']
           var lines = []
           for (var i = 0; i < props.length; i++) {
             var v = cs.getPropertyValue(props[i])
             if (v && v !== 'none' && v !== 'normal') lines.push('  ' + props[i] + ': ' + v + ';')
           }
           if (!lines.length) return ''
-          return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
+          // Selektor trifft den Wrapper der Dashboard-Vorschau (PREVIEW_ROOT_CLASS in
+          // lib/previewDoc.ts). Vorher stand hier '.__original' -- eine Klasse, die in
+          // keinem HTML vorkommt: der Block war tote CSS, und die Vorschau rendert
+          // Buttons deshalb im Browser-Default. Als AI-Kontext (generatePrompts.ts)
+          // dient er unveraendert weiter.
+          return '/* computed styles of original element (reference) */\n.__ab_preview_root > * {\n' + lines.join('\n') + '\n}'
         } catch (_) { return '' }
       }
       function collectCss(el) {
@@ -295,7 +304,9 @@
             if (cfg.mode === 'goal') {
               window.opener.postMessage({ type: 'ab-goal', selector: sel, text: text }, '*')
             } else {
-              window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text }, '*')
+              // css: ohne die Styles der Zielseite rendert die Wizard-Vorschau
+              // einen nackten Browser-Default-Button. collectCss deckelt selbst auf 24 KB.
+              window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text, css: collectCss(el) }, '*')
             }
             return true
           } catch (_) { return false }
@@ -316,6 +327,9 @@
               mode: cfg.mode === 'goal' ? 'goal' : 'element',
               selector: sel,
               html: cfg.mode === 'goal' ? '' : (el.outerHTML || '').slice(0, 10000),
+              // Knapper gedeckelt als beim postMessage-Weg: diese Nutzlast laeuft
+              // durch das URL-Fragment.
+              css: cfg.mode === 'goal' ? '' : collectCss(el).slice(0, 8000),
               tagName: el.tagName,
               text: text,
               origin: location.origin,

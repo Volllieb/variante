@@ -26,6 +26,7 @@ interface CreateTestBody {
   variant_b_html?: string
   variant_b_css?: string
   original_html?: string
+  site_css?: string
   status: 'active' | 'paused' | 'draft'
   name?: string
 }
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers })
   }
 
-  const { site_url, selector, goal, variant_b_html, variant_b_css, original_html, status, name } = body
+  const { site_url, selector, goal, variant_b_html, variant_b_css, original_html, site_css, status, name } = body
 
   if (!site_url || !goal) {
     return Response.json({ error: 'site_url and goal are required' }, { status: 400, headers })
@@ -82,6 +83,9 @@ export async function POST(req: Request) {
   const normalizedVariantHtml = variant_b_html?.trim() || null
   const normalizedVariantCss = variant_b_css?.trim() || null
   const normalizedOriginalHtml = original_html?.trim() || null
+  // Styles der Zielseite vom Picker. Ohne sie rendert die Vorschau auf der
+  // Results-Seite ungestylt — siehe lib/previewDoc.ts. Limit wie in /api/capture.
+  const normalizedSiteCss = site_css?.trim().slice(0, 50_000) || null
   const normalizedName = name?.trim() || null
 
   // Validate: if selector is provided, it must be a valid CSS selector (basic check)
@@ -165,6 +169,7 @@ export async function POST(req: Request) {
     variant_b_html: normalizedVariantHtml,
     variant_b_css: normalizedVariantCss,
     original_html: normalizedOriginalHtml,
+    site_css: normalizedSiteCss,
     status,
     traffic_split: 50,
   }
