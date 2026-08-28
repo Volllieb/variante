@@ -508,7 +508,7 @@ function SnippetBanner({
                 className="h-1 w-full max-w-[320px] rounded-full bg-bg-2 overflow-hidden"
               >
                 <div
-                  className="h-full rounded-full bg-pro transition-[width] duration-slow"
+                  className="h-full rounded-full bg-pro transition-[width] duration-[var(--duration-slow)]"
                   style={{ width: `${Math.max(progress, 5)}%` }}
                 />
               </div>

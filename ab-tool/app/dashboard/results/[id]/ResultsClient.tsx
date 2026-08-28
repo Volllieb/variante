@@ -51,7 +51,6 @@ import {
 } from 'recharts'
 import {
   ChartContainer,
-  ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -66,6 +65,7 @@ import {
   SERIES,
 } from '@/app/dashboard/components/chartTheme'
 import { formatCount, formatPercent, formatDelta, formatCompact } from '@/lib/formatNumber'
+import { significanceTone } from '@/app/dashboard/components/sigVisual'
 
 // CSS custom property helpers — SVGs support var() natively
 const OK = SERIES.ok
@@ -469,17 +469,18 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 aria-label={`Significance: ${Math.round(significance * 100)}% confidence, ${formatCount(totalVisitors)} total visitors`}
               >
                 <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="#111111" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--color-bg-2)" strokeWidth="3" />
                   <circle
                     cx="18" cy="18" r="14" fill="none"
-                    stroke={significance >= significanceLevel ? OK : significance >= 0.7 ? PRO : 'rgba(255,255,255,0.2)'}
+                    stroke={significanceTone(significance, significanceLevel).stroke}
                     strokeWidth="3"
                     strokeDasharray={`${Math.max(0.01, significance) * 87.96} 87.96`}
                     strokeLinecap="round"
+                    style={{ transition: 'stroke-dasharray var(--duration-slow) var(--ease-out)' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-xl font-bold ${significance >= significanceLevel ? 'text-ok' : significance >= 0.7 ? 'text-pro' : 'text-text-3'}`}>
+                  <span className={`text-xl font-bold ${significanceTone(significance, significanceLevel).text}`}>
                     {Math.round(significance * 100)}%
                   </span>
                   <span className="text-[9px] font-semibold uppercase tracking-wider text-text-3">Confidence</span>
@@ -571,7 +572,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
                 <div className="h-1 overflow-hidden rounded-full bg-bg-2">
                   <div
-                    className={`h-full rounded-full transition-[width] duration-slow ${visitorsProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
+                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${visitorsProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
                     style={{ width: `${visitorsProgress}%` }}
                   />
                 </div>
@@ -588,7 +589,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
                 <div className="h-1 overflow-hidden rounded-full bg-bg-2">
                   <div
-                    className={`h-full rounded-full transition-[width] duration-slow ${convProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
+                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${convProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
                     style={{ width: `${convProgress}%` }}
                   />
                 </div>
@@ -605,7 +606,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
                 <div className="h-1 overflow-hidden rounded-full bg-bg-2">
                   <div
-                    className={`h-full rounded-full transition-[width] duration-slow ${runtimeProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
+                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${runtimeProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
                     style={{ width: `${runtimeProgress}%` }}
                   />
                 </div>
@@ -658,6 +659,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
             <ChartContainer
               config={visitorsConfig}
+              showLegend
               className="h-[180px] w-full"
               role="img"
               aria-label={`Visitors chart: ${formatCount(totalVisitors)} total visitors over ${analytics.daily.length} days`}
@@ -678,7 +680,6 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <Line dataKey="B" stroke={PRO} {...lineProps} />
               </LineChart>
             </ChartContainer>
-            <ChartLegend />
           </div>
         ) : analyticsLoaded ? (
           <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
@@ -703,6 +704,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
             <ChartContainer
               config={conversionsConfig}
+              showLegend
               className="h-[180px] w-full"
               role="img"
               aria-label={`Cumulative conversions: ${formatCount(a.conversions + b.conversions)} total conversions over ${analytics.daily.length} days`}
@@ -730,7 +732,6 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <Line dataKey="B" stroke={OK} {...lineProps} />
               </LineChart>
             </ChartContainer>
-            <ChartLegend />
           </div>
         ) : analyticsLoaded ? (
           <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
@@ -1129,7 +1130,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                         ? (((row.conversions_b / row.visitors_b) - (row.conversions_a / row.visitors_a)) / (row.conversions_a / row.visitors_a)) * 100
                         : null
                       return (
-                        <tr key={row.date} className="border-b border-border text-text-3 transition-colors duration-fast ease-out hover:bg-bg-2 hover:text-text-2">
+                        <tr key={row.date} className="border-b border-border text-text-3 transition-colors duration-[var(--duration-fast)] ease-out hover:bg-bg-2 hover:text-text-2">
                           <td className="py-1.5 pr-3">{new Date(row.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })}</td>
                           <td className="py-1.5 pr-3 text-right">{formatCount(row.visitors_a)}</td>
                           <td className="py-1.5 pr-3 text-right">{formatCount(row.visitors_b)}</td>
@@ -1321,7 +1322,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-bg-2">
                     <div
-                      className="h-full rounded-full bg-text transition-[width] duration-slow"
+                      className="h-full rounded-full bg-text transition-[width] duration-[var(--duration-slow)]"
                       style={{ width: `${visitorPct}%` }}
                     />
                   </div>

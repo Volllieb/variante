@@ -376,7 +376,7 @@ export default function OnboardingPage() {
                       className="mt-3 h-1 w-full rounded-full bg-bg-2 overflow-hidden"
                     >
                       <div
-                        className="h-full rounded-full bg-pro transition-[width] duration-slow"
+                        className="h-full rounded-full bg-pro transition-[width] duration-[var(--duration-slow)]"
                         style={{ width: `${checkState.progress}%` }}
                       />
                     </div>

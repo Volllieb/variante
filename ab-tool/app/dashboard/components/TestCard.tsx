@@ -7,11 +7,8 @@ import { calcSignificance } from '@/lib/significance'
 import { displayDay, estimateTimeToDecision } from '@/lib/decisions'
 import { describeDbGoal } from '@/lib/resultsHelpers'
 import { formatCompact, formatPercent, formatDelta } from '@/lib/formatNumber'
+import { significanceTone } from './sigVisual'
 
-// SVG-Farben via CSS custom properties — SVGs unterstützen var() nativ
-const OK = 'var(--color-ok)'
-const PRO = 'var(--color-pro)'
-const OK_BG = 'var(--color-ok-bg)'
 
 export type TestRow = {
   id: string
@@ -80,8 +77,9 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
   const c = size / 2
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, Math.max(0, significance))
-  const strokeColor = pct >= 0.95 ? OK : pct >= 0.7 ? PRO : 'var(--color-border)'
-  const bgColor = pct >= 0.95 ? OK_BG : pct >= 0.7 ? 'var(--color-pro-bg)' : 'var(--color-bg-2)'
+  const tone = significanceTone(pct)
+  const strokeColor = tone.stroke
+  const bgColor = tone.fill
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">

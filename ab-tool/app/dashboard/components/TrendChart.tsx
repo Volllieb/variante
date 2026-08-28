@@ -5,7 +5,6 @@ import { TrendingUp } from 'lucide-react'
 import type { TrendPoint } from '@/lib/dashboardStats'
 import {
   ChartContainer,
-  ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -54,6 +53,7 @@ export function TrendChart({ data, label }: { data: TrendPoint[]; label: string 
 
       <ChartContainer
         config={chartConfig}
+        showLegend
         className="h-[180px] w-full"
         role="img"
         aria-label={`Trend over ${data.length} days: ${formatCount(totalVisitors)} visitors, ${formatCount(totalConversions)} conversions`}
@@ -80,7 +80,6 @@ export function TrendChart({ data, label }: { data: TrendPoint[]; label: string 
           />
         </LineChart>
       </ChartContainer>
-      <ChartLegend />
     </div>
   )
 }

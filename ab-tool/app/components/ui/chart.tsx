@@ -48,10 +48,17 @@ export function ChartContainer({
   config,
   className,
   children,
+  showLegend = false,
   ...props
 }: React.ComponentProps<'div'> & {
   config: ChartConfig
   children: React.ComponentProps<typeof Recharts.ResponsiveContainer>['children']
+  /**
+   * Legende unter dem Chart. Als Prop statt als Geschwister-Element, weil
+   * ChartLegend die ChartConfig aus dem Context liest — außerhalb des
+   * Providers wirft sie.
+   */
+  showLegend?: boolean
 }) {
   return (
     <ChartContext.Provider value={{ config }}>
@@ -71,6 +78,7 @@ export function ChartContainer({
           {children}
         </Recharts.ResponsiveContainer>
       </div>
+      {showLegend && <ChartLegend />}
     </ChartContext.Provider>
   )
 }

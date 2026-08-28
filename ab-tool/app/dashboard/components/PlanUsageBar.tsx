@@ -79,7 +79,7 @@ export function PlanUsageBar({ plan, activeTests, domainCount, aiScansUsed }: Pl
               <span className="w-[90px] shrink-0 text-[11px] text-text-2">{item.label}</span>
               <div className="flex-1 h-1.5 rounded-full bg-bg-2 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-[width] duration-slow ease-out ${
+                  className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ease-out ${
                     atLimit ? 'bg-pro' : 'bg-text-3/40'
                   }`}
                   style={{ width: `${Math.max(pct, 4)}%` }}

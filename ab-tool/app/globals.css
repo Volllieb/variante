@@ -66,15 +66,17 @@
   --color-err-bg: var(--color-err-bg);
   /* Tailwind-Defaults auf die Tokens ziehen. Damit erben alle 214
      transition-*-Utilities dieselbe Dauer und dieselbe Kurve, ohne dass an
-     jeder Klasse ein duration-/ease- hängt. Explizite Angaben (duration-slow
-     auf Progress-Bars, duration-200 auf der Landingpage) gewinnen weiterhin. */
+     jeder Klasse ein duration-/ease- hängt. Explizite Angaben gewinnen
+     weiterhin: duration-[var(--duration-slow)] auf Progress-Bars,
+     duration-200 auf der Landingpage.
+
+     Die Motion-Tokens selbst stehen nur in :root, nicht in @theme —
+     --duration-* ist in Tailwind v4 kein Theme-Namespace, eine Deklaration
+     hier erzeugte nur eine zirkuläre Selbstreferenz. Deshalb greifen die
+     Utilities per duration-[var(--duration-slow)] direkt auf das Token zu. */
   --default-transition-duration: var(--duration-fast);
   --default-transition-timing-function: var(--ease-out);
 
-  --duration-fast: var(--duration-fast);
-  --duration-base: var(--duration-base);
-  --duration-slow: var(--duration-slow);
-  --ease-out: var(--ease-out);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
