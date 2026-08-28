@@ -128,12 +128,16 @@ export const { GET, POST } = cronRoute(async (_req) => {
           .single()
         profile = data
       }
-      // Fail-open auf das dokumentierte Default-Verhalten: nur ein explizites
-      // false schaltet die Promotion ab. NULL (Altbestand) und ein
-      // fehlgeschlagener Select (Spalte existiert vor Migration 038 noch
-      // nicht) landen damit beide auf dem bisherigen Verhalten — der Cron
-      // verhält sich vor der Migration exakt wie vorher.
-      const autoPromote = profile?.auto_promote_winner !== false
+      // Fail-SAFE statt fail-open (Katalog WIN-02, Migration 041): nur ein
+      // explizites true rollt aus. NULL, ein fehlendes Profil und ein
+      // fehlgeschlagener Select landen jetzt alle auf "nicht ausrollen".
+      //
+      // Vorher galt `!== false`, also promoten, sobald irgendetwas unklar war.
+      // Der Fehlerfall dieser Richtung ist, 100 % Variante B ungefragt auf die
+      // Live-Seite eines Kunden zu schalten; der Fehlerfall der anderen Richtung
+      // ist ein Test, der auf seinen "Apply winner"-Klick wartet. Nur die zweite
+      // Sorte Fehler laesst sich zurueckdrehen.
+      const autoPromote = profile?.auto_promote_winner === true
 
       // Winner immer persistieren (auch ohne Promotion — das verhindert, dass
       // derselbe Test in jedem Lauf erneut gemeldet wird, der Cron filtert auf

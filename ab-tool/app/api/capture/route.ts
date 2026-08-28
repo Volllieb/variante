@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     framework?: string
     goal_candidates?: { selector: string; text: string }[]
     reorder_selector?: string
+    goal?: string
   }
   try {
     body = await req.json()
@@ -37,11 +38,39 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid json' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
   }
 
-  const { testId, selector, original_html, site_css, framework, goal_candidates, reorder_selector } = body
+  const { testId, selector, original_html, site_css, framework, goal_candidates, reorder_selector, goal } = body
 
-  if (!testId || !selector) {
+  // Goal-Modus des Pickers (Katalog CREATE-03).
+  //
+  // ab.js hat das Goal frueher per PATCH /api/tests/[id] gespeichert. Diese
+  // Route liegt hinter corsHeaders() (Allowlist: nur getvariante.com), der
+  // Preflight konnte von einer Kundendomain also nie durchgehen — der Aufruf
+  // landete zuverlaessig im catch und der User sah "Network error while
+  // saving.". /api/capture hat bereits die noetige Wildcard-CORS plus dieselbe
+  // Token-Auth und Besitzpruefung, deshalb laeuft der Goal-Modus jetzt hier.
+  //
+  // Wichtig: im Goal-Modus wird NUR das Goal geschrieben. Das Goal-Element ist
+  // ein anderes als das Testelement; selector/original_html duerfen dabei nicht
+  // ueberschrieben werden.
+  const isGoalMode = typeof goal === 'string' && goal.trim().length > 0
+
+  if (!testId || (!isGoalMode && !selector)) {
     return Response.json(
       { error: 'testId and selector are required' },
+      { status: 400, headers: corsHeadersPublic('POST, OPTIONS') }
+    )
+  }
+
+  if (isGoalMode && goal!.length > 256) {
+    return Response.json({ error: 'goal too long (max 256)' }, { status: 400, headers: corsHeadersPublic('POST, OPTIONS') })
+  }
+  // Diese Route parst ihren Body von Hand, greift also nicht auf goalString aus
+  // lib/validation zu — die url:-Sperre aus Katalog RUN-03 muss hier wiederholt
+  // werden, sonst bliebe der Picker ein offener Weg, ein nicht auslieferbares
+  // Goal anzulegen.
+  if (isGoalMode && goal!.trim().toLowerCase().startsWith('url:')) {
+    return Response.json(
+      { error: 'URL goals are not supported yet — pick a click target instead.' },
       { status: 400, headers: corsHeadersPublic('POST, OPTIONS') }
     )
   }
@@ -58,14 +87,16 @@ export async function POST(req: Request) {
 
   const isTemp = user.plan === 'temp'
 
-  const updatePayload = {
-    selector,
-    original_html,
-    site_css,
-    framework,
-    ...(goal_candidates !== undefined ? { goal_candidates } : {}),
-    ...(reorder_selector !== undefined ? { reorder_selector } : {}),
-  }
+  const updatePayload = isGoalMode
+    ? { goal: goal!.trim() }
+    : {
+        selector,
+        original_html,
+        site_css,
+        framework,
+        ...(goal_candidates !== undefined ? { goal_candidates } : {}),
+        ...(reorder_selector !== undefined ? { reorder_selector } : {}),
+      }
 
   // Temp-User: per temp_session_id, regulärer User: per user_id
   const { data: updated, error } = isTemp

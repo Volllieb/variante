@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit, getClientIp, loadtestBypass } from '@/lib/rateLimit'
+import { variantHash } from '@/lib/variantHash'
 
 // Sanitizer wird LAZY geladen und darf scheitern.
 //
@@ -154,7 +155,13 @@ export async function GET(req: Request) {
 
   const sanitizer = await loadSanitizer()
 
-  const tests = matched.map(t => ({
+  const tests = matched.map(t => {
+    // Nach der Sanitization hashen, nicht davor: ab.js vergleicht gegen genau
+    // das, was es gerendert hat. Sonst wuerde eine Aenderung, die der Sanitizer
+    // wieder wegputzt, unnoetig jeden Client-Cache invalidieren.
+    const html = sanitizer ? sanitizer.sanitizeHtml(t.variant_b_html) : null
+    const css = sanitizer ? sanitizer.sanitizeCss(t.variant_b_css) || null : null
+    return {
     snippet_key: t.snippet_key,
     selector: t.selector,
     goal: t.goal,
@@ -163,14 +170,19 @@ export async function GET(req: Request) {
     // Security: XSS-Sanitization vor Auslieferung an ab.js.
     // ponytail: variant_b_css ging vorher ROH raus — sanitizeCss existierte,
     // wurde aber nur in lib/previewAnalyze.ts verwendet (Plan SEC-01c).
-    variant_b_html: sanitizer ? sanitizer.sanitizeHtml(t.variant_b_html) : null,
-    variant_b_css: sanitizer ? sanitizer.sanitizeCss(t.variant_b_css) || null : null,
+    variant_b_html: html,
+    variant_b_css: css,
+    // Inhalts-Hash der Variante (Katalog EDIT-01). ab.js verwirft damit eine
+    // gecachte, inzwischen veraltete Fassung von B — im selben Arm, ohne
+    // erneutes /api/assign und ohne den Besucher doppelt zu zaehlen.
+    v: variantHash(html, css),
     force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
     // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
     // Extrahiert aus site_url, damit der Client filtern kann, ohne
     // den vollen Pfad zum Server zu senden.
     path: pathOf(t.site_url) || null,
-  }))
+    }
+  })
 
   return Response.json({ tests, badge }, {
     headers: {

@@ -1002,7 +1002,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 {([
                   { type: 'element' as const, label: 'Replaced element', icon: MousePointerClick, desc: 'Click on the original element is the conversion' },
                   { type: 'click' as const, label: 'Click selector', icon: MousePointerClick, desc: 'Pick a CSS selector users click' },
-                  { type: 'url' as const, label: 'URL goal', icon: Globe, desc: 'Users visit a specific page after converting' },
+                  // "URL goal" war hier waehlbar, ohne dass ab.js es je
+                  // implementiert hat: der Wert lief als CSS-Selektor in
+                  // closest(), der SyntaxError verschwand still, und der Test
+                  // zaehlte auf beiden Armen dauerhaft null Conversions
+                  // (Katalog RUN-03). Bestandstests mit url:-Goal zeigen unten
+                  // eine Warnung, statt die Option weiter anzubieten.
                 ]).map((opt) => (
                   <button
                     key={opt.type}
@@ -1038,16 +1043,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
               )}
 
+              {/* Bestandstest mit url:-Goal — die Option wird nicht mehr
+                  angeboten, der gespeicherte Wert muss aber erklärt werden. */}
               {goalType === 'url' && (
-                <div className="mb-3">
-                  <label className="text-[10px] font-semibold text-text-3 uppercase tracking-wider">Target URL</label>
-                  <input
-                    type="text"
-                    placeholder="/thank-you, /checkout/success"
-                    value={goalValue}
-                    onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-sm text-text font-mono placeholder:text-text/25 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
-                  />
+                <div className="mb-3 rounded-[var(--radius-md)] border border-err/30 bg-err/[0.06] px-3 py-2.5">
+                  <p className="text-[12px] text-text-2">
+                    This test uses a URL goal (<code className="text-[11px] font-mono bg-bg-2 px-1 py-0.5 rounded">{goalValue}</code>), which the snippet never supported —
+                    <strong className="text-text"> no conversions have been tracked for it</strong>. Pick a click goal above to start measuring.
+                  </p>
                 </div>
               )}
 
@@ -1065,7 +1068,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               <div className="flex items-center gap-2">
                 <button
                   onClick={saveGoal}
-                  disabled={goalSaving || (goalType !== 'element' && !goalValue.trim())}
+                  // url: ist kein speicherbarer Zustand mehr — der Nutzer muss
+                  // erst einen unterstützten Zieltyp wählen (Katalog RUN-03).
+                  disabled={goalSaving || goalType === 'url' || (goalType !== 'element' && !goalValue.trim())}
                   className="cursor-pointer rounded-[var(--radius-md)] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-40"
                 >
                   {goalSaving ? 'Saving…' : 'Save'}

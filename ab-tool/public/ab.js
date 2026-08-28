@@ -270,9 +270,16 @@
           if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token
           else if (cfg.tempToken) headers['X-Temp-Token'] = cfg.tempToken
 
+          // Goal-Modus laeuft ueber /api/capture, NICHT ueber PATCH
+          // /api/tests/[id]: letztere Route steht hinter einer CORS-Allowlist
+          // mit ausschliesslich getvariante.com-Origins, ihr Preflight konnte
+          // von einer Kundendomain also nie durchgehen. Der Aufruf endete
+          // immer im catch mit "Network error while saving.".
+          // /api/capture hat Wildcard-CORS, dieselbe Token-Auth und dieselbe
+          // Besitzpruefung — und schreibt bei gesetztem `goal` nur das Goal.
           if (cfg.mode === 'goal') {
-            var goalBody = JSON.stringify({ goal: sel })
-            return fetch(cfg.apiBase + '/api/tests/' + cfg.testId, { method: 'PATCH', headers: headers, body: goalBody })
+            var goalBody = JSON.stringify({ testId: cfg.testId, goal: sel })
+            return fetch(cfg.apiBase + '/api/capture', { method: 'POST', headers: headers, body: goalBody })
           }
           var body = JSON.stringify(Object.assign({
             testId: cfg.testId,
@@ -565,9 +572,24 @@
   }
 
   // Goal-Selektor normalisieren: legacy "click:.x" → ".x"; leer → Test-Selektor.
+  //
+  // "url:/danke" war im Dashboard anwaehlbar, hier aber nie implementiert: der
+  // Wert lief ungeprueft als CSS-Selektor in e.target.closest(), der SyntaxError
+  // verschwand im catch der Delegation, und der Test zaehlte auf BEIDEN Armen
+  // dauerhaft null Conversions — ohne Fehlermeldung, ohne Hinweis im Dashboard.
+  // Ein leeres Goal ist ehrlicher als ein kaputtes: die Delegation ueberspringt
+  // Eintraege ohne goalSel, und in der Konsole steht, warum nichts gezaehlt wird.
+  // Nur das bekannte Praefix wird geprueft — ein generisches "alles vor einem
+  // Doppelpunkt" wuerde legitime Pseudoklassen wie "a:hover" mitreissen.
   function normGoal(goal, selector) {
     var g = (goal || '').trim()
-    if (g.indexOf('click:') === 0) g = g.slice(6).trim()
+    if (g.indexOf('click:') === 0) return g.slice(6).trim() || selector
+    if (g.indexOf('url:') === 0) {
+      try {
+        console.warn('[variante] URL goals are not supported by the snippet — no conversions are tracked for this test. Pick a click goal in the dashboard.')
+      } catch (_) {}
+      return ''
+    }
     return g || selector
   }
 
@@ -1099,6 +1121,21 @@
       try {
         var d = JSON.parse(cached)
         if (d && (d.variant === 'A' || d.variant === 'B')) {
+          // Variante B wurde seit der Zuweisung bearbeitet? Dann die AKTUELLE
+          // Fassung rendern statt der eingefrorenen alten. Hier lag der Kern von
+          // Katalog EDIT-01: der Cache haelt das gerenderte HTML, nicht bloss die
+          // Zuweisung, und ohne Versionsbezug behielten Bestandsbesucher die alte
+          // Fassung dauerhaft — waehrend neue Besucher die neue sahen und beide
+          // in dieselben conversions_b zaehlten.
+          //
+          // Der Arm bleibt bewusst derselbe: kein zweites /api/assign, also auch
+          // kein doppelt gezaehlter Besucher und kein Wechsel von B nach A.
+          if (d.variant === 'B' && t.v && d.v !== t.v) {
+            d.html = t.variant_b_html || null
+            d.css = t.variant_b_css || null
+            d.v = t.v
+            lsSet('ab_' + key, JSON.stringify(d))
+          }
           finish(d.variant, d.html, d.css)
           return Promise.resolve()
         }
@@ -1125,7 +1162,7 @@
         var html = t.variant_b_html
         var css = t.variant_b_css
         if (html || css) {
-          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html || null, css: css || null, token: token }))
+          lsSet('ab_' + key, JSON.stringify({ variant: 'B', html: html || null, css: css || null, token: token, v: t.v || null }))
           finish('B', html, css)
         } else {
           // Noch kein generiertes HTML/CSS → assign wurde trotzdem aufgerufen,

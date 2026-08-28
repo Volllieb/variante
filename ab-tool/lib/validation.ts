@@ -26,8 +26,25 @@ export const testName = z.string().min(1).max(256)
 /** CSS-Selector (optional, nullable in manchen Kontexten) */
 export const cssSelector = z.string().max(512).nullable()
 
-/** Conversion-Goal-String */
-export const goalString = z.string().max(256).nullable()
+/**
+ * Conversion-Goal-String.
+ *
+ * `url:<pfad>` wird abgelehnt (Katalog RUN-03): Das Dashboard bot den Zieltyp
+ * an, ab.js hat ihn nie implementiert. Der Wert landete ungeprueft als
+ * CSS-Selektor in `e.target.closest()`, der SyntaxError verschwand im catch der
+ * Event-Delegation, und der Test zaehlte auf BEIDEN Armen dauerhaft null
+ * Conversions — ohne Fehlermeldung. Solange die Auslieferung das nicht kann,
+ * darf es hier auch nicht entstehen. Bestandszeilen bleiben unangetastet und
+ * werden im Dashboard als nicht getrackt ausgewiesen.
+ */
+export const goalString = z
+  .string()
+  .max(256)
+  .nullable()
+  .refine(
+    g => !(typeof g === 'string' && g.trim().toLowerCase().startsWith('url:')),
+    'URL goals are not supported yet — use a click goal (e.g. "click:.cta-button")'
+  )
 
 /** Traffic-Split 0-100 (Prozent) */
 export const trafficSplit = z.number().finite().min(0).max(100)

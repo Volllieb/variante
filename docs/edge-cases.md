@@ -1,7 +1,7 @@
 # Edge-Case-Katalog — Test-Erstellung, -Laufzeit und -Änderung
 
 > **Stand:** 28.08.2026 · **Commit:** `c4cfb809` · **Scope:** Test-Lebenszyklus über `ab-tool/app/api/`, `ab-tool/lib/`, `ab-tool/public/ab.js`, `ab-tool/app/dashboard/`, `db/migrations/`
-> **Status:** Bestandsaufnahme, keine Fixes. 54 Fälle in 6 Gruppen — **8 kritisch**, 23 hoch, 19 mittel, 4 niedrig.
+> **Status:** 54 Fälle in 6 Gruppen — **8 kritisch**, 23 hoch, 19 mittel, 4 niedrig. Welle 1 ist umgesetzt (Branch `fix/test-integrity-wave-1`): RUN-03, RUN-05, WIN-02 und CREATE-03 behoben, EDIT-01 zur Hälfte. Der Status steht in der Tabelle jedes Abschnitts.
 > **Auslöser:** die Frage, ob ein geändertes Variant-B-HTML automatisch übernommen wird und ob der Test danach überhaupt weiterlaufen darf. Die Antwort steht direkt unten; die Recherche dazu hat den Rest zutage gefördert.
 > **Zeilennummern:** Stand 28.08.2026 auf Commit `2ab58606`, `public/ab.js` bei 1269 Zeilen. Die Belege in `public/ab.js` und `app/dashboard/` verschieben sich bei jeder Änderung — im Zweifel nach dem zitierten Code-Anker suchen, nicht nach der Zeile. Die Referenzen auf `app/api/` und `lib/significance.ts` sind stabiler.
 
@@ -39,7 +39,7 @@ Schweregrade: **Kritisch** = produziert still falsche Ergebnisse oder schadet de
 
 | ID | Fall | Schwere | Status |
 |---|---|---|---|
-| EDIT-01 | Geändertes B-HTML → zwei Varianten in einem Arm | Kritisch | Offen |
+| EDIT-01 | Geändertes B-HTML → zwei Varianten in einem Arm | Kritisch | Teilweise behoben |
 | EDIT-02 | Kein Guard, keine Warnung beim PATCH | Kritisch | Offen |
 | EDIT-03 | Es gibt keine Reset-Funktion | Hoch | Offen |
 | EDIT-04 | Kein Audit-Trail, keine Revisionen | Hoch | Offen |
@@ -57,7 +57,11 @@ Schweregrade: **Kritisch** = produziert still falsche Ergebnisse oder schadet de
 
 **Beleg.** `public/ab.js:1128` speichert `{variant, html, css, token}` unter `ab_<snippet_key>`. Der Schlüssel enthält nur die Test-ID, keinen Hash des Inhalts. `public/ab.js:1097` liest diesen Cache und kehrt bei Treffer sofort zurück, ohne die Daten aus `/api/resolve` zu berücksichtigen. Kein Code-Pfad löscht oder erneuert den Eintrag jemals.
 
-**Behandlung.** Varianten-Hash in den gespeicherten Wert aufnehmen und beim Lesen gegen den Hash aus der `resolve`-Antwort prüfen. Bei Abweichung: Eintrag verwerfen und neu zuweisen. Damit ist EDIT-01 technisch entschärft — die statistische Frage (alte und neue Daten im selben Zähler) bleibt und wird über EDIT-02/03 gelöst.
+**Behandlung. — Technische Hälfte behoben.** `/api/resolve` liefert die Variante jetzt mit einem Inhalts-Hash `v` aus (`lib/variantHash.ts`, nach der Sanitization gebildet). `ab.js` legt ihn im Cache-Eintrag ab und vergleicht ihn bei jedem Seitenaufruf. Weicht er ab, wird die **aktuelle** Fassung gerendert.
+
+Bewusst *nicht* neu zugewiesen: der Besucher bleibt in seinem Arm. Ein zweites `/api/assign` hätte ihn erneut gezählt und ihn womöglich von B nach A geworfen — der Fix hätte dann DATA-01 verschlimmert, statt EDIT-01 zu lösen.
+
+**Offen bleibt die statistische Hälfte:** Conversions aus der alten und der neuen Fassung liegen weiterhin im selben Zähler. Das lässt sich nicht im Client lösen, sondern nur über die Warnung samt Reset-Angebot beim Speichern (EDIT-02/EDIT-03).
 
 ### EDIT-02 · Kein Guard, keine Warnung beim PATCH · **Kritisch**
 
@@ -158,9 +162,9 @@ Der Reset nullt die Zähler, setzt `restarted_at`, schreibt ein Event und invali
 |---|---|---|---|
 | RUN-01 | Selektor matcht nicht mehr → Test „beweist" A | Kritisch | Offen |
 | RUN-02 | outerHTML-Fallback setzt kein data-ab-el | Hoch | Offen |
-| RUN-03 | url:-Goals sind wählbar, aber nicht implementiert | Kritisch | Offen |
+| RUN-03 | url:-Goals sind wählbar, aber nicht implementiert | Kritisch | Behoben |
 | RUN-04 | Goal-Selektoren werden nie validiert | Hoch | Offen |
-| RUN-05 | Anti-Flicker versteckt die Seite 10 s, wenn ab.js blockiert ist | Kritisch | Offen |
+| RUN-05 | Anti-Flicker versteckt die Seite 10 s, wenn ab.js blockiert ist | Kritisch | Behoben (nur Neuinstallationen) |
 | RUN-06 | Origin-Erkennung bricht still | Hoch | Offen |
 | RUN-07 | Spät ladende Elemente zeigen erst A, dann B | Mittel | Offen |
 | RUN-08 | SPA: ungedrosseltes popstate, Blindfenster ohne Tracking | Mittel | Offen |
@@ -197,7 +201,9 @@ Nichts meldet das: kein Beacon bei fehlgeschlagenem Apply, kein Health-Check, de
 
 **Ergebnis: null Conversions auf beiden Armen, dauerhaft, ohne jeden Hinweis.** Der Kunde wählt eine im Produkt angebotene Option und bekommt einen Test, der niemals etwas messen kann.
 
-**Behandlung.** Entweder URL-Goals in `ab.js` implementieren (Pfad-Match bei Pageview und bei History-Navigation) oder die Option aus der UI entfernen, bis sie existiert. Zusätzlich: der verschluckte `SyntaxError` sollte einen Fehler-Beacon auslösen statt still zu verschwinden.
+**Behandlung. — Behoben.** Die Option ist aus dem Goal-Editor entfernt, `goalString` (`lib/validation.ts`) und `/api/capture` lehnen `url:`-Goals ab, und `normGoal` in `ab.js` gibt bei `url:` ein leeres Goal zurück statt eines kaputten Selektors — samt Konsolenmeldung. Die `url:`-Sperre prüft bewusst nur dieses eine bekannte Präfix: eine generische Regel über „alles vor einem Doppelpunkt" hätte legitime Pseudoklassen wie `a:hover` mitgerissen.
+
+Bestandstests mit `url:`-Goal behalten ihren Wert und zeigen im Dashboard eine Warnung, dass für sie nie Conversions erfasst wurden. Implementiert wird der Zieltyp erst, wenn er tragfähig ist: URL-Goals brauchen seitenübergreifende Zuordnung, und die ist im cookielosen Default (DATA-01) gar nicht vorhanden.
 
 ### RUN-04 · Goal-Selektoren werden nie validiert · **Hoch**
 
@@ -211,7 +217,9 @@ Nichts meldet das: kein Beacon bei fehlgeschlagenem Apply, kein Health-Check, de
 
 Das ist der einzige Fall im Katalog, der nicht die Messung, sondern die Website des Kunden direkt schädigt.
 
-**Behandlung.** Das Sicherheits-Timeout im Inline-Snippet drastisch senken (1–2 s decken den realistischen Resolve-Fall ab) und zusätzlich an `DOMContentLoaded` koppeln.
+**Behandlung. — Behoben für Neuinstallationen.** Das Sicherheits-Timeout im Inline-Snippet steht jetzt auf 3 s statt 10 s (`lib/snippetCode.ts`). Der Normalfall läuft ohnehin über den Poller, der die Seite freigibt, sobald `ab.js` aufgelöst hat; das Timeout greift nur, wenn `ab.js` nie lädt.
+
+**Bestandsinstallationen behalten ihre 10 s**, weil das Snippet fest im `<head>` der Kundenseite steht — sie profitieren erst, wenn der Kunde es neu kopiert. Wer die Altfassung erreichen will, kommt an `/api/snippet-check` nicht vorbei, das veraltete Installationen ohnehin schon meldet.
 
 ### RUN-06 · Origin-Erkennung bricht still · **Hoch**
 
@@ -359,7 +367,7 @@ Innerhalb eines Seitenaufrufs bleibt die Zuweisung stabil (SPA-Navigation, Obser
 | ID | Fall | Schwere | Status |
 |---|---|---|---|
 | WIN-01 | Mindestlaufzeit rechnet ab created_at | Kritisch | Offen |
-| WIN-02 | Auto-Promotion ist per Default an und schaltet B auf 100 % | Kritisch | Offen |
+| WIN-02 | Auto-Promotion ist per Default an und schaltet B auf 100 % | Kritisch | Behoben |
 | WIN-03 | Pausenzeit zählt als Laufzeit | Hoch | Offen |
 | WIN-04 | SRM erkennt „B wurde nie gerendert" nicht | Hoch | Offen |
 | WIN-05 | Force-B räumt alte Client-Caches nicht auf | Niedrig | Offen |
@@ -379,7 +387,9 @@ Die Schwellen selbst (1000 Besucher und 25 Conversions **pro Arm**, 7 Tage) sind
 
 In Kombination mit WIN-01 und EDIT-01 kann das auf Basis verfälschter Daten passieren: Test editieren, 7-Tage-Hürde ist wegen `created_at` schon gerissen, Cron entscheidet auf dem Mischtopf, B geht live.
 
-**Behandlung.** Default auf `false`. Die Entscheidung, eine Variante dauerhaft auf die Website zu übernehmen, sollte der Kunde treffen — die Opt-in-Umstellung kostet einen Klick, die Opt-out-Variante kostet im Fehlerfall Vertrauen. Zusätzlich: Auto-Promotion sperren, solange `edited_during_run` gesetzt ist.
+**Behandlung. — Behoben.** Migration `041_auto_promote_opt_in.sql` setzt den Default auf `false` und zieht die Bestandszeilen mit — gerade weil die bestehenden `true`-Werte keine Entscheidung sind, sondern der alte Default. Zusätzlich ist der Cron von fail-open auf fail-safe umgestellt: `auto_promote_winner === true` statt `!== false`, damit ein fehlendes Profil oder ein fehlgeschlagener Select nicht mehr in einem Rollout endet.
+
+**Offen:** Auto-Promotion zusätzlich sperren, solange ein Test während der Laufzeit bearbeitet wurde — das braucht die Markierung aus EDIT-02.
 
 ### WIN-03 · Pausenzeit zählt als Laufzeit · **Hoch**
 
@@ -458,7 +468,7 @@ Es gibt schlicht kein „noch nicht gestartet" zum Auslieferungszeitpunkt.
 |---|---|---|---|
 | CREATE-01 | Kein Live-Preview der Variante | Hoch | Offen |
 | CREATE-02 | Selektor wird nie gegen die Live-Seite geprüft | Hoch | Offen |
-| CREATE-03 | Picker-Goal-Modus scheitert immer cross-origin | Hoch | Offen |
+| CREATE-03 | Picker-Goal-Modus scheitert immer cross-origin | Hoch | Behoben |
 | CREATE-04 | HTML/CSS werden bei 50 000 Zeichen still gekappt | Mittel | Offen |
 | CREATE-05 | Ein Test hängt an genau einem Pfad | Mittel | Offen |
 | CREATE-06 | Keine Kollisionserkennung zwischen Tests | Mittel | Offen |
@@ -481,7 +491,7 @@ Es gibt schlicht kein „noch nicht gestartet" zum Auslieferungszeitpunkt.
 
 Der Wizard-Pfad ist nicht betroffen, weil er den Picker ohne Token öffnet und das Ergebnis per `postMessage` zurückgibt.
 
-**Behandlung.** `preflight(req)` mit Request aufrufen, damit die Origin ausgewertet wird.
+**Behandlung. — Behoben.** Die ursprüngliche Einschätzung („`preflight(req)` mit Request aufrufen") war falsch: `ALLOWED_ORIGINS` enthält ausschließlich die eigenen Domains, der Preflight einer Kundendomain scheitert also auch mit ausgewertetem Request. Der Goal-Modus läuft jetzt über `POST /api/capture` — diese Route hat bereits Wildcard-CORS, dieselbe Token-Auth und dieselbe Besitzprüfung. Bei gesetztem `goal` schreibt sie ausschließlich das Goal und lässt `selector`/`original_html` unangetastet, weil das Goal-Element ein anderes ist als das Testelement.
 
 ### CREATE-04 · HTML/CSS werden bei 50 000 Zeichen still gekappt · **Mittel**
 
@@ -507,15 +517,16 @@ Vier Wellen, nach dem Prinzip „zuerst das, was still falsche Ergebnisse produz
 
 ### Welle 1 — Still falsche Ergebnisse
 
-| ID | Fall | Aufwand |
-|---|---|---|
-| RUN-03 | `url:`-Goals entfernen oder implementieren | S |
-| RUN-01 | Apply-Fehlschlag melden und nicht zählen | M |
-| WIN-02 | Auto-Promotion auf Opt-in umstellen | S |
-| WIN-01 | `started_at` / `restarted_at` einführen | M |
-| EDIT-01 | Varianten-Hash im Client-Cache | S |
-| RUN-05 | Anti-Flicker-Timeout senken | S |
-| DATA-01 | Grundsatzentscheidung Stickiness | L |
+| ID | Fall | Aufwand | Status |
+|---|---|---|---|
+| RUN-03 | `url:`-Goals entfernen oder implementieren | S | **Behoben** |
+| WIN-02 | Auto-Promotion auf Opt-in umstellen | S | **Behoben** |
+| EDIT-01 | Varianten-Hash im Client-Cache | S | **Behoben** (technische Hälfte) |
+| RUN-05 | Anti-Flicker-Timeout senken | S | **Behoben** (nur Neuinstallationen) |
+| CREATE-03 | Picker-Goal cross-origin | S | **Behoben** (nachgezogen aus Welle 4) |
+| RUN-01 | Apply-Fehlschlag melden und nicht zählen | M | Offen |
+| WIN-01 | `started_at` / `restarted_at` einführen | M | Offen |
+| DATA-01 | Grundsatzentscheidung Stickiness | L | Offen |
 
 ### Welle 2 — Datenqualität
 
