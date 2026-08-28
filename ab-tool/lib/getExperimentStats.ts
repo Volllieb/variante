@@ -29,6 +29,11 @@ export type ExperimentData = {
   originalHtml: string | null
   variantBHtml: string | null
   siteCss: string | null
+  /**
+   * CSS-Delta der Variante. Wurde bis 08/2026 nie mitgelesen, weshalb B in der
+   * Vorschau grundsaetzlich ohne sein eigenes CSS gerendert hat.
+   */
+  variantBCss: string | null
   goal: string | null
   selector: string | null
 }
@@ -43,7 +48,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const { data: test } = await supabase
     .from('tests')
     .select(
-      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, significance_level, user_id, original_html, variant_b_html, site_css, goal, selector'
+      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, significance_level, user_id, original_html, variant_b_html, variant_b_css, site_css, goal, selector'
     )
     .eq('id', id)
     .single()
@@ -65,6 +70,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     originalHtml: test.original_html ?? null,
     variantBHtml: test.variant_b_html ?? null,
     siteCss: test.site_css ?? null,
+    variantBCss: test.variant_b_css ?? null,
     goal: test.goal ?? null,
     selector: test.selector ?? null,
     variants: [

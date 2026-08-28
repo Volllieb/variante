@@ -20,6 +20,11 @@ type Outcome = { state: 'done'; selector: string } | { state: 'error' }
 
 // Spiegelt die Limits von /api/capture bzw. test-wizard/draft.
 const MAX_HTML = 10_000
+// Die Styles der Zielseite (collectCss in ab.js) reisen hier durch das
+// URL-Fragment und sind deshalb knapper gedeckelt als auf dem postMessage-Weg.
+// ab.js kappt bereits auf denselben Wert; der Cap hier ist der Guard gegen
+// ein selbstgebautes Fragment.
+const MAX_CSS = 8_000
 
 /**
  * Liest das Fragment und legt die Auswahl in localStorage ab.
@@ -54,6 +59,7 @@ function deliverPick(): Outcome {
     mode: data.mode === 'goal' ? 'goal' : 'element',
     selector: selector.slice(0, 2000),
     html: typeof data.html === 'string' ? data.html.slice(0, MAX_HTML) : '',
+    css: typeof data.css === 'string' ? data.css.slice(0, MAX_CSS) : '',
     tagName: typeof data.tagName === 'string' ? data.tagName.slice(0, 40) : '',
     text: typeof data.text === 'string' ? data.text.slice(0, 200) : '',
     origin: typeof data.origin === 'string' ? data.origin.slice(0, 300) : '',

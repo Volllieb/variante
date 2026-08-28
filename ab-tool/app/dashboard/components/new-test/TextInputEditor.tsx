@@ -11,16 +11,13 @@
 import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { ElementSelection } from '../NewTestDrawer'
+import { extractTextFromHtml } from '@/lib/previewDoc'
 
 interface TextInputEditorProps {
   element: ElementSelection
   originalHtml: string
   onApply: (html: string, css: string) => void
   onCancel: () => void
-}
-
-function extractTextFromHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim()
 }
 
 function generateTextHtml(text: string): string {

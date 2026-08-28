@@ -22,6 +22,7 @@
 // __tests__/sanitize.mjs.
 
 import DOMPurify from 'isomorphic-dompurify'
+import { sanitizeCssText } from '@/lib/sanitizeCssText'
 
 // Allowlist statt Blockliste: alles, was hier nicht steht, fliegt raus.
 // Der Umfang orientiert sich an dem, was der Generator laut Prompt erzeugt
@@ -91,7 +92,7 @@ function ensureAttributeHooks() {
 
     const style = el.getAttribute('style')
     if (style) {
-      const cleaned = sanitizeCss(style)
+      const cleaned = sanitizeCssText(style)
       if (cleaned.trim()) el.setAttribute('style', cleaned)
       else el.removeAttribute('style')
     }
@@ -130,44 +131,18 @@ export function sanitizeHtml(html: string | null | undefined): string {
     RETURN_DOM_FRAGMENT: false,
   })
   // Der <style>-Inhalt kommt aus demselben LLM-Output und wird von DOMPurify
-  // nicht inhaltlich geprüft — separat durch sanitizeCss schicken.
+  // nicht inhaltlich geprüft — separat durch sanitizeCssText schicken.
   return clean.replace(
     /<style\b([^>]*)>([\s\S]*?)<\/style>/gi,
-    (_m, attrs: string, css: string) => `<style${attrs}>${sanitizeCss(css)}</style>`
+    (_m, attrs: string, css: string) => `<style${attrs}>${sanitizeCssText(css)}</style>`
   )
 }
 
 // ---------------------------------------------------------------------------
 // CSS
 // ---------------------------------------------------------------------------
-// Das CSS geht denselben Weg wie variant_b_html — über /resolve in fremde DOMs —
-// und stammt aus einem LLM, das die analysierte Fremdseite als Input hatte.
-// Eine Seite kann also per Prompt-Injection CSS unterzuschieben versuchen.
-const CSS_STYLE_BREAKOUT_RE = /<\/?\s*style\b[^>]*>/gi
-const CSS_IMPORT_RE = /@import\b[^;]*;?/gi
-const CSS_EXPRESSION_RE = /expression\s*\(/gi
-const CSS_URL_RE = /url\s*\(\s*(['"]?)([^'")]*)\1\s*\)/gi
-const CSS_BEHAVIOR_RE = /(^|[;{])\s*(?:-moz-)?behavior\s*:[^;]*/gi
-// Ein Vollbild-Overlay auf einer fremden Seite ist Clickjacking, kein A/B-Test.
-const CSS_POSITION_FIXED_RE = /(^|[;{])(\s*)position\s*:\s*fixed\b/gi
-
-export function sanitizeCss(css: string | null | undefined): string {
-  if (!css) return ''
-  let s = css
-  // Ausbruch aus dem <style>-Kontext verhindern
-  s = s.replace(CSS_STYLE_BREAKOUT_RE, '')
-  // @import lädt fremde Stylesheets nach → raus
-  s = s.replace(CSS_IMPORT_RE, '')
-  // IE-Legacy, führt JS aus
-  s = s.replace(CSS_EXPRESSION_RE, '(')
-  s = s.replace(CSS_BEHAVIOR_RE, '$1')
-  // position:fixed → static. Verhindert seitenweite Overlays über fremdem Content.
-  s = s.replace(CSS_POSITION_FIXED_RE, '$1$2position:static')
-  // url(): nur https:, http:, relative Pfade und data:image/*
-  s = s.replace(CSS_URL_RE, (match, _q, target: string) => {
-    const t = target.trim().toLowerCase()
-    if (/^(https?:\/\/|data:image\/|\/|\.\/|\.\.\/|#)/.test(t)) return match
-    return 'none'
-  })
-  return s
-}
+// Die Regeln liegen in lib/sanitizeCssText.ts, damit die Preview-Komponenten im
+// Dashboard sie importieren koennen, ohne DOMPurify/jsdom in den Client-Bundle
+// zu ziehen. Hier nur der Re-Export, damit bestehende Aufrufer und
+// __tests__/sanitize.mjs unveraendert `sanitizeCss` aus lib/sanitize importieren.
+export { sanitizeCssText as sanitizeCss } from '@/lib/sanitizeCssText'

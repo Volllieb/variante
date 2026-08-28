@@ -10,6 +10,7 @@
 import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info, FileText } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
+import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
 
 interface StepReviewProps {
   url: string
@@ -37,6 +38,10 @@ export function StepReview({
   // Bestandstest stammen und wird als Startseite gelesen.
   const trimmedPath = (slashAt === -1 ? '' : bare.slice(slashAt)).replace(/\/+$/, '')
   const displayPath = trimmedPath === '' ? 'Homepage' : `${trimmedPath} and below`
+
+  // Eine visuelle Vorschau ist nur belastbar, wenn der Picker sowohl das Markup
+  // als auch die Styles der Zielseite mitgebracht hat. Sonst: Textvergleich.
+  const canRenderPreview = !!element.originalCss.trim() && !!element.originalHtml.trim()
 
   return (
     <div className="space-y-4">
@@ -68,22 +73,40 @@ export function StepReview({
           />
         </div>
 
-        {/* Variant preview — rendered side-by-side instead of described as text,
-            so the user sees exactly what visitors will see for A and B. */}
+        {/* Variant preview — nebeneinander gerendert statt als Text beschrieben,
+            damit der User sieht, was Besucher sehen. Beide Seiten bekommen
+            dieselbe Basis (element.originalCss), B zusaetzlich sein Delta —
+            genau die Schichtung, die ab.js live erzeugt.
+
+            Ohne originalCss (AI-Scan, manueller Modus) waere das Ergebnis ein
+            nackter Browser-Default-Button, der mit dem echten Element nichts zu
+            tun hat. Dann lieber der ehrliche Textvergleich. */}
         {variantResult && (
           <div>
             <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-text-2">
               <Sparkles className="h-3 w-3" />
               Preview
             </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <ElementPreview label="Original (A)" html={element.originalHtml} />
-              <ElementPreview
-                label="Variant (B)"
-                html={variantResult.variant_html || variantResult.variant}
-                css={variantResult.variant_css}
+            {canRenderPreview ? (
+              <div className="grid grid-cols-2 gap-2.5">
+                <ElementPreview
+                  label="Original (A)"
+                  html={element.originalHtml}
+                  baseCss={element.originalCss}
+                />
+                <ElementPreview
+                  label="Variant (B)"
+                  html={variantResult.variant_html || variantResult.variant}
+                  baseCss={element.originalCss}
+                  variantCss={variantResult.variant_css}
+                />
+              </div>
+            ) : (
+              <TextComparison
+                original={extractTextFromHtml(element.originalHtml) || element.elementName}
+                variant={extractTextFromHtml(variantResult.variant_html || variantResult.variant)}
               />
-            </div>
+            )}
             {variantResult.explanation && (
               <p className="mt-1.5 text-[10px] text-text-3 italic">{variantResult.explanation}</p>
             )}
@@ -183,25 +206,60 @@ function DetailRow({ icon: Icon, label, value }: { icon: typeof Globe; label: st
  * Variant-CSS ins Dashboard zu injecten — die CSS-Regeln zielen auf Selektoren
  * der Zielseite (z. B. `.btn-cta`) und könnten sonst mit Dashboard-Styles
  * kollidieren.
+ *
+ * Der srcDoc-Aufbau (Reset → baseCss → variantCss) liegt in lib/previewDoc.ts,
+ * damit die Results-Seite exakt dieselbe Schichtung rendert.
  */
-function ElementPreview({ label, html, css }: { label: string; html: string; css?: string }) {
-  const srcDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-    :root { color-scheme: dark; }
-    html, body { margin: 0; padding: 14px; min-height: 72px; display: flex; align-items: center; justify-content: center; background: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    *, *::before, *::after { box-sizing: border-box; }
-    ${css ?? ''}
-  </style></head><body>${html || ''}</body></html>`
-
+function ElementPreview({ label, html, baseCss, variantCss }: {
+  label: string
+  html: string
+  baseCss?: string | null
+  variantCss?: string | null
+}) {
   return (
     <div className="min-w-0">
       <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>
       <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
         <iframe
-          srcDoc={srcDoc}
+          srcDoc={buildPreviewSrcDoc({ html, baseCss, variantCss })}
           sandbox=""
           title={`${label} preview`}
           className="h-20 w-full"
         />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Fallback, wenn die Styles der Zielseite fehlen (AI-Scan, manueller Modus).
+ *
+ * Ein iframe wuerde hier einen ungestylten Browser-Default rendern — der sieht
+ * dem echten Element nicht aehnlich und ist als Vorschau schlicht falsch. Der
+ * Textvergleich zeigt stattdessen genau das, was gesichert bekannt ist: die
+ * Textaenderung. Formulierung bewusst wie im AI-Block in StepVariantB.
+ */
+function TextComparison({ original, variant }: { original: string; variant: string }) {
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-2.5">
+        <TextPane label="Original (A)" value={original} />
+        <TextPane label="Variant (B)" value={variant} />
+      </div>
+      <p className="mt-1.5 text-[10px] text-text-3">
+        Text-only preview — this element was picked without the visual picker, so its
+        styles from your site aren&apos;t available. Pick it with the picker to see it rendered.
+      </p>
+    </div>
+  )
+}
+
+function TextPane({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>
+      <div className="flex min-h-20 items-center rounded-[var(--radius-md)] border border-border bg-bg-0 p-3">
+        <p className="text-[13px] leading-relaxed text-text break-words">{value || '—'}</p>
       </div>
     </div>
   )
