@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import { corsHeadersPublic, preflightPublic } from '@/lib/cors'
 import { calcSignificance } from '@/lib/significance'
-import { checkRateLimit, getClientIp, loadtestBypass, markConversionOnce } from '@/lib/rateLimit'
+import { checkRateLimit, getClientIp, loadtestBypass, markConversionOnce, markOnce } from '@/lib/rateLimit'
+import { visitorIdentity, VISITOR_DEDUP_TTL_SECONDS } from '@/lib/assignBucket'
 import { safeError } from '@/lib/safeLog'
 import { verifyAssignToken, TOKEN_TTL_SECONDS } from '@/lib/assignToken'
 import { parseBody } from '@/lib/apiHelpers'
@@ -67,6 +68,23 @@ export async function POST(req: Request) {
         // Replay derselben Zuweisung — als OK bestätigen, aber nicht doppelt zählen.
         return Response.json({ ok: true, deduped: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
       }
+    }
+  }
+
+  // Sticky Assignment: Besucher werden in /api/assign nur EINMAL pro Tag und
+  // Test gezählt — Conversions müssen derselben Zählweise folgen, sonst kann
+  // die Conversion-Rate über 100 % steigen. Der Nonce-Dedup oben greift nur
+  // innerhalb EINER Zuweisung; ein Besucher, der auf zwei Seitenaufrufen
+  // konvertiert, kommt mit zwei gültigen Nonces. Ohne Identität (keine
+  // Client-IP) gibt es nichts zu deduplizieren → zählen wie bisher.
+  const identity = visitorIdentity(testId, req)
+  if (identity) {
+    const firstConversion = await markOnce(
+      `conv:visitor:${identity.visitorId}`,
+      VISITOR_DEDUP_TTL_SECONDS
+    )
+    if (!firstConversion) {
+      return Response.json({ ok: true, deduped: true }, { headers: corsHeadersPublic('POST, OPTIONS') })
     }
   }
 
