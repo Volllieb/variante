@@ -7,9 +7,18 @@
  * Name wird manuell vom User eingegeben (kein KI-Auto-Name).
  */
 
+import { useState } from 'react'
 import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info, FileText } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
+import { buildPreviewSrcDoc } from './preview'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
+
+type Breakpoint = 375 | 768 | 'desktop'
+const BREAKPOINTS: Array<{ value: Breakpoint; label: string; width: number }> = [
+  { value: 375, label: 'Mobile', width: 375 },
+  { value: 768, label: 'Tablet', width: 768 },
+  { value: 'desktop', label: 'Desktop', width: 1024 },
+]
 
 interface StepReviewProps {
   url: string
@@ -24,6 +33,10 @@ interface StepReviewProps {
 export function StepReview({
   url, element, variantResult, goal, testName, onTestNameChange, hasDomain,
 }: StepReviewProps) {
+  // Breakpoint-Umschalter der Vorschau: umgesetzt ueber die ECHTE iframe-Breite
+  // (transform: scale loest keine Media-Queries aus). Desktop ist breiter als
+  // der Drawer — der Container scrollt dann horizontal.
+  const [breakpoint, setBreakpoint] = useState<Breakpoint>(375)
   // Domain und Pfad getrennt anzeigen. "Site" stand hier fuer die volle URL,
   // waehrend dasselbe Wort im Dashboard die verbundene Domain meint — zwei
   // verschiedene Dinge unter einem Label. Der Test haengt an beidem: die Domain
@@ -69,21 +82,55 @@ export function StepReview({
         </div>
 
         {/* Variant preview — rendered side-by-side instead of described as text,
-            so the user sees exactly what visitors will see for A and B. */}
+            so the user sees exactly what visitors will see for A and B. Mit dem
+            Site-CSS des Originals im iframe: ohne es saehe A nackt aus und B
+            systematisch besser als auf der echten Seite. */}
         {variantResult && (
           <div>
-            <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-text-2">
-              <Sparkles className="h-3 w-3" />
-              Preview
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <ElementPreview label="Original (A)" html={element.originalHtml} />
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-[11px] font-medium text-text-2">
+                <Sparkles className="h-3 w-3" />
+                Preview
+              </p>
+              {/* Breakpoint-Umschalter */}
+              <div className="flex rounded-[var(--radius-sm)] border border-border bg-bg-0 p-0.5">
+                {BREAKPOINTS.map((bp) => (
+                  <button
+                    key={bp.value}
+                    onClick={() => setBreakpoint(bp.value)}
+                    className={`rounded-[var(--radius-sm)] px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
+                      breakpoint === bp.value
+                        ? 'bg-fill-invert text-text-on-invert'
+                        : 'text-text-3 hover:text-text'
+                    }`}
+                  >
+                    {bp.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 overflow-x-auto">
+              <ElementPreview
+                label="Original (A)"
+                html={element.originalHtml}
+                siteCss={element.styleContext?.css}
+                width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
+              />
               <ElementPreview
                 label="Variant (B)"
                 html={variantResult.variant_html || variantResult.variant}
                 css={variantResult.variant_css}
+                siteCss={element.styleContext?.css}
+                scopeToSelector
+                selector={element.selector || element.elementName}
+                width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
               />
             </div>
+            {element.styleContext?.cssTruncated && (
+              <p className="mt-1.5 text-[10px] text-text-3">
+                Site-CSS wurde gekappt — die Vorschau zeigt nur einen Ausschnitt.
+              </p>
+            )}
             {variantResult.explanation && (
               <p className="mt-1.5 text-[10px] text-text-3 italic">{variantResult.explanation}</p>
             )}
@@ -182,15 +229,24 @@ function DetailRow({ icon: Icon, label, value }: { icon: typeof Globe; label: st
  * Rendert Original/Variante isoliert in einem sandboxed iframe statt die
  * Variant-CSS ins Dashboard zu injecten — die CSS-Regeln zielen auf Selektoren
  * der Zielseite (z. B. `.btn-cta`) und könnten sonst mit Dashboard-Styles
- * kollidieren.
+ * kollidieren. Das Site-CSS des Originals liegt mit im iframe, damit A nicht
+ * nackt rendert und B die Wahrheit zeigt.
  */
-function ElementPreview({ label, html, css }: { label: string; html: string; css?: string }) {
-  const srcDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-    :root { color-scheme: dark; }
-    html, body { margin: 0; padding: 14px; min-height: 72px; display: flex; align-items: center; justify-content: center; background: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    *, *::before, *::after { box-sizing: border-box; }
-    ${css ?? ''}
-  </style></head><body>${html || ''}</body></html>`
+function ElementPreview({
+  label, html, css, siteCss, scopeToSelector, selector, width,
+}: {
+  label: string
+  html: string
+  css?: string
+  siteCss?: string
+  scopeToSelector?: boolean
+  selector?: string
+  width: number
+}) {
+  const srcDoc = buildPreviewSrcDoc(
+    [{ html, css, scopeToSelector, selector }],
+    siteCss
+  )
 
   return (
     <div className="min-w-0">
@@ -200,7 +256,8 @@ function ElementPreview({ label, html, css }: { label: string; html: string; css
           srcDoc={srcDoc}
           sandbox=""
           title={`${label} preview`}
-          className="h-20 w-full"
+          className="h-28"
+          style={{ width }}
         />
       </div>
     </div>

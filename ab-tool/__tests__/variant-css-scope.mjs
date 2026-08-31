@@ -10,6 +10,10 @@
 //   Ist:  grau, outset, radius 0, padding 0, 13px  (Browser-Default)
 //   Soll: weiss, 2px solid #000, radius 11px, padding 12/24, 16px
 //
+// Seit dem Klassen-Erbe (B trägt A's Klassen) matcht A's Site-CSS auch auf B —
+// eine ID-basierte Site-Regel würde das gescopte Delta sonst schlagen. Deshalb
+// bekommen die Deklarationen umgeschriebener Blöcke !important.
+//
 // Run: node --import tsx __tests__/variant-css-scope.mjs
 
 import { strict as assert } from 'node:assert'
@@ -31,7 +35,37 @@ function check(label, fn) {
 // ── 1:1 aus public/ab.js ────────────────────────────────────────────────────
 function scopeCssToVariant(css, selector, key) {
   if (!css || !selector || css.indexOf(selector) === -1) return css
-  return css.split(selector).join(`[data-ab-el="${key}"]`)
+  var attr = '[data-ab-el="' + key + '"]'
+  var swapped = css.split(selector).join(attr)
+  return swapped.replace(/([^{}]+)(\{[^{}]*\})/g, function (match, sel, block) {
+    if (sel.indexOf(attr) === -1) return match
+    return sel + forceImportant(block)
+  })
+}
+
+function forceImportant(block) {
+  var open = block.indexOf('{')
+  var close = block.lastIndexOf('}')
+  if (open === -1 || close <= open) return block
+  var body = block.slice(open + 1, close)
+  var parts = [], buf = '', depth = 0
+  for (var i = 0; i < body.length; i++) {
+    var c = body.charAt(i)
+    if (c === '(') depth++
+    else if (c === ')') depth = Math.max(0, depth - 1)
+    if (c === ';' && depth === 0) { parts.push(buf); buf = '' }
+    else buf += c
+  }
+  if (buf.trim()) parts.push(buf)
+  var out = []
+  for (var p = 0; p < parts.length; p++) {
+    var decl = parts[p].trim()
+    if (!decl) continue
+    if (/!important\s*$/i.test(decl)) out.push(decl)
+    else out.push(decl + ' !important')
+  }
+  if (!out.length) return block
+  return block.slice(0, open + 1) + ' ' + out.join('; ') + ';' + block.slice(close)
 }
 
 const KEY = '7a5c06fb-dead-4beef-8888-000000000000'
@@ -63,7 +97,43 @@ check('leeres CSS bleibt leer', () => {
   assert.equal(scopeCssToVariant(null, SEL, KEY), null)
 })
 
-// ── Im echten DOM: greift die Regel auf dem B-Element? ──────────────────────
+console.log('\n── !important gegen A\'s Site-Regeln ──\n')
+
+check('Deklarationen umgeschriebener Bloecke bekommen !important', () => {
+  const out = scopeCssToVariant(CSS, SEL, KEY)
+  assert.ok(out.includes('background-color: #ffffff !important;'), out)
+  assert.ok(out.includes('border-radius: 11px !important;'), out)
+  assert.ok(out.includes('background-color: #ff0000 !important;'), out)
+})
+
+check('bereits vorhandenes !important wird nicht verdoppelt', () => {
+  const css = `${SEL} {\n  color: #000 !important;\n}`
+  const out = scopeCssToVariant(css, SEL, KEY)
+  assert.ok(out.includes('color: #000 !important;'), out)
+  assert.ok(!out.includes('!important !important'), out)
+})
+
+check('Suffixe wie " > span" ueberleben den Tausch UND bekommen !important', () => {
+  const css = `${SEL} > span {\n  font-weight: 600;\n}`
+  const out = scopeCssToVariant(css, SEL, KEY)
+  assert.ok(out.includes(`[data-ab-el="${KEY}"] > span {`), out)
+  assert.ok(out.includes('font-weight: 600 !important;'), out)
+})
+
+check('.ab-v-CSS ohne den Selektor bleibt unberuehrt (Figma-Pfad)', () => {
+  const figmaCss = '.ab-v .btn {\n  background: #f0f;\n}'
+  assert.equal(scopeCssToVariant(figmaCss, SEL, KEY), figmaCss)
+})
+
+check('Regel im @media-Wrapper wird umgeschrieben, Wrapper bleibt', () => {
+  const css = `@media (max-width: 600px) {\n  ${SEL} {\n    font-size: 14px;\n  }\n}`
+  const out = scopeCssToVariant(css, SEL, KEY)
+  assert.ok(out.includes('@media (max-width: 600px)'), out)
+  assert.ok(out.includes(`[data-ab-el="${KEY}"] {`), out)
+  assert.ok(out.includes('font-size: 14px !important;'), out)
+  assert.ok(!out.includes(SEL), 'Original-Selektor steht noch drin')
+})
+
 console.log('\n── Anwendung im DOM ──\n')
 
 function buildPage() {

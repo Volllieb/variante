@@ -110,6 +110,7 @@ export function StepUrlAndElement({
           : /^h[1-6]$/.test(tag) ? 'headline'
           : 'element',
         elementName: p.text || p.selector,
+        styleContext: p.styleContext,
       })
       setPickerOpen(false)
       setWaitingForPicker(false)

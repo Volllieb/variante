@@ -98,6 +98,7 @@ export const updateTestBody = z.object({
   variant_b_html: z.string().nullable().optional(),
   variant_b_css: z.string().nullable().optional(),
   original_html: z.string().nullable().optional(),
+  site_css: z.string().nullable().optional(),
 })
 
 export const captureBody = z.object({

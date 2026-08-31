@@ -3,13 +3,20 @@
 /**
  * TextInputEditor — Einfacher Editor für Text/Headline-Elemente.
  *
- * - Einzeiliges Input-Feld, vorausgefüllt mit Original-Text
- * - Reset-Button setzt auf Original zurück
- * - "Apply" generiert variant_html + variant_css
+ * Zwei Modi:
+ * - `inherit` (Default): B ist ein Delta auf A — A's Markup (Tag, Klassen,
+ *   Attribute außer id) bleibt erhalten, nur der Text ändert sich. Kein
+ *   CSS nötig: A's Kaskade gilt weiter, responsive Verhalten inklusive.
+ * - `scratch`: Neubau als <span class="ab-variant-b"> mit transition.
+ *
+ * Vorschau als sandboxed iframe MIT dem Site-CSS des Originals.
  */
 
 import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
+import { buildPreviewSrcDoc } from './preview'
+import { inheritRootHtml, scratchVariantHtml } from './delta'
+import type { EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
 
 interface TextInputEditorProps {
@@ -23,39 +30,81 @@ function extractTextFromHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '').trim()
 }
 
-function generateTextHtml(text: string): string {
-  return `<span class="ab-variant-b">${text}</span>`
-}
-
 function generateTextCss(selector: string): string {
   return `${selector} {\n  transition: all 0.2s ease;\n}`
 }
 
 export function TextInputEditor({ element, originalHtml, onApply, onCancel }: TextInputEditorProps) {
-  // ponytail: handleApply hatte dieselbe CSS-Regel nochmal inline stehen,
-  // während generateTextCss ungenutzt danebenlag.
   const originalText = extractTextFromHtml(originalHtml)
+  const [mode, setMode] = useState<EditorMode>('inherit')
   const [text, setText] = useState(originalText)
 
   function handleApply() {
     const selector = element.selector || element.elementName
-    const html = generateTextHtml(text || originalText)
-    onApply(html, generateTextCss(selector))
+    if (mode === 'inherit') {
+      // Reines Text-Delta: A's Markup bleibt, kein CSS nötig.
+      onApply(inheritRootHtml(originalHtml, text || originalText), '')
+      return
+    }
+    onApply(scratchVariantHtml(text || originalText, 'span'), generateTextCss(selector))
   }
 
   function handleReset() {
     setText(originalText)
   }
 
+  const selector = element.selector || element.elementName
+  const srcDoc = buildPreviewSrcDoc(
+    [
+      { html: originalHtml || '' },
+      {
+        html: mode === 'inherit'
+          ? inheritRootHtml(originalHtml, text || originalText)
+          : scratchVariantHtml(text || originalText, 'span'),
+        css: mode === 'inherit' ? '' : generateTextCss(selector),
+        scopeToSelector: mode === 'inherit',
+        selector,
+      },
+    ],
+    element.styleContext?.css
+  )
+
   return (
     <div className="space-y-4">
-      {/* Live Preview */}
+      {/* Mode-Umschalter: Delta auf A (Default) vs. kompletter Neubau */}
+      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-0 p-0.5">
+        {([
+          { value: 'inherit', label: 'Inherit from A' },
+          { value: 'scratch', label: 'From scratch' },
+        ] as const).map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            onClick={() => setMode(m.value)}
+            className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+              mode === m.value
+                ? 'bg-fill-invert text-text-on-invert'
+                : 'text-text-2 hover:text-text'
+            }`}
+            title={m.value === 'inherit'
+              ? 'B erbt Markup, Klassen und responsives Verhalten von A — nur der Text ändert sich'
+              : 'B wird komplett neu gebaut (eigenes Markup)'}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Live Preview — iframe mit echtem Site-CSS, A und B nebeneinander */}
       <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
         <p className="mb-3 text-[11px] font-medium text-text-2">Live Preview</p>
-        <div className="flex items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 p-6 min-h-[60px]">
-          <span className="text-[14px] text-text">
-            {text || originalText || 'Text'}
-          </span>
+        <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
+          <iframe
+            srcDoc={srcDoc}
+            sandbox=""
+            title="Live preview — original vs. variant"
+            className="h-24 w-full"
+          />
         </div>
       </div>
 

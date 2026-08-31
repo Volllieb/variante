@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Test Page</title>
+
+  <!-- A/B Testing snippet — replace src for local dev -->
+  <!-- Local:  http://localhost:3000/ab.js -->
+  <!-- Prod:   https://www.getvariante.com/ab.js -->
+  <!-- none:   Snippet gar nicht laden (A-Zustand messen) -->
+  <script>
+    (function() {
+      var env = new URLSearchParams(window.location.search).get('ab_env') || 'local';
+      if (env === 'none') return;
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = env === 'prod'
+        ? 'https://www.getvariante.com/ab.js'
+        : 'http://localhost:3000/ab.js';
+      document.head.appendChild(script);
+    })();
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8f9fc;
+      color: #1a1a2e;
+      padding: 48px;
+    }
+    /* Der Test-CTA: Desktop-Pixel, die am Handy per Breakpoint schrumpfen.
+       Genau diese Staffelung darf B nicht verlieren. */
+    .responsive-cta {
+      display: inline-block;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      background: #2563eb;
+      color: #fff;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    @media (max-width: 600px) {
+      .responsive-cta {
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="responsive-cta" href="/test-page/" data-goal="cta">Start free trial</a>
+</body>
+</html>

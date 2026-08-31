@@ -3,21 +3,34 @@
 /**
  * ButtonEditor — Manueller Editor für Button/Link-Elemente.
  *
- * Live-Vorschau (sofort, kein Debounce) mit:
- * - Text-Input
- * - Farben (Background, Text, Border) mit Reset
- * - Rahmen (Dicke, Stil, Farbe, Ecken-Radius)
- * - Hover (Checkbox + Hover-Vorschau + Hintergrund + Scale + Schatten)
- * - "Auf Original zurücksetzen"
+ * Zwei Modi:
+ * - `inherit` (Default): B ist ein Delta auf A. Markup, Klassen und Attribute
+ *   kommen von A, nur der Text ändert sich; das CSS enthält ausschließlich
+ *   Properties, die von der gemessenen Baseline abweichen. A's responsives
+ *   Verhalten (@media, clamp(), Container-Queries) gilt dadurch automatisch.
+ * - `scratch`: kompletter Neubau mit eigenem Markup und absolutem CSS —
+ *   Escape-Hatch für radikale Redesigns.
  *
- * Keine API-Calls — alles clientseitig.
+ * Live-Vorschau als sandboxed iframe MIT dem Site-CSS des Originals — ein
+ * React-Element mit Inline-Styles kann A's Kaskade nicht abbilden.
+ *
+ * Keine API-Calls — alles clientseitig. Pure Logik liegt in delta.ts und
+ * preview.ts (node-testbar).
  */
 
 import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import { ColorPicker } from './ColorPicker'
 import { PropertySlider } from './PropertySlider'
-import type { UserEdits } from './types'
+import { buildPreviewSrcDoc } from './preview'
+import {
+  buildStyleBaseline,
+  generateButtonCss,
+  inheritRootHtml,
+  initialEdits,
+  scratchVariantHtml,
+} from './delta'
+import type { UserEdits, EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
 
 interface ButtonEditorProps {
@@ -38,143 +51,84 @@ function extractTextFromHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '').trim()
 }
 
-function generateButtonHtml(text: string): string {
-  return `<button class="ab-variant-b">${text}</button>`
-}
-
-function generateButtonCss(edits: UserEdits, selector: string): string {
-  const lines: string[] = []
-  lines.push(`${selector} {`)
-  if (edits.bgColor) lines.push(`  background-color: ${edits.bgColor};`)
-  if (edits.textColor) lines.push(`  color: ${edits.textColor};`)
-  if (edits.fontSize) lines.push(`  font-size: ${edits.fontSize}px;`)
-  if (edits.fontWeight) lines.push(`  font-weight: ${edits.fontWeight};`)
-  if (edits.borderRadius !== undefined) lines.push(`  border-radius: ${edits.borderRadius}px;`)
-  if (edits.borderWidth !== undefined) lines.push(`  border-width: ${edits.borderWidth}px;`)
-  if (edits.borderColor) lines.push(`  border-color: ${edits.borderColor};`)
-  if (edits.borderStyle) lines.push(`  border-style: ${edits.borderStyle};`)
-  if (edits.paddingX !== undefined || edits.paddingY !== undefined) {
-    const py = edits.paddingY ?? 12
-    const px = edits.paddingX ?? 24
-    lines.push(`  padding: ${py}px ${px}px;`)
-  }
-  lines.push('  transition: all 0.2s ease;')
-  lines.push('}')
-
-  if (edits.hoverEnabled) {
-    lines.push('')
-    lines.push(`${selector}:hover {`)
-    if (edits.hoverBgColor) lines.push(`  background-color: ${edits.hoverBgColor};`)
-    if (edits.hoverScale) lines.push(`  transform: scale(${edits.hoverScale / 100});`)
-    if (edits.hoverShadow) lines.push(`  box-shadow: 0 4px 12px rgba(0,0,0,0.15);`)
-    lines.push('}')
-  }
-
-  return lines.join('\n')
-}
-
-function editsToStyle(edits: UserEdits): React.CSSProperties {
-  const style: React.CSSProperties = {}
-  if (edits.bgColor) style.backgroundColor = edits.bgColor
-  if (edits.textColor) style.color = edits.textColor
-  if (edits.fontSize) style.fontSize = edits.fontSize
-  if (edits.fontWeight) style.fontWeight = edits.fontWeight
-  if (edits.borderRadius !== undefined) style.borderRadius = edits.borderRadius
-  if (edits.borderWidth !== undefined) style.borderWidth = edits.borderWidth
-  if (edits.borderColor) style.borderColor = edits.borderColor
-  if (edits.borderStyle) style.borderStyle = edits.borderStyle
-  if (edits.paddingX !== undefined || edits.paddingY !== undefined) {
-    const py = edits.paddingY ?? 12
-    const px = edits.paddingX ?? 24
-    style.paddingTop = py
-    style.paddingBottom = py
-    style.paddingLeft = px
-    style.paddingRight = px
-  }
-  style.transition = 'all 0.2s ease'
-  return style
-}
-
-function editsToHoverStyle(edits: UserEdits): React.CSSProperties {
-  const style: React.CSSProperties = {}
-  if (edits.hoverBgColor) style.backgroundColor = edits.hoverBgColor
-  else if (edits.bgColor) style.backgroundColor = edits.bgColor
-  if (edits.hoverScale) style.transform = `scale(${edits.hoverScale / 100})`
-  if (edits.hoverShadow) style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'
-  style.transition = 'all 0.2s ease'
-  return style
-}
-
-const DEFAULT_EDITS: UserEdits = {
-  text: '',
-  bgColor: '#2563EB',
-  textColor: '#FFFFFF',
-  fontSize: 16,
-  fontWeight: 600,
-  borderRadius: 8,
-  paddingX: 24,
-  paddingY: 12,
-  borderWidth: 0,
-  borderColor: 'transparent',
-  borderStyle: 'solid',
-  hoverEnabled: false,
-  hoverBgColor: '#1D4ED8',
-  hoverScale: 105,
-  hoverShadow: false,
-}
-
 export function ButtonEditor({ element, originalHtml, onApply, onCancel }: ButtonEditorProps) {
   const originalText = extractTextFromHtml(originalHtml)
-  const [edits, setEdits] = useState<UserEdits>(() => ({
-    ...DEFAULT_EDITS,
-    text: originalText,
-  }))
+  const baseline = buildStyleBaseline(element.styleContext?.computed)
+  const [mode, setMode] = useState<EditorMode>('inherit')
+  const [edits, setEdits] = useState<UserEdits>(() => initialEdits(baseline, originalText))
 
   function handleChange(patch: Partial<UserEdits>) {
     setEdits((prev) => ({ ...prev, ...patch }))
   }
 
   function handleReset() {
-    setEdits({ ...DEFAULT_EDITS, text: originalText })
+    // Baseline statt DEFAULT_EDITS: erzeugt im inherit-Modus ein LEERES Delta.
+    setEdits(initialEdits(baseline, originalText))
   }
 
   function handleApply() {
     const selector = element.selector || element.elementName
-    const html = generateButtonHtml(edits.text || originalText)
-    const css = generateButtonCss(edits, selector)
+    const html = mode === 'inherit'
+      ? inheritRootHtml(originalHtml, edits.text || originalText)
+      : scratchVariantHtml(edits.text || originalText)
+    const css = generateButtonCss(edits, selector, baseline, mode)
     onApply(html, css)
   }
 
-  const style = editsToStyle(edits)
-  const hoverStyle = editsToHoverStyle(edits)
+  const selector = element.selector || element.elementName
+  const previewHtml = mode === 'inherit'
+    ? inheritRootHtml(originalHtml, edits.text || originalText)
+    : scratchVariantHtml(edits.text || originalText)
+  const previewCss = generateButtonCss(edits, selector, baseline, mode)
+  const srcDoc = buildPreviewSrcDoc(
+    [
+      { html: originalHtml || '' },
+      { html: previewHtml, css: previewCss, scopeToSelector: true, selector },
+    ],
+    element.styleContext?.css
+  )
 
   return (
     <div className="space-y-4">
-      {/* Live Preview */}
+      {/* Mode-Umschalter: Delta auf A (Default) vs. kompletter Neubau */}
+      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-0 p-0.5">
+        {([
+          { value: 'inherit', label: 'Inherit from A' },
+          { value: 'scratch', label: 'From scratch' },
+        ] as const).map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            onClick={() => setMode(m.value)}
+            className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+              mode === m.value
+                ? 'bg-fill-invert text-text-on-invert'
+                : 'text-text-2 hover:text-text'
+            }`}
+            title={m.value === 'inherit'
+              ? 'B erbt Markup, Klassen und responsives Verhalten von A — nur Änderungen werden emittiert'
+              : 'B wird komplett neu gebaut (eigenes Markup + absolutes CSS)'}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Live Preview — iframe mit echtem Site-CSS, A und B nebeneinander */}
       <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
         <p className="mb-3 text-[11px] font-medium text-text-2">Live Preview</p>
-        <div className="flex items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 p-6 min-h-[100px]">
-          <button
-            type="button"
-            className="inline-block rounded-[var(--radius-md)] text-center font-semibold transition-all"
-            style={style}
-          >
-            {edits.text || originalText || 'Button'}
-          </button>
+        <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
+          <iframe
+            srcDoc={srcDoc}
+            sandbox=""
+            title="Live preview — original vs. variant"
+            className="h-32 w-full"
+          />
         </div>
         {edits.hoverEnabled && (
-          <div className="mt-2">
-            <p className="mb-1.5 text-[10px] text-text-3">Hover Preview:</p>
-            <div className="flex items-center justify-center rounded-[var(--radius-md)] border border-border/50 bg-bg-0/50 p-6">
-              <button
-                type="button"
-                className="inline-block rounded-[var(--radius-md)] text-center font-semibold"
-                style={{ ...style, ...hoverStyle }}
-              >
-                {edits.text || originalText || 'Button'}
-              </button>
-            </div>
-          </div>
+          <p className="mt-1.5 text-[10px] text-text-3">
+            Hover the variant in the preview to see the hover state.
+          </p>
         )}
       </div>
 
@@ -198,22 +152,22 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
           label="Background"
           value={edits.bgColor ?? '#2563EB'}
           onChange={(color) => handleChange({ bgColor: color })}
-          originalColor="#2563EB"
-          onReset={() => handleChange({ bgColor: '#2563EB' })}
+          originalColor={baseline?.bgColor ?? '#2563EB'}
+          onReset={() => handleChange({ bgColor: baseline?.bgColor ?? '#2563EB' })}
         />
         <ColorPicker
           label="Text"
           value={edits.textColor ?? '#FFFFFF'}
           onChange={(color) => handleChange({ textColor: color })}
-          originalColor="#FFFFFF"
-          onReset={() => handleChange({ textColor: '#FFFFFF' })}
+          originalColor={baseline?.textColor ?? '#FFFFFF'}
+          onReset={() => handleChange({ textColor: baseline?.textColor ?? '#FFFFFF' })}
         />
         <ColorPicker
           label="Border"
           value={edits.borderColor ?? 'transparent'}
           onChange={(color) => handleChange({ borderColor: color })}
-          originalColor="transparent"
-          onReset={() => handleChange({ borderColor: 'transparent' })}
+          originalColor={baseline?.borderColor ?? 'transparent'}
+          onReset={() => handleChange({ borderColor: baseline?.borderColor ?? 'transparent' })}
         />
       </div>
 

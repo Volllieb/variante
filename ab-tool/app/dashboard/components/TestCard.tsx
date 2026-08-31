@@ -26,6 +26,8 @@ export type TestRow = {
   /** Draft resume fields — needed to re-open the wizard for incomplete tests. */
   selector?: string | null
   original_html?: string | null
+  /** Site-CSS des Originals (vom Picker) — Basis für Vorschau und Delta-Editor beim Resume. */
+  site_css?: string | null
   goal?: string | null
   variant_b_html?: string | null
   variant_b_css?: string | null

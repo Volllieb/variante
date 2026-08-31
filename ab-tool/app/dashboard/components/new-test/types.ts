@@ -29,6 +29,31 @@ export interface UserEdits {
   hoverShadow?: boolean
 }
 
+// ─── Delta-Modell ───
+
+/**
+ * Gemessene Style-Werte des Originals (Variante A) — die Baseline des Deltas.
+ *
+ * `inherit`-Modus: das Delta enthält nur Properties, die von der Baseline
+ * abweichen. "Reset to original" setzt auf die Baseline zurück und erzeugt
+ * damit ein leeres Delta.
+ */
+export interface StyleBaseline {
+  bgColor?: string
+  textColor?: string
+  fontSize?: number
+  fontWeight?: number
+  borderRadius?: number
+  paddingX?: number
+  paddingY?: number
+  borderWidth?: number
+  borderColor?: string
+  borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none'
+}
+
+/** `inherit`: B erbt Markup/Klassen von A, nur Änderungen werden emittiert. `scratch`: kompletter Neubau. */
+export type EditorMode = 'inherit' | 'scratch'
+
 /** Ermittelt den Editor-Typ basierend auf elementType */
 export function getEditorCategory(elementType: string): 'button' | 'text' {
   if (elementType === 'button' || elementType === 'link') return 'button'

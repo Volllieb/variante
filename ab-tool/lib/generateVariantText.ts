@@ -239,6 +239,9 @@ REGELN:
 - Text-Buttons: füge Dringlichkeit oder Risikofreiheit hinzu ("No Credit Card", "Free", "Instant")
 - Farben: höherer Kontrast zum Hintergrund, auffälliger ohne schrill zu sein
 - CSS: Button größer (padding, font-size), abgerundet (border-radius), mit Schatten für Tiefe
+- Wurzel-Tag und class des Originals IMMER beibehalten — das Site-CSS der Seite (inkl.
+  responsive Verhalten: @media, clamp, Container-Queries) hängt an den Klassen.
+  Nur der Text und höchstens eigene Inline-Styles dürfen sich ändern.
 - Niemals display:none, visibility:hidden, position:fixed/absolute, z-index
 - Niemals den Text komplett ersetzen — nur optimieren
 - CSS-Selektor verwenden wo angegeben
@@ -283,6 +286,24 @@ function stripHtml(html: string): string {
     .slice(0, 1500)
 }
 
+/**
+ * Wurzel-Tag + class des Originals als Gerüst für den Prompt.
+ *
+ * stripHtml() wirft alle Attribute weg — das Modell sieht sonst nie, wie A
+ * gebaut ist, und liefert <button class="ab-variant-b"> zurück: Die Klassen
+ * der Seite sind weg, und mit ihnen alles responsive Verhalten (@media,
+ * clamp(), Container-Queries). Mit dem Gerüst behält B A's Klassen, und A's
+ * Kaskade gilt weiter. Vorlage: der Figma-Prompt in generatePrompts.ts.
+ */
+function extractScaffold(html: string): string | null {
+  const m = /^<\s*([a-z][a-z0-9]*)((\s+[^<>]*)?)>/i.exec(html.trim())
+  if (!m) return null
+  const tag = m[1].toLowerCase()
+  const cls = /\bclass\s*=\s*["']([^"']+)["']/i.exec(m[2] || '')?.[1]
+  if (cls) return `<${tag} class="${cls}">`
+  return `<${tag}>`
+}
+
 export async function generateBestPracticeVariant(
   input: BestPracticeInput
 ): Promise<GenerateVariantOutput> {
@@ -300,11 +321,19 @@ export async function generateBestPracticeVariant(
       `PFLICHT: variant_html MUSS ein <a href="${href}">…</a> sein — kein <button>. ` +
       `Ohne den Link ist die Variante nicht klickbar und kann nicht konvertieren.`
     : ''
+  const scaffold = extractScaffold(input.original)
+  const scaffoldHint = scaffold
+    ? `Original-Markup (Gerüst): ${scaffold}\n` +
+      `PFLICHT: variant_html behält dasselbe Wurzel-Tag und dieselbe class wie das Original — ` +
+      `die Klassen binden das Site-CSS der Seite (inkl. responsive Verhalten). Nur der Text ` +
+      `und höchstens eigene Inline-Styles dürfen sich ändern.`
+    : ''
 
   const userPrompt = [
     `Element-Typ: ${input.elementType}`,
     `Element: ${input.element}`,
     `Original: ${cleanOriginal}`,
+    scaffoldHint,
     hrefHint,
     selectorHint,
     contextHint,

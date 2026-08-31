@@ -100,29 +100,57 @@
         if (!base) return false
         try { return el.matches(base) } catch (_) { return false }
       }
+      var COMPUTED_PROPS = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-width','border-style','border-color','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
       function computedBlock(el) {
         try {
           var cs = getComputedStyle(el)
-          var props = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
           var lines = []
-          for (var i = 0; i < props.length; i++) {
-            var v = cs.getPropertyValue(props[i])
-            if (v && v !== 'none' && v !== 'normal') lines.push('  ' + props[i] + ': ' + v + ';')
+          for (var i = 0; i < COMPUTED_PROPS.length; i++) {
+            var v = cs.getPropertyValue(COMPUTED_PROPS[i])
+            if (v && v !== 'none' && v !== 'normal') lines.push('  ' + COMPUTED_PROPS[i] + ': ' + v + ';')
           }
           if (!lines.length) return ''
           return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
         } catch (_) { return '' }
       }
+      // Gleiche Messung wie computedBlock, aber als Map — Grundlage fuer die
+      // Style-Baseline des Delta-Editors im Wizard.
+      function computedMap(el) {
+        try {
+          var cs = getComputedStyle(el)
+          var out = {}
+          for (var i = 0; i < COMPUTED_PROPS.length; i++) {
+            var v = cs.getPropertyValue(COMPUTED_PROPS[i])
+            if (v && v !== 'none' && v !== 'normal') out[COMPUTED_PROPS[i]] = v
+          }
+          return out
+        } catch (_) { return {} }
+      }
       function collectCss(el) {
         var out = [], seen = {}
         function push(rule) { if (!seen[rule.cssText]) { seen[rule.cssText] = true; out.push(rule.cssText) } }
-        function consider(rule) {
+        function consider(rule, condPrefix) {
           try {
             var sel = rule.selectorText; if (!sel) return
-            if (sel.indexOf(':root') > -1 || rule.cssText.indexOf('--') > -1) { push(rule); return }
-            if (PSEUDO_RE.test(sel)) { if (matchesPseudo(el, sel)) push(rule); return }
-            if (el.matches(sel)) push(rule)
+            if (sel.indexOf(':root') > -1 || rule.cssText.indexOf('--') > -1) { pushWrapped(rule, condPrefix); return }
+            if (PSEUDO_RE.test(sel)) { if (matchesPseudo(el, sel)) pushWrapped(rule, condPrefix); return }
+            if (el.matches(sel)) pushWrapped(rule, condPrefix)
           } catch (_) {}
+        }
+        // Eine Regel aus @media/@supports/@layer behaelt ihren Wrapper: ohne ihn
+        // wuerde eine Mobile-only-Regel zu einer unbedingten Regel — das
+        // verfaelschte den Figma-Prompt und die Results-Vorschau.
+        function pushWrapped(rule, condPrefix) {
+          push(condPrefix ? { cssText: condPrefix + ' { ' + rule.cssText + ' }' } : rule)
+        }
+        function condPrefixOf(rule) {
+          try {
+            if ((rule.type === CSSRule.MEDIA_RULE || rule.type === CSSRule.SUPPORTS_RULE) && rule.conditionText) {
+              return '@' + (rule.type === CSSRule.MEDIA_RULE ? 'media' : 'supports') + ' ' + rule.conditionText
+            }
+            if (rule.layerName) return '@layer ' + rule.layerName
+          } catch (_) {}
+          return null
         }
         try {
           var sheets = document.styleSheets
@@ -135,14 +163,24 @@
             if (!rules) continue
             for (var j = 0; j < rules.length; j++) {
               var rule = rules[j]
-              if (rule.type === CSSRule.STYLE_RULE) consider(rule)
-              else if (rule.cssRules) { for (var k = 0; k < rule.cssRules.length; k++) { if (rule.cssRules[k].type === CSSRule.STYLE_RULE) consider(rule.cssRules[k]) } }
+              if (rule.type === CSSRule.STYLE_RULE) consider(rule, null)
+              else if (rule.cssRules) {
+                var prefix = condPrefixOf(rule)
+                for (var k = 0; k < rule.cssRules.length; k++) {
+                  if (rule.cssRules[k].type === CSSRule.STYLE_RULE) consider(rule.cssRules[k], prefix)
+                }
+              }
             }
           }
         } catch (_) {}
         var rulesText = out.join('\n').slice(0, 18000)
         var comp = computedBlock(el)
         return (comp ? rulesText + '\n\n' + comp : rulesText).slice(0, 24000)
+      }
+      // Kontext des Originals fuer den Wizard: relevantes CSS (inkl. @media-
+      // Wrapper) + gemessene Computed-Styles.
+      function styleContext(el) {
+        return { css: collectCss(el), computed: computedMap(el) }
       }
 
       // --- Goal-Kandidaten: klickbare Elemente fürs Plugin-Dropdown --------
@@ -302,7 +340,7 @@
             if (cfg.mode === 'goal') {
               window.opener.postMessage({ type: 'ab-goal', selector: sel, text: text }, '*')
             } else {
-              window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text }, '*')
+              window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text, styleContext: styleContext(el) }, '*')
             }
             return true
           } catch (_) { return false }
@@ -319,6 +357,13 @@
         // Fragment, gehen also nie an den Server.
         function returnToDashboard(el, sel, text) {
           try {
+            var ctx = cfg.mode === 'goal' ? null : styleContext(el)
+            // Das Fragment geht per encodeURIComponent raus, und die blaeht CSS
+            // um Faktor 2-3 — ein grosses Stylesheet sprengt sonst die URL-
+            // Laenge. Kappung hier, mit Flag: die Vorschau faellt dann auf
+            // computed-only zurueck, statt still mit halbem CSS zu rendern.
+            var CSS_CAP = 12000
+            var cssFull = ctx && ctx.css ? ctx.css : ''
             var payload = {
               mode: cfg.mode === 'goal' ? 'goal' : 'element',
               selector: sel,
@@ -326,6 +371,13 @@
               tagName: el.tagName,
               text: text,
               origin: location.origin,
+            }
+            if (ctx) {
+              payload.styleContext = {
+                css: cssFull.length > CSS_CAP ? cssFull.slice(0, CSS_CAP) : cssFull,
+                computed: ctx.computed || {},
+                cssTruncated: cssFull.length > CSS_CAP,
+              }
             }
             // Bewusst `origin` (Herkunft des ab.js-Scripts) statt cfg.apiBase:
             // apiBase ist über ?ab_api= steuerbar, und eine Navigation dorthin
@@ -691,7 +743,48 @@
   // Originalelement noch da und der Selektor stimmt weiterhin.
   function scopeCssToVariant(css, selector, key) {
     if (!css || !selector || css.indexOf(selector) === -1) return css
-    return css.split(selector).join('[data-ab-el="' + key + '"]')
+    var attr = '[data-ab-el="' + key + '"]'
+    var swapped = css.split(selector).join(attr)
+    // B erbt A's Klassen: A's Site-Regeln matchen damit auch auf B. Eine
+    // ID-basierte Site-Regel ("#hero .cta", Spezifitaet 1-1-0) schlaegt das
+    // gescopte Delta ([data-ab-el], 0-1-0) sonst — der Test waere ein No-Op.
+    // Deshalb bekommt jede Deklaration eines umgeschriebenen Blocks
+    // !important. Eng begrenzt: nur Bloecke, deren Selektor NACH dem Tausch
+    // auf data-ab-el zeigt. Das .ab-v-CSS des Figma-Pfads enthaelt den
+    // Original-Selektor nie und bleibt unberuehrt. Attribut-Stapeln reicht
+    // nicht — gegen ID-Regeln verliert es.
+    return swapped.replace(/([^{}]+)(\{[^{}]*\})/g, function (match, sel, block) {
+      if (sel.indexOf(attr) === -1) return match
+      return sel + forceImportant(block)
+    })
+  }
+
+  // Markiert jede Deklaration eines Regelblocks mit !important. Geschnitten
+  // wird an ";" nur auf Klammer-Tiefe 0 — url(data:image/svg+xml;…)-Werte
+  // enthalten selbst ";" und duerfen nicht zerrissen werden.
+  function forceImportant(block) {
+    var open = block.indexOf('{')
+    var close = block.lastIndexOf('}')
+    if (open === -1 || close <= open) return block
+    var body = block.slice(open + 1, close)
+    var parts = [], buf = '', depth = 0
+    for (var i = 0; i < body.length; i++) {
+      var c = body.charAt(i)
+      if (c === '(') depth++
+      else if (c === ')') depth = Math.max(0, depth - 1)
+      if (c === ';' && depth === 0) { parts.push(buf); buf = '' }
+      else buf += c
+    }
+    if (buf.trim()) parts.push(buf)
+    var out = []
+    for (var p = 0; p < parts.length; p++) {
+      var decl = parts[p].trim()
+      if (!decl) continue
+      if (/!important\s*$/i.test(decl)) out.push(decl)
+      else out.push(decl + ' !important')
+    }
+    if (!out.length) return block
+    return block.slice(0, open + 1) + ' ' + out.join('; ') + ';' + block.slice(close)
   }
 
   var injectedStyles = {} // key → style-element, für SPA-Cleanup
@@ -830,6 +923,44 @@
     // Weder Link noch Inline-Handler: A wird von JS gesteuert.
     copyMissing(src, dst, ['type', 'name', 'value', 'form'])
     return 'bridge'
+  }
+
+  // --- Praesentation von A nach B uebertragen --------------------------------
+  // B ist ein Delta auf A, kein Neubau: Markup, Klassen und Attribute kommen
+  // von A. B traegt A's Klassen, also matchen A's Site-Regeln weiter — und mit
+  // ihnen das komplette responsive Verhalten (@media, clamp(), Container-
+  // Queries, :hover). Das muss nicht uebertragen werden, es gilt automatisch.
+  //
+  // Nur wenn B keine eigenen Site-Klassen mitbringt: class fehlt ganz oder
+  // besteht nur aus unseren Markern (ab-variant-b, ab-v). Das trifft den
+  // gesamten Bestand und alles aus generateBestPracticeVariant() — die werden
+  // hier ohne Neugenerierung repariert. Traegt B eigene Klassen (Editor-
+  // inherit-Modus), sind die bereits A's — nichts zu tun.
+  //
+  // data-* kann gespeichertes B-HTML nie tragen (sanitizeHtml, ALLOW_DATA_ATTR
+  // false) — Component-Libraries stylen aber oft ueber [data-variant]/
+  // [data-size]. Zur Laufzeit von A's eigenem DOM gelesen ist der Wert
+  // unbedenklich. Interne Marker (data-ab-*) werden nie kopiert: die gehoeren
+  // zu unserem eigenen Runtime-Lifecycle.
+  function adoptPresentation(src, dst) {
+    if (!src || !dst || src === dst || !src.getAttribute) return
+    var dstCls = dst.getAttribute('class') || ''
+    if (dstCls.replace(/\b(?:ab-variant-b|ab-v)\b/g, '').trim()) return
+    var cls = src.getAttribute('class')
+    if (cls) dst.setAttribute('class', (cls + ' ' + dstCls).trim())
+    var style = src.getAttribute('style')
+    // Inline-Styles von B sind dessen Delta — A's Style nur ergaenzen, wo B
+    // keinen setzt (gleiche Semantik wie copyMissing).
+    if (style && !dst.getAttribute('style')) dst.setAttribute('style', style)
+    if (src.attributes) {
+      for (var i = 0; i < src.attributes.length; i++) {
+        var name = src.attributes[i].name
+        if (name.indexOf('data-ab-') === 0) continue
+        if (name.indexOf('data-') === 0 && !dst.hasAttribute(name)) {
+          dst.setAttribute(name, src.getAttribute(name))
+        }
+      }
+    }
   }
 
   // Nicht-interaktives B (z. B. <div class="ab-v">) bekommt Tastaturzugang,
@@ -1018,6 +1149,8 @@
         var src = findAction(el, ACTION_SEL_SRC)
         var dst = findAction(node, ACTION_SEL_DST) || node
         var mode = src ? portInteraction(src, dst) : null
+        // Klassen/Styles von A auf B, bevor A ersetzt oder versteckt wird.
+        if (src) adoptPresentation(src, dst)
         // Cursor jetzt lesen: im navigate-Zweig ist A gleich weg.
         var srcCursor = src ? readCursor(src) : null
         if (mode === 'navigate') {

@@ -33,6 +33,8 @@ export interface ElementSelection {
   originalHtml: string
   elementType: string
   elementName: string
+  /** Style-Kontext vom Picker (Site-CSS + Computed-Styles) — Basis für Delta-Editor und Vorschau. */
+  styleContext?: import('@/lib/pickerBridge').StyleContext
 }
 
 export interface VariantResult {
@@ -183,6 +185,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             originalHtml: resumeTest.original_html ?? '',
             elementType: 'element',
             elementName: resumeTest.selector,
+            styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: {} } : undefined,
           } : null,
           elementConfirmed: !!resumeTest.selector,
           variantResult: resumeTest.variant_b_html ? {
@@ -214,6 +217,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               originalHtml: draft.original_html ?? '',
               elementType: 'element',
               elementName: draft.selector,
+              styleContext: draft.site_css ? { css: draft.site_css, computed: {} } : undefined,
             } : null,
             elementConfirmed: !!draft.selector,
             variantResult: draft.variant_text ? {
@@ -268,6 +272,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             url: s.url || null,
             selector: s.selectedElement?.selector ?? null,
             original_html: s.selectedElement?.originalHtml ?? null,
+            site_css: s.selectedElement?.styleContext?.css ?? null,
             variant_b_html: s.variantResult?.variant_html ?? null,
             variant_b_css: s.variantResult?.variant_css ?? null,
             variant_text: s.variantResult?.variant ?? null,
@@ -320,6 +325,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         variant_b_css: state.variantResult?.variant_css ?? undefined,
         variant_text: state.variantResult?.variant ?? undefined,
         original_html: state.selectedElement.originalHtml,
+        site_css: state.selectedElement.styleContext?.css,
         status,
         name: state.testName || undefined,
       }

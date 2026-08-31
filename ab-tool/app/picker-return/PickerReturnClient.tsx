@@ -20,6 +20,10 @@ type Outcome = { state: 'done'; selector: string } | { state: 'error' }
 
 // Spiegelt die Limits von /api/capture bzw. test-wizard/draft.
 const MAX_HTML = 10_000
+// Das Fragment wird URL-encoded — CSS blaeht dabei um Faktor 2–3 auf. Kappt
+// ab.js den Payload nicht selbst (alte Snippet-Versionen), wird hier gekappt
+// und per Flag markiert, damit die Vorschau auf computed-only zurueckfaellt.
+const MAX_CSS = 12_000
 
 /**
  * Liest das Fragment und legt die Auswahl in localStorage ab.
@@ -28,6 +32,32 @@ const MAX_HTML = 10_000
  * gegen zwei externe Systeme (URL + localStorage) und hat mit dem Render nichts
  * zu tun.
  */
+
+/**
+ * Normalisiert den styleContext aus dem Fragment. Defense in depth: ab.js
+ * kappt css selbst und setzt das Flag — hier wird trotzdem nochmal gekappt,
+ * falls das Fragment von einer aelteren Snippet-Version stammt.
+ */
+function normalizeStyleContext(raw: unknown): { css: string; computed: Record<string, string>; cssTruncated: boolean } | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+  const src = raw as Record<string, unknown>
+  if (typeof src.css !== 'string' && !src.computed) return undefined
+
+  const cssFull = typeof src.css === 'string' ? src.css : ''
+  const css = cssFull.slice(0, MAX_CSS)
+  const computed: Record<string, string> = {}
+  if (src.computed && typeof src.computed === 'object') {
+    for (const [k, v] of Object.entries(src.computed as Record<string, unknown>)) {
+      if (typeof v === 'string') computed[k.slice(0, 40)] = v.slice(0, 200)
+    }
+  }
+  return {
+    css,
+    computed,
+    cssTruncated: src.cssTruncated === true || css.length < cssFull.length,
+  }
+}
+
 function deliverPick(): Outcome {
   let raw = ''
   try {
@@ -57,6 +87,7 @@ function deliverPick(): Outcome {
     tagName: typeof data.tagName === 'string' ? data.tagName.slice(0, 40) : '',
     text: typeof data.text === 'string' ? data.text.slice(0, 200) : '',
     origin: typeof data.origin === 'string' ? data.origin.slice(0, 300) : '',
+    styleContext: normalizeStyleContext(data.styleContext),
     t: Date.now(),
   }
 

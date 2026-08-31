@@ -20,6 +20,7 @@ interface WizardDraftBody {
   url?: string | null
   selector?: string | null
   original_html?: string | null
+  site_css?: string | null
   variant_b_html?: string | null
   variant_b_css?: string | null
   variant_text?: string | null
@@ -77,6 +78,7 @@ export async function PUT(req: Request) {
   if (body.url && body.url.length > 2048) return Response.json({ error: 'url too long' }, { status: 400, headers })
   if (body.selector && body.selector.length > 512) return Response.json({ error: 'selector too long' }, { status: 400, headers })
   if (body.original_html && body.original_html.length > 50000) return Response.json({ error: 'original_html too long' }, { status: 400, headers })
+  if (body.site_css && body.site_css.length > 50000) return Response.json({ error: 'site_css too long' }, { status: 400, headers })
   if (body.variant_b_html && body.variant_b_html.length > 50000) return Response.json({ error: 'variant_b_html too long' }, { status: 400, headers })
   if (body.variant_b_css && body.variant_b_css.length > 50000) return Response.json({ error: 'variant_b_css too long' }, { status: 400, headers })
 
@@ -86,6 +88,7 @@ export async function PUT(req: Request) {
   if (body.url !== undefined) upsertData.url = body.url
   if (body.selector !== undefined) upsertData.selector = body.selector
   if (body.original_html !== undefined) upsertData.original_html = body.original_html
+  if (body.site_css !== undefined) upsertData.site_css = body.site_css
   if (body.variant_b_html !== undefined) upsertData.variant_b_html = body.variant_b_html
   if (body.variant_b_css !== undefined) upsertData.variant_b_css = body.variant_b_css
   if (body.variant_text !== undefined) upsertData.variant_text = body.variant_text

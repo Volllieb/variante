@@ -79,6 +79,9 @@ export function StepVariantB({
           original: element.originalHtml || `<${element.elementType}>`,
           elementType: element.elementType,
           selector: element.selector || undefined,
+          // Style-Kontext vom Picker (Site-CSS) — der Parameter existiert in
+          // generateVariantText bereits und wurde bisher nur vom Agent-Pfad befüllt.
+          pageContext: element.styleContext?.css || undefined,
         }),
       })
 

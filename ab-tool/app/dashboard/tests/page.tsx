@@ -17,7 +17,7 @@ export default async function TestsPage() {
       .single(),
     supabase
       .from('tests')
-      .select('id, name, site_url, status, health_status, health_issues, selector, original_html, goal, variant_b_html, variant_b_css, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, traffic_split, min_visitors, min_uplift')
+      .select('id, name, site_url, status, health_status, health_issues, selector, original_html, site_css, goal, variant_b_html, variant_b_css, visitors_a, visitors_b, conversions_a, conversions_b, winner, created_at, traffic_split, min_visitors, min_uplift')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase

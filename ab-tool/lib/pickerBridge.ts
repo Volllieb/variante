@@ -16,6 +16,20 @@
 
 import { useEffect, useRef } from 'react'
 
+/**
+ * Style-Kontext des Originals, den der Picker mitliefert.
+ * Grundlage für das Delta-Modell des Editors (B erbt A statt A zu ersetzen)
+ * und für die Vorschau mit echtem Site-CSS.
+ */
+export interface StyleContext {
+  /** Relevantes CSS des Originals (inkl. @media-Wrapper, ggf. gekappt). */
+  css: string
+  /** Gemessene Computed-Styles des Originals (Fallback, wenn css gekappt). */
+  computed: Record<string, string>
+  /** true, wenn css im Fragment-Fallback gekappt wurde → Vorschau auf computed-only. */
+  cssTruncated?: boolean
+}
+
 export interface PickerPayload {
   selector: string
   html?: string
@@ -23,6 +37,7 @@ export interface PickerPayload {
   text?: string
   /** Origin der Seite, auf der gepickt wurde — wird gegen die Ziel-URL geprüft. */
   origin?: string
+  styleContext?: StyleContext
 }
 
 export const PICKER_STORAGE_KEY = 'variante:picker-pick'
