@@ -101,21 +101,9 @@
         try { return el.matches(base) } catch (_) { return false }
       }
       var COMPUTED_PROPS = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-width','border-style','border-color','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
-      function computedBlock(el) {
-        try {
-          var cs = getComputedStyle(el)
-          var lines = []
-          for (var i = 0; i < COMPUTED_PROPS.length; i++) {
-            var v = cs.getPropertyValue(COMPUTED_PROPS[i])
-            if (v && v !== 'none' && v !== 'normal') lines.push('  ' + COMPUTED_PROPS[i] + ': ' + v + ';')
-          }
-          if (!lines.length) return ''
-          return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
-        } catch (_) { return '' }
-      }
-      // Gleiche Messung wie computedBlock, aber als Map — Grundlage fuer die
-      // Style-Baseline des Delta-Editors im Wizard.
-      function computedMap(el) {
+      // Eine Messung, zwei Ausgaben: computedBlock und computedMap brauchten
+      // vorher je einen getComputedStyle-Durchlauf ueber dieselben Properties.
+      function computedValues(el) {
         try {
           var cs = getComputedStyle(el)
           var out = {}
@@ -126,9 +114,26 @@
           return out
         } catch (_) { return {} }
       }
+      function computedBlock(el) {
+        var vals = computedValues(el)
+        var lines = []
+        for (var prop in vals) lines.push('  ' + prop + ': ' + vals[prop] + ';')
+        if (!lines.length) return ''
+        return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
+      }
+      // Gleiche Messung wie computedBlock, aber als Map — Grundlage fuer die
+      // Style-Baseline des Delta-Editors im Wizard.
+      function computedMap(el) {
+        return computedValues(el)
+      }
       function collectCss(el) {
-        var out = [], seen = {}
-        function push(rule) { if (!seen[rule.cssText]) { seen[rule.cssText] = true; out.push(rule.cssText) } }
+        var out = [], seen = {}, len = 0
+        function push(rule) {
+          if (seen[rule.cssText]) return
+          seen[rule.cssText] = true
+          out.push(rule.cssText)
+          len += rule.cssText.length
+        }
         function consider(rule, condPrefix) {
           try {
             var sel = rule.selectorText; if (!sel) return
@@ -154,19 +159,19 @@
         }
         try {
           var sheets = document.styleSheets
-          for (var i = 0; i < sheets.length; i++) {
+          for (var i = 0; i < sheets.length && len < 18000; i++) {
             // Skip cross-origin stylesheets — cssRules access throws anyway.
             // location.origin check catches CDN / third-party CSS (fonts, analytics).
             var href = sheets[i].href
             if (href && href.indexOf(location.origin) !== 0 && href.charAt(0) !== '/') continue
             var rules; try { rules = sheets[i].cssRules } catch (_) { continue }
             if (!rules) continue
-            for (var j = 0; j < rules.length; j++) {
+            for (var j = 0; j < rules.length && len < 18000; j++) {
               var rule = rules[j]
               if (rule.type === CSSRule.STYLE_RULE) consider(rule, null)
               else if (rule.cssRules) {
                 var prefix = condPrefixOf(rule)
-                for (var k = 0; k < rule.cssRules.length; k++) {
+                for (var k = 0; k < rule.cssRules.length && len < 18000; k++) {
                   if (rule.cssRules[k].type === CSSRule.STYLE_RULE) consider(rule.cssRules[k], prefix)
                 }
               }
@@ -635,8 +640,11 @@
   // Doppelpunkt" wuerde legitime Pseudoklassen wie "a:hover" mitreissen.
   function normGoal(goal, selector) {
     var g = (goal || '').trim()
-    if (g.indexOf('click:') === 0) return g.slice(6).trim() || selector
-    if (g.indexOf('url:') === 0) {
+    // Praefix-Vergleich case-insensitive: 'Click:…' oder 'URL:…' aus alten
+    // Beständen muss genauso erkannt werden wie die kanonische Form.
+    var lower = g.toLowerCase()
+    if (lower.indexOf('click:') === 0) return g.slice(6).trim() || selector
+    if (lower.indexOf('url:') === 0) {
       try {
         console.warn('[variante] URL goals are not supported by the snippet — no conversions are tracked for this test. Pick a click goal in the dashboard.')
       } catch (_) {}
@@ -1150,7 +1158,10 @@
         var dst = findAction(node, ACTION_SEL_DST) || node
         var mode = src ? portInteraction(src, dst) : null
         // Klassen/Styles von A auf B, bevor A ersetzt oder versteckt wird.
-        if (src) adoptPresentation(src, dst)
+        // Auch ohne interaktives src (h2/p/div/…): adoptPresentation braucht
+        // nur das Original. Scratch-Varianten solcher Elemente bekamen sonst
+        // nie A's Klassen und verloren das komplette Site-CSS.
+        adoptPresentation(src || el, dst)
         // Cursor jetzt lesen: im navigate-Zweig ist A gleich weg.
         var srcCursor = src ? readCursor(src) : null
         if (mode === 'navigate') {

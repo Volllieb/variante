@@ -187,8 +187,34 @@ check('Tests ohne Entscheidung erscheinen gar nicht', () => {
 check('estimateTimeToDecision rechnet fehlende Besucher pro Arm', () => {
   const t = test({ visitors_a: 400, visitors_b: 600, created_at: daysAgo(10) })
   const est = estimateTimeToDecision(t, NOW)
-  assert.equal(est.visitorsNeeded, 1000)   // (1000-400) + (1000-600)
-  assert.equal(est.daysNeeded, 10)         // 1000 Besucher in 10 Tagen → 100/Tag
+  assert.equal(est.visitorsNeeded, 1000)   // (1000-400) + (1000-600), nur zur Anzeige
+  // ponytail: Hier stand 10 — aus 1000 fehlenden Besuchern geteilt durch das
+  // GESAMTTEMPO von 100/Tag. Die Arme füllen sich aber parallel, jeder mit
+  // seinem eigenen Tempo: A bekommt 40/Tag und braucht für die fehlenden 600
+  // noch 15 Tage, B ist nach 6,7 Tagen fertig. Maßgeblich ist der langsamere.
+  assert.equal(est.daysNeeded, 15)
+})
+
+check('ein einseitiger Split wird nicht mehr schöngerechnet', () => {
+  // 90/10: A ist längst durch, B kriecht mit 20/Tag. Die alte Formel teilte
+  // die 800 fehlenden Besucher durch 520/Tag Gesamttempo und meldete "~2 Tage".
+  const t = test({ visitors_a: 5000, visitors_b: 200, created_at: daysAgo(10) })
+  assert.equal(estimateTimeToDecision(t, NOW).daysNeeded, 40)
+})
+
+check('das Tempo der letzten Tage schlägt das Lebenszeit-Mittel', () => {
+  // Erst zäh, seit drei Tagen Kampagne. Ohne Tageszeilen bleibt es beim Mittel.
+  const t = test({ visitors_a: 520, visitors_b: 520, created_at: daysAgo(30) })
+  const dateAgo = (d) => new Date(NOW - d * 86_400_000).toISOString().slice(0, 10)
+  const daily = []
+  for (const back of [10, 9, 8, 7, 6, 5, 4]) {
+    daily.push({ test_id: t.id, date: dateAgo(back), visitors_a: 10, visitors_b: 10, conversions_a: 0, conversions_b: 0 })
+  }
+  for (const back of [3, 2, 1]) {
+    daily.push({ test_id: t.id, date: dateAgo(back), visitors_a: 150, visitors_b: 150, conversions_a: 5, conversions_b: 5 })
+  }
+  assert.equal(estimateTimeToDecision(t, NOW).daysNeeded, 28)
+  assert.equal(estimateTimeToDecision(t, NOW, daily).daysNeeded, 4)
 })
 
 check('erreichte Schwelle → nichts mehr offen', () => {
@@ -205,8 +231,8 @@ check('die Tage-Hochrechnung wackelt nicht wegen ein paar Millisekunden', () => 
   // created_at exakt 10 Tage her, ausgewertet 5 ms später: ohne Kürzung vor
   // dem Aufrunden zeigt dieselbe Datenlage mal "~10d" und mal "~11d".
   const t = test({ visitors_a: 400, visitors_b: 600, created_at: daysAgo(10) })
-  assert.equal(estimateTimeToDecision(t, NOW).daysNeeded, 10)
-  assert.equal(estimateTimeToDecision(t, NOW + 5).daysNeeded, 10)
+  assert.equal(estimateTimeToDecision(t, NOW).daysNeeded, 15)
+  assert.equal(estimateTimeToDecision(t, NOW + 5).daysNeeded, 15)
 })
 
 check('frischer Test ohne messbares Tempo wird nicht hochgerechnet', () => {

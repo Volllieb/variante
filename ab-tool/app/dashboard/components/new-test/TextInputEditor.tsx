@@ -22,6 +22,11 @@ import type { ElementSelection } from '../NewTestDrawer'
 interface TextInputEditorProps {
   element: ElementSelection
   originalHtml: string
+  /**
+   * Bestehendes Varianten-CSS (KI-Ergebnis). Im inherit-Modus bleibt es
+   * erhalten — ein reiner Text-Edit darf das KI-Design nicht wegwerfen.
+   */
+  baseCss?: string | null
   onApply: (html: string, css: string) => void
   onCancel: () => void
 }
@@ -34,7 +39,7 @@ function generateTextCss(selector: string): string {
   return `${selector} {\n  transition: all 0.2s ease;\n}`
 }
 
-export function TextInputEditor({ element, originalHtml, onApply, onCancel }: TextInputEditorProps) {
+export function TextInputEditor({ element, originalHtml, baseCss, onApply, onCancel }: TextInputEditorProps) {
   const originalText = extractTextFromHtml(originalHtml)
   const [mode, setMode] = useState<EditorMode>('inherit')
   const [text, setText] = useState(originalText)
@@ -42,8 +47,9 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
   function handleApply() {
     const selector = element.selector || element.elementName
     if (mode === 'inherit') {
-      // Reines Text-Delta: A's Markup bleibt, kein CSS nötig.
-      onApply(inheritRootHtml(originalHtml, text || originalText), '')
+      // Reines Text-Delta: A's Markup bleibt, kein neues CSS nötig — aber ein
+      // bestehendes Varianten-CSS (KI-Ergebnis) bleibt erhalten.
+      onApply(inheritRootHtml(originalHtml, text || originalText), baseCss ?? '')
       return
     }
     onApply(scratchVariantHtml(text || originalText, 'span'), generateTextCss(selector))
@@ -61,7 +67,7 @@ export function TextInputEditor({ element, originalHtml, onApply, onCancel }: Te
         html: mode === 'inherit'
           ? inheritRootHtml(originalHtml, text || originalText)
           : scratchVariantHtml(text || originalText, 'span'),
-        css: mode === 'inherit' ? '' : generateTextCss(selector),
+        css: mode === 'inherit' ? baseCss ?? '' : generateTextCss(selector),
         scopeToSelector: mode === 'inherit',
         selector,
       },

@@ -17,6 +17,7 @@ import {
 } from '@/lib/significance'
 import {
   formatCreatedAt,
+  formatDayLabel,
   exportCsv,
   computeReadiness,
   calcUplift,
@@ -124,6 +125,14 @@ function ForecastBadge({ forecast }: { forecast: Forecast }) {
   const headline =
     limitedBy === 'no-traffic'
       ? 'One variant is getting no traffic — it cannot finish like this'
+      : limitedBy === 'no-conversions'
+      ? 'No conversions are being tracked — the goal may not be firing'
+      : limitedBy === 'insufficient-data'
+      ? 'Too little data to estimate yet — keep driving traffic'
+      : limitedBy === 'ready'
+      ? 'All requirements met — the winner can be called now'
+      : limitedBy === 'uplift'
+      ? 'B is ahead, but below your minimum uplift — no ETA at this difference'
       : limitedBy === 'beyond-horizon'
       ? `More than ${formatHorizon(FORECAST_HORIZON_DAYS)} at the current pace`
       : `${lowerBound ? 'At least ' : ''}${formatHorizon(days ?? 0)} until a winner can be called`
@@ -148,7 +157,7 @@ function ForecastBadge({ forecast }: { forecast: Forecast }) {
         <Clock className={`h-3 w-3 shrink-0 ${alarming ? 'text-err' : 'text-pro'}`} />
         <span className={`text-[11px] ${alarming ? 'text-err' : 'text-pro/90'}`}>{headline}</span>
       </div>
-      {limitedBy !== 'no-traffic' && (
+      {(days !== null || limitedBy === 'beyond-horizon') && (
         <span className="text-[10px] text-text-3">{note}</span>
       )}
     </div>
@@ -361,10 +370,11 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     minVisitorsPerArm: effectiveMinVisitors,
     minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
     minRuntimeDays: MIN_RUNTIME_DAYS,
+    minUplift,
     createdAt: created_at,
     now,
   })
-  const { visitors: visitorsReq, conversions: convReq, runtime } = readiness
+  const { visitors: visitorsReq, conversions: convReq, runtime, uplift: upliftReq } = readiness
   const allCriteriaMet = readiness.allMet
 
   // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
@@ -396,6 +406,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         minVisitorsPerArm: effectiveMinVisitors,
         minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
         minRuntimeDays: MIN_RUNTIME_DAYS,
+        minUplift,
         createdAt: created_at,
         now,
         daily: analytics?.daily,
@@ -737,9 +748,44 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   />
                 </div>
               </div>
+              {/* Min-Uplift: der Gate aus evaluateWinner() — kein Pro-Arm-Wert.
+                  Liegt B nicht vorn, blockiert der Gate nicht (A kann gewinnen)
+                  und die Zeile steht auf ✓. */}
+              <div>
+                <div className="flex justify-between text-[10px] mb-0.5">
+                  <span className={upliftReq.met ? 'text-ok' : 'text-text-3'}>
+                    {upliftReq.met ? '✓' : '○'} Min uplift (B)
+                  </span>
+                  <span
+                    className="text-text-3 tabular-nums whitespace-nowrap"
+                    title={
+                      upliftReq.lift === null
+                        ? 'Not enough conversions in both variants yet — the estimate would be noise'
+                        : upliftReq.lift <= 0
+                        ? 'B is not ahead — the minimum-uplift gate only applies to B; A can win'
+                        : 'Variant B vs. Variant A'
+                    }
+                  >
+                    {upliftReq.lift !== null ? formatDelta(upliftReq.lift) : '—'} / {upliftReq.target}%
+                  </span>
+                </div>
+                <div
+                  className="h-1 overflow-hidden rounded-full bg-bg-2"
+                  role="progressbar"
+                  aria-valuenow={upliftReq.pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Min uplift B: ${upliftReq.lift !== null ? formatDelta(upliftReq.lift) : 'not enough data yet'}, target ${upliftReq.target}%`}
+                >
+                  <div
+                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${upliftReq.met ? 'bg-ok/60' : 'bg-text-3/40'}`}
+                    style={{ width: `${upliftReq.pct}%` }}
+                  />
+                </div>
+              </div>
               {!decided && !allCriteriaMet && (
                 <p className="text-[9px] text-text-3 italic">
-                  Each variant must clear both thresholds, and all three lines must be met, before a winner is declared.
+                  Each variant must clear both thresholds, and every line must be met, before a winner is declared.
                 </p>
               )}
               {!decided && allCriteriaMet && significance < significanceLevel && (
@@ -809,7 +855,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             >
               <LineChart
                 data={analytics.daily.map((d) => ({
-                  date: new Date(d.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
+                  date: formatDayLabel(d.date),
                   A: d.visitors_a,
                   B: d.visitors_b,
                 }))}
@@ -850,7 +896,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               showLegend
               className="h-[180px] w-full"
               role="img"
-              aria-label={`Cumulative conversions: ${formatCount(a.conversions + b.conversions)} total conversions over ${analytics.daily.length} days`}
+              aria-label={`Cumulative conversions: ${formatCount(totalConversions)} total conversions over ${analytics.daily.length} days`}
             >
               <LineChart
                 data={(() => {
@@ -859,7 +905,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     cumA += d.conversions_a
                     cumB += d.conversions_b
                     return {
-                      date: new Date(d.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
+                      date: formatDayLabel(d.date),
                       A: cumA,
                       B: cumB,
                     }
@@ -912,7 +958,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     cumVB += d.visitors_b; cumCB += d.conversions_b
                     const sig = calcSignificance(cumVA, cumCA, cumVB, cumCB)
                     return {
-                      date: new Date(d.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
+                      date: formatDayLabel(d.date),
                       significance: Math.round(sig * 100),
                     }
                   })
@@ -1287,7 +1333,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       const rowLift = dailyLift(row)
                       return (
                         <tr key={row.date} className="border-b border-border text-text-3 transition-colors duration-[var(--duration-fast)] ease-out hover:bg-bg-2 hover:text-text-2">
-                          <td className="py-1.5 pr-3">{new Date(row.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })}</td>
+                          <td className="py-1.5 pr-3">{formatDayLabel(row.date)}</td>
                           <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.visitors_a)}</td>
                           <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.visitors_b)}</td>
                           <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.conversions_a)}</td>

@@ -24,6 +24,23 @@ export type AnalyticsData = {
   daily: DailyRow[]
 }
 
+/**
+ * 'YYYY-MM-DD' als Datums-Label, ohne Zeitzonen-Kippe.
+ *
+ * `new Date('YYYY-MM-DD')` parst UTC-Mitternacht — `toLocaleDateString`
+ * zeigt in Zeitzonen westlich von UTC (ganz Amerika) den VORHERIGEN Tag an.
+ * Lokal geparst (y, m, d als Argumente) bleibt der Tag der, den die DB
+ * geschrieben hat. Chart-Achsen und Tagestabelle liefen sonst einen Tag
+ * hinter dem CSV-Export her, der per toISOString (UTC) korrekt bleibt.
+ */
+export function formatDayLabel(date: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(date)
+  if (!m) return date
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  if (Number.isNaN(d.getTime())) return date.slice(0, 10)
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })
+}
+
 export function formatCreatedAt(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const m = Math.floor(diff / 60000)
@@ -87,51 +104,9 @@ export function exportCsv(daily: DailyRow[], testName: string): void {
   a.click()
   URL.revokeObjectURL(url)
 }
-
-/** Time-to-significance Schätzung: wie viele Tage bis zur Ziel-Signifikanz. */
-export function estimateDaysToSignificance(
-  totalVisitors: number,
-  significance: number,
-  createdAt: string,
-  targetSignificance: number,
-  nowTs: number
-): number | null {
-  if (significance <= 0 || significance >= targetSignificance) return null
-  if (totalVisitors < 100) return null
-
-  const daysRunning = Math.max(1, (nowTs - new Date(createdAt).getTime()) / 86_400_000)
-
-  const zNow = zForSig(significance)
-  const zTarget = zForSig(targetSignificance)
-  if (zNow <= 0) return null
-
-  const ratio = (zTarget / zNow) ** 2
-  const additionalVisitorsNeeded = totalVisitors * (ratio - 1)
-  const dailyTraffic = totalVisitors / daysRunning
-
-  if (dailyTraffic <= 0) return null
-  const daysEstimate = Math.ceil(additionalVisitorsNeeded / dailyTraffic)
-  return Math.max(1, daysEstimate)
-}
-
-function zForSig(s: number): number {
-  const pairs = [
-    [0.50, 0.0], [0.60, 0.253], [0.70, 0.524], [0.75, 0.674],
-    [0.80, 0.842], [0.85, 1.036], [0.90, 1.282], [0.92, 1.405],
-    [0.95, 1.645], [0.98, 2.054], [0.99, 2.326],
-  ]
-  for (let i = 0; i < pairs.length - 1; i++) {
-    if (s <= pairs[i + 1][0]) {
-      const t = (s - pairs[i][0]) / (pairs[i + 1][0] - pairs[i][0])
-      return Number(pairs[i][1]) + t * (Number(pairs[i + 1][1]) - Number(pairs[i][1]))
-    }
-  }
-  return 2.5
-}
-
-export function progressPct(current: number, target: number): number {
-  return Math.min(100, Math.round((current / Math.max(1, target)) * 100))
-}
+// estimateDaysToSignificance() und die Restlaufzeit-Hochrechnung sind nach
+// lib/forecast.ts gezogen — dort liegt jetzt die gesamte Zeitprognose,
+// gemeinsam für Results-Seite und Dashboard-Overview.
 
 /** Parse DB goal format into UI state. */
 export function parseGoal(dbGoal: string | null): { type: 'element' | 'click' | 'url'; value: string } {
@@ -279,11 +254,27 @@ export function calcUplift(a: ArmCounts, b: ArmCounts): number | null {
   return ((crB - crA) / crA) * 100
 }
 
+export type UpliftCriterion = {
+  /** Aktueller Uplift von B gegenüber A in Prozent; null = zu wenig Daten. */
+  lift: number | null
+  /** Mindest-Uplift in Prozent (aus min_uplift, Fraktion → Prozent). */
+  target: number
+  pct: number
+  /**
+   * Erfüllt, wenn der Gate aus evaluateWinner() nicht blockiert: B liegt über
+   * der Schwelle — ODER B liegt nicht vorn (dann gewinnt A, sobald alles
+   * andere steht, und der Gate greift gar nicht erst).
+   */
+  met: boolean
+}
+
 export type Readiness = {
   visitors: ArmCriterion
   conversions: ArmCriterion
   runtime: { days: number; target: number; pct: number; met: boolean }
-  /** Alle drei Schwellen erreicht — es fehlt höchstens noch die Konfidenz. */
+  /** Min-Uplift-Gate aus evaluateWinner() — kein Pro-Arm-Kriterium. */
+  uplift: UpliftCriterion
+  /** Alle vier Schwellen erreicht — es fehlt höchstens noch die Konfidenz. */
   allMet: boolean
 }
 
@@ -297,10 +288,12 @@ export function computeReadiness(params: {
   minVisitorsPerArm: number
   minConversionsPerArm: number
   minRuntimeDays: number
+  /** Fraktion (0.05 = 5 %), wie evaluateWinner() sie liest. */
+  minUplift?: number
   createdAt: string
   now: number
 }): Readiness {
-  const { a, b, minVisitorsPerArm, minConversionsPerArm, minRuntimeDays, createdAt, now } = params
+  const { a, b, minVisitorsPerArm, minConversionsPerArm, minRuntimeDays, minUplift = 0.05, createdAt, now } = params
   const visitors = armCriterion(a.views, b.views, minVisitorsPerArm)
   const conversions = armCriterion(a.conversions, b.conversions, minConversionsPerArm)
   const days = daysSince(createdAt, now)
@@ -310,7 +303,25 @@ export function computeReadiness(params: {
     pct: gatePct(days, minRuntimeDays),
     met: days >= minRuntimeDays,
   }
-  return { visitors, conversions, runtime, allMet: visitors.met && conversions.met && runtime.met }
+  // Uplift-Gate wie evaluateWinner() (`(crB - crA) / crA < minUplift` blockiert
+  // die Entscheidung). Dieselbe Datenschwelle wie die Hero-Card: unter
+  // MIN_CONV_FOR_UPLIFT pro Arm ist die Schätzung Rauschen und der Gate nicht
+  // bewerbar — die Zahl würde eine Zuversicht vortäuschen, die sie nicht hat.
+  const lift = conversions.lagging >= MIN_CONV_FOR_UPLIFT ? calcUplift(a, b) : null
+  const target = minUplift * 100
+  const uplift: UpliftCriterion = {
+    lift,
+    target,
+    pct: lift === null ? 0 : lift <= 0 ? 100 : gatePct(lift, target),
+    met: lift !== null && (lift >= target || lift <= 0),
+  }
+  return {
+    visitors,
+    conversions,
+    runtime,
+    uplift,
+    allMet: visitors.met && conversions.met && runtime.met && uplift.met,
+  }
 }
 
 /** Laufzeit in Tagen, nie negativ; 0 wenn created_at unbrauchbar ist. */
@@ -318,69 +329,4 @@ export function daysSince(createdAt: string, now: number): number {
   const started = new Date(createdAt).getTime()
   if (!Number.isFinite(started)) return 0
   return Math.max(0, (now - started) / 86_400_000)
-}
-
-/**
- * Wie viele Tage, bis der Test überhaupt entscheidbar ist.
- *
- * ponytail: Vorher schätzte die Karte nur die Zeit bis zur Signifikanz und
- * schrieb "~2 days to 95% confidence" — während derselbe Test im Feld daneben
- * 30 von 1.000 Besuchern pro Arm stehen hatte und damit frühestens in Wochen
- * einen Gewinner bekommen konnte. Die Schätzung ist jetzt das Maximum über
- * alle Bedingungen, die evaluateWinner tatsächlich prüft.
- *
- * Rückgabe ist ein frühestmöglicher Termin, keine Zusage: Traffic und
- * Conversion Rate werden aus dem bisherigen Verlauf fortgeschrieben.
- * null = nicht schätzbar (zu wenig Daten oder ein Arm ohne Conversions).
- */
-export function estimateDaysToReady(params: {
-  a: ArmCounts
-  b: ArmCounts
-  significance: number
-  significanceLevel: number
-  minVisitorsPerArm: number
-  minConversionsPerArm: number
-  minRuntimeDays: number
-  createdAt: string
-  now: number
-}): number | null {
-  const {
-    a, b, significance, significanceLevel,
-    minVisitorsPerArm, minConversionsPerArm, minRuntimeDays, createdAt, now,
-  } = params
-
-  const elapsed = daysSince(createdAt, now)
-  // Untergrenze 1 Tag wie in estimateDaysToSignificance: in der ersten Stunde
-  // eines Tests ist die Hochrechnung "5 Besucher in 6 Minuten = 1.200/Tag"
-  // reine Fantasie. Lieber konservativ schätzen als zu früh Hoffnung machen.
-  const rateDays = Math.max(1, elapsed)
-
-  /** Tage, bis `have` per linearer Fortschreibung `target` erreicht. */
-  function daysUntil(have: number, target: number): number | null {
-    if (have >= target) return 0
-    if (have <= 0) return null // ohne einen einzigen Datenpunkt keine Rate
-    return (target - have) / (have / rateDays)
-  }
-
-  const parts: number[] = [Math.max(0, minRuntimeDays - elapsed)]
-
-  for (const arm of [a, b]) {
-    const v = daysUntil(arm.views, minVisitorsPerArm)
-    const c = daysUntil(arm.conversions, minConversionsPerArm)
-    if (v === null || c === null) return null
-    parts.push(v, c)
-  }
-
-  if (significance < significanceLevel) {
-    const sig = estimateDaysToSignificance(
-      a.views + b.views, significance, createdAt, significanceLevel, now
-    )
-    // null heißt hier "noch nicht schätzbar", nicht "nicht nötig" — dann bleibt
-    // die Ausgabe die Untergrenze aus den übrigen Bedingungen.
-    if (sig !== null) parts.push(sig)
-  }
-
-  const days = Math.max(...parts)
-  if (!Number.isFinite(days) || days <= 0) return null
-  return Math.max(1, Math.ceil(days))
 }

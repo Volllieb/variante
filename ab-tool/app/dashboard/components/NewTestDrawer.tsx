@@ -23,6 +23,7 @@ import type { TestRow } from './TestCard'
 import { StepVariantB } from './new-test/StepVariantB'
 import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
+import { collectedOriginalComputed } from './new-test/delta'
 import { useFocusTrap } from '@/lib/useFocusTrap'
 
 
@@ -185,7 +186,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             originalHtml: resumeTest.original_html ?? '',
             elementType: 'element',
             elementName: resumeTest.selector,
-            styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: {} } : undefined,
+            styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: collectedOriginalComputed(resumeTest.site_css) ?? {} } : undefined,
           } : null,
           elementConfirmed: !!resumeTest.selector,
           variantResult: resumeTest.variant_b_html ? {
@@ -217,7 +218,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               originalHtml: draft.original_html ?? '',
               elementType: 'element',
               elementName: draft.selector,
-              styleContext: draft.site_css ? { css: draft.site_css, computed: {} } : undefined,
+              styleContext: draft.site_css ? { css: draft.site_css, computed: collectedOriginalComputed(draft.site_css) ?? {} } : undefined,
             } : null,
             elementConfirmed: !!draft.selector,
             variantResult: draft.variant_text ? {

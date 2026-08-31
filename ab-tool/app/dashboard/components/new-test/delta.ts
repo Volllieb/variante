@@ -91,12 +91,15 @@ function rgbToHex(v: string | undefined): string | undefined {
   return `#${hex}`
 }
 
-const BORDER_STYLE_VALUES = new Set(['solid', 'dashed', 'dotted', 'none'])
-
 /**
  * Übersetzt die Computed-Styles des Pickers in die Baseline des Editors.
  * Liefert null, wenn nichts Brauchbares messbar war — der Editor fällt dann
  * auf absolute Werte (DEFAULT_EDITS) zurück.
+ *
+ * border-style wird bewusst nicht auf die vier UI-Optionen eingeschränkt:
+ * eine gemessene Baseline mit ridge/double/outset/… muss als Ausgangswert
+ * durchgereicht werden, sonst behandelt das Delta ein unverändertes
+ * "border-style: ridge" als Änderung und emittiert es fälschlich.
  */
 export function buildStyleBaseline(
   computed: Record<string, string> | undefined | null
@@ -128,9 +131,95 @@ export function buildStyleBaseline(
   const borderColor = rgbToHex(computed['border-color'])
   if (borderColor) b.borderColor = borderColor
   const borderStyle = (computed['border-style'] ?? '').trim()
-  if (BORDER_STYLE_VALUES.has(borderStyle)) b.borderStyle = borderStyle as StyleBaseline['borderStyle']
+  if (borderStyle) b.borderStyle = borderStyle
 
   return Object.keys(b).length ? b : null
+}
+
+// ─── Baseline aus bestehendem CSS (Draft-Resume, KI-Ergebnis) ───
+
+/** Property-Namen, die buildStyleBaseline liest — inkl. Shorthands, die KI-CSS üblicherweise nutzt. */
+const BASELINE_PROPS: Record<string, string> = {
+  'background-color': 'background-color',
+  background: 'background-color',
+  color: 'color',
+  'font-size': 'font-size',
+  'font-weight': 'font-weight',
+  'border-radius': 'border-radius',
+  padding: 'padding',
+  'border-width': 'border-width',
+  'border-color': 'border-color',
+  'border-style': 'border-style',
+  border: 'border-color',
+}
+
+/**
+ * Zerlegt CSS-Deklarationen in die Baseline-Form von buildStyleBaseline.
+ *
+ * Wird für zwei Fälle gebraucht, in denen die gemessenen Computed-Styles des
+ * Pickers nicht verfügbar sind, aber das Aussehen des Originals trotzdem in
+ * CSS vorliegt:
+ *   - Draft-Resume: der Picker schreibt die gemessenen Styles als
+ *     `.__original { … }`-Block in den gesammelten site_css.
+ *   - KI-Ergebnis editieren: die Baseline des Editors soll das KI-Design
+ *     sein, nicht das von A.
+ */
+export function baselineFromCss(css: string | null | undefined): StyleBaseline | null {
+  if (!css) return null
+  // Kommentare zuerst raus: "/* color: red */" würde sonst die Baseline
+  // kapern, wenn es vor der echten Deklaration steht.
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const decls: Record<string, string> = {}
+  for (const match of clean.matchAll(/[\w-]+\s*:\s*[^;{}]+/g)) {
+    const sep = match[0].indexOf(':')
+    if (sep === -1) continue
+    const prop = match[0].slice(0, sep).trim().toLowerCase()
+    const value = match[0].slice(sep + 1).trim()
+    const target = BASELINE_PROPS[prop]
+    if (target && !(target in decls)) decls[target] = value
+  }
+  return buildStyleBaseline(decls)
+}
+
+/**
+ * Extrahiert den `.__original`-Block (gemessene Computed-Styles des Pickers)
+ * aus dem gesammelten Site-CSS eines Drafts — als Property-Map in der Form
+ * von `styleContext.computed` / `buildStyleBaseline`.
+ */
+export function collectedOriginalComputed(css: string | null | undefined): Record<string, string> | null {
+  if (!css) return null
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const m = /\.__original\s*\{([^{}]*)\}/.exec(clean)
+  if (!m) return null
+  const decls: Record<string, string> = {}
+  for (const match of m[1].matchAll(/[\w-]+\s*:\s*[^;{}]+/g)) {
+    const sep = match[0].indexOf(':')
+    if (sep === -1) continue
+    decls[match[0].slice(0, sep).trim().toLowerCase()] = match[0].slice(sep + 1).trim()
+  }
+  return Object.keys(decls).length ? decls : null
+}
+
+
+
+/**
+ * Hängt ein Delta an ein bestehendes Varianten-CSS an (KI-Ergebnis).
+ *
+ * Das Delta enthält nur die Properties, die der User im Editor geändert hat —
+ * alles andere des KI-Designs (letter-spacing, box-shadow, …) steht im
+ * Basis-CSS und darf beim Editieren nicht verschwinden. Das Delta kommt
+ * NACH dem Basis-CSS, gewinnt also bei gleicher Spezifität — genau wie zur
+ * Laufzeit (gescopte data-ab-el-Regeln gegen Site-Regeln).
+ */
+export function mergeVariantCss(
+  baseCss: string | null | undefined,
+  deltaCss: string
+): string {
+  const base = (baseCss ?? '').trim()
+  const delta = deltaCss.trim()
+  if (!base) return delta
+  if (!delta) return base
+  return `${base}\n\n${delta}`
 }
 
 /** Startwerte des Editors: Baseline, wenn vorhanden — sonst die Defaults. */

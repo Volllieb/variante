@@ -31,23 +31,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ testId: 
   // auseinanderlaufen.
   await supabase.rpc('snapshot_daily_stats', { p_test_id: testId })
 
-  // Zeitreihe der letzten 90 Tage.
+  // Zeitreihe über die GESAMTE Laufzeit, nicht nur die letzten 90 Tage.
   //
-  // ponytail: Hier stand `.order('date', { ascending: true }).limit(90)` — das
-  // liefert die ÄLTESTEN 90 Zeilen, nicht die jüngsten. Bei einem Test, der
-  // länger als 90 Tage läuft, froren damit sämtliche Zeitreihen auf Tag 90 ein:
-  // die Charts hörten mitten im laufenden Test auf, und die kumulierten
-  // Conversions widersprachen der Gesamtzahl in der Hero-Card, weil die letzten
-  // Tage schlicht fehlten. Jetzt wird über das Datum gefiltert und absteigend
-  // begrenzt; die Sortierung für die Anzeige stellt der Aufrufer wieder her.
-  const since = new Date(Date.now() - 90 * 86_400_000).toISOString().slice(0, 10)
+  // Die Hero-Card zeigt Allzeit-Zähler; der kumulierte Conversions-Chart
+  // summierte vorher nur das 90-Tage-Fenster auf — der letzte Punkt der Kurve
+  // widersprach der Gesamtzahl zwei Boxen weiter oben ("eine Aggregation pro
+  // Zahl"). Eine Tageszeile ist winzig (ein Snapshot pro Tag, Migration 039),
+  // die 730er-Grenze ist reine Vorsicht für Jahrzehnte-Tests. Die Sortierung
+  // für die Anzeige stellt der Aufrufer wieder her.
   const { data: stats, error } = await supabase
     .from('daily_stats')
     .select('date, visitors_a, visitors_b, conversions_a, conversions_b')
     .eq('test_id', testId)
-    .gte('date', since)
     .order('date', { ascending: false })
-    .limit(90)
+    .limit(730)
 
   if (error) {
     safeError('analytics', error)

@@ -53,10 +53,32 @@ describe('TestCard — Conversion-Ziel', () => {
 })
 
 describe('TestCard — Restweg bis zur Entscheidung', () => {
-  it('rechnet das Tempo in Tage um', () => {
-    // 1000 Besucher in 10 Tagen → 100/Tag; es fehlen 1000 → ~10 Tage.
+  it('rechnet das Tempo pro Arm in Tage um', () => {
+    // A: 400 in 10 Tagen → 40/Tag, es fehlen 600 → 15 Tage. B waere nach 7 Tagen
+    // durch. Beide Arme muessen die Schwelle reissen, also zaehlt der langsamere.
+    // (Vorher stand hier "~10d": fehlende Besucher beider Arme durch das
+    // Gesamttempo — eine Zahl, die nur bei gleichmaessiger Verteilung stimmt.)
     render(<TestCard t={test({ visitors_a: 400, visitors_b: 600 })} />)
-    expect(screen.getByText('~10d to decision')).toBeInTheDocument()
+    expect(screen.getByText('~15d to decision')).toBeInTheDocument()
+  })
+
+  it('folgt nach einem Traffic-Sprung den letzten Tagen', () => {
+    const dateAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString().slice(0, 10)
+    const daily = [
+      ...[10, 9, 8, 7, 6, 5, 4].map((d) => ({
+        test_id: 't1', date: dateAgo(d), visitors_a: 10, visitors_b: 10, conversions_a: 0, conversions_b: 0,
+      })),
+      ...[3, 2, 1].map((d) => ({
+        test_id: 't1', date: dateAgo(d), visitors_a: 150, visitors_b: 150, conversions_a: 5, conversions_b: 5,
+      })),
+    ]
+    const t = test({
+      visitors_a: 520,
+      visitors_b: 520,
+      created_at: new Date(Date.now() - 30 * 86_400_000).toISOString(),
+    })
+    render(<TestCard t={t} daily={daily} />)
+    expect(screen.getByText('~4d to decision')).toBeInTheDocument()
   })
 
   it('nennt fehlende Besucher, solange kein Tempo messbar ist', () => {

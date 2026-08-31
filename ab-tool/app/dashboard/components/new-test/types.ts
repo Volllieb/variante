@@ -22,7 +22,13 @@ export interface UserEdits {
   paddingY?: number
   borderWidth?: number
   borderColor?: string
-  borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none'
+  /**
+   * Beliebiges border-style-Keyword: die gemessene Baseline kann ridge,
+   * double, outset, … sein, auch wenn die UI nur vier Optionen anbietet.
+   * Die UI-Optionen bleiben die Auswahl; die Baseline darf trotzdem
+   * weitergereicht werden.
+   */
+  borderStyle?: string
   hoverEnabled?: boolean
   hoverBgColor?: string
   hoverScale?: number
@@ -48,7 +54,7 @@ export interface StyleBaseline {
   paddingY?: number
   borderWidth?: number
   borderColor?: string
-  borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none'
+  borderStyle?: string
 }
 
 /** `inherit`: B erbt Markup/Klassen von A, nur Änderungen werden emittiert. `scratch`: kompletter Neubau. */

@@ -246,24 +246,45 @@ check('nicht-interaktives B wird per Tastatur bedienbar', () => {
 // Der Cursor kommt nicht vom Aussehen: <a href> bekommt vom Browser
 // cursor:pointer, <button> nicht. Wird der Link zur <button>-Variante, zeigt
 // der Zeiger dort einen Pfeil — B wirkt tot, obwohl der Klick funktioniert.
+//
+// Seit "Variante B erbt A" kommen A's Klassen (und Inline-Styles) über
+// adoptPresentation mit — der Cursor wirkt dadurch meist schon über das
+// geerbte CSS. alignCursor setzt inline nur noch, wo die Vererbung nichts
+// liefert (z. B. das reine UA-pointer eines <a href>). Die Tests messen
+// deshalb den EFFEKTIVEN Cursor (getComputedStyle), nicht den Inline-Style.
 console.log('\n── Mauszeiger & Beschriftung ──\n')
 
 check('cursor des Originals landet auf der Variante', () => {
-  const { doc, api } = page('<style>.cta{cursor:pointer}</style><a id="cta" class="cta" href="/signup">Get started</a>')
+  const { dom, doc, api } = page('<style>.cta{cursor:pointer}</style><a id="cta" class="cta" href="/signup">Get started</a>')
   api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
-  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).style.cursor, 'pointer')
+  // B erbt die Klasse cta → .cta{cursor:pointer} wirkt auf B.
+  assert.equal(dom.window.getComputedStyle(doc.querySelector(`[data-ab-el="${KEY}"]`)).cursor, 'pointer')
 })
 
 check('abweichender cursor (not-allowed) wird nicht zu pointer verbogen', () => {
-  const { doc, api } = page('<style>.cta{cursor:not-allowed}</style><button id="cta" class="cta">Ausverkauft</button>', false)
+  const { dom, doc, api } = page('<style>.cta{cursor:not-allowed}</style><button id="cta" class="cta">Ausverkauft</button>', false)
   api.applyDom('#cta', 'B', '<button class="ab-variant-b">Ausverkauft</button>', KEY)
-  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).style.cursor, 'not-allowed')
+  // A's not-allowed gehört zum Verhalten und wandert mit der Klasse mit.
+  assert.equal(dom.window.getComputedStyle(doc.querySelector(`[data-ab-el="${KEY}"]`)).cursor, 'not-allowed')
 })
 
 check('bringt B den cursor selbst mit, wird nichts gesetzt', () => {
-  const { doc, api } = page('<style>.cta{cursor:pointer}.ab-variant-b{cursor:pointer}</style><a id="cta" class="cta" href="/signup">Get started</a>')
+  const { dom, doc, api } = page('<style>.cta{cursor:pointer}.ab-variant-b{cursor:pointer}</style><a id="cta" class="cta" href="/signup">Get started</a>')
   api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
-  assert.equal(doc.querySelector(`[data-ab-el="${KEY}"]`).style.cursor, '')
+  const b = doc.querySelector(`[data-ab-el="${KEY}"]`)
+  // B's eigene Klasse liefert denselben Cursor wie A: alignCursor sieht
+  // keinen Unterschied und schreibt nichts inline — die Wirkung ist gleich.
+  assert.equal(b.style.cursor, '')
+  assert.equal(dom.window.getComputedStyle(b).cursor, 'pointer')
+})
+
+check('cursor aus Inline-Style von A wandert mit, wenn B keinen eigenen setzt', () => {
+  const { dom, doc, api } = page('<a id="cta" href="/signup" style="cursor:crosshair">Get started</a>')
+  api.applyDom('#cta', 'B', '<button class="ab-variant-b">Start free</button>', KEY)
+  const b = doc.querySelector(`[data-ab-el="${KEY}"]`)
+  // adoptPresentation übernimmt A's Inline-Style, solange B keinen eigenen hat.
+  assert.equal(b.style.cursor, 'crosshair')
+  assert.equal(dom.window.getComputedStyle(b).cursor, 'crosshair')
 })
 
 check('title, aria-label und disabled wandern mit', () => {
@@ -334,7 +355,10 @@ check('das injizierte CSS ist auf die B-Wurzel gescopt', () => {
   api.applyDom('#cta', 'B', '<a class="ab-variant-b">Start free</a>', KEY, '#cta { color: red }')
   const style = doc.querySelector(`style[data-ab-css="${KEY}"]`)
   assert.ok(style, 'kein <style data-ab-css> im head')
-  assert.equal(style.textContent, `[data-ab-el="${KEY}"] { color: red }`)
+  // Seit dem Klassen-Erbe traegt B A's Klassen: die Deklarationen bekommen
+  // !important (dieselbe Logik wie forceImportant in ab.js), damit das
+  // gescopte Delta gegen A's ID-Regeln gewinnt.
+  assert.equal(style.textContent, `[data-ab-el="${KEY}"] { color: red !important;}`)
 })
 
 check('ohne CSS wird auch kein leeres <style> gesetzt', () => {
@@ -355,7 +379,7 @@ console.log('── CSS ueberlebt den zweiten Durchlauf ──')
 console.log('')
 
 const CSS = '#cta { color: red }'
-const SCOPED = `[data-ab-el="${KEY}"] { color: red }`
+const SCOPED = `[data-ab-el="${KEY}"] { color: red !important;}`
 
 check('entferntes <style> wird beim zweiten Durchlauf neu injiziert', () => {
   const { doc, api } = page('<a id="cta" href="/signup">Get started</a>')

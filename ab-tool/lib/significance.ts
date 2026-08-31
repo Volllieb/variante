@@ -59,8 +59,8 @@ export function calcSignificance(vA: number, cA: number, vB: number, cB: number)
   return 1 - pValue
 }
 
-const DEFAULT_SIGNIFICANCE_LEVEL = 0.95
-const DEFAULT_MIN_UPLIFT = 0.05
+export const DEFAULT_SIGNIFICANCE_LEVEL = 0.95
+export const DEFAULT_MIN_UPLIFT = 0.05
 
 /**
  * Mindest-Besucher PRO ARM.

@@ -161,6 +161,7 @@ export async function GET(req: Request) {
     // wieder wegputzt, unnoetig jeden Client-Cache invalidieren.
     const html = sanitizer ? sanitizer.sanitizeHtml(t.variant_b_html) : null
     const css = sanitizer ? sanitizer.sanitizeCss(t.variant_b_css) || null : null
+    const force = t.status === 'done' && t.winner === 'B' ? 'B' : null
     return {
     snippet_key: t.snippet_key,
     selector: t.selector,
@@ -175,8 +176,9 @@ export async function GET(req: Request) {
     // Inhalts-Hash der Variante (Katalog EDIT-01). ab.js verwirft damit eine
     // gecachte, inzwischen veraltete Fassung von B — im selben Arm, ohne
     // erneutes /api/assign und ohne den Besucher doppelt zu zaehlen.
-    v: variantHash(html, css),
-    force: t.status === 'done' && t.winner === 'B' ? 'B' : null,
+    // Im force-Modus liest ab.js den Hash nie (der Cache wird uebersprungen).
+    v: force ? null : variantHash(html, css),
+    force,
     // DSGVO: Pfad für clientseitiges Matching (kein Server-Tracking).
     // Extrahiert aus site_url, damit der Client filtern kann, ohne
     // den vollen Pfad zum Server zu senden.

@@ -15,6 +15,7 @@ import {
   hasSampleRatioMismatch,
 } from './significance'
 import { estimateVisitorGap, type DailyPoint, type DailyPointByTest } from './forecast'
+import { daysSince } from './resultsHelpers'
 
 /* ── Typen ── */
 
@@ -231,11 +232,15 @@ function classify(t: DecisionTest, now: number, daily: DailyPoint[]): Decision |
   //     und Laufzeit reichen längst, das Signal fehlt trotzdem — das wird
   //     durch Warten nicht besser. Bei fehlenden Besuchern entscheidet die
   //     Hochrechnung.
-  const isLive = t.status === 'active' || t.status === 'paused'
-  const runtimeDays = (now - new Date(t.created_at).getTime()) / 86_400_000
+  //
+  //     Pausierte Tests sind hier bewusst ausgenommen: sie sammeln nichts
+  //     ein, und "at this pace it needs ~N more days" aus eingefrorenen
+  //     Zählern wäre ein Versprechen, das der Test nicht einlösen kann —
+  //     dieselbe Sperre wie auf der Results-Seite (ResultsClient.tsx).
+  const isLive = t.status === 'active'
+  const runtimeDays = daysSince(t.created_at, now)
   if (
     isLive &&
-    Number.isFinite(runtimeDays) &&
     runtimeDays > STALLED_AFTER_DAYS &&
     (verdict.reason === 'not-enough-visitors' || verdict.reason === 'not-significant')
   ) {

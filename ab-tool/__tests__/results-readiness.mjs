@@ -6,6 +6,9 @@
 // Tests ohne Kennzeichnung — plus ein Fortschrittsbalken in den Einstellungen,
 // der `min_visitors` als Summe las, obwohl evaluateWinner() pro Arm prüft.
 //
+// Die Zeitprognose ("wann kann ein Gewinner fallen?") hat eine eigene Datei:
+// __tests__/forecast.mjs.
+//
 // Ausführen: node --import tsx __tests__/results-readiness.mjs
 
 import assert from 'node:assert'
@@ -16,7 +19,6 @@ import {
   conversionRate,
   dailyLift,
   daysSince,
-  estimateDaysToReady,
   MIN_CONV_FOR_UPLIFT,
 } from '../lib/resultsHelpers.ts'
 import {
@@ -157,91 +159,6 @@ check('Uplift ohne Basis ist null statt Infinity', () => {
 check('conversionRate rundet nicht', () => {
   assert.equal(conversionRate(0, 0), 0)
   assert.ok(Math.abs(conversionRate(25000, 110) - 0.44) < 1e-9)
-})
-
-check('Restlaufzeit-Schätzung beachtet alle Bedingungen, nicht nur Konfidenz', () => {
-  // Der Bugreport-Fall, hochgerechnet: bei ~15 Besuchern pro Tag im Arm B
-  // dauert es Wochen bis 1.000 — eine Schätzung "~2 Tage bis 95 %" wäre hier
-  // eine falsche Zusage gewesen.
-  const days = estimateDaysToReady({
-    ...CASE,
-    significance: 0.8,
-    significanceLevel: 0.95,
-    minVisitorsPerArm: MIN_VISITORS_PER_ARM,
-    minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
-    minRuntimeDays: MIN_RUNTIME_DAYS,
-    createdAt: started(2),
-    now: NOW,
-  })
-  // B liefert 15 Besucher/Tag → (1000-30)/15 ≈ 65 Tage.
-  assert.ok(days > 60 && days < 70, `erwartet ~65 Tage, war ${days}`)
-})
-
-check('Restlaufzeit ist mindestens die verbleibende Mindestlaufzeit', () => {
-  // Datenmenge längst erreicht, Test läuft aber erst 2 Tage.
-  const days = estimateDaysToReady({
-    a: { views: 40000, conversions: 900 },
-    b: { views: 40000, conversions: 1000 },
-    significance: 0.99,
-    significanceLevel: 0.95,
-    minVisitorsPerArm: MIN_VISITORS_PER_ARM,
-    minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
-    minRuntimeDays: MIN_RUNTIME_DAYS,
-    createdAt: started(2),
-    now: NOW,
-  })
-  assert.equal(days, 5)
-})
-
-check('alles erfüllt → keine Schätzung mehr', () => {
-  assert.equal(
-    estimateDaysToReady({
-      a: { views: 40000, conversions: 900 },
-      b: { views: 40000, conversions: 1000 },
-      significance: 0.99,
-      significanceLevel: 0.95,
-      minVisitorsPerArm: MIN_VISITORS_PER_ARM,
-      minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
-      minRuntimeDays: MIN_RUNTIME_DAYS,
-      createdAt: started(30),
-      now: NOW,
-    }),
-    null
-  )
-})
-
-check('ohne Conversion in einem Arm wird nicht geschätzt', () => {
-  assert.equal(
-    estimateDaysToReady({
-      a: { views: 500, conversions: 0 },
-      b: { views: 500, conversions: 12 },
-      significance: 0.3,
-      significanceLevel: 0.95,
-      minVisitorsPerArm: MIN_VISITORS_PER_ARM,
-      minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
-      minRuntimeDays: MIN_RUNTIME_DAYS,
-      createdAt: started(5),
-      now: NOW,
-    }),
-    null
-  )
-})
-
-check('junge Tests werden nicht auf Stundenbasis hochgerechnet', () => {
-  // 5 Besucher in 6 Minuten sind keine 1.200 Besucher/Tag. Die Rate wird auf
-  // mindestens einen Tag Laufzeit bezogen, also konservativ geschätzt.
-  const days = estimateDaysToReady({
-    a: { views: 5, conversions: 1 },
-    b: { views: 5, conversions: 1 },
-    significance: 0.1,
-    significanceLevel: 0.95,
-    minVisitorsPerArm: 1000,
-    minConversionsPerArm: 25,
-    minRuntimeDays: MIN_RUNTIME_DAYS,
-    createdAt: new Date(NOW - 6 * 60_000).toISOString(),
-    now: NOW,
-  })
-  assert.equal(days, 199) // (1000-5)/5 = 199 Tage, nicht ~1
 })
 
 function day(va, vb, ca, cb) {

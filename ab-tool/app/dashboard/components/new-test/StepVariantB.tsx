@@ -299,6 +299,10 @@ export function StepVariantB({
                 <ButtonEditor
                   element={element}
                   originalHtml={variantResult?.variant_html ?? element.originalHtml}
+                  // Die AI-Variante bringt eigenes CSS mit: "inherit" muss es
+                  // als Basis behalten, sonst wird beim nächsten Edit das
+                  // gesamte AI-CSS durch das Delta des Editors ersetzt.
+                  baseCss={variantResult?.variant_css ?? null}
                   onApply={(html, css) => {
                     handleApply(html, css)
                     setShowEditor(false)
@@ -309,6 +313,7 @@ export function StepVariantB({
                 <TextInputEditor
                   element={element}
                   originalHtml={variantResult?.variant_html ?? element.originalHtml}
+                  baseCss={variantResult?.variant_css ?? null}
                   onApply={(html, css) => {
                     handleApply(html, css)
                     setShowEditor(false)

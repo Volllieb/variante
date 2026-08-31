@@ -296,7 +296,9 @@ function stripHtml(html: string): string {
  * Kaskade gilt weiter. Vorlage: der Figma-Prompt in generatePrompts.ts.
  */
 function extractScaffold(html: string): string | null {
-  const m = /^<\s*([a-z][a-z0-9]*)((\s+[^<>]*)?)>/i.exec(html.trim())
+  // Attribute-Werte dürfen '>' enthalten (z. B. href="/x?a=1>2") — das
+  // Gerüst endet erst am ersten UNGEQUOTETEN '>'.
+  const m = /^<\s*([a-z][a-z0-9]*)((?:"[^"]*"|'[^']*'|[^'"<>])*)\s*>/i.exec(html.trim())
   if (!m) return null
   const tag = m[1].toLowerCase()
   const cls = /\bclass\s*=\s*["']([^"']+)["']/i.exec(m[2] || '')?.[1]

@@ -40,8 +40,12 @@ export async function GET(req: Request) {
     return Response.json({ error: 'not found' }, { status: 404, headers: corsHeaders('GET, PATCH, OPTIONS') })
   }
 
+  // Fail-safe wie der Winner-Cron (check-winners: `=== true`): nur ein
+  // explizites true meldet die Automatik an. Ein NULL-Wert (Zeile ohne Spalte)
+  // als true zu melden, würde dem User einen Zustand zeigen, den der Cron
+  // nicht umsetzt.
   return Response.json(
-    { ...data, auto_promote_winner: prefsRes.data?.auto_promote_winner !== false },
+    { ...data, auto_promote_winner: prefsRes.data?.auto_promote_winner === true },
     { headers: corsHeaders('GET, PATCH, OPTIONS') }
   )
 }

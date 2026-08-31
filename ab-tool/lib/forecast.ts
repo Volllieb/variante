@@ -37,7 +37,7 @@
 // den Tagen davor. Genau dann ist der ältere Teil des Fensters kein Hinweis auf
 // morgen mehr, sondern Ballast.
 
-import { MIN_VISITORS_PER_ARM } from './significance'
+import { DEFAULT_MIN_UPLIFT, MIN_VISITORS_PER_ARM } from './significance'
 import { dayKey, lastCompleteDay, shiftDay } from './dashboardStats'
 import { daysSince, type ArmCounts } from './resultsHelpers'
 
@@ -177,11 +177,18 @@ export function measureTrafficRate(params: {
   function rateOver(days: number, endDay = end): TrafficRate {
     const from = shiftDay(endDay, -(days - 1))
     const s = sumRange(complete, from, endDay)
+    // Nur über die Tage mitteln, die wirklich geschrieben wurden: fehlende
+    // Zeilen sind eine Aussage über die Datenlage, nicht über den Traffic
+    // (Begründung unten). Sonst macht ein ausgefallener Cron aus zwei Zeilen
+    // à 1.000 Besuchern eine Rate von 285/Tag und die Prognose wird 3,5×
+    // pessimistischer.
+    const rows = countRange(complete, from, endDay)
+    const divisor = rows > 0 ? rows : days
     return {
-      visitorsA: s.va / days,
-      visitorsB: s.vb / days,
-      conversionsA: s.ca / days,
-      conversionsB: s.cb / days,
+      visitorsA: s.va / divisor,
+      visitorsB: s.vb / divisor,
+      conversionsA: s.ca / divisor,
+      conversionsB: s.cb / divisor,
       basis: 'recent',
       windowDays: days,
       changeFactor: null,
@@ -210,8 +217,15 @@ export function measureTrafficRate(params: {
   const late = sumRange(complete, shiftFrom, end)
   const early = sumRange(complete, shiftDay(priorEnd, -(priorDays - 1)), priorEnd)
 
-  const latePerDay = (late.va + late.vb) / SHIFT_WINDOW_DAYS
-  const earlyPerDay = (early.va + early.vb) / priorDays
+  // Fehlende Zeilen in einem der beiden Vergleichsfenster sind kein Beweis für
+  // einen Einbruch — ohne Zeilen lässt sich kein Verhältnis anstellen, es
+  // bleibt beim Regelfenster.
+  const lateRows = countRange(complete, shiftFrom, end)
+  const earlyRows = countRange(complete, shiftDay(priorEnd, -(priorDays - 1)), priorEnd)
+  if (lateRows === 0 || earlyRows === 0) return { ...recent, changeFactor: null }
+
+  const latePerDay = (late.va + late.vb) / lateRows
+  const earlyPerDay = (early.va + early.vb) / earlyRows
 
   const changeFactor =
     earlyPerDay > 0 ? latePerDay / earlyPerDay : latePerDay > 0 ? Infinity : null
@@ -232,6 +246,18 @@ export type ForecastLimit =
   | 'significance'
   /** Der bremsende Arm bekommt gerade gar nichts — es gibt nichts fortzuschreiben. */
   | 'no-traffic'
+  /** Der bremsende Arm misst keine Conversions — das Goal feuert nicht. */
+  | 'no-conversions'
+  /** Noch keine Datenbasis (frischer Test) — es gibt nichts hochzurechnen. */
+  | 'insufficient-data'
+  /** Alle Bedingungen sind bereits erfüllt — sofort entscheidbar, keine Schätzung. */
+  | 'ready'
+  /**
+   * B liegt vorn, aber unter der Mindest-Uplift-Schwelle. Unter der linearen
+   * Fortschreibung bleibt der Uplift konstant — der Test wird in diesem Modell
+   * nie entscheidbar, also gibt es keinen Termin zu schätzen.
+   */
+  | 'uplift'
   /** Weiter als der Horizont; eine Zahl wäre Erfindung. */
   | 'beyond-horizon'
 
@@ -263,6 +289,8 @@ export function forecastDecision(params: {
   minVisitorsPerArm: number
   minConversionsPerArm: number
   minRuntimeDays: number
+  /** Fraktion (0.05 = 5 %), wie evaluateWinner() sie liest. */
+  minUplift?: number
   createdAt: string
   now: number
   /** Tagesdeltas. Leer = Hochrechnung aus dem Lebenszeit-Mittel. */
@@ -271,6 +299,7 @@ export function forecastDecision(params: {
   const {
     a, b, significance, significanceLevel,
     minVisitorsPerArm, minConversionsPerArm, minRuntimeDays,
+    minUplift = DEFAULT_MIN_UPLIFT,
     createdAt, now, daily = [],
   } = params
 
@@ -297,7 +326,23 @@ export function forecastDecision(params: {
 
   for (const [value, limit] of legs) {
     // Ein Arm ohne Tempo blockiert alles: sein Rückstand wird nie kleiner.
-    if (value === null) return { days: null, limitedBy: 'no-traffic', lowerBound: false, rate }
+    if (value === null) {
+      if (limit === 'conversions') {
+        // Kein Conversion-Tempo bei vorhandenem Traffic ist ein Goal-Problem,
+        // kein Traffic-Problem: das Goal zählt nichts (kaputtes Tracking,
+        // url:-Goal). "One variant is getting no traffic" wäre hier die
+        // falsche Diagnose und lenkt den Blick vom Goal weg.
+        return { days: null, limitedBy: 'no-conversions', lowerBound: false, rate }
+      }
+      // Visitors-Tempo 0: hat der Test überhaupt je Besucher bekommen? Ein
+      // frischer Test hat schlicht noch keine Datenbasis — das ist kein
+      // Alarm. Erst wenn es Traffic gab und das Tempo trotzdem 0 ist, ist
+      // der Test wirklich versiegt.
+      if (a.views + b.views === 0) {
+        return { days: null, limitedBy: 'insufficient-data', lowerBound: false, rate }
+      }
+      return { days: null, limitedBy: 'no-traffic', lowerBound: false, rate }
+    }
     if (value > days) {
       days = value
       limitedBy = limit
@@ -306,7 +351,8 @@ export function forecastDecision(params: {
 
   if (significance < significanceLevel) {
     const sig = estimateDaysToSignificance(
-      a.views + b.views, significance, createdAt, significanceLevel, now
+      a.views + b.views, significance, createdAt, significanceLevel, now,
+      rate.visitorsA + rate.visitorsB
     )
     if (sig === null) {
       // Noch nicht hochrechenbar (zu wenig Daten oder kein messbarer
@@ -318,8 +364,32 @@ export function forecastDecision(params: {
     }
   }
 
+  // Uplift-Gate aus evaluateWinner() (nach Konfidenz geprüft): B ist vorn,
+  // aber der Vorsprung liegt unter der Mindest-Schwelle. Unter der linearen
+  // Fortschreibung bleibt der Uplift konstant — "~N days until a winner can
+  // be called" wäre hier eine Lüge, der Cron antwortet auf ewig
+  // 'below-min-uplift' und deklariert nie. Erst wenn der Abstand wächst, gibt
+  // es wieder einen Termin; das kann diese Rechnung nicht vorhersagen.
+  // Liegt B NICHT vorn (crB <= crA), blockiert der Gate nicht: dann kann A
+  // gewinnen, sobald alles andere steht.
+  if (a.views > 0 && b.views > 0 && a.conversions > 0 && b.conversions > 0) {
+    const crA = a.conversions / a.views
+    const crB = b.conversions / b.views
+    const uplift = (crB - crA) / crA
+    if (uplift > 0 && uplift < minUplift) {
+      return { days: null, limitedBy: 'uplift', lowerBound: false, rate }
+    }
+  }
+
   if (days > FORECAST_HORIZON_DAYS) {
     return { days: null, limitedBy: 'beyond-horizon', lowerBound, rate }
+  }
+
+  // Alle Bedingungen erfüllt (und keine unschätzbare offen): sofort
+  // entscheidbar. "~1 day until a winner can be called" wäre hier eine Lüge —
+  // die alte estimateDaysToReady gab für genau diesen Fall null.
+  if (days <= 0 && !lowerBound) {
+    return { days: null, limitedBy: 'ready', lowerBound, rate }
   }
 
   return { days: Math.max(1, Math.ceil(Number(days.toFixed(4)))), limitedBy, lowerBound, rate }
@@ -355,7 +425,14 @@ export function estimateDaysToSignificance(
   significance: number,
   createdAt: string,
   targetSignificance: number,
-  nowTs: number
+  nowTs: number,
+  /**
+   * Gemessenes Tages-Tempo (aus measureTrafficRate). Fehlt es, fällt die
+   * Funktion auf das Lebenszeit-Mittel zurück — der direkte Aufruf bleibt
+   * unverändert, die Prognose bekommt aber dasselbe Tempo wie ihre anderen
+   * Beine.
+   */
+  dailyTraffic?: number
 ): number | null {
   if (significance <= 0 || significance >= targetSignificance) return null
   if (totalVisitors < 100) return null
@@ -368,10 +445,13 @@ export function estimateDaysToSignificance(
 
   const ratio = (zTarget / zNow) ** 2
   const additionalVisitorsNeeded = totalVisitors * (ratio - 1)
-  const dailyTraffic = totalVisitors / daysRunning
+  // Das Lebenszeit-Mittel ist die Quelle der Faktor-20-Fehler aus dem
+  // Kopfkommentar: nach einem Traffic-Sprung extrapoliert es wochenlang das
+  // falsche Tempo. Die Prognose übergibt deshalb das gemessene Tages-Tempo.
+  const perDay = dailyTraffic ?? totalVisitors / daysRunning
 
-  if (dailyTraffic <= 0) return null
-  const daysEstimate = Math.ceil(additionalVisitorsNeeded / dailyTraffic)
+  if (perDay <= 0) return null
+  const daysEstimate = Math.ceil(additionalVisitorsNeeded / perDay)
   return Math.max(1, daysEstimate)
 }
 

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTestList } from '@/lib/useTestList'
+import type { DailyStatRow } from '@/lib/dashboardStats'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
 import { NewTestDrawer } from '../components/NewTestDrawer'
@@ -23,15 +24,29 @@ import {
 // ponytail: apiToken/plan waren tote Props (Plan SEC-10/CODE-01).
 export function TestsClient({
   tests,
+  dailyStats,
   hasFigmaPlugin,
   userId,
   verifiedDomains,
 }: {
   tests: TestRow[]
+  dailyStats: DailyStatRow[]
   hasFigmaPlugin: boolean
   userId: string
   verifiedDomains: { url: string; verifiedAt: string | null }[]
 }) {
+  // Tageszeilen je Test — dieselbe Messung, aus der die Overview-Karten ihren
+  // Restweg rechnen. Ohne sie zeigte dieselbe Testkarte auf /dashboard/tests
+  // einen anderen Restweg als auf /dashboard.
+  const dailyByTest = useMemo(() => {
+    const map = new Map<string, DailyStatRow[]>()
+    for (const row of dailyStats) {
+      const list = map.get(row.test_id)
+      if (list) list.push(row)
+      else map.set(row.test_id, [row])
+    }
+    return map
+  }, [dailyStats])
   // Sichtbarer Reload: der manuelle Refresh-Button hatte vorher gar kein
   // Feedback — jetzt Spinner am Button plus „Updating…"-Pille.
   const { refresh, isPending } = useRefreshTransition()
@@ -158,7 +173,7 @@ export function TestsClient({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredTests.map((t) => (
-            <TestCard key={t.id} t={t} onDelete={handleDeleteTest} from="tests" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true) }} />
+            <TestCard key={t.id} t={t} daily={dailyByTest.get(t.id)} onDelete={handleDeleteTest} from="tests" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true) }} />
           ))}
         </div>
       )}

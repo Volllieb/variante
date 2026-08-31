@@ -165,11 +165,40 @@ describe('Results-Hero-Card', () => {
 
   it('schätzt die Restzeit über alle Bedingungen, nicht nur über die Konfidenz', async () => {
     renderCard(experiment({ significance: 0.8 }))
-    // Bei 15 Besuchern/Tag im schwächeren Arm sind 1.000 pro Arm ~65 Tage
+    // Bei 15 Besuchern/Tag im schwächeren Arm sind 1.000 pro Arm gut zwei Monate
     // entfernt. Die alte Karte versprach hier "~1 day to 95% confidence".
     const badge = await screen.findByText(/until a winner can be called/)
-    const days = Number(badge.textContent?.match(/~(\d+)/)?.[1])
-    expect(days).toBeGreaterThan(60)
+    expect(badge.textContent).toMatch(/~2 months/)
+    // Und sie sagt dazu, worauf die Hochrechnung beruht.
+    expect(screen.getByText(/At the average pace since this test started/)).toBeTruthy()
+  })
+
+  it('rechnet nach einem Traffic-Sprung mit den letzten Tagen, nicht mit dem Mittel', async () => {
+    // 7 ruhige Tage à 10 Besucher pro Arm, dann drei Tage à 150 (Kampagne).
+    const dateAgo = (d: number) => new Date(Date.now() - d * DAY).toISOString().slice(0, 10)
+    const daily = [
+      ...[10, 9, 8, 7, 6, 5, 4].map((d) => ({
+        date: dateAgo(d), visitors_a: 10, visitors_b: 10, conversions_a: 0, conversions_b: 0,
+      })),
+      ...[3, 2, 1].map((d) => ({
+        date: dateAgo(d), visitors_a: 150, visitors_b: 150, conversions_a: 5, conversions_b: 5,
+      })),
+    ]
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ daily }) })))
+    renderCard(
+      experiment({
+        created_at: new Date(Date.now() - 30 * DAY).toISOString(),
+        variants: [
+          { id: 'A', label: 'A', views: 520, conversions: 15, cr: 2.88 },
+          { id: 'B', label: 'B', views: 520, conversions: 15, cr: 2.88 },
+        ],
+      })
+    )
+    const badge = await screen.findByText(/until a winner can be called/)
+    // Lebenszeit-Mittel wären ~17/Tag und damit vier Wochen; mit dem Sprung
+    // sind es 150/Tag und wenige Tage.
+    expect(badge.textContent).toMatch(/~4 days/)
+    expect(screen.getByText(/Traffic jumped .* estimated from the last 3 days/)).toBeTruthy()
   })
 
   it('rechnet die Konfidenz live aus denselben Zaehlern statt aus der DB-Spalte', () => {

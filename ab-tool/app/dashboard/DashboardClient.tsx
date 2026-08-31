@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { deriveDecisions, sortByDecisionReadiness } from '@/lib/decisions'
+import { deriveDecisions, displayDay, sortByDecisionReadiness } from '@/lib/decisions'
 import { aggregatePeriod, buildTrend, type DailyStatRow } from '@/lib/dashboardStats'
 import { usePersistedValue } from '@/lib/usePersistedValue'
 import { Tooltip } from '@/app/components/Tooltip'
@@ -66,7 +66,7 @@ export function DashboardClient({
 }) {
   const router = useRouter()
   // Sichtbarer Reload: derselbe refresh() speist alle drei Quellen (Domain-
-  // Verifikation, AI-Panels) und treibt die „Updating…"-Pille an.
+  // Verifikation, AgentPanel, WhatToTestNext) und treibt die „Updating…"-Pille an.
   const { refresh, isPending } = useRefreshTransition()
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [resumeTest, setResumeTest] = useState<TestRow | null>(null)
@@ -151,11 +151,12 @@ export function DashboardClient({
   // die "at this pace"-Zeile mit dem Tempo der letzten Tage statt mit dem
   // Lebenszeit-Mittel — ein Test, dessen Traffic gestern eingebrochen oder
   // hochgeschossen ist, bekommt sofort die passende Aussage.
-  // Zeitbasis bleibt der Default aus deriveDecisions — ein Date.now() hier im
-  // Render ist eine unreine Funktion und wird von der React-Compiler-Regel
-  // zurückgewiesen.
+  // Zeitbasis ist dieselbe wie auf der Testkarte: auf Mitternacht UTC
+  // quantisiert (displayDay). Ein unquantisiertes Date.now() hier und ein
+  // quantisiertes in der Karte ergaben für denselben Test zwei um einen Tag
+  // verschiedene Hochrechnungen auf demselben Bildschirm.
   const decisions = useMemo(
-    () => deriveDecisions(scopedTests, undefined, dailyStats),
+    () => deriveDecisions(scopedTests, displayDay(), dailyStats),
     [scopedTests, dailyStats]
   )
 

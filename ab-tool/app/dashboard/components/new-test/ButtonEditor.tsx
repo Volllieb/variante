@@ -24,10 +24,12 @@ import { ColorPicker } from './ColorPicker'
 import { PropertySlider } from './PropertySlider'
 import { buildPreviewSrcDoc } from './preview'
 import {
+  baselineFromCss,
   buildStyleBaseline,
   generateButtonCss,
   inheritRootHtml,
   initialEdits,
+  mergeVariantCss,
   scratchVariantHtml,
 } from './delta'
 import type { UserEdits, EditorMode } from './types'
@@ -36,6 +38,13 @@ import type { ElementSelection } from '../NewTestDrawer'
 interface ButtonEditorProps {
   element: ElementSelection
   originalHtml: string
+  /**
+   * Bestehendes Varianten-CSS, auf dem die Edits aufbauen (KI-Ergebnis).
+   * Die Baseline des Editors wird daraus abgeleitet, und das Delta wird beim
+   * Anwenden DARAN angehängt statt es zu ersetzen — "Changes are applied to
+   * the AI result" muss stimmen. Ohne baseCss bleibt das bisherige Verhalten.
+   */
+  baseCss?: string | null
   onApply: (html: string, css: string) => void
   onCancel: () => void
 }
@@ -51,14 +60,25 @@ function extractTextFromHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '').trim()
 }
 
-export function ButtonEditor({ element, originalHtml, onApply, onCancel }: ButtonEditorProps) {
+export function ButtonEditor({ element, originalHtml, baseCss, onApply, onCancel }: ButtonEditorProps) {
   const originalText = extractTextFromHtml(originalHtml)
-  const baseline = buildStyleBaseline(element.styleContext?.computed)
+  // Im AI-Edit-Fall ist das KI-Design die Baseline (das Delta misst Änderungen
+  // gegen das, was der User sieht), sonst die gemessenen Computed-Styles von A.
+  const baseline = baselineFromCss(baseCss) ?? buildStyleBaseline(element.styleContext?.computed)
   const [mode, setMode] = useState<EditorMode>('inherit')
   const [edits, setEdits] = useState<UserEdits>(() => initialEdits(baseline, originalText))
 
   function handleChange(patch: Partial<UserEdits>) {
-    setEdits((prev) => ({ ...prev, ...patch }))
+    setEdits((prev) => {
+      const next = { ...prev, ...patch }
+      // Breite erhöhen bei border-style: none ergäbe eine unsichtbare Grenze
+      // (A hat width>0 und style:none) — die Breiten-Änderung wirkt erst mit
+      // einer sichtbaren Linie, also automatisch auf solid wechseln.
+      if (patch.borderWidth !== undefined && (next.borderStyle ?? 'solid') === 'none') {
+        next.borderStyle = 'solid'
+      }
+      return next
+    })
   }
 
   function handleReset() {
@@ -71,7 +91,9 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
     const html = mode === 'inherit'
       ? inheritRootHtml(originalHtml, edits.text || originalText)
       : scratchVariantHtml(edits.text || originalText)
-    const css = generateButtonCss(edits, selector, baseline, mode)
+    // Das Delta hängt an das bestehende Varianten-CSS an (KI-Ergebnis) —
+    // nur im inherit-Modus: "From scratch" ersetzt bewusst alles.
+    const css = mergeVariantCss(mode === 'inherit' ? baseCss : null, generateButtonCss(edits, selector, baseline, mode))
     onApply(html, css)
   }
 
@@ -79,7 +101,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
   const previewHtml = mode === 'inherit'
     ? inheritRootHtml(originalHtml, edits.text || originalText)
     : scratchVariantHtml(edits.text || originalText)
-  const previewCss = generateButtonCss(edits, selector, baseline, mode)
+  const previewCss = mergeVariantCss(mode === 'inherit' ? baseCss : null, generateButtonCss(edits, selector, baseline, mode))
   const srcDoc = buildPreviewSrcDoc(
     [
       { html: originalHtml || '' },

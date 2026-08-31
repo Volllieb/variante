@@ -74,9 +74,13 @@ export async function POST(req: Request) {
   // Validate: click-goals must have a selector.
   // "click" alone is not a valid CSS selector → ab.js would throw SyntaxError
   // and 0 conversions would be tracked. Requires either click:<selector> format
-  // or a separate goal_selector field.
-  if (goal === 'click' || goal === 'click:') {
-    return Response.json({ error: 'Click goal requires a CSS selector (e.g. click:#my-button). Pick a goal element in Step 2.' }, { status: 400, headers })
+  // or a separate goal_selector field. url:-Goals ebenso: ab.js warnt, dass es
+  // sie nicht unterstützt — kein Conversion wird je gezählt, der Test kann nie
+  // fertig werden (Katalog RUN-03). Case- und Whitespace-tolerant wie der
+  // Picker (die Sperre in /api/capture prüft bereits lowercase + trim).
+  const goalNorm = goal.trim().toLowerCase()
+  if (goalNorm === 'click' || goalNorm === 'click:' || goalNorm.startsWith('url:')) {
+    return Response.json({ error: 'Click goal requires a CSS selector (e.g. click:#my-button). URL goals are not supported yet — pick a click target in Step 2.' }, { status: 400, headers })
   }
 
   // Normalize: empty string → null for optional fields
