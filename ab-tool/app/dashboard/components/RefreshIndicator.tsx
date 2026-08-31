@@ -27,48 +27,65 @@ const MIN_VISIBLE_MS = 500
 const DONE_VISIBLE_MS = 900
 
 export function RefreshIndicator({ active }: { active: boolean }) {
-  // „Updating…" wird aus `active` ABGELEITET, nicht gespeichert — sonst müsste
-  // der Effect synchron setState rufen (react-hooks/set-state-in-effect).
-  // Gespeichert wird nur die Bestätigungsphase nach dem Ende des Refreshes;
-  // das passiert ausschließlich asynchron in Timer-Callbacks.
-  const [storedPhase, setStoredPhase] = useState<'idle' | 'done'>('idle')
+  // Drei Phasen als echter State, damit die Mindestsichtbarkeit wirklich
+  // greift: „Updating…" bleibt stehen, bis MIN_VISIBLE_MS um ist — nicht nur
+  // bis active auf false fällt (dann wären schnelle Refreshes ein Blitz von
+  // wenigen Millisekunden).
+  const [phase, setPhase] = useState<'idle' | 'updating' | 'done'>('idle')
+  const prevActive = useRef(false)
   const shownAt = useRef(0)
+  const latchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const minTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const doneTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (active) {
-      // Neuer Refresh: sofort sichtbar (abgeleitet). Ein laufender min-/done-
-      // Timer wird abgebrochen — der neue Refresh beginnt wieder bei
-      // „Updating…", die Bestätigung wird erst nach dessen Ende gezeigt.
-      shownAt.current = Date.now()
-      if (minTimer.current) clearTimeout(minTimer.current)
-      if (doneTimer.current) clearTimeout(doneTimer.current)
-      return
+      // Nur die ECHTE Aktivierungskante darf Zeitbasis und Timer anfassen.
+      // Der Effect läuft wegen des phase-Dependencies auch nach dem Latch
+      // erneut (active unverändert true) — ohne diese Kante setzte dieser
+      // Durchlauf shownAt zurück, und die Mindestsichtbarkeit würde ab Latch
+      // statt ab Aktivierung messen.
+      if (!prevActive.current) {
+        shownAt.current = Date.now()
+        if (latchTimer.current) clearTimeout(latchTimer.current)
+        if (minTimer.current) clearTimeout(minTimer.current)
+        if (doneTimer.current) clearTimeout(doneTimer.current)
+        // 'updating' betritt den State asynchron: react-hooks/set-state-in-effect
+        // verbietet setState direkt im Effect-Body (vgl. ResultsClient, wo `now`
+        // aus demselben Grund in .finally() gesetzt wird). Ein 0-ms-Timer feuert
+        // vor jedem echten active→false-Render — jede Refresh-Quelle endet erst
+        // in einem späteren Task — und ist unter Fake-Timern deterministisch.
+        latchTimer.current = setTimeout(() => {
+          latchTimer.current = null
+          setPhase('updating')
+        }, 0)
+      }
+    } else if (phase === 'updating') {
+      // active fiel auf false: erst die Mindestsichtbarkeit abwarten, dann
+      // kurz „Updated" bestätigen und ausfaden. Nur aus der Updating-Phase
+      // heraus gibt es etwas zu bestätigen. (Fiel active vor dem Latch ab,
+      // feuert der Latch trotzdem, und der Effect läuft durch den
+      // phase-Dependency erneut hier durch.)
+      const wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - shownAt.current))
+      minTimer.current = setTimeout(() => {
+        minTimer.current = null
+        setPhase('done')
+        doneTimer.current = setTimeout(() => {
+          doneTimer.current = null
+          setPhase('idle')
+        }, DONE_VISIBLE_MS)
+      }, wait)
     }
-    // active fiel auf false: erst die Mindestsichtbarkeit abwarten, dann
-    // kurz „Updated" bestätigen und ausfaden. shownAt === 0 heißt: es wurde
-    // nie etwas angezeigt, dann gibt es auch nichts zu bestätigen.
-    if (shownAt.current === 0) return
-    const wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - shownAt.current))
-    minTimer.current = setTimeout(() => {
-      minTimer.current = null
-      shownAt.current = 0
-      setStoredPhase('done')
-      doneTimer.current = setTimeout(() => {
-        doneTimer.current = null
-        setStoredPhase('idle')
-      }, DONE_VISIBLE_MS)
-    }, wait)
-  }, [active])
+    prevActive.current = active
+  }, [active, phase])
 
   // Timer aufräumen, falls die Seite mitten in einer Phase verlassen wird.
   useEffect(() => () => {
+    if (latchTimer.current) clearTimeout(latchTimer.current)
     if (minTimer.current) clearTimeout(minTimer.current)
     if (doneTimer.current) clearTimeout(doneTimer.current)
   }, [])
 
-  const phase: 'idle' | 'updating' | 'done' = active ? 'updating' : storedPhase
   const visible = phase !== 'idle'
 
   return (
@@ -103,6 +120,9 @@ export function useRefreshTransition() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const refresh = useCallback(
+    // router.refresh() liefert void (kein Promise): ein .catch wäre toter Code
+    // und scheitert am Typecheck. Fehler schluckt Next.js intern; die alten
+    // Inline-Callsites hatten dasselbe Verhalten.
     () => startTransition(() => { router.refresh() }),
     [router, startTransition]
   )
