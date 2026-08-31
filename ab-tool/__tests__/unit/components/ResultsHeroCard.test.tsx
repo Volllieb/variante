@@ -1,0 +1,147 @@
+/**
+ * Die erste Box der Results-Seite ("Hero-Card") mit dem gemeldeten Datensatz.
+ *
+ * Gemeldet war: "83 visitors so far" neben "Visitors/arm 30 / 1.000" neben
+ * "Conversions/arm 6 / 25" — während die Variantentabelle für B 16 Conversions
+ * zeigte. Jede Zahl für sich stimmte, zusammen sahen sie aus wie ein Fehler,
+ * weil nichts sagte, welche Summe und welches Minimum gemeint war.
+ *
+ * Lokal ist keine Anmeldung möglich (Supabase-Platzhalter in .env.local),
+ * also wird die Karte hier gegen ein Fixture gerendert statt im Browser.
+ * Die schweren Kinder (Charts, Preview, Realtime) sind gestubbt.
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import type { ExperimentData } from '@/lib/getExperimentStats'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}))
+
+vi.mock('@/lib/useRealtime', () => ({ useTestUpdate: () => {} }))
+
+vi.mock('@/app/components/VariantPreview', () => ({
+  VariantPreview: () => <div data-testid="variant-preview" />,
+}))
+
+vi.mock('@/app/components/Toast', () => ({ useToast: () => ({ toast: vi.fn() }) }))
+
+// recharts misst im jsdom nichts (Breite 0) und warnt sich durch den Test.
+vi.mock('@/app/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+}))
+
+const { ResultsClient } = await import('@/app/dashboard/results/[id]/ResultsClient')
+
+const DAY = 86_400_000
+
+/** Der gemeldete Zustand: 53 + 30 = 83 Besucher, 6 (A) und 16 (B) Conversions. */
+function experiment(overrides: Partial<ExperimentData> = {}): ExperimentData {
+  return {
+    id: 't1',
+    name: 'Pricing headline',
+    site_url: 'https://example.com',
+    status: 'running',
+    created_at: new Date(Date.now() - 2 * DAY).toISOString(),
+    significance: 0.42,
+    winner: null,
+    minVisitors: 1000,
+    minUplift: 0.05,
+    significanceLevel: 0.95,
+    userId: 'u1',
+    originalHtml: null,
+    variantBHtml: null,
+    siteCss: null,
+    goal: 'click:.cta',
+    selector: '.cta',
+    variants: [
+      { id: 'A', label: 'A', views: 53, conversions: 6, cr: (6 / 53) * 100 },
+      { id: 'B', label: 'B', views: 30, conversions: 16, cr: (16 / 30) * 100 },
+    ],
+    ...overrides,
+  }
+}
+
+function renderCard(data = experiment()) {
+  return render(<ResultsClient initial={data} experimentId={data.id} pro={false} />)
+}
+
+// Die Karte kennt ihre Zeitbasis (`now`) erst, wenn der Analytics-Request
+// durch ist — vorher zeigt sie bewusst keine Restlaufzeit-Schätzung statt einer
+// aus `now = 0` gerechneten Fantasiezahl.
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ daily: [] }) }))
+  )
+})
+
+describe('Results-Hero-Card', () => {
+  it('sagt bei der Gesamtzahl, dass beide Arme zusammengezählt sind', () => {
+    renderCard()
+    expect(screen.getByText('83')).toBeTruthy()
+    expect(screen.getByText(/visitors so far — A \+ B combined/)).toBeTruthy()
+    // Und liefert die Aufteilung gleich mit, damit "83" und "30" zusammenpassen.
+    expect(screen.getByText('A 53 · B 30')).toBeTruthy()
+  })
+
+  it('zeigt in den Anforderungen beide Arme statt eines nackten Minimums', () => {
+    const { container } = renderCard()
+    const rows = Array.from(container.querySelectorAll('[role="progressbar"]'))
+      .map((el) => el.getAttribute('aria-label'))
+    expect(rows).toContain('Visitors per variant: A 53, B 30, target 1000 each')
+    expect(rows).toContain('Conversions per variant: A 6, B 16, target 25 each')
+  })
+
+  it('nennt den Arm, dem die Conversions für einen Uplift fehlen', () => {
+    renderCard()
+    // 10 - 6 = 4, und zwar in A — nicht "4 pro Variante", wie es vorher dastand.
+    expect(screen.getByText(/4 more conversions in variant A/)).toBeTruthy()
+  })
+
+  it('rechnet den Uplift aus Rohzählern, nicht aus gerundeten Raten', () => {
+    // 110/25000 = 0,44 % gegen 130/25000 = 0,52 % → +18,2 %.
+    // Mit den auf eine Nachkommastelle gerundeten Raten waren es "+25,0 %".
+    renderCard(
+      experiment({
+        variants: [
+          { id: 'A', label: 'A', views: 25000, conversions: 110, cr: (110 / 25000) * 100 },
+          { id: 'B', label: 'B', views: 25000, conversions: 130, cr: (130 / 25000) * 100 },
+        ],
+      })
+    )
+    expect(screen.getByText('+18.2%')).toBeTruthy()
+    expect(screen.queryByText('+25.0%')).toBeNull()
+  })
+
+  it('schätzt die Restzeit über alle Bedingungen, nicht nur über die Konfidenz', async () => {
+    renderCard(experiment({ significance: 0.8 }))
+    // Bei 15 Besuchern/Tag im schwächeren Arm sind 1.000 pro Arm ~65 Tage
+    // entfernt. Die alte Karte versprach hier "~1 day to 95% confidence".
+    const badge = await screen.findByText(/until a winner can be called/)
+    const days = Number(badge.textContent?.match(/~(\d+)/)?.[1])
+    expect(days).toBeGreaterThan(60)
+  })
+
+  it('meldet Anforderungen erst als erfüllt, wenn BEIDE Arme sie reißen', () => {
+    const { container } = renderCard(
+      experiment({
+        created_at: new Date(Date.now() - 10 * DAY).toISOString(),
+        variants: [
+          { id: 'A', label: 'A', views: 5000, conversions: 200, cr: 4 },
+          { id: 'B', label: 'B', views: 999, conversions: 60, cr: 6.006 },
+        ],
+      })
+    )
+    // 999 von 1.000: der Balken darf hier nicht auf 100 % aufrunden, solange
+    // das Gate offen ist — sonst steht ein voller Balken neben einem offenen ○.
+    const visitors = container.querySelector('[aria-label^="Visitors per variant"]')
+    expect(visitors?.getAttribute('aria-valuenow')).toBe('99')
+    expect(screen.getByText(/○ Visitors\/arm/)).toBeTruthy()
+    expect(screen.getByText(/✓ Conversions\/arm/)).toBeTruthy()
+  })
+})

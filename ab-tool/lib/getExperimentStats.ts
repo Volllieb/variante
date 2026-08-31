@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { MIN_VISITORS_PER_ARM } from '@/lib/significance'
 
 // ponytail: original_html/variant_b_html/site_css werden mitgeliefert
 // für die Preview-Komponente auf der Results-Seite. Kein Extra-Request nötig.
@@ -33,8 +34,17 @@ export type ExperimentData = {
   selector: string | null
 }
 
+/**
+ * Conversion Rate in Prozent — ungerundet.
+ *
+ * ponytail: Hier wurde auf eine Nachkommastelle gerundet, und die Results-Seite
+ * rechnete den angezeigten Uplift aus genau diesen gerundeten Werten. Bei
+ * CRO-typischen Raten verzerrt das die Kernzahl der Seite deutlich (0,44 % vs.
+ * 0,52 % ergibt gerundet "+25 %" statt "+18 %"). Gerundet wird jetzt erst bei
+ * der Ausgabe, in formatPercent().
+ */
 function cr(views: number, conversions: number): number {
-  return views > 0 ? Math.round((conversions / views) * 1000) / 10 : 0
+  return views > 0 ? (conversions / views) * 100 : 0
 }
 
 // Liest einen tests-Datensatz und mappt die Aggregat-Counter auf das
@@ -58,7 +68,11 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     created_at: test.created_at,
     significance: test.significance ?? 0,
     winner: test.winner ?? null,
-    minVisitors: test.min_visitors ?? 100,
+    // Roher DB-Wert; der Systemboden wird in der Oberfläche sichtbar
+    // aufgeschlagen, nicht hier still. Der alte Fallback 100 stand als Default
+    // im Konfigurationsfeld, während evaluateWinner() unverändert 1.000 pro Arm
+    // verlangte — das Feld behauptete eine Schwelle, die es nicht gab.
+    minVisitors: test.min_visitors ?? MIN_VISITORS_PER_ARM,
     minUplift: test.min_uplift ?? 0.05,
     significanceLevel: test.significance_level ?? 0.95,
     userId: test.user_id ?? null,

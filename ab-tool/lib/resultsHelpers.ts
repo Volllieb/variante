@@ -173,3 +173,191 @@ export function formatGoal(type: 'element' | 'click' | 'url', value: string): st
   if (type === 'url') return value ? `url:${value}` : null
   return null
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Readiness: was fehlt dem Test noch zur Entscheidung
+//
+// Die Hero-Card hat drei Zahlen nebeneinander gezeigt, die drei verschiedene
+// Aggregationen desselben Tests waren, ohne das zu sagen: "83 visitors so far"
+// (Summe beider Arme), "Visitors/arm 30 / 1.000" (Minimum der Arme) und
+// "Conversions/arm 6 / 25" (Minimum der Arme — aber ein anderer Arm als der
+// mit den 30 Besuchern). Drei korrekte Zahlen, die zusammen wie ein Rechenfehler
+// aussehen. Die Kriterien liefern jetzt beide Arme mit, damit die Oberfläche
+// zeigen kann, worauf der Fortschritt sich bezieht.
+// ────────────────────────────────────────────────────────────────────────────
+
+export type ArmCounts = { views: number; conversions: number }
+
+export type ArmCriterion = {
+  /** Wert von Variante A. */
+  a: number
+  /** Wert von Variante B. */
+  b: number
+  /** Der Wert, an dem die Freigabe hängt — der schwächere der beiden Arme. */
+  lagging: number
+  /** Welcher Arm bremst. null bei Gleichstand. */
+  laggingArm: 'A' | 'B' | null
+  target: number
+  /** Fortschritt des schwächeren Arms, 0–100. */
+  pct: number
+  met: boolean
+}
+
+/**
+ * Ein Schwellwert, der PRO ARM gelten muss (so prüft evaluateWinner).
+ * Der Fortschritt folgt dem schwächeren Arm — er entscheidet, wann der Test
+ * auswertbar ist.
+ */
+export function armCriterion(a: number, b: number, target: number): ArmCriterion {
+  const lagging = Math.min(a, b)
+  return {
+    a,
+    b,
+    lagging,
+    laggingArm: a === b ? null : a < b ? 'A' : 'B',
+    target,
+    pct: gatePct(lagging, target),
+    met: lagging >= target,
+  }
+}
+
+/**
+ * Fortschritt eines Gates in Prozent.
+ *
+ * Anders als progressPct wird abgerundet und bei 99 gedeckelt, solange die
+ * Schwelle nicht erreicht ist: 999 von 1.000 Besuchern ergaben sonst einen
+ * vollen Balken mit "100 %" neben einem offenen ○ — der Test wartet aber
+ * weiter. Ein Zähler darf nie mehr behaupten, als tatsächlich erreicht wurde.
+ */
+export function gatePct(current: number, target: number): number {
+  if (target <= 0 || current >= target) return 100
+  return Math.max(0, Math.min(99, Math.floor((current / target) * 100)))
+}
+
+/** Conversion Rate in Prozent — ungerundet, damit Folgerechnungen stimmen. */
+export function conversionRate(views: number, conversions: number): number {
+  return views > 0 ? (conversions / views) * 100 : 0
+}
+
+/**
+ * Uplift von B gegenüber A in Prozent.
+ *
+ * ponytail: Die Oberfläche rechnete `(b.cr - a.cr) / a.cr` mit den bereits auf
+ * eine Nachkommastelle gerundeten Conversion Rates aus getExperimentStats.
+ * Bei den kleinen Raten, um die es im CRO geht, ist das kein Rundungsfehler
+ * mehr, sondern eine andere Zahl: 0,44 % vs. 0,52 % wird gerundet zu 0,4 % vs.
+ * 0,5 % und damit als "+25 %" angezeigt statt als "+18 %". Der Kunde rollt
+ * Varianten anhand dieser Zahl aus, also wird sie aus den Rohzählern gerechnet.
+ */
+export function calcUplift(a: ArmCounts, b: ArmCounts): number | null {
+  if (a.views <= 0 || b.views <= 0 || a.conversions <= 0) return null
+  const crA = a.conversions / a.views
+  const crB = b.conversions / b.views
+  return ((crB - crA) / crA) * 100
+}
+
+export type Readiness = {
+  visitors: ArmCriterion
+  conversions: ArmCriterion
+  runtime: { days: number; target: number; pct: number; met: boolean }
+  /** Alle drei Schwellen erreicht — es fehlt höchstens noch die Konfidenz. */
+  allMet: boolean
+}
+
+/**
+ * Spiegelt die Schwellen aus evaluateWinner() für die Anzeige.
+ * `minVisitorsPerArm` ist bereits der effektive Wert (DB-Wert vs. Systemboden).
+ */
+export function computeReadiness(params: {
+  a: ArmCounts
+  b: ArmCounts
+  minVisitorsPerArm: number
+  minConversionsPerArm: number
+  minRuntimeDays: number
+  createdAt: string
+  now: number
+}): Readiness {
+  const { a, b, minVisitorsPerArm, minConversionsPerArm, minRuntimeDays, createdAt, now } = params
+  const visitors = armCriterion(a.views, b.views, minVisitorsPerArm)
+  const conversions = armCriterion(a.conversions, b.conversions, minConversionsPerArm)
+  const days = daysSince(createdAt, now)
+  const runtime = {
+    days,
+    target: minRuntimeDays,
+    pct: gatePct(days, minRuntimeDays),
+    met: days >= minRuntimeDays,
+  }
+  return { visitors, conversions, runtime, allMet: visitors.met && conversions.met && runtime.met }
+}
+
+/** Laufzeit in Tagen, nie negativ; 0 wenn created_at unbrauchbar ist. */
+export function daysSince(createdAt: string, now: number): number {
+  const started = new Date(createdAt).getTime()
+  if (!Number.isFinite(started)) return 0
+  return Math.max(0, (now - started) / 86_400_000)
+}
+
+/**
+ * Wie viele Tage, bis der Test überhaupt entscheidbar ist.
+ *
+ * ponytail: Vorher schätzte die Karte nur die Zeit bis zur Signifikanz und
+ * schrieb "~2 days to 95% confidence" — während derselbe Test im Feld daneben
+ * 30 von 1.000 Besuchern pro Arm stehen hatte und damit frühestens in Wochen
+ * einen Gewinner bekommen konnte. Die Schätzung ist jetzt das Maximum über
+ * alle Bedingungen, die evaluateWinner tatsächlich prüft.
+ *
+ * Rückgabe ist ein frühestmöglicher Termin, keine Zusage: Traffic und
+ * Conversion Rate werden aus dem bisherigen Verlauf fortgeschrieben.
+ * null = nicht schätzbar (zu wenig Daten oder ein Arm ohne Conversions).
+ */
+export function estimateDaysToReady(params: {
+  a: ArmCounts
+  b: ArmCounts
+  significance: number
+  significanceLevel: number
+  minVisitorsPerArm: number
+  minConversionsPerArm: number
+  minRuntimeDays: number
+  createdAt: string
+  now: number
+}): number | null {
+  const {
+    a, b, significance, significanceLevel,
+    minVisitorsPerArm, minConversionsPerArm, minRuntimeDays, createdAt, now,
+  } = params
+
+  const elapsed = daysSince(createdAt, now)
+  // Untergrenze 1 Tag wie in estimateDaysToSignificance: in der ersten Stunde
+  // eines Tests ist die Hochrechnung "5 Besucher in 6 Minuten = 1.200/Tag"
+  // reine Fantasie. Lieber konservativ schätzen als zu früh Hoffnung machen.
+  const rateDays = Math.max(1, elapsed)
+
+  /** Tage, bis `have` per linearer Fortschreibung `target` erreicht. */
+  function daysUntil(have: number, target: number): number | null {
+    if (have >= target) return 0
+    if (have <= 0) return null // ohne einen einzigen Datenpunkt keine Rate
+    return (target - have) / (have / rateDays)
+  }
+
+  const parts: number[] = [Math.max(0, minRuntimeDays - elapsed)]
+
+  for (const arm of [a, b]) {
+    const v = daysUntil(arm.views, minVisitorsPerArm)
+    const c = daysUntil(arm.conversions, minConversionsPerArm)
+    if (v === null || c === null) return null
+    parts.push(v, c)
+  }
+
+  if (significance < significanceLevel) {
+    const sig = estimateDaysToSignificance(
+      a.views + b.views, significance, createdAt, significanceLevel, now
+    )
+    // null heißt hier "noch nicht schätzbar", nicht "nicht nötig" — dann bleibt
+    // die Ausgabe die Untergrenze aus den übrigen Bedingungen.
+    if (sig !== null) parts.push(sig)
+  }
+
+  const days = Math.max(...parts)
+  if (!Number.isFinite(days) || days <= 0) return null
+  return Math.max(1, Math.ceil(days))
+}

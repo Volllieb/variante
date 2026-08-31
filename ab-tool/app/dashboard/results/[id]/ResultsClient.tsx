@@ -12,8 +12,10 @@ import { calcSignificance, MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RU
 import {
   formatCreatedAt,
   exportCsv,
-  estimateDaysToSignificance,
-  progressPct,
+  computeReadiness,
+  estimateDaysToReady,
+  calcUplift,
+  type ArmCriterion,
   parseGoal,
   formatGoal,
   describeGoal,
@@ -95,6 +97,51 @@ const barConfig = {
 /* Die Signifikanz-Achse ist ein Prozentwert mit fester 0-100-Domain; der
    kompakte Formatter der geteilten Achse wäre hier irreführend. */
 const percentAxisProps = { ...yAxisProps, tickFormatter: (v: number) => `${v}%`, width: 40 }
+
+/**
+ * Eine Anforderungszeile, die pro Arm gilt.
+ *
+ * Zeigt beide Arme und das Ziel; der Balken folgt dem schwächeren Arm, weil
+ * evaluateWinner() erst freigibt, wenn BEIDE die Schwelle reißen. Vorher stand
+ * hier nur das Minimum ohne Kontext — bei A=6 und B=16 Conversions las sich
+ * "6 / 25" wie eine dritte, unerklärliche Zahl.
+ */
+function ArmRequirement({ label, criterion }: { label: string; criterion: ArmCriterion }) {
+  const { a, b, target, pct, met, laggingArm } = criterion
+  const armClass = (arm: 'A' | 'B') =>
+    !met && laggingArm === arm ? 'text-text-2' : 'text-text-3'
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2 text-[10px] mb-0.5">
+        <span className={met ? 'text-ok' : 'text-text-3'}>
+          {met ? '✓' : '○'} {label}/arm
+        </span>
+        <span
+          className="text-text-3 tabular-nums whitespace-nowrap"
+          title={`Variant A: ${formatCount(a)}, Variant B: ${formatCount(b)} — each needs ${formatCount(target)}`}
+        >
+          <span className={armClass('A')}>A {formatCount(a)}</span>
+          <span className="text-text-3/60"> · </span>
+          <span className={armClass('B')}>B {formatCount(b)}</span>
+          <span className="text-text-3/60"> / {formatCount(target)}</span>
+        </span>
+      </div>
+      <div
+        className="h-1 overflow-hidden rounded-full bg-bg-2"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label} per variant: A ${a}, B ${b}, target ${target} each`}
+      >
+        <div
+          className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${met ? 'bg-ok/60' : 'bg-text-3/40'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
 
 export function ResultsClient({ initial, experimentId, pro }: { initial: ExperimentData; experimentId: string; pro: boolean }) {
   const [data, setData] = useState(initial)
@@ -220,29 +267,53 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   // „Die Entscheidung ist gefallen" — egal ob schon ausgerollt oder nicht.
   // Steuert alles, was Fortschritts- statt Ergebnisdarstellung zeigt.
   const decided = done || winnerPending
-  const visitorPct = Math.min(100, Math.round((totalVisitors / Math.max(1, minVisitors)) * 100))
+  const totalConversions = a.conversions + b.conversions
+
+  // Eine einzige Besucher-Schwelle für Anzeige UND Gate. Der DB-Wert gilt pro
+  // Arm (so prüft evaluateWinner), der Systemboden greift zusätzlich. Vorher
+  // rechnete der Balken in den Einstellungen mit `min_visitors` als SUMME und
+  // meldete bei 83 Besuchern "83 / 100 — fast fertig", während die
+  // Anforderungsliste daneben korrekt "30 / 1.000" zeigte.
+  const effectiveMinVisitors = Math.max(minVisitors, MIN_VISITORS_PER_ARM)
+
+  // ── V3: Multi-Kriterien-Progress (Spiegel von evaluateWinner) ──
+  const readiness = computeReadiness({
+    a,
+    b,
+    minVisitorsPerArm: effectiveMinVisitors,
+    minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
+    minRuntimeDays: MIN_RUNTIME_DAYS,
+    createdAt: created_at,
+    now,
+  })
+  const { visitors: visitorsReq, conversions: convReq, runtime } = readiness
+  const daysRunning = runtime.days
+  const allCriteriaMet = readiness.allMet
 
   // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
   // Bei < 10 Conversions pro Arm ist die Uplift-Schätzung statistisches Rauschen
   // und führt zu Fehlinterpretationen ("+50%!" bei 2 vs 3 Conversions).
   const MIN_CONV_FOR_UPLIFT = 10
-  const enoughDataForUplift = a.conversions >= MIN_CONV_FOR_UPLIFT && b.conversions >= MIN_CONV_FOR_UPLIFT
-  const lift = a.views > 0 && a.conversions > 0 && enoughDataForUplift
-    ? ((b.cr - a.cr) / a.cr) * 100
-    : null
+  const enoughDataForUplift = convReq.lagging >= MIN_CONV_FOR_UPLIFT
+  const lift = enoughDataForUplift ? calcUplift(a, b) : null
+  // Der fehlende Rest betrifft nur den schwächeren Arm — "4 more per variant"
+  // war falsch, wenn A bei 6 und B bei 16 Conversions steht.
+  const upliftGap = MIN_CONV_FOR_UPLIFT - convReq.lagging
+  const upliftGapWhere = convReq.laggingArm ? `variant ${convReq.laggingArm}` : 'each variant'
 
-  // ── V3: Multi-Kriterien-Progress ──
-  const visitorsPerArm = Math.min(a.views, b.views)
-  const convPerArm = Math.min(a.conversions, b.conversions)
-  const visitorsProgress = progressPct(visitorsPerArm, Math.max(minVisitors, MIN_VISITORS_PER_ARM))
-  const convProgress = progressPct(convPerArm, MIN_CONVERSIONS_PER_ARM)
-  const daysRunning = Math.max(0, (now - new Date(created_at).getTime()) / 86_400_000)
-  const runtimeProgress = progressPct(daysRunning, MIN_RUNTIME_DAYS)
-  const allCriteriaMet = visitorsProgress >= 100 && convProgress >= 100 && runtimeProgress >= 100
-
-  // ── V4: Time-to-significance Schätzung ──
-  const daysToSig = !decided && significance > 0 && significance < (significanceLevel)
-    ? estimateDaysToSignificance(totalVisitors, significance, created_at, significanceLevel, now)
+  // ── V4: Schätzung bis zur Entscheidbarkeit (alle Bedingungen, nicht nur Konfidenz) ──
+  const daysToReady = !decided && now > 0
+    ? estimateDaysToReady({
+        a,
+        b,
+        significance,
+        significanceLevel,
+        minVisitorsPerArm: effectiveMinVisitors,
+        minConversionsPerArm: MIN_CONVERSIONS_PER_ARM,
+        minRuntimeDays: MIN_RUNTIME_DAYS,
+        createdAt: created_at,
+        now,
+      })
     : null
 
   // UX-07: Diese drei Handler hatten keinen Busy-Guard — die Buttons blieben
@@ -509,7 +580,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     {lift !== null ? 'Conversion uplift' : 'Not enough data'}
                   </p>
                   <p className="mt-1 text-[11px] text-text-3">
-                    {formatCount(totalVisitors)} visitors · {formatCount(a.conversions + b.conversions)} conversions
+                    {formatCount(totalVisitors)} visitors · {formatCount(totalConversions)} conversions (A + B)
                   </p>
                 </>
               ) : !decided && lift !== null ? (
@@ -521,10 +592,11 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     {formatDelta(lift)}
                   </p>
                   <p className="mt-1 text-[12px] text-text-3">
-                    Uplift · {formatCount(totalVisitors)} visitors
+                    Uplift · {formatCount(totalVisitors)} visitors (A + B)
                   </p>
-                  <p className="mt-1 text-[11px] text-text-3">
-                    A: {formatPercent(a.cr)} CR · B: {formatPercent(b.cr)} CR
+                  <p className="mt-1 text-[11px] text-text-3 tabular-nums">
+                    A: {formatPercent(a.cr)} CR ({formatCount(a.conversions)}/{formatCount(a.views)}) ·
+                    B: {formatPercent(b.cr)} CR ({formatCount(b.conversions)}/{formatCount(b.views)})
                   </p>
                 </>
               ) : (
@@ -536,22 +608,25 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     {formatCount(totalVisitors)}
                   </p>
                   <p className="mt-1 text-[12px] text-text-3">
-                    visitors so far
+                    visitors so far — A + B combined
+                  </p>
+                  <p className="mt-1 text-[11px] text-text-3 tabular-nums">
+                    A {formatCount(a.views)} · B {formatCount(b.views)}
                   </p>
                   {!enoughDataForUplift && totalVisitors > 0 && (
                     <p className="mt-1 text-[10px] text-text-3">
-                      Need {MIN_CONV_FOR_UPLIFT - convPerArm} more conversions per variant for reliable uplift
+                      {upliftGap} more conversion{upliftGap !== 1 ? 's' : ''} in {upliftGapWhere} before the uplift means anything
                     </p>
                   )}
                 </>
               )}
 
-              {/* V4: Time-to-significance estimate */}
-              {daysToSig !== null && (
+              {/* V4: Schätzung bis zur Entscheidbarkeit — alle Bedingungen, nicht nur Konfidenz */}
+              {daysToReady !== null && (
                 <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-pro/[0.08] border border-pro/15 px-3 py-1">
                   <Clock className="h-3 w-3 text-pro shrink-0" />
                   <span className="text-[11px] text-pro/90">
-                    ~{daysToSig} day{daysToSig !== 1 ? 's' : ''} to {Math.round(significanceLevel * 100)}% confidence
+                    ~{daysToReady} day{daysToReady !== 1 ? 's' : ''} until a winner can be called
                   </span>
                 </div>
               )}
@@ -560,45 +635,17 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             {/* Right: Multi-criteria progress (V3) */}
             <div className="space-y-2.5">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-text-3">Requirements</p>
-              {/* Visitors per arm */}
-              <div>
-                <div className="flex justify-between text-[10px] mb-0.5">
-                  <span className={visitorsProgress >= 100 ? 'text-ok' : 'text-text-3'}>
-                    {visitorsProgress >= 100 ? '✓' : '○'} Visitors/arm
-                  </span>
-                  <span className="text-text-3 tabular-nums">
-                    {formatCount(visitorsPerArm)} / {formatCount(Math.max(minVisitors, MIN_VISITORS_PER_ARM))}
-                  </span>
-                </div>
-                <div className="h-1 overflow-hidden rounded-full bg-bg-2">
-                  <div
-                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${visitorsProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
-                    style={{ width: `${visitorsProgress}%` }}
-                  />
-                </div>
-              </div>
-              {/* Conversions per arm */}
-              <div>
-                <div className="flex justify-between text-[10px] mb-0.5">
-                  <span className={convProgress >= 100 ? 'text-ok' : 'text-text-3'}>
-                    {convProgress >= 100 ? '✓' : '○'} Conversions/arm
-                  </span>
-                  <span className="text-text-3 tabular-nums">
-                    {formatCount(convPerArm)} / {formatCount(MIN_CONVERSIONS_PER_ARM)}
-                  </span>
-                </div>
-                <div className="h-1 overflow-hidden rounded-full bg-bg-2">
-                  <div
-                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${convProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
-                    style={{ width: `${convProgress}%` }}
-                  />
-                </div>
-              </div>
+              {/* Besucher und Conversions gelten PRO ARM: beide Werte stehen da,
+                  der Balken folgt dem schwächeren — er entscheidet. Der nackte
+                  Minimum-Wert allein sah neben der Gesamtsumme im Feld daneben
+                  wie ein Rechenfehler aus. */}
+              <ArmRequirement label="Visitors" criterion={visitorsReq} />
+              <ArmRequirement label="Conversions" criterion={convReq} />
               {/* Runtime */}
               <div>
                 <div className="flex justify-between text-[10px] mb-0.5">
-                  <span className={runtimeProgress >= 100 ? 'text-ok' : 'text-text-3'}>
-                    {runtimeProgress >= 100 ? '✓' : '○'} Runtime
+                  <span className={runtime.met ? 'text-ok' : 'text-text-3'}>
+                    {runtime.met ? '✓' : '○'} Runtime
                   </span>
                   <span className="text-text-3 tabular-nums">
                     {daysRunning.toFixed(1)} / {MIN_RUNTIME_DAYS} days
@@ -606,14 +653,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
                 <div className="h-1 overflow-hidden rounded-full bg-bg-2">
                   <div
-                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${runtimeProgress >= 100 ? 'bg-ok/60' : 'bg-text-3/40'}`}
-                    style={{ width: `${runtimeProgress}%` }}
+                    className={`h-full rounded-full transition-[width] duration-[var(--duration-slow)] ${runtime.met ? 'bg-ok/60' : 'bg-text-3/40'}`}
+                    style={{ width: `${runtime.pct}%` }}
                   />
                 </div>
               </div>
               {!decided && !allCriteriaMet && (
                 <p className="text-[9px] text-text-3 italic">
-                  All three must be met before a winner is declared.
+                  Each variant must clear both thresholds, and all three lines must be met, before a winner is declared.
                 </p>
               )}
               {!decided && allCriteriaMet && significance < significanceLevel && (
@@ -1262,16 +1309,21 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             ) : (
               <>
                 <p className="mt-1 text-xs text-text-3 leading-relaxed">
-                  Once both thresholds are met, Variant B becomes the winner. If auto-apply is on
+                  Once every requirement above is met — visitors and conversions in
+                  <em> both </em> variants, minimum runtime, confidence and minimum uplift —
+                  Variant B becomes the winner. If auto-apply is on
                   (Account → Experiments), it is served to all new visitors automatically —
                   otherwise you get a notification and decide here.
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <label className="block space-y-1.5">
-                    <span className="text-xs font-semibold text-text-2">Min Visitors</span>
+                    <span className="text-xs font-semibold text-text-2">
+                      Min Visitors <span className="font-normal text-text-3">per variant</span>
+                    </span>
                     <input
                       type="number"
-                      min={1}
+                      min={MIN_VISITORS_PER_ARM}
+                      step={100}
                       value={minVisitors}
                       onChange={e => setMinVisitors(Number(e.target.value))}
                       className="w-full rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-sm text-text focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
@@ -1320,15 +1372,27 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   </p>
                 </fieldset>
 
+                {minVisitors < MIN_VISITORS_PER_ARM && (
+                  <p className="mt-2 text-[11px] text-text-3">
+                    Below the system floor — {formatCount(MIN_VISITORS_PER_ARM)} visitors per variant
+                    are required regardless, so a lower value has no effect.
+                  </p>
+                )}
+
                 <div className="mt-4">
                   <div className="mb-1.5 flex justify-between text-xs text-text-3">
                     <span>Visitor threshold</span>
-                    <span>{formatCount(totalVisitors)} / {formatCount(minVisitors)}</span>
+                    {/* Derselbe Wert wie in der Anforderungsliste oben: schwächerer
+                        Arm gegen die effektive Schwelle. Vorher stand hier die
+                        Gesamtsumme gegen dieselbe Zahl — doppelt so schnell voll. */}
+                    <span className="tabular-nums">
+                      {formatCount(visitorsReq.lagging)} / {formatCount(effectiveMinVisitors)} per variant
+                    </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-bg-2">
                     <div
                       className="h-full rounded-full bg-text transition-[width] duration-[var(--duration-slow)]"
-                      style={{ width: `${visitorPct}%` }}
+                      style={{ width: `${visitorsReq.pct}%` }}
                     />
                   </div>
                 </div>
