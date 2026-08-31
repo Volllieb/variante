@@ -191,7 +191,7 @@ export function ButtonEditor({ element, originalHtml, onApply, onCancel }: Butto
                 key={bs.value}
                 type="button"
                 onClick={() => handleChange({ borderStyle: bs.value })}
-                className={`flex-1 cursor-pointer rounded-[var(--radius-md)] px-2 py-1.5 text-[11px] font-medium transition-all ${
+                className={`flex-1 cursor-pointer rounded-[var(--radius-md)] px-2 py-1.5 text-[11px] font-medium transition-colors ${
                   (edits.borderStyle ?? 'solid') === bs.value
                     ? 'bg-bg-2 text-text'
                     : 'bg-bg-1 text-text-3 hover:text-text'

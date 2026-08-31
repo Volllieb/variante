@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Sparkles, Globe, Lock, Loader2, RefreshCw, Bot, CheckCircle2, XCircle, Search, FlaskConical, Wand2 } from 'lucide-react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
@@ -19,6 +18,8 @@ interface Props {
   plan: string
   setupComplete: boolean
   domain: string | null
+  /** Aufgerufen statt router.refresh() — der Parent macht den Reload sichtbar. */
+  onRefreshed?: () => void
 }
 
 // Statische Vorschlaege als Teaser-Inhalt (wird im Free-Tier geblurred).
@@ -30,7 +31,7 @@ const TEASER_SUGGESTIONS: Suggestion[] = [
   { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social proof is the strongest trust driver — logos plus a number build credibility in milliseconds.' },
 ]
 
-export function WhatToTestNext({ siteUrl, plan, setupComplete, domain }: Props) {
+export function WhatToTestNext({ siteUrl, plan, setupComplete, domain, onRefreshed }: Props) {
   const isPro = plan === 'pro' || plan === 'agency'
 
   // Nur anzeigen wenn Setup komplett ist
@@ -46,7 +47,7 @@ export function WhatToTestNext({ siteUrl, plan, setupComplete, domain }: Props) 
     return <NoUrlPrompt />
   }
 
-  return <ProSuggestions siteUrl={siteUrl} domain={domain} />
+  return <ProSuggestions siteUrl={siteUrl} domain={domain} onRefreshed={onRefreshed} />
 }
 
 /* ── Free Tier: Geblurrter Teaser ── */
@@ -141,7 +142,7 @@ function formatTimeAgo(iso: string): string {
   return `${days}d ago`
 }
 
-function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string | null }) {
+function ProSuggestions({ siteUrl, domain, onRefreshed }: { siteUrl: string; domain: string | null; onRefreshed?: () => void }) {
   const [state, setState] = useState<FetchState>('idle')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [analyzedAt, setAnalyzedAt] = useState<string | null>(null)
@@ -283,7 +284,7 @@ function ProSuggestions({ siteUrl, domain }: { siteUrl: string; domain: string |
       </div>
 
       {/* Auto-optimize agent */}
-      {domain && <MiniAgent domain={domain} />}
+      {domain && <MiniAgent domain={domain} onRefreshed={onRefreshed} />}
     </div>
   )
 }
@@ -297,8 +298,7 @@ const TOOL_LABELS: Record<string, { icon: typeof Globe; running: string; done: s
   'tool-createTest': { icon: FlaskConical, running: 'Creating test…', done: 'Test created' },
 }
 
-function MiniAgent({ domain }: { domain: string }) {
-  const router = useRouter()
+function MiniAgent({ domain, onRefreshed }: { domain: string; onRefreshed?: () => void }) {
   const host = domain.replace(/^https?:\/\//, '')
 
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -311,9 +311,9 @@ function MiniAgent({ domain }: { domain: string }) {
 
   const prevStatus = useRef(status)
   useEffect(() => {
-    if (prevStatus.current === 'streaming' && status === 'ready') router.refresh()
+    if (prevStatus.current === 'streaming' && status === 'ready') onRefreshed?.()
     prevStatus.current = status
-  }, [status, router])
+  }, [status, onRefreshed])
 
   const handleRun = () => {
     setMessages([])

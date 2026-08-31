@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X, Target } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
 import { displayDay, estimateTimeToDecision } from '@/lib/decisions'
+import type { DailyPoint } from '@/lib/forecast'
 import { describeDbGoal } from '@/lib/resultsHelpers'
-import { formatCompact, formatPercent, formatDelta } from '@/lib/formatNumber'
+import { formatCompact, formatPercent, formatDelta, formatCount } from '@/lib/formatNumber'
 import { significanceTone } from './sigVisual'
 
 
@@ -107,12 +108,20 @@ function SigPie({ significance, visitors, size }: { significance: number; visito
 
 export function TestCard({
   t,
+  daily,
   highlight,
   onDelete,
   onCompleteDraft,
   from,
 }: {
   t: TestRow
+  /**
+   * Tageszeilen dieses Tests. Ohne sie schätzt der Restweg aus dem
+   * Lebenszeit-Mittel — mit ihnen aus dem Tempo der letzten Tage, genau wie die
+   * Entscheidungs-Zeile darüber. Zwei Zahlen auf einem Bildschirm müssen aus
+   * derselben Messung kommen.
+   */
+  daily?: DailyPoint[]
   highlight?: boolean
   onDelete?: (id: string) => void
   /** Called when a draft test card is clicked — opens wizard instead of results page. */
@@ -221,11 +230,11 @@ export function TestCard({
 
   // Restweg bis zur Entscheidung. Nur solange es etwas zu warten gibt: bei
   // erreichter Schwelle entscheidet nicht mehr die Menge, sondern die Statistik.
-  const estimate = isLive && t.winner === null ? estimateTimeToDecision(t, displayDay()) : null
+  const estimate = isLive && t.winner === null ? estimateTimeToDecision(t, displayDay(), daily) : null
   const remaining = estimate && estimate.visitorsNeeded > 0
     ? estimate.daysNeeded !== null
       ? `~${estimate.daysNeeded}d to decision`
-      : `~${estimate.visitorsNeeded.toLocaleString()} visitors to go`
+      : `~${formatCount(estimate.visitorsNeeded)} visitors to go`
     : null
 
   const cardClassName = `group/card surface-interactive relative block w-full text-left rounded-[var(--radius-lg)] border p-2.5 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none ${
@@ -305,7 +314,7 @@ export function TestCard({
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               aria-label="Test actions"
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-all hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>

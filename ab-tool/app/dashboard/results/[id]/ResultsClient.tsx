@@ -19,7 +19,6 @@ import {
   formatCreatedAt,
   exportCsv,
   computeReadiness,
-  estimateDaysToReady,
   calcUplift,
   conversionRate,
   dailyLift,
@@ -31,6 +30,7 @@ import {
   type DailyRow,
   type AnalyticsData,
 } from '@/lib/resultsHelpers'
+import { forecastDecision, formatHorizon, FORECAST_HORIZON_DAYS, type Forecast } from '@/lib/forecast'
 import {
   RefreshCw,
   Users,
@@ -77,6 +77,7 @@ import {
 } from '@/app/dashboard/components/chartTheme'
 import { formatCount, formatPercent, formatDelta, formatCompact } from '@/lib/formatNumber'
 import { significanceTone } from '@/app/dashboard/components/sigVisual'
+import { RefreshIndicator } from '@/app/dashboard/components/RefreshIndicator'
 
 // CSS custom property helpers — SVGs support var() natively
 const OK = SERIES.ok
@@ -103,9 +104,56 @@ const barConfig = {
   value: { label: 'Value', color: SERIES.neutral },
 } satisfies ChartConfig
 
-/* Die Signifikanz-Achse ist ein Prozentwert mit fester 0-100-Domain; der
-   kompakte Formatter der geteilten Achse wäre hier irreführend. */
-const percentAxisProps = { ...yAxisProps, tickFormatter: (v: number) => `${v}%`, width: 40 }
+/* Prozent-Achse mit fester 0-100-Domain; der kompakte Formatter der geteilten
+   Achse wäre hier irreführend. Über formatPercent statt roher Interpolation:
+   die CR-Balkenwerte kommen seit dem Metrik-Fix ungerundet an und hingen sonst
+   mit allen Nachkommastellen auf der Achse. */
+const percentAxisProps = { ...yAxisProps, tickFormatter: (v: number) => formatPercent(v), width: 48 }
+
+/**
+ * Die Restlaufzeit-Schätzung samt ihrer Grundlage.
+ *
+ * Die Grundlage steht dabei, weil sie die Zahl erklärt: springt der Traffic,
+ * springt auch die Schätzung — ohne den Hinweis "gerechnet mit den letzten drei
+ * Tagen" sähe das aus wie ein Fehler statt wie die Korrektur, die es ist.
+ */
+function ForecastBadge({ forecast }: { forecast: Forecast }) {
+  const { days, limitedBy, lowerBound, rate } = forecast
+
+  const alarming = limitedBy === 'no-traffic' || limitedBy === 'beyond-horizon'
+  const headline =
+    limitedBy === 'no-traffic'
+      ? 'One variant is getting no traffic — it cannot finish like this'
+      : limitedBy === 'beyond-horizon'
+      ? `More than ${formatHorizon(FORECAST_HORIZON_DAYS)} at the current pace`
+      : `${lowerBound ? 'At least ' : ''}${formatHorizon(days ?? 0)} until a winner can be called`
+
+  const factor = rate.changeFactor
+  const note =
+    rate.basis === 'shift' && factor !== null
+      ? factor >= 1
+        ? `Traffic jumped ${Number.isFinite(factor) ? `${factor.toFixed(1)}×` : 'sharply'} — estimated from the last ${rate.windowDays} days`
+        : `Traffic dropped to ${Math.round(factor * 100)}% — estimated from the last ${rate.windowDays} days`
+      : rate.basis === 'recent'
+      ? `At the pace of the last ${rate.windowDays} days`
+      : 'At the average pace since this test started'
+
+  return (
+    <div className="mt-2 flex flex-col items-center gap-1">
+      <div
+        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ${
+          alarming ? 'border border-err/20 bg-err-bg' : 'border border-pro/15 bg-pro/[0.08]'
+        }`}
+      >
+        <Clock className={`h-3 w-3 shrink-0 ${alarming ? 'text-err' : 'text-pro'}`} />
+        <span className={`text-[11px] ${alarming ? 'text-err' : 'text-pro/90'}`}>{headline}</span>
+      </div>
+      {limitedBy !== 'no-traffic' && (
+        <span className="text-[10px] text-text-3">{note}</span>
+      )}
+    </div>
+  )
+}
 
 /**
  * Eine Anforderungszeile, die pro Arm gilt.
@@ -317,7 +365,6 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     now,
   })
   const { visitors: visitorsReq, conversions: convReq, runtime } = readiness
-  const daysRunning = runtime.days
   const allCriteriaMet = readiness.allMet
 
   // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
@@ -334,8 +381,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   // Pausierte Tests sammeln nichts ein — eine Hochrechnung aus vergangenem
   // Traffic wäre dort ein Versprechen, das der Test gar nicht einlösen kann.
   // Bei kaputter Traffic-Verteilung ist die Frage "wann" ebenfalls die falsche.
-  const daysToReady = !decided && now > 0 && status !== 'paused' && !srm
-    ? estimateDaysToReady({
+  //
+  // Das Tempo kommt aus den Tagesdeltas, sobald sie geladen sind: solange nur
+  // die Zähler da sind, schätzt lib/forecast aus dem Lebenszeit-Mittel — die
+  // erste, grobe Antwort. Mit den Tageszeilen wird daraus das Mittel der
+  // letzten Woche, und nach einem Sprung in den Besucherzahlen das der letzten
+  // drei Tage.
+  const forecast = !decided && now > 0 && status !== 'paused' && !srm
+    ? forecastDecision({
         a,
         b,
         significance,
@@ -345,6 +398,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         minRuntimeDays: MIN_RUNTIME_DAYS,
         createdAt: created_at,
         now,
+        daily: analytics?.daily,
       })
     : null
 
@@ -654,14 +708,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               )}
 
               {/* V4: Schätzung bis zur Entscheidbarkeit — alle Bedingungen, nicht nur Konfidenz */}
-              {daysToReady !== null && (
-                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-pro/[0.08] border border-pro/15 px-3 py-1">
-                  <Clock className="h-3 w-3 text-pro shrink-0" />
-                  <span className="text-[11px] text-pro/90">
-                    ~{daysToReady} day{daysToReady !== 1 ? 's' : ''} until a winner can be called
-                  </span>
-                </div>
-              )}
+              {forecast && <ForecastBadge forecast={forecast} />}
             </div>
 
             {/* Right: Multi-criteria progress (V3) */}
@@ -680,7 +727,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     {runtime.met ? '✓' : '○'} Runtime
                   </span>
                   <span className="text-text-3 tabular-nums">
-                    {daysRunning.toFixed(1)} / {MIN_RUNTIME_DAYS} days
+                    {runtime.days.toFixed(1)} / {runtime.target} days
                   </span>
                 </div>
                 <div className="h-1 overflow-hidden rounded-full bg-bg-2">
@@ -876,7 +923,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <XAxis dataKey="date" {...xAxisProps} />
                 <YAxis domain={[0, 100]} {...percentAxisProps} />
                 <ChartTooltip
-                  content={<ChartTooltipContent valueFormatter={(v) => `${v}%`} />}
+                  content={<ChartTooltipContent valueFormatter={(v) => formatPercent(v)} />}
                 />
                 {/* 95% significance threshold */}
                 <ReferenceLine
@@ -1405,7 +1452,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       onChange={e => setMinUplift(Number(e.target.value) / 100)}
                       className="w-full accent-white h-1.5 rounded-full cursor-pointer"
                       style={{
-                        background: `linear-gradient(to right, #ededed 0%, #ededed ${(minUplift * 100 - 1) / 19 * 100}%, #111111 ${(minUplift * 100 - 1) / 19 * 100}%, #111111 100%)`,
+                        background: `linear-gradient(to right, var(--color-text) 0%, var(--color-text) ${(minUplift * 100 - 1) / 19 * 100}%, var(--color-bg-2) ${(minUplift * 100 - 1) / 19 * 100}%, var(--color-bg-2) 100%)`,
                       }}
                     />
                   </label>
@@ -1495,6 +1542,11 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           </div>
         )}
       </div>
+
+      {/* refreshing deckt manuellen Button UND Realtime-Updates ab — die
+          Pille erscheint also auch, wenn der Test sich im Hintergrund
+          aktualisiert hat. */}
+      <RefreshIndicator active={refreshing} />
     </div>
   )
 }

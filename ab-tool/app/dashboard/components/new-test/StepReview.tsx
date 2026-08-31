@@ -12,6 +12,7 @@ import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info, FileText } 
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
 import { buildPreviewSrcDoc } from './preview'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
+import { formatCount } from '@/lib/formatNumber'
 
 type Breakpoint = 375 | 768 | 'desktop'
 const BREAKPOINTS: Array<{ value: Breakpoint; label: string; width: number }> = [
@@ -175,7 +176,7 @@ export function StepReview({
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-3" />
         <p className="text-[11px] leading-relaxed text-text-2">
           For a trustworthy result, this test needs at least{' '}
-          <strong className="text-text">{MIN_VISITORS_PER_ARM.toLocaleString()} visitors</strong> and{' '}
+          <strong className="text-text">{formatCount(MIN_VISITORS_PER_ARM)} visitors</strong> and{' '}
           <strong className="text-text">{MIN_CONVERSIONS_PER_ARM} conversions</strong> per variant,
           running for at least <strong className="text-text">{MIN_RUNTIME_DAYS} days</strong> — whichever
           takes longer. Ending it earlier risks a false result.

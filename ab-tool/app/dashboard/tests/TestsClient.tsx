@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTestList } from '@/lib/useTestList'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
 import { NewTestDrawer } from '../components/NewTestDrawer'
 import { TestCard, type TestRow } from '../components/TestCard'
+import { RefreshIndicator, useRefreshTransition } from '../components/RefreshIndicator'
 import {
   FilterDropdown,
 } from '../components/FilterDropdown'
@@ -32,7 +32,9 @@ export function TestsClient({
   userId: string
   verifiedDomains: { url: string; verifiedAt: string | null }[]
 }) {
-  const router = useRouter()
+  // Sichtbarer Reload: der manuelle Refresh-Button hatte vorher gar kein
+  // Feedback — jetzt Spinner am Button plus „Updating…"-Pille.
+  const { refresh, isPending } = useRefreshTransition()
   const [newTestOpen, setNewTestOpen] = useState(false)
   const [resumeTest, setResumeTest] = useState<TestRow | null>(null)
 
@@ -65,10 +67,10 @@ export function TestsClient({
         <FilterDropdown filter={filter} onChange={setFilter} />
         <Tooltip content="Refresh test list">
           <button
-            onClick={() => router.refresh()}
+            onClick={refresh}
             className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-1 text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className={`h-3.5 w-3.5 ${isPending ? 'animate-spin' : ''}`} />
           </button>
         </Tooltip>
         <Tooltip content="Create new test">
@@ -160,6 +162,8 @@ export function TestsClient({
           ))}
         </div>
       )}
+
+      <RefreshIndicator active={isPending} />
     </div>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import {
@@ -32,12 +31,13 @@ const TOOL_LABELS: Record<string, { icon: typeof Globe; running: string; done: s
 interface Props {
   domain: string | null
   hasVerifiedDomain: boolean
+  /** Aufgerufen statt router.refresh() — der Parent macht den Reload sichtbar. */
+  onRefreshed?: () => void
 }
 
 // ─── Component ───
 
-export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
-  const router = useRouter()
+export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
   const host = domain ? domain.replace(/^https?:\/\//, '') : null
   const [expanded, setExpanded] = useState(false)
 
@@ -51,9 +51,9 @@ export function AgentPanel({ domain, hasVerifiedDomain }: Props) {
 
   const prevStatus = useRef(status)
   useEffect(() => {
-    if (prevStatus.current === 'streaming' && status === 'ready') router.refresh()
+    if (prevStatus.current === 'streaming' && status === 'ready') onRefreshed?.()
     prevStatus.current = status
-  }, [status, router])
+  }, [status, onRefreshed])
 
   const handleRun = () => {
     if (!domain) return

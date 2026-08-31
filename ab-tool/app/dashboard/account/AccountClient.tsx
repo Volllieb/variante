@@ -27,7 +27,7 @@ function Toggle({ checked, onChange, label, id }: { checked: boolean; onChange: 
       }`}
     >
       <span
-        className={`absolute top-1/2 h-[16px] w-[16px] -translate-y-1/2 rounded-full transition-all ${
+        className={`absolute top-1/2 h-[16px] w-[16px] -translate-y-1/2 rounded-full transition-[left,background-color] ${
           checked ? 'left-[19px] bg-text-on-invert' : 'left-[2px] bg-text-3'
         }`}
       />

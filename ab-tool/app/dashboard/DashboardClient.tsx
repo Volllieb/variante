@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
 import { PlanUsageBar } from './components/PlanUsageBar'
+import { RefreshIndicator, useRefreshTransition } from './components/RefreshIndicator'
 
 /** So viele Tests zeigt die Overview — die vollständige Liste lebt in /dashboard/tests. */
 const TOP_TESTS = 5
@@ -64,6 +65,9 @@ export function DashboardClient({
   userId: string
 }) {
   const router = useRouter()
+  // Sichtbarer Reload: derselbe refresh() speist alle drei Quellen (Domain-
+  // Verifikation, AI-Panels) und treibt die „Updating…"-Pille an.
+  const { refresh, isPending } = useRefreshTransition()
   const [newTestOpen, setNewTestOpen] = useState(openNewTest ?? false)
   const [resumeTest, setResumeTest] = useState<TestRow | null>(null)
   const [drawerOpenCount, setDrawerOpenCount] = useState(0)
@@ -143,7 +147,29 @@ export function DashboardClient({
   }, [router])
 
   /* ── Ebene 2: Entscheidungen ── */
-  const decisions = useMemo(() => deriveDecisions(scopedTests), [scopedTests])
+  // Die Tageszeilen liegen fuer den Trend ohnehin schon hier. Mit ihnen rechnet
+  // die "at this pace"-Zeile mit dem Tempo der letzten Tage statt mit dem
+  // Lebenszeit-Mittel — ein Test, dessen Traffic gestern eingebrochen oder
+  // hochgeschossen ist, bekommt sofort die passende Aussage.
+  // Zeitbasis bleibt der Default aus deriveDecisions — ein Date.now() hier im
+  // Render ist eine unreine Funktion und wird von der React-Compiler-Regel
+  // zurückgewiesen.
+  const decisions = useMemo(
+    () => deriveDecisions(scopedTests, undefined, dailyStats),
+    [scopedTests, dailyStats]
+  )
+
+  // Tageszeilen je Test — die Karten zeigen denselben Restweg wie die
+  // Entscheidungs-Zeile und müssen deshalb aus derselben Messung rechnen.
+  const dailyByTest = useMemo(() => {
+    const map = new Map<string, DailyStatRow[]>()
+    for (const row of dailyStats) {
+      const list = map.get(row.test_id)
+      if (list) list.push(row)
+      else map.set(row.test_id, [row])
+    }
+    return map
+  }, [dailyStats])
 
   /* ── Ebene 3: Aggregate stats (scoped, zeitraumbezogen) ── */
   const activeTests = scopedTests.filter((t) => t.status === 'active').length
@@ -277,7 +303,7 @@ export function DashboardClient({
           primaryDomain={primaryDomain}
           verifiedAt={verifiedAt}
           allVerifiedDomains={allVerifiedDomains}
-          onDomainVerified={() => router.refresh()}
+          onDomainVerified={refresh}
         />
       )}
 
@@ -390,7 +416,7 @@ export function DashboardClient({
             <ErrorBoundary label="Tests">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {topTests.map((t, i) => (
-                  <TestCard key={t.id} t={t} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true); setDrawerOpenCount((c) => c + 1) }} />
+                  <TestCard key={t.id} t={t} daily={dailyByTest.get(t.id)} highlight={highlightNew && i === 0} onDelete={handleDeleteTest} from="overview" onCompleteDraft={(test) => { setResumeTest(test); setNewTestOpen(true); setDrawerOpenCount((c) => c + 1) }} />
                 ))}
               </div>
             </ErrorBoundary>
@@ -404,6 +430,7 @@ export function DashboardClient({
           <AgentPanel
             domain={primaryDomain}
             hasVerifiedDomain={hasVerifiedDomain}
+            onRefreshed={refresh}
           />
         </div>
       )}
@@ -415,9 +442,12 @@ export function DashboardClient({
             plan={plan}
             setupComplete={hasVerifiedDomain}
             domain={primaryDomain}
+            onRefreshed={refresh}
           />
         </div>
       )}
+
+      <RefreshIndicator active={isPending} />
 
     </div>
   )

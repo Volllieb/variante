@@ -13,8 +13,8 @@ import {
   calcSignificance,
   evaluateWinner,
   hasSampleRatioMismatch,
-  MIN_VISITORS_PER_ARM,
 } from './significance'
+import { estimateVisitorGap, type DailyPoint, type DailyPointByTest } from './forecast'
 
 /* ── Typen ── */
 
@@ -108,30 +108,32 @@ export type DecisionEstimate = {
  * Wie weit ist der Test noch von einer möglichen Entscheidung entfernt?
  *
  * Bezugsgröße ist dieselbe Schwelle, die evaluateWinner() anlegt: Besucher PRO
- * ARM gegen max(MIN_VISITORS_PER_ARM, tests.min_visitors). Das Tempo ist der
- * Schnitt seit created_at — unter einem halben Tag Laufzeit wird nicht
- * hochgerechnet, sonst macht ein einziger Besucher in der ersten Minute daraus
- * eine Prognose von Tausenden pro Tag.
+ * ARM gegen max(MIN_VISITORS_PER_ARM, tests.min_visitors). Gerechnet wird in
+ * lib/forecast.ts — dieselbe Hochrechnung, die die Results-Seite anzeigt.
+ *
+ * ponytail: Hier stand eine eigene Formel, die den Rückstand BEIDER Arme
+ * summierte und durch das GESAMTTEMPO teilte. Das stimmt nur bei gleichmäßiger
+ * Verteilung. Bei einem 90/10-Split (A=5.000, B=200 nach 10 Tagen) fehlen 800
+ * Besucher in B, das Gesamttempo ist 520/Tag — die Zeile meldete "~2 Tage",
+ * während B mit 20/Tag noch 40 Tage braucht. Die Arme füllen sich parallel;
+ * maßgeblich ist der langsamere.
+ *
+ * `daily` ist optional: ohne Tageszeilen bleibt es beim Lebenszeit-Mittel, mit
+ * ihnen zählt das Tempo der letzten Tage.
  */
-export function estimateTimeToDecision(t: DecisionTest, now = Date.now()): DecisionEstimate {
-  const vA = t.visitors_a ?? 0
-  const vB = t.visitors_b ?? 0
-  const target = Math.max(t.min_visitors ?? 0, MIN_VISITORS_PER_ARM)
-  const visitorsNeeded = Math.max(0, target - vA) + Math.max(0, target - vB)
-  if (visitorsNeeded === 0) return { visitorsNeeded: 0, daysNeeded: 0 }
-
-  const elapsedDays = (now - new Date(t.created_at).getTime()) / 86_400_000
-  const total = vA + vB
-  if (!Number.isFinite(elapsedDays) || elapsedDays < 0.5 || total <= 0) {
-    return { visitorsNeeded, daysNeeded: null }
-  }
-  const perDay = total / elapsedDays
-  if (perDay <= 0) return { visitorsNeeded, daysNeeded: null }
-  // Vor dem Aufrunden auf vier Nachkommastellen kürzen. Ohne das macht
-  // Math.ceil() aus 10.0000000058 Tagen "~11d" — die paar Millisekunden
-  // zwischen created_at und dem Render entscheiden dann über einen ganzen Tag.
-  const days = Math.ceil(Number((visitorsNeeded / perDay).toFixed(4)))
-  return { visitorsNeeded, daysNeeded: Math.max(1, days) }
+export function estimateTimeToDecision(
+  t: DecisionTest,
+  now = Date.now(),
+  daily: DailyPoint[] = []
+): DecisionEstimate {
+  return estimateVisitorGap({
+    a: { views: t.visitors_a ?? 0, conversions: t.conversions_a ?? 0 },
+    b: { views: t.visitors_b ?? 0, conversions: t.conversions_b ?? 0 },
+    minVisitorsPerArm: t.min_visitors,
+    createdAt: t.created_at,
+    now,
+    daily,
+  })
 }
 
 /* ── Klassifizierung ── */
@@ -147,7 +149,7 @@ function decision(
   return { testId: t.id, testName: t.name, kind, severity, headline, action: { label, href } }
 }
 
-function classify(t: DecisionTest, now: number): Decision | null {
+function classify(t: DecisionTest, now: number, daily: DailyPoint[]): Decision | null {
   const vA = t.visitors_a ?? 0
   const vB = t.visitors_b ?? 0
   const cA = t.conversions_a ?? 0
@@ -237,7 +239,7 @@ function classify(t: DecisionTest, now: number): Decision | null {
     runtimeDays > STALLED_AFTER_DAYS &&
     (verdict.reason === 'not-enough-visitors' || verdict.reason === 'not-significant')
   ) {
-    const est = estimateTimeToDecision(t, now)
+    const est = estimateTimeToDecision(t, now, daily)
     const stuck =
       verdict.reason === 'not-significant' ||
       est.daysNeeded === null ||
@@ -266,10 +268,23 @@ function classify(t: DecisionTest, now: number): Decision | null {
  * Alle Tests, die eine Handlung brauchen — sortiert nach Dringlichkeit.
  * Tests ohne offene Entscheidung tauchen nicht auf.
  */
-export function deriveDecisions(tests: DecisionTest[], now = Date.now()): Decision[] {
+export function deriveDecisions(
+  tests: DecisionTest[],
+  now = Date.now(),
+  daily: DailyPointByTest[] = []
+): Decision[] {
+  // Tageszeilen einmal nach Test gruppieren statt pro Test durch die ganze
+  // Liste zu filtern — die Overview hält 60 Tage für alle Tests des Kontos.
+  const byTest = new Map<string, DailyPoint[]>()
+  for (const row of daily) {
+    const list = byTest.get(row.test_id)
+    if (list) list.push(row)
+    else byTest.set(row.test_id, [row])
+  }
+
   const out: Decision[] = []
   for (const t of tests) {
-    const d = classify(t, now)
+    const d = classify(t, now, byTest.get(t.id) ?? [])
     if (d) out.push(d)
   }
   return out.sort((a, b) => decisionRank(a.kind) - decisionRank(b.kind))
