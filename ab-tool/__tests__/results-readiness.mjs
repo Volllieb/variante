@@ -14,8 +14,10 @@ import {
   calcUplift,
   computeReadiness,
   conversionRate,
+  dailyLift,
   daysSince,
   estimateDaysToReady,
+  MIN_CONV_FOR_UPLIFT,
 } from '../lib/resultsHelpers.ts'
 import {
   evaluateWinner,
@@ -240,6 +242,32 @@ check('junge Tests werden nicht auf Stundenbasis hochgerechnet', () => {
     now: NOW,
   })
   assert.equal(days, 199) // (1000-5)/5 = 199 Tage, nicht ~1
+})
+
+function day(va, vb, ca, cb) {
+  return { date: '2026-08-30', visitors_a: va, visitors_b: vb, conversions_a: ca, conversions_b: cb }
+}
+
+check('Tages-Uplift schweigt, solange der Tag zu duenn ist', () => {
+  // 1 gegen 4 Conversions sind "+300 %" — dieselbe Zahl, die die Hero-Card
+  // zwei Boxen weiter oben bewusst zurueckhaelt.
+  assert.equal(dailyLift(day(50, 50, 1, 4)), null)
+  assert.equal(dailyLift(day(500, 500, 9, 30)), null) // ein Arm knapp darunter
+  assert.equal(MIN_CONV_FOR_UPLIFT, 10)
+})
+
+check('Tages-Uplift rechnet ab der Schwelle wie die Hero-Card', () => {
+  const lift = dailyLift(day(1000, 1000, 10, 20))
+  assert.equal(lift, 100)
+  assert.equal(
+    lift,
+    calcUplift({ views: 1000, conversions: 10 }, { views: 1000, conversions: 20 })
+  )
+})
+
+check('Tage ohne Besucher im Arm kippen den Uplift nicht auf Infinity', () => {
+  assert.equal(dailyLift(day(0, 500, 0, 12)), null)
+  assert.equal(dailyLift(day(500, 0, 12, 0)), null)
 })
 
 if (failed > 0) {

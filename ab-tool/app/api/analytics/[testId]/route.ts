@@ -31,12 +31,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ testId: 
   // auseinanderlaufen.
   await supabase.rpc('snapshot_daily_stats', { p_test_id: testId })
 
-  // Zeitreihe der letzten 90 Tage
+  // Zeitreihe der letzten 90 Tage.
+  //
+  // ponytail: Hier stand `.order('date', { ascending: true }).limit(90)` — das
+  // liefert die ÄLTESTEN 90 Zeilen, nicht die jüngsten. Bei einem Test, der
+  // länger als 90 Tage läuft, froren damit sämtliche Zeitreihen auf Tag 90 ein:
+  // die Charts hörten mitten im laufenden Test auf, und die kumulierten
+  // Conversions widersprachen der Gesamtzahl in der Hero-Card, weil die letzten
+  // Tage schlicht fehlten. Jetzt wird über das Datum gefiltert und absteigend
+  // begrenzt; die Sortierung für die Anzeige stellt der Aufrufer wieder her.
+  const since = new Date(Date.now() - 90 * 86_400_000).toISOString().slice(0, 10)
   const { data: stats, error } = await supabase
     .from('daily_stats')
     .select('date, visitors_a, visitors_b, conversions_a, conversions_b')
     .eq('test_id', testId)
-    .order('date', { ascending: true })
+    .gte('date', since)
+    .order('date', { ascending: false })
     .limit(90)
 
   if (error) {
@@ -54,6 +64,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ testId: 
       significance: test.significance,
       winner: test.winner,
     },
-    daily: stats ?? [],
+    daily: (stats ?? []).slice().reverse(),
   }, { headers: { ...corsHeaders('GET, OPTIONS'), 'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30' } })
 }

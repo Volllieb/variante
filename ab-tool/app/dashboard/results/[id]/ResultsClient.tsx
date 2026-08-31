@@ -8,13 +8,22 @@ import { useTestUpdate } from '@/lib/useRealtime'
 import { Breadcrumbs } from '@/app/components/Breadcrumbs'
 import { Tooltip } from '@/app/components/Tooltip'
 import { useToast } from '@/app/components/Toast'
-import { calcSignificance, MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
+import {
+  calcSignificance,
+  hasSampleRatioMismatch,
+  MIN_VISITORS_PER_ARM,
+  MIN_CONVERSIONS_PER_ARM,
+  MIN_RUNTIME_DAYS,
+} from '@/lib/significance'
 import {
   formatCreatedAt,
   exportCsv,
   computeReadiness,
   estimateDaysToReady,
   calcUplift,
+  conversionRate,
+  dailyLift,
+  MIN_CONV_FOR_UPLIFT,
   type ArmCriterion,
   parseGoal,
   formatGoal,
@@ -252,9 +261,30 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
     }
   }, [])
 
-  const { name, status, significance, winner, variants, created_at } = data
+  const { name, status, winner, variants, created_at } = data
   const [a, b] = variants
   const totalVisitors = a.views + b.views
+
+  // Signifikanz live aus denselben Zählern, die zwei Zentimeter weiter als
+  // Besucher und Conversions stehen.
+  //
+  // ponytail: Der Donut zeigte `tests.significance` aus der Datenbank. Diese
+  // Spalte schreibt nur /api/event (also bei Conversions) und der Tages-Cron —
+  // Besucher-Zuweisungen fassen sie nicht an. Zwischen zwei Conversions wuchs
+  // die Stichprobe also weiter, während die Konfidenz auf dem Stand der letzten
+  // Conversion stehenblieb: 500 zusätzliche Besucher ohne Conversion senken die
+  // echte Konfidenz, der Donut zeigte den alten, höheren Wert. Die Overview
+  // rechnet aus genau diesem Grund schon live (lib/decisions.ts), und die
+  // Kurve "Significance over Time" auf dieser Seite ebenfalls — der Donut war
+  // die einzige Stelle mit dem gespeicherten Wert und widersprach beiden.
+  const significance = calcSignificance(a.views, a.conversions, b.views, b.conversions)
+
+  // Sample Ratio Mismatch: weicht die tatsächliche Verteilung stark vom
+  // konfigurierten Split ab, ist die Datenbasis kaputt. Cron und Overview
+  // behandeln das als hartes Ausschlusskriterium (kein Gewinner, "not
+  // trustworthy") — die Results-Seite zeigte davon nichts und ließ den Kunden
+  // auf Zahlen schauen, die im Hintergrund längst disqualifiziert waren.
+  const srm = hasSampleRatioMismatch(a.views, b.views, data.trafficSplit)
   // ponytail (Plan RA-06): `done` hieß bisher `status === 'done' || !!winner`.
   // Seit die Auto-Promotion abschaltbar ist, kann ein Test einen ermittelten
   // Gewinner haben und trotzdem weiterlaufen — dann hätte die alte Definition
@@ -293,7 +323,6 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   // Win #4: Uplift erst anzeigen wenn beide Arme genug Conversions haben.
   // Bei < 10 Conversions pro Arm ist die Uplift-Schätzung statistisches Rauschen
   // und führt zu Fehlinterpretationen ("+50%!" bei 2 vs 3 Conversions).
-  const MIN_CONV_FOR_UPLIFT = 10
   const enoughDataForUplift = convReq.lagging >= MIN_CONV_FOR_UPLIFT
   const lift = enoughDataForUplift ? calcUplift(a, b) : null
   // Der fehlende Rest betrifft nur den schwächeren Arm — "4 more per variant"
@@ -302,7 +331,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const upliftGapWhere = convReq.laggingArm ? `variant ${convReq.laggingArm}` : 'each variant'
 
   // ── V4: Schätzung bis zur Entscheidbarkeit (alle Bedingungen, nicht nur Konfidenz) ──
-  const daysToReady = !decided && now > 0
+  // Pausierte Tests sammeln nichts ein — eine Hochrechnung aus vergangenem
+  // Traffic wäre dort ein Versprechen, das der Test gar nicht einlösen kann.
+  // Bei kaputter Traffic-Verteilung ist die Frage "wann" ebenfalls die falsche.
+  const daysToReady = !decided && now > 0 && status !== 'paused' && !srm
     ? estimateDaysToReady({
         a,
         b,
@@ -671,6 +703,23 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
           </div>
 
+          {/* Kaputte Traffic-Verteilung: dieselbe Aussage, die Cron und Overview
+              schon treffen — hier an der Stelle, an der der Kunde die Zahlen
+              tatsächlich liest. */}
+          {srm && (
+            <div className="mt-5 rounded-[var(--radius-md)] border border-err/20 bg-err-bg p-4" role="alert">
+              <p className="text-[12px] font-medium text-err mb-1">
+                Traffic split is off — these numbers are not trustworthy
+              </p>
+              <p className="text-[11px] leading-relaxed text-text-2">
+                A got {formatCount(a.views)} visitors, B got {formatCount(b.views)} — far from the
+                configured {100 - data.trafficSplit}/{data.trafficSplit} split. Until that is fixed no
+                winner will be declared, whatever the confidence above says. Usual causes: page
+                caching, an ad blocker, bot traffic, or a selector that no longer matches.
+              </p>
+            </div>
+          )}
+
           {/* Win #3: "0 Visitors" — konkrete nächste Schritte */}
           {totalVisitors === 0 && (
             <div className="mt-5 rounded-[var(--radius-md)] border border-pro/15 bg-pro/[0.03] p-4">
@@ -701,7 +750,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-3.5 w-3.5 text-text-3" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
-                Visitors over Time
+                Visitors per Day
               </span>
             </div>
             <ChartContainer
@@ -709,7 +758,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               showLegend
               className="h-[180px] w-full"
               role="img"
-              aria-label={`Visitors chart: ${formatCount(totalVisitors)} total visitors over ${analytics.daily.length} days`}
+              aria-label={`Visitors per day for ${analytics.daily.length} days, ${formatCount(totalVisitors)} in total`}
             >
               <LineChart
                 data={analytics.daily.map((d) => ({
@@ -733,7 +782,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <div className="flex items-center gap-2">
               <TrendingUp className="h-3.5 w-3.5 text-text-3" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
-                Visitors over Time
+                Visitors per Day
               </span>
               <span className="ml-auto text-[11px] text-text-3">Not enough data yet</span>
             </div>
@@ -844,7 +893,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: OK }} /> Confidence
               </span>
               <span className="flex items-center gap-1.5">
-                <span aria-hidden className="inline-block h-0.5 w-4 rounded-full border-t border-dashed border-border-strong" /> 95% threshold
+                <span aria-hidden className="inline-block h-0.5 w-4 rounded-full border-t border-dashed border-border-strong" />{' '}
+                {Math.round(significanceLevel * 100)}% threshold
               </span>
             </div>
           </div>
@@ -1169,6 +1219,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       <th className="pb-2 pr-3 font-medium">Date</th>
                       <th className="pb-2 pr-3 font-medium text-right">Vis A</th>
                       <th className="pb-2 pr-3 font-medium text-right">Vis B</th>
+                      {/* Ohne die Conversions ist die CR-Spalte nicht
+                          nachrechenbar — "0.0%" konnte null Conversions oder
+                          eine sehr kleine Rate heissen. Der CSV-Export lieferte
+                          sie laengst, die Tabelle nicht. */}
+                      <th className="pb-2 pr-3 font-medium text-right">Conv A</th>
+                      <th className="pb-2 pr-3 font-medium text-right">Conv B</th>
                       <th className="pb-2 pr-3 font-medium text-right">CR A</th>
                       <th className="pb-2 pr-3 font-medium text-right">CR B</th>
                       <th className="pb-2 font-medium text-right">Lift</th>
@@ -1176,19 +1232,22 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   </thead>
                   <tbody>
                     {analytics.daily.map((row: DailyRow) => {
-                      const crA = row.visitors_a > 0 ? ((row.conversions_a / row.visitors_a) * 100).toFixed(1) : '—'
-                      const crB = row.visitors_b > 0 ? ((row.conversions_b / row.visitors_b) * 100).toFixed(1) : '—'
-                      const rowLift = row.visitors_a > 0 && row.conversions_a > 0 && row.visitors_b > 0
-                        ? (((row.conversions_b / row.visitors_b) - (row.conversions_a / row.visitors_a)) / (row.conversions_a / row.visitors_a)) * 100
-                        : null
+                      // "—%" stand vorher an jedem Tag ohne Besucher in dem Arm:
+                      // der Gedankenstrich kam aus dem Fallback, das Prozent-
+                      // zeichen aus dem Markup daneben.
+                      const crA = row.visitors_a > 0 ? formatPercent(conversionRate(row.visitors_a, row.conversions_a)) : '—'
+                      const crB = row.visitors_b > 0 ? formatPercent(conversionRate(row.visitors_b, row.conversions_b)) : '—'
+                      const rowLift = dailyLift(row)
                       return (
                         <tr key={row.date} className="border-b border-border text-text-3 transition-colors duration-[var(--duration-fast)] ease-out hover:bg-bg-2 hover:text-text-2">
                           <td className="py-1.5 pr-3">{new Date(row.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })}</td>
-                          <td className="py-1.5 pr-3 text-right">{formatCount(row.visitors_a)}</td>
-                          <td className="py-1.5 pr-3 text-right">{formatCount(row.visitors_b)}</td>
-                          <td className="py-1.5 pr-3 text-right">{crA}%</td>
-                          <td className="py-1.5 pr-3 text-right">{crB}%</td>
-                          <td className={`py-1.5 text-right ${rowLift !== null ? (rowLift > 0 ? 'text-ok' : rowLift < 0 ? 'text-err' : '') : ''}`}>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.visitors_a)}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.visitors_b)}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.conversions_a)}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.conversions_b)}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{crA}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{crB}</td>
+                          <td className={`py-1.5 text-right tabular-nums ${rowLift !== null ? (rowLift > 0 ? 'text-ok' : rowLift < 0 ? 'text-err' : '') : ''}`}>
                             {rowLift !== null ? formatDelta(rowLift) : '—'}
                           </td>
                         </tr>
@@ -1196,6 +1255,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     })}
                   </tbody>
                 </table>
+                <p className="mt-2 text-[10px] text-text-3">
+                  Daily values, not cumulative. Lift stays empty until a day has at least{' '}
+                  {MIN_CONV_FOR_UPLIFT} conversions in both variants — below that it is noise.
+                </p>
               </div>
             )}
           </div>

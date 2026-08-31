@@ -35,15 +35,36 @@ export function formatCreatedAt(iso: string): string {
   return 'just now'
 }
 
+/**
+ * Mindest-Conversions pro Arm, ab denen ein Uplift überhaupt eine Aussage ist.
+ * Dieselbe Schwelle, mit der die Hero-Card den Uplift zurückhält.
+ */
+export const MIN_CONV_FOR_UPLIFT = 10
+
+/**
+ * Uplift einer Tageszeile — oder null, wenn der Tag zu dünn dafür ist.
+ *
+ * ponytail: Die Tagestabelle und der CSV-Export rechneten den Uplift für jede
+ * Zeile bedingungslos aus. Bei Tageswerten von 1 gegen 4 Conversions steht dort
+ * dann "+300 %" — dieselbe Zahl, die die Hero-Card zwei Boxen weiter oben
+ * bewusst zurückhält, weil sie bei so wenigen Conversions Rauschen ist. Eine
+ * Tabelle, die dieselbe Groesse ungefiltert zeigt, hebelt die Sperre aus.
+ */
+export function dailyLift(d: DailyRow): number | null {
+  if (d.conversions_a < MIN_CONV_FOR_UPLIFT || d.conversions_b < MIN_CONV_FOR_UPLIFT) return null
+  return calcUplift(
+    { views: d.visitors_a, conversions: d.conversions_a },
+    { views: d.visitors_b, conversions: d.conversions_b }
+  )
+}
+
 /** CSV-Download via Blob (browser-only). */
 export function exportCsv(daily: DailyRow[], testName: string): void {
   const rows = [['Date', 'Visitors A', 'Visitors B', 'Conversions A', 'Conversions B', 'CR A', 'CR B', 'Lift']]
   for (const d of daily) {
-    const crA = d.visitors_a > 0 ? ((d.conversions_a / d.visitors_a) * 100).toFixed(1) : '—'
-    const crB = d.visitors_b > 0 ? ((d.conversions_b / d.visitors_b) * 100).toFixed(1) : '—'
-    const lift = d.visitors_a > 0 && d.conversions_a > 0 && d.visitors_b > 0
-      ? (((d.conversions_b / d.visitors_b) - (d.conversions_a / d.visitors_a)) / (d.conversions_a / d.visitors_a) * 100).toFixed(1)
-      : '—'
+    const crA = d.visitors_a > 0 ? ((d.conversions_a / d.visitors_a) * 100).toFixed(1) : ''
+    const crB = d.visitors_b > 0 ? ((d.conversions_b / d.visitors_b) * 100).toFixed(1) : ''
+    const lift = dailyLift(d)
     rows.push([
       new Date(d.date).toISOString().slice(0, 10),
       String(d.visitors_a),
@@ -52,7 +73,9 @@ export function exportCsv(daily: DailyRow[], testName: string): void {
       String(d.conversions_b),
       crA,
       crB,
-      lift,
+      // Leer statt "—": ein Gedankenstrich in einer Zahlenspalte macht die
+      // Datei in Excel zu Text und die Spalte unbrauchbar.
+      lift === null ? '' : lift.toFixed(1),
     ])
   }
   const csv = rows.map(r => r.join(',')).join('\n')

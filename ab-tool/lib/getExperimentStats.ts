@@ -20,8 +20,13 @@ export type ExperimentData = {
   site_url: string
   status: string
   created_at: string
+  /** Zuletzt gespeicherte Signifikanz. Die Oberfläche rechnet live nach — der
+   *  Wert wird nur bei Conversions und im Tages-Cron fortgeschrieben, nicht bei
+   *  jedem Besucher. */
   significance: number
   winner: string | null
+  /** Konfigurierter Anteil an Variante B in Prozent — Basis für die SRM-Prüfung. */
+  trafficSplit: number
   minVisitors: number
   minUplift: number
   significanceLevel: number
@@ -53,7 +58,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
   const { data: test } = await supabase
     .from('tests')
     .select(
-      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, significance_level, user_id, original_html, variant_b_html, site_css, goal, selector'
+      'id, name, site_url, status, created_at, significance, winner, visitors_a, visitors_b, conversions_a, conversions_b, min_visitors, min_uplift, significance_level, traffic_split, user_id, original_html, variant_b_html, site_css, goal, selector'
     )
     .eq('id', id)
     .single()
@@ -68,6 +73,7 @@ export async function getExperimentStats(id: string): Promise<ExperimentData | n
     created_at: test.created_at,
     significance: test.significance ?? 0,
     winner: test.winner ?? null,
+    trafficSplit: test.traffic_split ?? 50,
     // Roher DB-Wert; der Systemboden wird in der Oberfläche sichtbar
     // aufgeschlagen, nicht hier still. Der alte Fallback 100 stand als Default
     // im Konfigurationsfeld, während evaluateWinner() unverändert 1.000 pro Arm
