@@ -19,6 +19,11 @@ const {
   inheritRootHtml,
   initialEdits,
   scratchVariantHtml,
+  composeVariant,
+  diffCssToEntries,
+  diffTextToEntry,
+  entriesToEdits,
+  describeChange,
 } = await import('../app/dashboard/components/new-test/delta.ts')
 
 let passed = 0
@@ -151,6 +156,163 @@ check('inherit: Text wird escaped, wenn er im Fallback-Markup landet', () => {
 check('scratch: erzeugt weiterhin <button class="ab-variant-b">', () => {
   const out = scratchVariantHtml('Start free')
   assert.equal(out, '<button class="ab-variant-b">Start free</button>')
+})
+
+console.log('\n── Änderungsliste (composeVariant / diffCssToEntries) ──\n')
+
+const ORIGINAL_A = '<a class="hover-btn hover-btn--white" href="/x">Old text</a>'
+
+const applied = (property, before, after) => ({
+  id: String(Math.random()), property, before, after, source: 'manual', status: 'applied',
+})
+
+check('composeVariant: leere Liste → HTML ≡ A, CSS leer', () => {
+  const out = composeVariant({ mode: 'inherit', entries: [], baseline: BASELINE }, ORIGINAL_A, SEL)
+  assert.equal(out.html, ORIGINAL_A)
+  assert.equal(out.css, '')
+})
+
+check('composeVariant: eine Farbzeile → genau eine Deklaration, Markup erbt A', () => {
+  const out = composeVariant(
+    { mode: 'inherit', entries: [applied('bgColor', '#2563eb', '#ff0000')], baseline: BASELINE },
+    ORIGINAL_A,
+    SEL
+  )
+  assert.equal(out.css, `${SEL} {\n  background-color: #ff0000;\n}`)
+  assert.ok(out.html.startsWith('<a class="hover-btn hover-btn--white"'), out.html)
+  assert.ok(out.html.includes('>Old text</a>'), out.html)
+})
+
+check('composeVariant: Textzeile ändert den Text, CSS bleibt leer', () => {
+  const out = composeVariant(
+    { mode: 'inherit', entries: [applied('text', 'Old text', 'Start free')], baseline: BASELINE },
+    ORIGINAL_A,
+    SEL
+  )
+  assert.equal(out.css, '')
+  assert.ok(out.html.includes('>Start free</a>'), out.html)
+})
+
+check('composeVariant: Scratch emittiert auch baseline-gleiche Werte (absolut)', () => {
+  const out = composeVariant(
+    {
+      mode: 'scratch',
+      entries: [
+        applied('text', 'Old text', 'Start'),
+        applied('bgColor', '#2563eb', '#2563eb'),
+      ],
+      baseline: BASELINE,
+    },
+    ORIGINAL_A,
+    SEL
+  )
+  assert.equal(out.html, '<button class="ab-variant-b">Start</button>')
+  // bgColor == Baseline — im inherit-Modus fiele das raus, scratch ist absolut.
+  assert.ok(out.css.includes('background-color: #2563eb;'), out.css)
+  assert.ok(out.css.includes('transition: all 0.2s ease;'), out.css)
+})
+
+check('composeVariant: other-Zeilen werden als Roh-CSS angehängt', () => {
+  const out = composeVariant(
+    {
+      mode: 'inherit',
+      entries: [
+        applied('bgColor', '#2563eb', '#ff0000'),
+        { id: 'o', property: 'other', before: '', after: '', source: 'ai', status: 'applied', rawCss: `${SEL} { letter-spacing: 0.5px; }` },
+      ],
+      baseline: BASELINE,
+    },
+    ORIGINAL_A,
+    SEL
+  )
+  assert.ok(out.css.includes('background-color: #ff0000;'), out.css)
+  assert.ok(out.css.includes('letter-spacing: 0.5px;'), out.css)
+})
+
+check('diffCssToEntries: Wert gleich Baseline → keine Zeile', () => {
+  const entries = diffCssToEntries(`${SEL} { background-color: #2563eb; }`, BASELINE, 'ai')
+  assert.equal(entries.length, 0)
+})
+
+check('diffCssToEntries: geänderte Werte werden Zeilen mit before/after (status suggested)', () => {
+  const entries = diffCssToEntries(`${SEL} { background-color: #ff0000; font-size: 20px; }`, BASELINE, 'ai')
+  assert.equal(entries.length, 2)
+  const bg = entries.find((e) => e.property === 'bgColor')
+  assert.equal(bg.before, '#2563eb')
+  assert.equal(bg.after, '#ff0000')
+  assert.equal(bg.status, 'suggested')
+  const fs = entries.find((e) => e.property === 'fontSize')
+  assert.equal(fs.before, '16')
+  assert.equal(fs.after, '20')
+})
+
+check('diffCssToEntries: padding-Shorthand wird zwei Zeilen', () => {
+  const entries = diffCssToEntries(`${SEL} { padding: 20px 40px; }`, BASELINE, 'ai')
+  assert.equal(entries.find((e) => e.property === 'paddingY').after, '20')
+  assert.equal(entries.find((e) => e.property === 'paddingX').after, '40')
+})
+
+check('diffCssToEntries: unbekannte Property → genau EINE other-Zeile mit rawCss', () => {
+  const css = `${SEL} { background-color: #ff0000; letter-spacing: 0.5px; }`
+  const entries = diffCssToEntries(css, BASELINE, 'ai')
+  const others = entries.filter((e) => e.property === 'other')
+  assert.equal(others.length, 1)
+  assert.ok(others[0].rawCss.includes('letter-spacing: 0.5px;'), others[0].rawCss)
+})
+
+check('diffCssToEntries: hover-Regeln werden hover-Zeilen', () => {
+  const entries = diffCssToEntries(
+    `${SEL}:hover { background-color: #111111; transform: scale(1.1); }`,
+    BASELINE,
+    'ai'
+  )
+  const bg = entries.find((e) => e.property === 'hoverBgColor')
+  assert.equal(bg.after, '#111111')
+  assert.equal(bg.before, '', 'hover hat keine Baseline')
+  const scale = entries.find((e) => e.property === 'hoverScale')
+  assert.equal(scale.after, '110')
+})
+
+check('diffCssToEntries: ohne Baseline haben alle Zeilen before ""', () => {
+  const entries = diffCssToEntries(`${SEL} { background-color: #ff0000; }`, null, 'ai')
+  assert.equal(entries.length, 1)
+  assert.equal(entries[0].before, '')
+})
+
+check('diffTextToEntry: gleicher Text → null, anderer Text → Zeile', () => {
+  assert.equal(diffTextToEntry('<b>A</b>', '<b>A</b>', 'ai'), null)
+  const e = diffTextToEntry('<b>A</b>', '<b>B</b>', 'ai')
+  assert.equal(e.property, 'text')
+  assert.equal(e.before, 'A')
+  assert.equal(e.after, 'B')
+})
+
+check('entriesToEdits: suggested wird ignoriert, applied wird gemappt', () => {
+  const edits = entriesToEdits([
+    { id: '1', property: 'bgColor', before: '', after: '#ff0000', source: 'ai', status: 'suggested' },
+    applied('text', '', 'Go'),
+    applied('fontSize', '', '20'),
+  ])
+  assert.equal(edits.bgColor, undefined)
+  assert.equal(edits.text, 'Go')
+  assert.equal(edits.fontSize, 20)
+})
+
+check('entriesToEdits: hover-Zeilen setzen hoverEnabled', () => {
+  const edits = entriesToEdits([applied('hoverBgColor', '', '#111111')])
+  assert.equal(edits.hoverEnabled, true)
+  assert.equal(edits.hoverBgColor, '#111111')
+})
+
+check('describeChange: Label + Einheiten; before "" bleibt "" (→ "set to")', () => {
+  const d = describeChange({ id: '1', property: 'fontSize', before: '', after: '20', source: 'manual', status: 'applied' })
+  assert.equal(d.label, 'Font size')
+  assert.equal(d.before, '')
+  assert.equal(d.after, '20px')
+  const c = describeChange({ id: '2', property: 'bgColor', before: '#111111', after: '#2563EB', source: 'ai', status: 'applied' })
+  assert.equal(c.label, 'Background')
+  assert.equal(c.before, '#111111')
+  assert.equal(c.after, '#2563EB')
 })
 
 console.log(`\n${'─'.repeat(46)}`)

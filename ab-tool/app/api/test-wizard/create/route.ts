@@ -5,6 +5,10 @@
  * der Name wird vom Client geliefert (manuelle Eingabe im Review-Step).
  *
  * Auth: Supabase-Session (Cookie) — nur eingeloggte User.
+ *
+ * Body-Validierung über wizardCreateBody (lib/validation.ts) — vorher wurde
+ * hier von Hand validiert, was alles stumm verwarf, was nicht im eigenen
+ * Interface stand (variant_text, explanation, variant_b_changes, …).
  */
 
 import { supabase } from '@/lib/supabase'
@@ -14,22 +18,10 @@ import { safeError } from '@/lib/safeLog'
 import { checkRateLimit } from '@/lib/rateLimit'
 import { assertOwnedDomain } from '@/lib/domainGate'
 import { getTestHealthIssues, describeTestHealthIssues } from '@/lib/testHealth'
+import { parseBody } from '@/lib/apiHelpers'
+import { wizardCreateBody, parseChangesJson } from '@/lib/validation'
 
 export const maxDuration = 30
-
-// ─── Request/Response Types ───
-
-interface CreateTestBody {
-  site_url: string
-  selector?: string
-  goal: string
-  variant_b_html?: string
-  variant_b_css?: string
-  original_html?: string
-  site_css?: string
-  status: 'active' | 'paused' | 'draft'
-  name?: string
-}
 
 // ─── Route ───
 
@@ -51,37 +43,14 @@ export async function POST(req: Request) {
     return Response.json({ error: 'rate limit', message: 'Max 5 test creations per minute.' }, { status: 429, headers })
   }
 
-  // ─── Body ───
-  let body: CreateTestBody
-  try { body = await req.json() } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400, headers })
-  }
+  // ─── Body (zod: Goal-Guards, Längenlimits, Status-Pflicht) ───
+  const parsed = await parseBody(req, wizardCreateBody, 'POST, OPTIONS')
+  if (!parsed.ok) return parsed.response
 
-  const { site_url, selector, goal, variant_b_html, variant_b_css, original_html, site_css, status, name } = body
-
-  if (!site_url || !goal) {
-    return Response.json({ error: 'site_url and goal are required' }, { status: 400, headers })
-  }
-  if (!['active', 'paused', 'draft'].includes(status)) {
-    return Response.json({ error: 'status must be active, paused, or draft' }, { status: 400, headers })
-  }
-
-  // Input-Längenlimits
-  if (site_url.length > 2048) return Response.json({ error: 'site_url too long (max 2048)' }, { status: 400, headers })
-  if (goal.length > 256) return Response.json({ error: 'goal too long' }, { status: 400, headers })
-  if (site_css && site_css.length > 50000) return Response.json({ error: 'site_css too long' }, { status: 400, headers })
-
-  // Validate: click-goals must have a selector.
-  // "click" alone is not a valid CSS selector → ab.js would throw SyntaxError
-  // and 0 conversions would be tracked. Requires either click:<selector> format
-  // or a separate goal_selector field. url:-Goals ebenso: ab.js warnt, dass es
-  // sie nicht unterstützt — kein Conversion wird je gezählt, der Test kann nie
-  // fertig werden (Katalog RUN-03). Case- und Whitespace-tolerant wie der
-  // Picker (die Sperre in /api/capture prüft bereits lowercase + trim).
-  const goalNorm = goal.trim().toLowerCase()
-  if (goalNorm === 'click' || goalNorm === 'click:' || goalNorm.startsWith('url:')) {
-    return Response.json({ error: 'Click goal requires a CSS selector (e.g. click:#my-button). URL goals are not supported yet — pick a click target in Step 2.' }, { status: 400, headers })
-  }
+  const {
+    site_url, selector, goal, variant_b_html, variant_b_css, original_html,
+    site_css, status, name, variant_b_changes, element_type, variant_text, explanation,
+  } = parsed.data
 
   // Normalize: empty string → null for optional fields
   const normalizedSelector = selector?.trim() || null
@@ -89,14 +58,13 @@ export async function POST(req: Request) {
   const normalizedVariantCss = variant_b_css?.trim() || null
   const normalizedOriginalHtml = original_html?.trim() || null
   // Styles der Zielseite vom Picker — Basis der Vorschau (lib/previewDoc.ts).
-  // Laenge bereits oben geprueft (400 statt stillem Abschneiden).
   const normalizedSiteCss = site_css?.trim() || null
   const normalizedName = name?.trim() || null
-
-  // Validate: if selector is provided, it must be a valid CSS selector (basic check)
-  if (normalizedSelector && normalizedSelector.length > 512) {
-    return Response.json({ error: 'selector too long' }, { status: 400, headers })
-  }
+  const normalizedElementType = element_type?.trim() || null
+  const normalizedVariantText = variant_text?.trim() || null
+  const normalizedExplanation = explanation?.trim() || null
+  // Änderungsliste reist als JSON-String → fürs jsonb-Insert parsen.
+  const normalizedChanges = parseChangesJson(variant_b_changes)
 
   // Normalize site_url: prepend https:// if no protocol present (Bug 4)
   const normalizedSiteUrl = /^https?:\/\//i.test(site_url) ? site_url : `https://${site_url}`
@@ -146,7 +114,8 @@ export async function POST(req: Request) {
 
   // Plan DB-02: 'active' erfordert alle Pflichtfelder — sonst blockt der
   // DB-Trigger die Aktivierung nur noch stumm (Insert landet als 'draft').
-  // Hier gibt's die verständliche Fehlermeldung dafür.
+  // Hier gibt's die verständliche Fehlermeldung dafür. Seit 044 prüft das
+  // auch das leere Delta (empty_variant) — Drafts bleiben davon frei.
   if (status === 'active') {
     const issues = getTestHealthIssues({
       name: testName,
@@ -155,6 +124,7 @@ export async function POST(req: Request) {
       goal,
       variant_b_html: normalizedVariantHtml,
       variant_b_css: normalizedVariantCss,
+      original_html: normalizedOriginalHtml,
     })
     if (issues.length > 0) {
       return Response.json(
@@ -177,6 +147,10 @@ export async function POST(req: Request) {
     site_css: normalizedSiteCss,
     status,
     traffic_split: 50,
+    variant_b_changes: normalizedChanges,
+    element_type: normalizedElementType,
+    variant_text: normalizedVariantText,
+    explanation: normalizedExplanation,
   }
 
   const { data: test, error: insertErr } = await supabase

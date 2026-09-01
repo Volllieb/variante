@@ -1,8 +1,8 @@
 /**
- * Shared Types für den Button/Text-Editor.
+ * Shared Types für den Button/Text-Editor und die Änderungsliste.
  *
  * Diese Types ergänzen die bestehenden Types aus NewTestDrawer.tsx.
- * Sie werden von StepVariantB, ButtonEditor und TextInputEditor verwendet.
+ * Sie werden von StepChange, ChangeList, ButtonEditor und TextInputEditor verwendet.
  */
 
 // ─── User Edits ───
@@ -59,6 +59,46 @@ export interface StyleBaseline {
 
 /** `inherit`: B erbt Markup/Klassen von A, nur Änderungen werden emittiert. `scratch`: kompletter Neubau. */
 export type EditorMode = 'inherit' | 'scratch'
+
+// ─── Änderungsliste (Change List) ───
+
+/**
+ * Properties, die als eigene Zeile editierbar sind. Mapping auf UserEdits + 'text'.
+ * `other` ist die Sammelzeile für KI-CSS, das sich nicht auf einen Regler
+ * abbilden lässt (letter-spacing, box-shadow-Formate, …) — sie trägt das
+ * Roh-CSS und ist nicht editierbar.
+ */
+export type ChangeProperty =
+  | 'text' | 'bgColor' | 'textColor' | 'fontSize' | 'fontWeight'
+  | 'borderRadius' | 'paddingX' | 'paddingY' | 'borderWidth'
+  | 'borderColor' | 'borderStyle'
+  | 'hoverBgColor' | 'hoverScale' | 'hoverShadow'
+  | 'other'
+
+export interface ChangeEntry {
+  id: string
+  property: ChangeProperty
+  /** Anzeige-Wert von A. '' wenn keine Baseline messbar war. */
+  before: string
+  /** Anzeige-Wert von B. Zahlen ohne Einheit (Einheit hängt am Property). */
+  after: string
+  source: 'manual' | 'ai' | 'figma'
+  status: 'applied' | 'suggested'
+  explanation?: string
+  /** Nur für property==='other': das rohe CSS, das nicht als Regler abbildbar ist. */
+  rawCss?: string
+}
+
+/**
+ * Die Änderungsliste als Quelle der Wahrheit für Variante B.
+ * `variant_b_html`/`variant_b_css` werden daraus komponiert (delta.ts).
+ */
+export interface VariantChangeSet {
+  mode: EditorMode
+  entries: ChangeEntry[]
+  /** Gemessene Werte von A, mitpersistiert — die Liste bleibt selbsterklärend. */
+  baseline: StyleBaseline | null
+}
 
 /** Ermittelt den Editor-Typ basierend auf elementType */
 export function getEditorCategory(elementType: string): 'button' | 'text' {

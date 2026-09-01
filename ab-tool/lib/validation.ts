@@ -101,6 +101,11 @@ export const updateTestBody = z.object({
   // Styles der Zielseite — Basis der Varianten-Vorschau (lib/previewDoc.ts).
   // Limit wie in captureBody, das denselben collectCss-Output entgegennimmt.
   site_css: z.string().max(50_000).nullable().optional(),
+  // Änderungsliste des Wizard (Delta-Modell) — reist als JSON-String.
+  variant_b_changes: z.string().max(50_000).nullable().optional(),
+  element_type: z.string().max(64).nullable().optional(),
+  variant_text: z.string().max(2000).nullable().optional(),
+  explanation: z.string().max(2000).nullable().optional(),
 })
 
 export const captureBody = z.object({
@@ -124,19 +129,41 @@ export const generateBody = z.object({
   selector_b: z.string().optional(),
 })
 
+/**
+ * Goal für den Wizard-Create: nicht nullable, url:-Goals abgelehnt (Katalog
+ * RUN-03) und "click"/"click:" ohne Ziel abgelehnt — ab.js würde den leeren
+ * Selektor als SyntaxError schlucken und der Test zählte dauerhaft null.
+ * Case-/Whitespace-tolerant wie der Picker.
+ */
+const wizardGoal = z
+  .string()
+  .max(256)
+  .refine(
+    g => !g.trim().toLowerCase().startsWith('url:'),
+    'URL goals are not supported yet — use a click goal (e.g. "click:.cta-button")'
+  )
+  .refine(
+    g => !['click', 'click:'].includes(g.trim().toLowerCase()),
+    'Click goal requires a CSS selector (e.g. "click:.cta-button")'
+  )
+
 export const wizardCreateBody = z.object({
   site_url: siteUrl,
-  goal: goalString.refine(
-    g => g !== 'click' && g !== 'click:',
-    'Click goal requires a CSS selector (e.g. "click:.cta-button")'
-  ),
+  goal: wizardGoal,
   selector: cssSelector.optional(),
-  status: wizardStatus.optional(),
+  // Die Route verlangt den Status — required statt optional, damit ein
+  // fehlender Wert als 400 statt als Undefined-Sonderfall ankommt.
+  status: wizardStatus,
   variant_b_html: z.string().nullable().optional(),
   variant_b_css: z.string().nullable().optional(),
   original_html: z.string().nullable().optional(),
   site_css: z.string().max(50_000).nullable().optional(),
   name: testName.optional(),
+  // Änderungsliste des Wizard (Delta-Modell) — reist als JSON-String.
+  variant_b_changes: z.string().max(50_000).nullable().optional(),
+  element_type: z.string().max(64).nullable().optional(),
+  variant_text: z.string().max(2000).nullable().optional(),
+  explanation: z.string().max(2000).nullable().optional(),
 })
 
 export const wizardDraftBody = z.object({
@@ -150,6 +177,10 @@ export const wizardDraftBody = z.object({
   goal: z.string().nullable().optional(),
   goal_selector: z.string().nullable().optional(),
   auto_name: z.string().nullable().optional(),
+  // Änderungsliste des Wizard (Delta-Modell) — reist als JSON-String.
+  variant_b_changes: z.string().max(50_000).nullable().optional(),
+  element_type: z.string().max(64).nullable().optional(),
+  element_name: z.string().max(256).nullable().optional(),
 })
 
 export const wizardGenerateBody = z.object({
@@ -198,3 +229,19 @@ export const notificationsQuery = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
   since: z.string().datetime().optional(),
 })
+
+/**
+ * `variant_b_changes` reist als JSON-String über den Draht (zod-Längenlimit),
+ * gespeichert wird ein jsonb-Objekt. Supabase-js kann nur Objekte zuverlässig
+ * in jsonb-Spalten schreiben — geparst wird deshalb hier, genau einmal.
+ * Unparsebares JSON wird zu null (Bestandsdaten verlieren nichts; die Spalte
+ * ist neu und nullable).
+ */
+export function parseChangesJson(raw: string | null | undefined): unknown {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}

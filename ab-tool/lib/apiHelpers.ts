@@ -37,7 +37,14 @@ export async function parseBody<T>(
     return {
       ok: false,
       response: Response.json(
-        { error: 'validation failed', details: parsed.error.issues },
+        {
+          error: 'validation failed',
+          // Erste Feld-Meldung als message: der Wizard-Drawer liest
+          // `err.message ?? err.error` — so landet die konkrete Ursache
+          // (z. B. das Goal-Guard-Refine) statt nur "validation failed".
+          message: parsed.error.issues[0]?.message,
+          details: parsed.error.issues,
+        },
         { status: 400, headers: corsHeaders(methods) }
       ),
     }

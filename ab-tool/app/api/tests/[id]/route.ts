@@ -4,7 +4,7 @@ import { getApiUser, unauthorized } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { revalidatePath } from 'next/cache'
 import { parseBody } from '@/lib/apiHelpers'
-import { updateTestBody } from '@/lib/validation'
+import { updateTestBody, parseChangesJson } from '@/lib/validation'
 import { getTestHealthIssues, describeTestHealthIssues } from '@/lib/testHealth'
 
 export async function OPTIONS() {
@@ -29,10 +29,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   // Besitz-Scope: nur eigene Tests aktualisierbar.
   // Vor dem Update den alten Status für Event-Logging sichern.
+  // original_html gehört in den Select: der empty_variant-Guard (testHealth)
+  // braucht es für den Identitätsvergleich beim Aktivieren.
   const ownerCol = isTemp ? 'temp_session_id' : 'user_id'
   const { data: oldTest } = await supabase
     .from('tests')
-    .select('status, name, site_url, selector, goal, variant_b_html, variant_b_css')
+    .select('status, name, site_url, selector, goal, variant_b_html, variant_b_css, original_html')
     .eq('id', id)
     .eq(ownerCol, user.userId)
     .single()
@@ -59,9 +61,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   }
 
+  // variant_b_changes reist als JSON-String (zod-Längenlimit) — fürs
+  // jsonb-Update als Objekt übergeben, sonst wirft PostgREST einen Cast-Fehler.
+  const { variant_b_changes, ...rest } = patch
+  const updatePayload: Record<string, unknown> = { ...rest }
+  if (variant_b_changes !== undefined) {
+    updatePayload.variant_b_changes = parseChangesJson(variant_b_changes)
+  }
+
   const { data: updated, error } = await supabase
     .from('tests')
-    .update(patch)
+    .update(updatePayload)
     .eq('id', id)
     .eq(ownerCol, user.userId)
     .select('id')

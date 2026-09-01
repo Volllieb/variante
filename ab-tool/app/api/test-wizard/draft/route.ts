@@ -12,6 +12,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getSessionUser } from '@/lib/supabaseServer'
 import { safeError } from '@/lib/safeLog'
 import { checkRateLimit } from '@/lib/rateLimit'
+import { parseChangesJson } from '@/lib/validation'
 
 // ─── Types ───
 
@@ -28,6 +29,10 @@ interface WizardDraftBody {
   goal?: string | null
   goal_selector?: string | null
   auto_name?: string | null
+  /** Änderungsliste des Wizard (Delta-Modell) — reist als JSON-String. */
+  variant_b_changes?: string | null
+  element_type?: string | null
+  element_name?: string | null
 }
 
 // ─── Route ───
@@ -82,6 +87,10 @@ export async function PUT(req: Request) {
   if (body.site_css && body.site_css.length > 50000) return Response.json({ error: 'site_css too long' }, { status: 400, headers })
   if (body.variant_b_html && body.variant_b_html.length > 50000) return Response.json({ error: 'variant_b_html too long' }, { status: 400, headers })
   if (body.variant_b_css && body.variant_b_css.length > 50000) return Response.json({ error: 'variant_b_css too long' }, { status: 400, headers })
+  // Cap analog site_css: die Zeilenliste enthält Roh-CSS und Erklärungen.
+  if (body.variant_b_changes && body.variant_b_changes.length > 50000) return Response.json({ error: 'variant_b_changes too long' }, { status: 400, headers })
+  if (body.element_type && body.element_type.length > 64) return Response.json({ error: 'element_type too long' }, { status: 400, headers })
+  if (body.element_name && body.element_name.length > 256) return Response.json({ error: 'element_name too long' }, { status: 400, headers })
 
   const upsertData: Record<string, unknown> = { user_id: user.id }
   // Nur gesetzte Felder übernehmen (partieller Update)
@@ -96,6 +105,13 @@ export async function PUT(req: Request) {
   if (body.goal !== undefined) upsertData.goal = body.goal
   if (body.goal_selector !== undefined) upsertData.goal_selector = body.goal_selector
   if (body.auto_name !== undefined) upsertData.auto_name = body.auto_name
+  // Änderungsliste → jsonb: als Objekt, nicht als String (PostgREST wirft
+  // text → jsonb sonst mit einem Cast-Fehler ab).
+  if (body.variant_b_changes !== undefined) {
+    upsertData.variant_b_changes = parseChangesJson(body.variant_b_changes)
+  }
+  if (body.element_type !== undefined) upsertData.element_type = body.element_type
+  if (body.element_name !== undefined) upsertData.element_name = body.element_name
 
   const { error } = await supabase
     .from('wizard_drafts')

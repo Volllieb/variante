@@ -32,6 +32,9 @@ export type TestRow = {
   goal?: string | null
   variant_b_html?: string | null
   variant_b_css?: string | null
+  /** Änderungsliste des Wizard (jsonb) — Quelle der Wahrheit beim Draft-Resume. */
+  variant_b_changes?: unknown
+  element_type?: string | null
   /** Gesetzt, wenn der Test aus dem Hybrid-Onboarding stammt (Preview vor Sign-up). */
   preview_variant_screenshot_url?: string | null
   /** Gewinner-Konfiguration — Grundlage der Entscheidungs-Ableitung (lib/decisions.ts). */
@@ -70,6 +73,7 @@ function issueLabel(code: string): string {
     missing_selector: 'No element selected',
     missing_variant: 'No variant design',
     missing_goal: 'No conversion goal',
+    empty_variant: 'Variant is identical to the original',
   }
   return labels[code] ?? code
 }
