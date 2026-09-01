@@ -31,6 +31,77 @@
 
 import { sanitizeCssText } from '@/lib/sanitizeCssText'
 
+/**
+ * Selektoren, die den Rahmen der Vorschau kapern statt das Element zu treffen.
+ *
+ * `collectCss` in ab.js sammelt jede Regel ein, die eine Custom Property
+ * erwaehnt — der Guard soll die `:root`-Tokens retten, trifft aber auch jede
+ * Regel, die bloss `var(--bg)` BENUTZT. So landet `body { background-color:
+ * var(--bg); min-height: 100vh }` im site_css, steht im srcDoc nach dem Reset
+ * und ueberschreibt dessen Hintergrund. Auf vallisride.com wurde die Vorschau
+ * dadurch hell und der weisse Button darauf unsichtbar.
+ *
+ * Das gepickte Element ist nie <html> oder <body> — diese Selektoren sind hier
+ * immer Kollateral. `:root` bleibt: dort stehen die Custom Properties, ohne die
+ * jedes var() in den Element-Regeln ins Leere greift. `body .foo` bleibt
+ * ebenfalls, das zielt auf einen Nachfahren und gilt in der Vorschau zu Recht.
+ */
+const PAGE_LEVEL_SELECTOR_RE = /^\s*(?:html|body|\*)\s*$/i
+
+/**
+ * Entfernt Seiten-Selektoren aus einer Regelliste, Selektor fuer Selektor.
+ *
+ * `collectCss` liefert eine Regel pro Zeile (ein `cssText` je Eintrag,
+ * zeilenweise zusammengefuegt), verschachtelte At-Rules sind dabei schon
+ * flachgeklopft. Die zeilenweise Verarbeitung ist deshalb kein Parser-Ersatz,
+ * sondern passt exakt auf das Format des Erzeugers. Aus `body, .cta { … }` wird
+ * `.cta { … }`, statt die ganze Regel zu verlieren.
+ */
+function stripPageLevelRules(css: string): string {
+  return css
+    .split('\n')
+    .map((line) => {
+      const brace = line.indexOf('{')
+      if (brace === -1) return line
+      const selectors = line.slice(0, brace).split(',')
+      const kept = selectors.filter((s) => !PAGE_LEVEL_SELECTOR_RE.test(s))
+      if (kept.length === selectors.length) return line
+      return kept.length === 0 ? null : kept.join(',') + line.slice(brace)
+    })
+    .filter((line): line is string => line !== null)
+    .join('\n')
+}
+
+/**
+ * Schneidet eine am Ende offen gebliebene Regel ab.
+ *
+ * `collectCss` deckelte das eingesammelte CSS lange auf 18 000 Zeichen — mitten
+ * in einer Deklaration. Eine Regel ohne `}` laesst den CSS-Parser alles
+ * Nachfolgende als ihren Rumpf verschlucken: den computed-Block und das Delta
+ * der Variante. In der Vorschau sah B dann exakt aus wie A.
+ *
+ * Das Snippet deckelt inzwischen auf Regelgrenzen. Diese Reparatur bleibt fuer
+ * die Bestandsdaten: `site_css`, das vor 09/2026 abgeschnitten gespeichert
+ * wurde, liegt unveraendert in der DB und wird nicht nachgezogen.
+ *
+ * Geschweifte Klammern in Strings oder `url()` wuerden die Zaehlung stoeren —
+ * in gesammeltem `cssText` kommen sie praktisch nicht vor, und der Preis waere
+ * ein CSS-Parser im Client-Bundle.
+ */
+function dropUnterminatedTail(css: string): string {
+  let depth = 0
+  let lastBalanced = 0
+  for (let i = 0; i < css.length; i++) {
+    const ch = css[i]
+    if (ch === '{') depth++
+    else if (ch === '}') {
+      depth = Math.max(0, depth - 1)
+      if (depth === 0) lastBalanced = i + 1
+    }
+  }
+  return depth === 0 ? css : css.slice(0, lastBalanced)
+}
+
 /** Wrapper-Klasse um das Vorschau-HTML. Gegenstück: computedBlock() in public/ab.js. */
 export const PREVIEW_ROOT_CLASS = '__ab_preview_root'
 
@@ -65,8 +136,12 @@ export function buildPreviewSrcDoc({
   variantCss,
   background = '#0a0a0a',
 }: PreviewDocOptions): string {
-  const base = sanitizeCssText(baseCss)
-  const variant = sanitizeCssText(variantCss)
+  // Erst sanitizen, dann die Seiten-Selektoren ziehen: sanitizeCssText kann
+  // Deklarationen entfernen, aber nie Selektoren umschreiben.
+  const base = stripPageLevelRules(dropUnterminatedTail(sanitizeCssText(baseCss)))
+  // Auch fuer B. Ein generiertes `body { background: … }` wuerde den Rahmen
+  // genauso kapern und den A/B-Vergleich verfaelschen, statt das Element zu zeigen.
+  const variant = stripPageLevelRules(dropUnterminatedTail(sanitizeCssText(variantCss)))
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
     :root { color-scheme: dark; }

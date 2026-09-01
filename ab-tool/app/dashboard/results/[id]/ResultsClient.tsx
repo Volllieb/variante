@@ -377,7 +377,6 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   })
   const { visitors: visitorsReq, conversions: convReq, runtime, uplift: upliftReq } = readiness
   const allCriteriaMet = readiness.allMet
-
   // Ohne die Styles der Zielseite ist eine visuelle Vorschau irrefuehrend statt
   // hilfreich — siehe lib/previewDoc.ts. Betrifft alle Tests, die vor 08/2026
   // im Wizard angelegt wurden: dort wurde site_css nie gespeichert.

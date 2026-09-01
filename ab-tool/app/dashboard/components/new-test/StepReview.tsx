@@ -267,7 +267,6 @@ function ElementPreview({
     [{ html, css, scopeToSelector, selector }],
     siteCss
   )
-
   return (
     <div className="min-w-0">
       <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>

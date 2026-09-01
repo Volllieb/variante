@@ -130,6 +130,12 @@
       function computedMap(el) {
         return computedValues(el)
       }
+        // Custom Properties muessen mit, sonst greift jedes var() in den
+        // Element-Regeln ins Leere. Aber nur DEFINITIONEN (`--x: wert`), nicht
+        // jede Regel, die eine Variable bloss BENUTZT: `indexOf('--')` zog
+        // vorher `body { background: var(--bg) }` und hunderte fremde Regeln
+        // mit herein, sprengte das Budget unten und kaperte die Vorschau.
+        var CUSTOM_PROP_DECL_RE = /(^|[;{])\s*--[\w-]+\s*:/
       function collectCss(el) {
         var out = [], seen = {}, len = 0
         function push(rule) {
@@ -141,7 +147,7 @@
         function consider(rule, condPrefix) {
           try {
             var sel = rule.selectorText; if (!sel) return
-            if (sel.indexOf(':root') > -1 || rule.cssText.indexOf('--') > -1) { pushWrapped(rule, condPrefix); return }
+            if (sel.indexOf(':root') > -1 || CUSTOM_PROP_DECL_RE.test(rule.cssText)) { pushWrapped(rule, condPrefix); return }
             if (PSEUDO_RE.test(sel)) { if (matchesPseudo(el, sel)) pushWrapped(rule, condPrefix); return }
             if (el.matches(sel)) pushWrapped(rule, condPrefix)
           } catch (_) {}
@@ -182,9 +188,22 @@
             }
           }
         } catch (_) {}
-        var rulesText = out.join('\n').slice(0, 18000)
+        // Auf Regelgrenzen deckeln, nicht auf Zeichen. Ein mitten in einer
+        // Deklaration abgeschnittenes `{` laesst die Regel offen, und der
+        // CSS-Parser verschluckt dann ALLES danach — in der Vorschau also den
+        // computed-Block und das Delta der Variante. Genau das passierte auf
+        // vallisride.com: 18000 Zeichen exakt erreicht, letzte Regel halbiert.
+        var rulesText = ''
+        for (var n = 0; n < out.length; n++) {
+          if (rulesText.length + out[n].length + 1 > 18000) break
+          rulesText += (rulesText ? '\n' : '') + out[n]
+        }
         var comp = computedBlock(el)
-        return (comp ? rulesText + '\n\n' + comp : rulesText).slice(0, 24000)
+        if (!comp) return rulesText
+        // Passt beides nicht ins Gesamtbudget, gewinnt der computed-Block: er
+        // beschreibt das Element vollstaendig und herkunftsunabhaengig.
+        if (rulesText.length + comp.length + 2 > 24000) return comp
+        return rulesText + '\n\n' + comp
       }
       // Kontext des Originals fuer den Wizard: relevantes CSS (inkl. @media-
       // Wrapper) + gemessene Computed-Styles.
@@ -381,6 +400,9 @@
               mode: cfg.mode === 'goal' ? 'goal' : 'element',
               selector: sel,
               html: cfg.mode === 'goal' ? '' : (el.outerHTML || '').slice(0, 10000),
+              // Knapper gedeckelt als beim postMessage-Weg: diese Nutzlast laeuft
+              // durch das URL-Fragment.
+              css: cfg.mode === 'goal' ? '' : collectCss(el).slice(0, 8000),
               tagName: el.tagName,
               text: text,
               origin: location.origin,
