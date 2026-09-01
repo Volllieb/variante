@@ -86,3 +86,92 @@ describe('extractTextFromHtml', () => {
     expect(extractTextFromHtml('<img src="x">')).toBe('')
   })
 })
+
+/**
+ * Regression vom 01.09.2026, gefunden im echten Picker-Lauf auf vallisride.com:
+ * die Vorschau war zwar gestylt, aber hell — und der weisse Button darauf
+ * unsichtbar. Ursache war `body { background-color: var(--bg) }` aus dem
+ * site_css, das im srcDoc nach dem Reset steht und dessen Hintergrund kippt.
+ */
+describe('buildPreviewSrcDoc — Seiten-Selektoren', () => {
+  it('wirft die body-Regel der Kundenseite raus, statt den Rahmen kapern zu lassen', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      baseCss: 'body { background-color: #f7f5f2; min-height: 100vh; }\n.cta { border: 1px solid #fff; }',
+    })
+    expect(doc).not.toContain('#f7f5f2')
+    expect(doc).toContain('.cta { border: 1px solid #fff; }')
+  })
+
+  it('behaelt :root, sonst greift jedes var() in den Element-Regeln ins Leere', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      baseCss: ':root { --accent: #F84A28; }\n.cta { color: var(--accent); }',
+    })
+    expect(doc).toContain('--accent: #F84A28')
+  })
+
+  it('kuerzt eine Selektorliste, statt die ganze Regel zu verlieren', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      baseCss: 'body, .cta { color: red; }',
+    })
+    expect(doc).toContain('.cta { color: red; }')
+    expect(doc).not.toMatch(/(^|\n)\s*body\s*,/)
+  })
+
+  it('laesst body .foo stehen — das zielt auf einen Nachfahren, nicht auf den Rahmen', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      baseCss: 'body .cta { color: red; }',
+    })
+    expect(doc).toContain('body .cta { color: red; }')
+  })
+
+  it('laesst den computed-Block von ab.js unangetastet', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      baseCss: `.${PREVIEW_ROOT_CLASS} > * {\n  border-radius: 3px;\n}`,
+    })
+    expect(doc).toContain(`.${PREVIEW_ROOT_CLASS} > *`)
+    expect(doc).toContain('border-radius: 3px')
+  })
+
+  it('kapert auch ueber variantCss nicht — B soll das Element zeigen, nicht die Flaeche', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      variantCss: 'body { background: #ff0000; }\n.cta { color: #fff; }',
+    })
+    expect(doc).not.toContain('#ff0000')
+    expect(doc).toContain('.cta { color: #fff; }')
+  })
+})
+
+/**
+ * Zweite Regression aus dem Lauf auf vallisride.com: der Regelteil war exakt
+ * 18 000 Zeichen lang, die letzte Regel mittendrin gekappt. Eine offene Regel
+ * verschluckt beim CSS-Parser alles Nachfolgende — computed-Block und Delta.
+ */
+describe('buildPreviewSrcDoc — abgeschnittenes CSS aus Bestandsdaten', () => {
+  it('wirft die offene Regel am Ende weg, damit das Delta danach noch greift', () => {
+    const doc = buildPreviewSrcDoc({
+      html: '<a class="cta">Los</a>',
+      baseCss: '.cta { border: 1px solid #fff; }\n.abgeschnitten { font-size: 1re',
+      variantCss: '.cta { background: #F84A28; }',
+    })
+    expect(doc).not.toContain('.abgeschnitten')
+    expect(doc).toContain('.cta { border: 1px solid #fff; }')
+    // Der entscheidende Punkt: das Delta ueberlebt die kaputte Basis.
+    expect(doc).toContain('.cta { background: #F84A28; }')
+  })
+
+  it('laesst intaktes CSS unangetastet — auch mehrzeilige Regeln', () => {
+    const base = `.${PREVIEW_ROOT_CLASS} > * {\n  border-radius: 3px;\n  padding: 14px;\n}`
+    expect(buildPreviewSrcDoc({ html: '<b>x</b>', baseCss: base })).toContain(base)
+  })
+
+  it('vertraegt eine ueberzaehlige schliessende Klammer, ohne davor abzuschneiden', () => {
+    const doc = buildPreviewSrcDoc({ html: '<b>x</b>', baseCss: '.a { color: red; } }\n.b { color: blue; }' })
+    expect(doc).toContain('.b { color: blue; }')
+  })
+})
