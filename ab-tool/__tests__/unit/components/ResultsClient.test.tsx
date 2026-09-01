@@ -57,6 +57,7 @@ function experiment(overrides: Partial<ExperimentData> = {}): ExperimentData {
     originalHtml: null,
     variantBHtml: null,
     siteCss: null,
+    variantBCss: null,
     goal: 'click:.cta',
     selector: '.cta',
     variants: [

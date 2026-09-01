@@ -106,6 +106,11 @@ export function StepUrlAndElement({
       onElementSelectedRef.current({
         selector: p.selector,
         originalHtml: p.html ?? '',
+        // Nur dieser Pfad liefert die Styles der Zielseite. AI-Scan und der
+        // manuelle Modus lassen sie leer — StepReview zeigt dort den Textvergleich.
+        // styleContext (neues ab.js) hat Vorrang, flaches css deckt alte
+        // Snippet-Versionen ab, die es vor dem Rollout gab.
+        originalCss: p.styleContext?.css ?? p.css ?? '',
         elementType: tag === 'button' ? 'button'
           : /^h[1-6]$/.test(tag) ? 'headline'
           : 'element',
@@ -199,6 +204,7 @@ export function StepUrlAndElement({
     onElementSelected({
       selector: sel,
       originalHtml: '', // AI doesn't provide HTML — user can add manually if needed
+      originalCss: '',
       elementType: s.elementType || 'element',
       elementName: s.element,
     })
@@ -216,6 +222,7 @@ export function StepUrlAndElement({
     onElementSelected({
       selector: result.selector,
       originalHtml: manualHtml.trim() || `<${manualElementType}>…</${manualElementType}>`,
+      originalCss: '',
       elementType: manualElementType,
       elementName: manualElementName.trim() || result.selector,
     })
@@ -271,7 +278,7 @@ export function StepUrlAndElement({
                 onUrlChange(nextUrl)
                 setScanState('idle'); setScanResult(null); setScanError('')
                 if (selectedElement) {
-                  onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })
+                  onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' })
                 }
               }}
               className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
@@ -449,7 +456,7 @@ export function StepUrlAndElement({
       {/* ── Mode Toggle ── */}
       <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5">
         <button
-          onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
+          onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' }) }}
           className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
             mode === 'picker'
               ? 'bg-bg-2 text-text'
@@ -460,7 +467,7 @@ export function StepUrlAndElement({
           Visual Picker
         </button>
         <button
-          onClick={() => { setMode('manual'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' }) }}
+          onClick={() => { setMode('manual'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' }) }}
           className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
             mode === 'manual'
               ? 'bg-bg-2 text-text'
@@ -647,7 +654,7 @@ export function StepUrlAndElement({
               </button>
             ) : (
               <button
-                onClick={() => onElementSelected({ selector: '', originalHtml: '', elementType: 'element', elementName: '' })}
+                onClick={() => onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' })}
                 className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
               >
                 Change element

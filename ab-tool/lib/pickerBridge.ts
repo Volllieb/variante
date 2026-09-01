@@ -35,6 +35,12 @@ export interface PickerPayload {
   html?: string
   tagName?: string
   text?: string
+  /**
+   * Styles der Zielseite fuer das gepickte Element (collectCss in ab.js).
+   * Ohne sie rendert die Wizard-Vorschau einen Browser-Default-Button statt
+   * des echten Elements — siehe lib/previewDoc.ts.
+   */
+  css?: string
   /** Origin der Seite, auf der gepickt wurde — wird gegen die Ziel-URL geprüft. */
   origin?: string
   styleContext?: StyleContext

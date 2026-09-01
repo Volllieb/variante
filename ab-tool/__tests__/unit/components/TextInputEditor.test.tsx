@@ -14,6 +14,7 @@ import type { ElementSelection } from '@/app/dashboard/components/NewTestDrawer'
 const ELEMENT: ElementSelection = {
   selector: '#hero-headline',
   originalHtml: '<h1 id="hero-headline" class="hero-title">Sync your files</h1>',
+  originalCss: '',
   elementType: 'headline',
   elementName: 'Headline',
   styleContext: {

@@ -13,6 +13,9 @@ import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestD
 import { buildPreviewSrcDoc } from './preview'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 import { formatCount } from '@/lib/formatNumber'
+// Nur der Text-Extraktor kommt aus dem gemeinsamen Modul — buildPreviewSrcDoc
+// liegt hier bewusst in ./preview (Wizard-eigenes Layer-Modell).
+import { extractTextFromHtml } from '@/lib/previewDoc'
 
 type Breakpoint = 375 | 768 | 'desktop'
 const BREAKPOINTS: Array<{ value: Breakpoint; label: string; width: number }> = [
@@ -52,6 +55,10 @@ export function StepReview({
   const trimmedPath = (slashAt === -1 ? '' : bare.slice(slashAt)).replace(/\/+$/, '')
   const displayPath = trimmedPath === '' ? 'Homepage' : `${trimmedPath} and below`
 
+  // Eine visuelle Vorschau ist nur belastbar, wenn der Picker sowohl das Markup
+  // als auch die Styles der Zielseite mitgebracht hat. Sonst: Textvergleich.
+  const canRenderPreview = !!element.originalCss.trim() && !!element.originalHtml.trim()
+
   return (
     <div className="space-y-4">
       <div>
@@ -88,49 +95,61 @@ export function StepReview({
             systematisch besser als auf der echten Seite. */}
         {variantResult && (
           <div>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <p className="flex items-center gap-1.5 text-[11px] font-medium text-text-2">
-                <Sparkles className="h-3 w-3" />
-                Preview
-              </p>
-              {/* Breakpoint-Umschalter */}
-              <div className="flex rounded-[var(--radius-sm)] border border-border bg-bg-0 p-0.5">
-                {BREAKPOINTS.map((bp) => (
-                  <button
-                    key={bp.value}
-                    onClick={() => setBreakpoint(bp.value)}
-                    className={`rounded-[var(--radius-sm)] px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-                      breakpoint === bp.value
-                        ? 'bg-fill-invert text-text-on-invert'
-                        : 'text-text-3 hover:text-text'
-                    }`}
-                  >
-                    {bp.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5 overflow-x-auto">
-              <ElementPreview
-                label="Original (A)"
-                html={element.originalHtml}
-                siteCss={element.styleContext?.css}
-                width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
+            {canRenderPreview ? (
+              <>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <p className="flex items-center gap-1.5 text-[11px] font-medium text-text-2">
+                    <Sparkles className="h-3 w-3" />
+                    Preview
+                  </p>
+                  {/* Breakpoint-Umschalter */}
+                  <div className="flex rounded-[var(--radius-sm)] border border-border bg-bg-0 p-0.5">
+                    {BREAKPOINTS.map((bp) => (
+                      <button
+                        key={bp.value}
+                        onClick={() => setBreakpoint(bp.value)}
+                        className={`rounded-[var(--radius-sm)] px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
+                          breakpoint === bp.value
+                            ? 'bg-fill-invert text-text-on-invert'
+                            : 'text-text-3 hover:text-text'
+                        }`}
+                      >
+                        {bp.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 overflow-x-auto">
+                  <ElementPreview
+                    label="Original (A)"
+                    html={element.originalHtml}
+                    siteCss={element.styleContext?.css ?? element.originalCss}
+                    width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
+                  />
+                  <ElementPreview
+                    label="Variant (B)"
+                    html={variantResult.variant_html || variantResult.variant}
+                    css={variantResult.variant_css}
+                    siteCss={element.styleContext?.css ?? element.originalCss}
+                    scopeToSelector
+                    selector={element.selector || element.elementName}
+                    width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
+                  />
+                </div>
+                {element.styleContext?.cssTruncated && (
+                  <p className="mt-1.5 text-[10px] text-text-3">
+                    Site-CSS wurde gekappt — die Vorschau zeigt nur einen Ausschnitt.
+                  </p>
+                )}
+              </>
+            ) : (
+              /* Ohne die Styles der Zielseite (AI-Scan, manueller Modus) waere das
+                 Ergebnis ein nackter Browser-Default-Button, der mit dem echten
+                 Element nichts zu tun hat. Dann lieber der ehrliche Textvergleich. */
+              <TextComparison
+                original={extractTextFromHtml(element.originalHtml) || element.elementName}
+                variant={extractTextFromHtml(variantResult.variant_html || variantResult.variant)}
               />
-              <ElementPreview
-                label="Variant (B)"
-                html={variantResult.variant_html || variantResult.variant}
-                css={variantResult.variant_css}
-                siteCss={element.styleContext?.css}
-                scopeToSelector
-                selector={element.selector || element.elementName}
-                width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
-              />
-            </div>
-            {element.styleContext?.cssTruncated && (
-              <p className="mt-1.5 text-[10px] text-text-3">
-                Site-CSS wurde gekappt — die Vorschau zeigt nur einen Ausschnitt.
-              </p>
             )}
             {variantResult.explanation && (
               <p className="mt-1.5 text-[10px] text-text-3 italic">{variantResult.explanation}</p>
@@ -260,6 +279,40 @@ function ElementPreview({
           className="h-28"
           style={{ width }}
         />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Fallback, wenn die Styles der Zielseite fehlen (AI-Scan, manueller Modus).
+ *
+ * Ein iframe wuerde hier einen ungestylten Browser-Default rendern — der sieht
+ * dem echten Element nicht aehnlich und ist als Vorschau schlicht falsch. Der
+ * Textvergleich zeigt stattdessen genau das, was gesichert bekannt ist: die
+ * Textaenderung. Formulierung bewusst wie im AI-Block in StepVariantB.
+ */
+function TextComparison({ original, variant }: { original: string; variant: string }) {
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-2.5">
+        <TextPane label="Original (A)" value={original} />
+        <TextPane label="Variant (B)" value={variant} />
+      </div>
+      <p className="mt-1.5 text-[10px] text-text-3">
+        Text-only preview — this element was picked without the visual picker, so its
+        styles from your site aren&apos;t available. Pick it with the picker to see it rendered.
+      </p>
+    </div>
+  )
+}
+
+function TextPane({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>
+      <div className="flex min-h-20 items-center rounded-[var(--radius-md)] border border-border bg-bg-0 p-3">
+        <p className="text-[13px] leading-relaxed text-text break-words">{value || '—'}</p>
       </div>
     </div>
   )

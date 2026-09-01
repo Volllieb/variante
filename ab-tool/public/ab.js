@@ -119,6 +119,10 @@
         var lines = []
         for (var prop in vals) lines.push('  ' + prop + ': ' + vals[prop] + ';')
         if (!lines.length) return ''
+        // Der '.__original'-Selektor ist hier ABSICHT: delta.ts parst genau
+        // diesen Block beim Draft-Resume (collectedOriginalComputed) und die
+        // AI-Kontexte (generatePrompts.ts) nutzen ihn. Die Dashboard-Vorschau
+        // bezieht ihre Styles aus styleContext.computed statt aus diesem Text.
         return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
       }
       // Gleiche Messung wie computedBlock, aber als Map — Grundlage fuer die
@@ -345,6 +349,10 @@
             if (cfg.mode === 'goal') {
               window.opener.postMessage({ type: 'ab-goal', selector: sel, text: text }, '*')
             } else {
+              // styleContext: Site-CSS + Computed-Styles — Basis der Wizard-Vorschau
+              // und des Delta-Editors. Alte Snippet-Versionen senden weder
+              // styleContext noch css; das Dashboard faellt dann auf den
+              // Textvergleich zurueck.
               window.opener.postMessage({ type: 'ab-pick', selector: sel, html: el.outerHTML, tagName: el.tagName, text: text, styleContext: styleContext(el) }, '*')
             }
             return true

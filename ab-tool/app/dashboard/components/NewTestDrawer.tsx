@@ -32,6 +32,13 @@ import { useFocusTrap } from '@/lib/useFocusTrap'
 export interface ElementSelection {
   selector: string
   originalHtml: string
+  /**
+   * Styles der Zielseite fuer dieses Element (site_css). Nur der Picker liefert
+   * sie — AI-Scan und manueller Modus lassen das Feld leer, und die Vorschau in
+   * StepReview faellt dann bewusst auf den Textvergleich zurueck, statt einen
+   * ungestylten Browser-Default-Button zu zeigen.
+   */
+  originalCss: string
   elementType: string
   elementName: string
   /** Style-Kontext vom Picker (Site-CSS + Computed-Styles) — Basis für Delta-Editor und Vorschau. */
@@ -184,6 +191,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           selectedElement: resumeTest.selector ? {
             selector: resumeTest.selector,
             originalHtml: resumeTest.original_html ?? '',
+            originalCss: resumeTest.site_css ?? '',
             elementType: 'element',
             elementName: resumeTest.selector,
             styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: collectedOriginalComputed(resumeTest.site_css) ?? {} } : undefined,
@@ -216,6 +224,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             selectedElement: draft.selector ? {
               selector: draft.selector,
               originalHtml: draft.original_html ?? '',
+              originalCss: draft.site_css ?? '',
               elementType: 'element',
               elementName: draft.selector,
               styleContext: draft.site_css ? { css: draft.site_css, computed: collectedOriginalComputed(draft.site_css) ?? {} } : undefined,
@@ -273,7 +282,9 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             url: s.url || null,
             selector: s.selectedElement?.selector ?? null,
             original_html: s.selectedElement?.originalHtml ?? null,
-            site_css: s.selectedElement?.styleContext?.css ?? null,
+            // originalCss wird beim Pick aus styleContext.css befüllt
+            // (StepUrlAndElement) — eine Quelle für Draft und Test.
+            site_css: s.selectedElement?.originalCss || null,
             variant_b_html: s.variantResult?.variant_html ?? null,
             variant_b_css: s.variantResult?.variant_css ?? null,
             variant_text: s.variantResult?.variant ?? null,
@@ -326,7 +337,9 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         variant_b_css: state.variantResult?.variant_css ?? undefined,
         variant_text: state.variantResult?.variant ?? undefined,
         original_html: state.selectedElement.originalHtml,
-        site_css: state.selectedElement.styleContext?.css,
+        // Ohne site_css rendert die Preview auf der Results-Seite spaeter
+        // ungestylt — bis 08/2026 wurde es aus dem Wizard nie mitgeschickt.
+        site_css: state.selectedElement.originalCss || undefined,
         status,
         name: state.testName || undefined,
       }

@@ -34,6 +34,7 @@ import {
 } from './delta'
 import type { UserEdits, EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
+import { extractTextFromHtml } from '@/lib/previewDoc'
 
 interface ButtonEditorProps {
   element: ElementSelection
@@ -55,10 +56,6 @@ const BORDER_STYLES = [
   { value: 'dotted', label: 'Dotted' },
   { value: 'none', label: 'None' },
 ] as const
-
-function extractTextFromHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim()
-}
 
 export function ButtonEditor({ element, originalHtml, baseCss, onApply, onCancel }: ButtonEditorProps) {
   const originalText = extractTextFromHtml(originalHtml)

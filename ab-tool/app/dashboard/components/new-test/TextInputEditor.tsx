@@ -18,6 +18,7 @@ import { buildPreviewSrcDoc } from './preview'
 import { inheritRootHtml, scratchVariantHtml } from './delta'
 import type { EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
+import { extractTextFromHtml } from '@/lib/previewDoc'
 
 interface TextInputEditorProps {
   element: ElementSelection
@@ -29,10 +30,6 @@ interface TextInputEditorProps {
   baseCss?: string | null
   onApply: (html: string, css: string) => void
   onCancel: () => void
-}
-
-function extractTextFromHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim()
 }
 
 function generateTextCss(selector: string): string {

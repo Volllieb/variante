@@ -23,6 +23,7 @@ const MAX_HTML = 10_000
 // Das Fragment wird URL-encoded — CSS blaeht dabei um Faktor 2–3 auf. Kappt
 // ab.js den Payload nicht selbst (alte Snippet-Versionen), wird hier gekappt
 // und per Flag markiert, damit die Vorschau auf computed-only zurueckfaellt.
+// Wert wie CSS_CAP in public/ab.js (styleContext-Weg).
 const MAX_CSS = 12_000
 
 /**
@@ -84,6 +85,7 @@ function deliverPick(): Outcome {
     mode: data.mode === 'goal' ? 'goal' : 'element',
     selector: selector.slice(0, 2000),
     html: typeof data.html === 'string' ? data.html.slice(0, MAX_HTML) : '',
+    css: typeof data.css === 'string' ? data.css.slice(0, MAX_CSS) : '',
     tagName: typeof data.tagName === 'string' ? data.tagName.slice(0, 40) : '',
     text: typeof data.text === 'string' ? data.text.slice(0, 200) : '',
     origin: typeof data.origin === 'string' ? data.origin.slice(0, 300) : '',

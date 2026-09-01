@@ -88,6 +88,8 @@ export async function POST(req: Request) {
   const normalizedVariantHtml = variant_b_html?.trim() || null
   const normalizedVariantCss = variant_b_css?.trim() || null
   const normalizedOriginalHtml = original_html?.trim() || null
+  // Styles der Zielseite vom Picker — Basis der Vorschau (lib/previewDoc.ts).
+  // Laenge bereits oben geprueft (400 statt stillem Abschneiden).
   const normalizedSiteCss = site_css?.trim() || null
   const normalizedName = name?.trim() || null
 

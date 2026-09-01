@@ -82,25 +82,29 @@ export async function checkRateLimit(
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Einmal-Marker (Replay-Dedup). Plan DATA-01: Eine Assignment-Nonce darf nur
-// EINE Conversion zählen. Gibt true zurück, wenn der Key zum ersten Mal gesehen
-// wird (Conversion zählen), false bei Wiederholung (Replay → verwerfen).
+// Einmal-Marker. Gibt true zurück, wenn der Key im TTL-Fenster zum ersten Mal
+// gesehen wird, false bei jeder Wiederholung. Zwei Aufrufer:
+//
+//   1. Plan DATA-01 (markConversionOnce): eine Assignment-Nonce darf nur EINE
+//      Conversion zählen — Replay-Schutz innerhalb einer Zuweisung.
+//   2. Sticky Assignment: ein Besucher darf pro Test nur EINMAL als Visitor
+//      und einmal als Conversion zählen — Dedup über Page-Views hinweg, das
+//      der cookieless Client-Modus nicht leisten kann (siehe lib/assignBucket.ts).
 //
 // Redis: SET key 1 NX EX ttl — atomar. Fehlt Redis (Dev) oder fällt es aus,
 // greift der In-Memory-Fallback (pro Instanz, reicht für Dev). Fail-open: bei
-// Redis-Fehler wird die Conversion gezählt statt verworfen — lieber einmal zu
-// viel als eine echte Conversion verlieren.
+// Redis-Fehler wird gezählt statt verworfen — lieber einmal zu viel als ein
+// echtes Ereignis verlieren.
 // ─────────────────────────────────────────────────────────────────────────
 const seenOnce = new Map<string, number>() // key -> expiry (ms)
 
-export async function markConversionOnce(nonce: string, ttlSeconds: number): Promise<boolean> {
-  const key = `conv:once:${nonce}`
+export async function markOnce(key: string, ttlSeconds: number): Promise<boolean> {
   if (redis) {
     try {
       const res = await redis.set(key, '1', { nx: true, ex: ttlSeconds })
       return res === 'OK' // OK = neu gesetzt, null = existierte bereits
     } catch (err) {
-      console.error('[markConversionOnce] Redis-Error, fallback to in-memory:', String(err))
+      console.error('[markOnce] Redis-Error, fallback to in-memory:', String(err))
       redis = null
     }
   }
@@ -113,6 +117,11 @@ export async function markConversionOnce(nonce: string, ttlSeconds: number): Pro
     for (const [k, exp] of seenOnce) if (exp <= now) seenOnce.delete(k)
   }
   return true
+}
+
+/** Replay-Dedup einer Assignment-Nonce (Plan DATA-01). */
+export function markConversionOnce(nonce: string, ttlSeconds: number): Promise<boolean> {
+  return markOnce(`conv:once:${nonce}`, ttlSeconds)
 }
 
 // ─────────────────────────────────────────────────────────────────────────

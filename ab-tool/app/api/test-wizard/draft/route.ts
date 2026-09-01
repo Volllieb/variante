@@ -20,6 +20,7 @@ interface WizardDraftBody {
   url?: string | null
   selector?: string | null
   original_html?: string | null
+  /** Styles der Zielseite vom Picker — Basis der Vorschau (lib/previewDoc.ts). */
   site_css?: string | null
   variant_b_html?: string | null
   variant_b_css?: string | null

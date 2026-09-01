@@ -1,24 +1,25 @@
 'use client'
 
 import { useState } from 'react'
+import { buildPreviewSrcDoc } from '@/lib/previewDoc'
 
 export function VariantPreview({
   html,
   css,
+  variantCss,
   label,
   winner,
 }: {
   html: string | null
+  /** Styles der Zielseite — identisch fuer A und B (tests.site_css). */
   css: string | null
+  /** CSS-Delta der Variante. Nur fuer B; wird nach `css` eingehaengt. */
+  variantCss?: string | null
   label: string
   winner: boolean
 }) {
   const [bg, setBg] = useState<'light' | 'dark'>('light')
   if (!html) return null
-
-  const srcdoc = css
-    ? `<html><head><style>${css}</style></head><body>${html}</body></html>`
-    : `<html><body>${html}</body></html>`
 
   return (
     <div className={`group rounded-xl border transition-colors ${
@@ -60,7 +61,12 @@ export function VariantPreview({
         style={{ height: 280, background: bg === 'dark' ? '#1a1a1a' : '#ffffff' }}
       >
         <iframe
-          srcDoc={srcdoc}
+          srcDoc={buildPreviewSrcDoc({
+            html,
+            baseCss: css,
+            variantCss,
+            background: bg === 'dark' ? '#1a1a1a' : '#ffffff',
+          })}
           title={`Variant ${label} preview`}
           className="h-full w-full"
           style={{ pointerEvents: 'none' }}

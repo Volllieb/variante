@@ -16,6 +16,7 @@ import type { ElementSelection } from '@/app/dashboard/components/NewTestDrawer'
 const ELEMENT: ElementSelection = {
   selector: '.cta',
   originalHtml: '<a class="hover-btn hover-btn--white" href="/x">Old text</a>',
+  originalCss: '',
   elementType: 'link',
   elementName: 'Signup',
   styleContext: {
