@@ -197,6 +197,12 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
     [element.originalHtml, changes.baseline, onChanges],
   )
 
+  /** Scratch verwerfen: zurück zur leeren Änderungsliste (B ≡ A). */
+  const discardScratch = useCallback(() => {
+    onChanges({ mode: 'inherit', entries: [], baseline: changes.baseline })
+    setScratchEditorOpen(false)
+  }, [changes.baseline, onChanges])
+
   // ─── Vorschau ───
 
   const selector = element.selector || element.elementName
@@ -277,7 +283,10 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
         </div>
       )}
 
-      {/* Änderungsliste — im Scratch-Zustand ersetzt der Hinweis die Zeilen */}
+      {/* Änderungsliste — im Scratch-Zustand ersetzt der Hinweis die Zeilen,
+          und die Delta-Aktionen (Add/Suggest) verschwinden: ein Delta auf dem
+          Scratch-Ergebnis wäre ein gemischtes Modell. Zurück geht es nur über
+          "Back to change list" (verwirft das Scratch-Ergebnis). */}
       {changes.mode === 'scratch' ? (
         <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
           <p className="text-[12px] font-medium text-text">B replaces A completely</p>
@@ -285,57 +294,66 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
             Built in the advanced editor — markup, classes and responsive rules
             from your site no longer apply to Variant B.
           </p>
-        </div>
-      ) : (
-        <ChangeList
-          entries={changes.entries}
-          editingId={editingId}
-          onEditingChange={setEditingId}
-          onEntriesChange={updateEntries}
-        />
-      )}
-
-      {/* Aktionen: manuelle Zeile hinzufügen + KI-Vorschläge */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
           <button
             type="button"
-            onClick={() => setAddMenuOpen((v) => !v)}
-            className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+            onClick={discardScratch}
+            className="mt-2.5 cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
-            <Plus className="h-3.5 w-3.5" />
-            Add change
-            <ChevronDown className={`h-3 w-3 transition-transform ${addMenuOpen ? 'rotate-180' : ''}`} />
+            Back to change list
           </button>
-          {addMenuOpen && (
-            <div className="absolute left-0 top-full z-10 mt-1.5 w-44 rounded-[var(--radius-md)] border border-border bg-bg-1 p-1 shadow-lg">
-              {ADD_MENU[category].map((item) => (
-                <button
-                  key={item.property}
-                  type="button"
-                  onClick={() => addChange(item.property)}
-                  className="w-full cursor-pointer rounded-[var(--radius-sm)] px-2.5 py-1.5 text-left text-[12px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
-        <button
-          type="button"
-          onClick={handleSuggest}
-          disabled={suggestState === 'loading'}
-          className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-pro/25 bg-pro/[0.05] px-3.5 py-2 text-[12px] font-medium text-pro transition-colors hover:bg-pro/[0.09] disabled:opacity-50"
-        >
-          {suggestState === 'loading' ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Sparkles className="h-3.5 w-3.5" />
-          )}
-          {suggestState === 'loading' ? 'Suggesting…' : 'Suggest changes'}
-        </button>
-      </div>
+      ) : (
+        <>
+          <ChangeList
+            entries={changes.entries}
+            editingId={editingId}
+            onEditingChange={setEditingId}
+            onEntriesChange={updateEntries}
+          />
+
+          {/* Aktionen: manuelle Zeile hinzufügen + KI-Vorschläge */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAddMenuOpen((v) => !v)}
+                className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add change
+                <ChevronDown className={`h-3 w-3 transition-transform ${addMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {addMenuOpen && (
+                <div className="absolute left-0 top-full z-10 mt-1.5 w-44 rounded-[var(--radius-md)] border border-border bg-bg-1 p-1 shadow-lg">
+                  {ADD_MENU[category].map((item) => (
+                    <button
+                      key={item.property}
+                      type="button"
+                      onClick={() => addChange(item.property)}
+                      className="w-full cursor-pointer rounded-[var(--radius-sm)] px-2.5 py-1.5 text-left text-[12px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSuggest}
+              disabled={suggestState === 'loading'}
+              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-pro/25 bg-pro/[0.05] px-3.5 py-2 text-[12px] font-medium text-pro transition-colors hover:bg-pro/[0.09] disabled:opacity-50"
+            >
+              {suggestState === 'loading' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              {suggestState === 'loading' ? 'Suggesting…' : 'Suggest changes'}
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Advanced: Scratch-Editor (Warnung + unveränderte Editoren, Modus fest 'scratch') */}
       <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1">

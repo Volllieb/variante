@@ -206,5 +206,17 @@ describe('StepChange — Advanced / Scratch', () => {
     expect(next.mode).toBe('scratch')
     expect(next.entries.some((e) => e.status === 'applied')).toBe(true)
     expect(screen.getByText('B replaces A completely')).toBeInTheDocument()
+    // Im Scratch-Zustand gibt es keine Delta-Aktionen — kein gemischtes Modell.
+    expect(screen.queryByRole('button', { name: 'Add change' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Suggest changes' })).not.toBeInTheDocument()
+  })
+
+  it('"Back to change list" verwirft Scratch und kehrt zur leeren Liste zurück', () => {
+    const { onChanges } = renderStep({ mode: 'scratch', entries: [], baseline: null })
+    fireEvent.click(screen.getByRole('button', { name: 'Back to change list' }))
+    const next = onChanges.mock.calls[0][0]
+    expect(next.mode).toBe('inherit')
+    expect(next.entries).toHaveLength(0)
+    expect(screen.getByText(/No changes yet/)).toBeInTheDocument()
   })
 })
