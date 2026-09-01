@@ -721,7 +721,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           {state.step === 0 && (
             <StepUrlAndElement
               url={state.url}
-              onUrlChange={(url) => updateState({ url, selectedElement: null, elementConfirmed: false })}
+              // Neue Seite = neues Element — Änderungsliste und Ergebnis
+              // starten frisch, sonst hinge ein stale Delta am Draft.
+              onUrlChange={(url) => updateState({
+                url,
+                selectedElement: null,
+                elementConfirmed: false,
+                variantChanges: { mode: 'inherit', entries: [], baseline: null },
+                variantResult: null,
+              })}
               selectedElement={state.selectedElement}
               // Ein neues Element macht die alte Änderungsliste wertlos —
               // Zeilen und Ergebnis starten frisch, die Baseline wird beim

@@ -140,13 +140,17 @@ export function ChangeList({
                     </span>
                   )}
                 </div>
-                <p className="mt-0.5 truncate text-[11px] text-text-2">
-                  {before === ''
-                    ? <><span className="text-text-3">set to</span> <span className="font-mono text-text">{after}</span></>
-                    : <><span className="font-mono text-text-3">{before}</span>
-                        <span className="mx-1 text-text-3">→</span>
-                        <span className="font-mono text-text">{after}</span></>}
-                </p>
+                {/* Die other-Zeile trägt ihr Roh-CSS selbst — ein "set to
+                    Custom CSS" unter dem Label wäre nur Rauschen. */}
+                {entry.property !== 'other' && (
+                  <p className="mt-0.5 truncate text-[11px] text-text-2">
+                    {before === ''
+                      ? <><span className="text-text-3">set to</span> <span className="font-mono text-text">{after}</span></>
+                      : <><span className="font-mono text-text-3">{before}</span>
+                          <span className="mx-1 text-text-3">→</span>
+                          <span className="font-mono text-text">{after}</span></>}
+                  </p>
+                )}
               </div>
 
               {/* Aktionen */}
