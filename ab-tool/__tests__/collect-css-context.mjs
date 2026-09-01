@@ -1,4 +1,4 @@
-// collectCss + styleContext (aus public/ab.js)
+// collectCss + styleContext (direkt aus public/ab.js geladen)
 //
 // collectCss sammelt die CSS-Regeln, die auf das gepickte Element matchen —
 // inkl. :hover/:focus-visible, :root und Custom Properties. Regeln aus
@@ -10,10 +10,18 @@
 // styleContext bündelt das CSS mit den gemessenen Computed-Styles — der
 // Rückkanal des Pickers trägt beides zum Wizard (Delta-Editor + Vorschau).
 //
+// Die Funktionen kommen aus dem ECHTEN public/ab.js (helpers/abSource.mjs):
+// früher stand hier eine 1:1-Kopie, die still eigene Bugs trug und grün
+// meldete, während das ausgelieferte Snippet rot war. Das soll nie wieder
+// möglich sein.
+//
 // Run: node --import tsx __tests__/collect-css-context.mjs
 
 import { strict as assert } from 'node:assert'
 import { JSDOM } from 'jsdom'
+import { abSource } from './helpers/abSource.mjs'
+
+const { collectCss, styleContext } = abSource
 
 let passed = 0
 let failed = 0
@@ -28,90 +36,15 @@ function check(label, fn) {
   }
 }
 
-// ── 1:1 aus public/ab.js ────────────────────────────────────────────────────
-var COMPUTED_PROPS = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-width','border-style','border-color','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
-function computedBlock(el) {
-  try {
-    var cs = getComputedStyle(el)
-    var lines = []
-    for (var i = 0; i < COMPUTED_PROPS.length; i++) {
-      var v = cs.getPropertyValue(COMPUTED_PROPS[i])
-      if (v && v !== 'none' && v !== 'normal') lines.push('  ' + COMPUTED_PROPS[i] + ': ' + v + ';')
-    }
-    if (!lines.length) return ''
-    return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
-  } catch (_) { return '' }
-}
-function computedMap(el) {
-  try {
-    var cs = getComputedStyle(el)
-    var out = {}
-    for (var i = 0; i < COMPUTED_PROPS.length; i++) {
-      var v = cs.getPropertyValue(COMPUTED_PROPS[i])
-      if (v && v !== 'none' && v !== 'normal') out[COMPUTED_PROPS[i]] = v
-    }
-    return out
-  } catch (_) { return {} }
-}
-
-var PSEUDO_RE = /:(hover|focus|active|focus-visible|focus-within)\b/
-function matchesPseudo(el, sel) {
-  var base = sel.replace(/:(hover|focus|active|focus-visible|focus-within)\b/g, '').trim()
-  if (!base) return false
-  try { return el.matches(base) } catch (_) { return false }
-}
-function collectCss(el) {
-  var out = [], seen = {}
-  function push(rule) { if (!seen[rule.cssText]) { seen[rule.cssText] = true; out.push(rule.cssText) } }
-  function consider(rule, condPrefix) {
-    try {
-      var sel = rule.selectorText; if (!sel) return
-      if (sel.indexOf(':root') > -1 || rule.cssText.indexOf('--') > -1) { pushWrapped(rule, condPrefix); return }
-      if (PSEUDO_RE.test(sel)) { if (matchesPseudo(el, sel)) pushWrapped(rule, condPrefix); return }
-      if (el.matches(sel)) pushWrapped(rule, condPrefix)
-    } catch (_) {}
-  }
-  function pushWrapped(rule, condPrefix) {
-    push(condPrefix ? { cssText: condPrefix + ' { ' + rule.cssText + ' }' } : rule)
-  }
-  function condPrefixOf(rule) {
-    try {
-      if ((rule.type === CSSRule.MEDIA_RULE || rule.type === CSSRule.SUPPORTS_RULE) && rule.conditionText) {
-        return '@' + (rule.type === CSSRule.MEDIA_RULE ? 'media' : 'supports') + ' ' + rule.conditionText
-      }
-      if (rule.layerName) return '@layer ' + rule.layerName
-    } catch (_) {}
-    return null
-  }
-  try {
-    var sheets = document.styleSheets
-    for (var i = 0; i < sheets.length; i++) {
-      var href = sheets[i].href
-      if (href && href.indexOf(location.origin) !== 0 && href.charAt(0) !== '/') continue
-      var rules; try { rules = sheets[i].cssRules } catch (_) { continue }
-      if (!rules) continue
-      for (var j = 0; j < rules.length; j++) {
-        var rule = rules[j]
-        if (rule.type === CSSRule.STYLE_RULE) consider(rule, null)
-        else if (rule.cssRules) {
-          var prefix = condPrefixOf(rule)
-          for (var k = 0; k < rule.cssRules.length; k++) {
-            if (rule.cssRules[k].type === CSSRule.STYLE_RULE) consider(rule.cssRules[k], prefix)
-          }
-        }
-      }
-    }
-  } catch (_) {}
-  var rulesText = out.join('\n').slice(0, 18000)
-  var comp = computedBlock(el)
-  return (comp ? rulesText + '\n\n' + comp : rulesText).slice(0, 24000)
-}
-
-function styleContext(el) {
-  return { css: collectCss(el), computed: computedMap(el) }
-}
-
 // ── Fixture ─────────────────────────────────────────────────────────────────
+
+// collectCss referenziert Browser-Globals — vor jedem Aufruf bereitstellen.
+function setupGlobals(dom) {
+  globalThis.document = dom.window.document
+  globalThis.CSSRule = dom.window.CSSRule
+  globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window)
+  globalThis.location = { origin: 'https://example.com' }
+}
 
 function buildPage() {
   const dom = new JSDOM(
@@ -131,11 +64,7 @@ function buildPage() {
     </style></head><body><a class="cta" href="/signup">Go</a></body></html>`,
     { url: 'https://example.com/' }
   )
-  // Die 1:1-Kopie referenziert Browser-Globals — fuer node bereitstellen.
-  globalThis.document = dom.window.document
-  globalThis.CSSRule = dom.window.CSSRule
-  globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window)
-  globalThis.location = { origin: 'https://example.com' }
+  setupGlobals(dom)
   return dom
 }
 
@@ -179,6 +108,56 @@ check('nicht matchende Regeln (auch in @media) bleiben draussen', () => {
   const el = dom.window.document.querySelector('.cta')
   const css = collectCss(el)
   assert.ok(!css.includes('unrelated'), css)
+})
+
+console.log('\n── collectCss: Regressionen aus dem Preview-Fix ──\n')
+
+// master-Regression: indexOf('--') als Custom-Property-Guard sammelte jede
+// Regel ein, die var(--bg) bloss BENUTZT — darunter body-Regeln, die in der
+// Vorschau den Rahmen kaperten und das Budget sprengten. Nur DEFINITIONEN
+// (`--x: wert`) gehören zu den :root-Tokens.
+check('Regel, die var(--bg) nur BENUTZT, landet nicht im Ergebnis', () => {
+  const dom = new JSDOM(
+    `<!DOCTYPE html><html><head><style>
+      :root { --bg: #f7f5f2; }
+      body { background: var(--bg); min-height: 100vh; }
+      .cta { color: #111; }
+    </style></head><body><a class="cta">Go</a></body></html>`,
+    { url: 'https://example.com/' }
+  )
+  setupGlobals(dom)
+  const el = dom.window.document.querySelector('.cta')
+  const css = collectCss(el)
+  assert.ok(!/var\(--bg\)/.test(css), 'var()-Nutzer ist drin:\n' + css)
+  // Die Definition selbst bleibt — ohne sie griffe jedes var() ins Leere.
+  assert.ok(css.includes('--bg: #f7f5f2'), 'Definition fehlt:\n' + css)
+  assert.ok(css.includes('.cta'), 'Element-Regel fehlt:\n' + css)
+})
+
+// master-Regression: die Kappung schnitt mitten in eine Deklaration. Die
+// offene Regel liess den CSS-Parser alles Nachfolgende verschlucken —
+// computed-Block und Varianten-Delta — und B sah exakt aus wie A.
+check('Budget-Ueberlauf: alle Regeln geschlossen, computed-Block ueberlebt', () => {
+  const rules = []
+  for (let n = 0; n < 900; n++) {
+    rules.push(`.cta { color: rgb(${n % 255}, 0, 0); margin: ${n}px 0; }`)
+  }
+  const dom = new JSDOM(
+    `<!DOCTYPE html><html><head><style>${rules.join('\n')}</style></head><body><a class="cta">Go</a></body></html>`,
+    { url: 'https://example.com/' }
+  )
+  setupGlobals(dom)
+  const el = dom.window.document.querySelector('.cta')
+  // jsdom kaskadiert Stylesheets nicht in getComputedStyle — Inline-Style
+  // setzen, damit der computed-Block messbaren Input hat.
+  el.style.cssText = 'color: rgb(1, 2, 3); padding: 4px 8px;'
+  const css = collectCss(el)
+  assert.ok(css.length > 18000, 'Fixture zu klein (erwartet >18000 Zeichen): ' + css.length)
+  const open = (css.match(/\{/g) || []).length
+  const close = (css.match(/\}/g) || []).length
+  assert.equal(open, close, `Klammern nicht ausgeglichen (${open} offen, ${close} geschlossen)`)
+  assert.ok(css.includes('.__original'), 'computed-Block fehlt:\n' + css.slice(-400))
+  assert.ok(css.includes('padding: 4px 8px'), 'gemessene Styles fehlen im computed-Block:\n' + css.slice(-400))
 })
 
 console.log('\n── styleContext ──\n')

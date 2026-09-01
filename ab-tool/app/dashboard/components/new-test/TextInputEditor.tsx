@@ -14,7 +14,7 @@
 
 import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
-import { buildPreviewSrcDoc } from './preview'
+import { buildPreviewSrcDoc } from '@/lib/previewDoc'
 import { inheritRootHtml, scratchVariantHtml } from './delta'
 import type { EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
@@ -69,7 +69,7 @@ export function TextInputEditor({ element, originalHtml, baseCss, onApply, onCan
         selector,
       },
     ],
-    element.styleContext?.css
+    { siteCss: element.styleContext?.css }
   )
 
   return (

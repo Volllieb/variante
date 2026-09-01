@@ -10,12 +10,9 @@
 import { useState } from 'react'
 import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info, FileText } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
-import { buildPreviewSrcDoc } from './preview'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 import { formatCount } from '@/lib/formatNumber'
-// Nur der Text-Extraktor kommt aus dem gemeinsamen Modul — buildPreviewSrcDoc
-// liegt hier bewusst in ./preview (Wizard-eigenes Layer-Modell).
-import { extractTextFromHtml } from '@/lib/previewDoc'
+import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
 
 type Breakpoint = 375 | 768 | 'desktop'
 const BREAKPOINTS: Array<{ value: Breakpoint; label: string; width: number }> = [
@@ -265,7 +262,7 @@ function ElementPreview({
 }) {
   const srcDoc = buildPreviewSrcDoc(
     [{ html, css, scopeToSelector, selector }],
-    siteCss
+    { siteCss }
   )
   return (
     <div className="min-w-0">

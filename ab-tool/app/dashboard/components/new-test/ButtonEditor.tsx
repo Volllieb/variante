@@ -15,14 +15,14 @@
  * React-Element mit Inline-Styles kann A's Kaskade nicht abbilden.
  *
  * Keine API-Calls — alles clientseitig. Pure Logik liegt in delta.ts und
- * preview.ts (node-testbar).
+ * lib/previewDoc.ts (node-testbar).
  */
 
 import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import { ColorPicker } from './ColorPicker'
 import { PropertySlider } from './PropertySlider'
-import { buildPreviewSrcDoc } from './preview'
+import { buildPreviewSrcDoc } from '@/lib/previewDoc'
 import {
   baselineFromCss,
   buildStyleBaseline,
@@ -104,7 +104,7 @@ export function ButtonEditor({ element, originalHtml, baseCss, onApply, onCancel
       { html: originalHtml || '' },
       { html: previewHtml, css: previewCss, scopeToSelector: true, selector },
     ],
-    element.styleContext?.css
+    { siteCss: element.styleContext?.css }
   )
 
   return (

@@ -61,12 +61,10 @@ export function VariantPreview({
         style={{ height: 280, background: bg === 'dark' ? '#1a1a1a' : '#ffffff' }}
       >
         <iframe
-          srcDoc={buildPreviewSrcDoc({
-            html,
-            baseCss: css,
-            variantCss,
-            background: bg === 'dark' ? '#1a1a1a' : '#ffffff',
-          })}
+          srcDoc={buildPreviewSrcDoc(
+            [{ html, css: variantCss }],
+            { siteCss: css, background: bg === 'dark' ? '#1a1a1a' : '#ffffff' }
+          )}
           title={`Variant ${label} preview`}
           className="h-full w-full"
           style={{ pointerEvents: 'none' }}
