@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { StepReview } from '@/app/dashboard/components/new-test/StepReview'
 import type { ElementSelection, VariantResult, GoalSelection } from '@/app/dashboard/components/NewTestDrawer'
+import type { VariantChangeSet } from '@/app/dashboard/components/new-test/types'
 
 const SITE_CSS = '.cta { background-color: rgb(255, 0, 0); border-radius: 8px; }'
 
@@ -31,6 +32,16 @@ const variant: VariantResult = {
   explanation: 'Konkreter Nutzen statt generischem CTA.',
 }
 
+/** Die Änderungsliste zum Fixture — dieselbe Quelle wie im Wizard. */
+const changes: VariantChangeSet = {
+  mode: 'inherit',
+  baseline: { bgColor: '#ff0000' },
+  entries: [
+    { id: 't', property: 'text', before: 'Get started', after: 'Start free trial', source: 'manual', status: 'applied' },
+    { id: 'c', property: 'bgColor', before: '#ff0000', after: '#008000', source: 'ai', status: 'applied' },
+  ],
+}
+
 const goal: GoalSelection = { type: 'click', selector: '.cta', label: 'Click .cta' }
 
 /** Text der Vergleichsspalte unter dem gegebenen Label. */
@@ -39,12 +50,17 @@ function paneValue(label: string): string {
   return heading.nextElementSibling?.textContent?.trim() ?? ''
 }
 
-function renderStep(el: ElementSelection, v: VariantResult | null = variant) {
+function renderStep(
+  el: ElementSelection,
+  v: VariantResult | null = variant,
+  ch: VariantChangeSet = changes,
+) {
   return render(
     <StepReview
       url="https://example.com/pricing"
       element={el}
       variantResult={v}
+      changes={ch}
       goal={goal}
       testName="Hero CTA"
       onTestNameChange={() => {}}
@@ -90,5 +106,26 @@ describe('StepReview — Vorschau', () => {
     const { container } = renderStep(element(), null)
     expect(container.querySelectorAll('iframe')).toHaveLength(0)
     expect(screen.queryByText(/Text-only preview/)).not.toBeInTheDocument()
+  })
+})
+
+describe('StepReview — read-only Änderungsliste', () => {
+  it('ersetzt den CSS-Dump durch Zeilen ohne Aktionen', () => {
+    renderStep(element())
+    // Zeilen sichtbar: Vorher→Nachher-Pfeil und der neue Text.
+    expect(screen.getByText('Changes')).toBeInTheDocument()
+    expect(screen.getAllByText('→').length).toBeGreaterThan(0)
+    expect(screen.getByText('Start free trial')).toBeInTheDocument()
+    // Read-only: keine Edit-/Remove-/Accept-Aktionen in der Liste.
+    expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Remove/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Accept/ })).not.toBeInTheDocument()
+    // Der alte CSS-Dump ist weg.
+    expect(screen.queryByText('CSS Changes')).not.toBeInTheDocument()
+  })
+
+  it('ohne angewandte Zeilen erscheint keine Liste', () => {
+    renderStep(element(), variant, { mode: 'inherit', entries: [], baseline: null })
+    expect(screen.queryByText('Changes')).not.toBeInTheDocument()
   })
 })

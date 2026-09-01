@@ -28,6 +28,12 @@ interface TextInputEditorProps {
    * erhalten — ein reiner Text-Edit darf das KI-Design nicht wegwerfen.
    */
   baseCss?: string | null
+  /**
+   * Wenn gesetzt, ist der Mode-Umschalter ausgeblendet und dieser Modus gilt
+   * fest — die Advanced-Ausklappung in StepChange bindet den Editor so als
+   * reinen Scratch-Editor ein.
+   */
+  modeLocked?: EditorMode
   onApply: (html: string, css: string) => void
   onCancel: () => void
 }
@@ -36,9 +42,9 @@ function generateTextCss(selector: string): string {
   return `${selector} {\n  transition: all 0.2s ease;\n}`
 }
 
-export function TextInputEditor({ element, originalHtml, baseCss, onApply, onCancel }: TextInputEditorProps) {
+export function TextInputEditor({ element, originalHtml, baseCss, modeLocked, onApply, onCancel }: TextInputEditorProps) {
   const originalText = extractTextFromHtml(originalHtml)
-  const [mode, setMode] = useState<EditorMode>('inherit')
+  const [mode, setMode] = useState<EditorMode>(modeLocked ?? 'inherit')
   const [text, setText] = useState(originalText)
 
   function handleApply() {
@@ -74,29 +80,33 @@ export function TextInputEditor({ element, originalHtml, baseCss, onApply, onCan
 
   return (
     <div className="space-y-4">
-      {/* Mode-Umschalter: Delta auf A (Default) vs. kompletter Neubau */}
-      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-0 p-0.5">
-        {([
-          { value: 'inherit', label: 'Inherit from A' },
-          { value: 'scratch', label: 'From scratch' },
-        ] as const).map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            onClick={() => setMode(m.value)}
-            className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
-              mode === m.value
-                ? 'bg-fill-invert text-text-on-invert'
-                : 'text-text-2 hover:text-text'
-            }`}
-            title={m.value === 'inherit'
-              ? 'B erbt Markup, Klassen und responsives Verhalten von A — nur der Text ändert sich'
-              : 'B wird komplett neu gebaut (eigenes Markup)'}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+      {/* Mode-Umschalter: Delta auf A (Default) vs. kompletter Neubau.
+          In der Advanced-Ausklappung von StepChange ist der Modus fest
+          'scratch' — der Umschalter entfällt dann komplett. */}
+      {!modeLocked && (
+        <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-0 p-0.5">
+          {([
+            { value: 'inherit', label: 'Inherit from A' },
+            { value: 'scratch', label: 'From scratch' },
+          ] as const).map((m) => (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => setMode(m.value)}
+              className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+                mode === m.value
+                  ? 'bg-fill-invert text-text-on-invert'
+                  : 'text-text-2 hover:text-text'
+              }`}
+              title={m.value === 'inherit'
+                ? 'B inherits markup, classes and responsive behavior from A — only the text changes'
+                : 'B is rebuilt completely (own markup)'}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Live Preview — iframe mit echtem Site-CSS, A und B nebeneinander */}
       <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">

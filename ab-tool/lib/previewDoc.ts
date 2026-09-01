@@ -300,6 +300,13 @@ export interface PreviewBlock {
   scopeToSelector?: boolean
   /** Der Original-Selektor, gegen den gescopt wird. */
   selector?: string | null
+  /**
+   * A-HTML, von dem dieser Block seine Präsentation erbt (adoptPresentation).
+   * Default: Block 0 = A — die indexbasierte Regel. Einzel-Vorschauen
+   * (StepReview rendert B allein pro iframe) müssen A explizit mitgeben,
+   * sonst läuft die Adoption nie und ein scratch-/KI-B rendert nackt.
+   */
+  adoptFrom?: string | null
 }
 
 export interface PreviewDocOptions {
@@ -335,9 +342,10 @@ export function buildPreviewSrcDoc(
     let html = b.html || ''
     if (b.scopeToSelector) {
       css = scopeCssForPreview(css, b.selector)
-      // A→B-Adoption nur im A/B-Vergleich (Block 0 = A); Einzel-Vorschauen
-      // (StepReview) haben kein A zum Erben.
-      const aHtml = i > 0 ? blocks[0].html ?? '' : ''
+      // A→B-Adoption: explizites adoptFrom, sonst Block 0 = A. Einzel-
+      // Vorschauen (StepReview rendert B allein pro iframe) geben A explizit
+      // mit — die indexbasierte Regel griffe dort nie.
+      const aHtml = b.adoptFrom ?? (i > 0 ? blocks[0].html ?? '' : '')
       html = markPreviewRoot(adoptPresentationPreview(aHtml, html))
     }
     if (css.trim()) cssParts.push(css)

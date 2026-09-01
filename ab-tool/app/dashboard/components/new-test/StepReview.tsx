@@ -5,26 +5,26 @@
  *
  * Zeigt alle Test-Details auf einer Summary-Karte.
  * Name wird manuell vom User eingegeben (kein KI-Auto-Name).
+ * Die Variante wird als read-only Änderungsliste gezeigt statt als
+ * CSS-Dump — dieselben Zeilen wie in StepChange, nur ohne Aktionen.
  */
 
 import { useState } from 'react'
 import { Globe, MousePointerClick, Sparkles, Edit3, Crosshair, Info, FileText } from 'lucide-react'
 import type { ElementSelection, VariantResult, GoalSelection } from '../NewTestDrawer'
+import type { VariantChangeSet } from './types'
+import { ChangeList } from './ChangeList'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 import { formatCount } from '@/lib/formatNumber'
 import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
-
-type Breakpoint = 375 | 768 | 'desktop'
-const BREAKPOINTS: Array<{ value: Breakpoint; label: string; width: number }> = [
-  { value: 375, label: 'Mobile', width: 375 },
-  { value: 768, label: 'Tablet', width: 768 },
-  { value: 'desktop', label: 'Desktop', width: 1024 },
-]
+import { BreakpointSwitcher, BREAKPOINTS, type Breakpoint } from './PreviewBreakpoints'
 
 interface StepReviewProps {
   url: string
   element: ElementSelection
   variantResult: VariantResult | null
+  /** Die Änderungsliste — dieselbe Quelle wie in StepChange, hier read-only. */
+  changes: VariantChangeSet
   goal: GoalSelection | null
   testName: string
   onTestNameChange: (name: string) => void
@@ -32,7 +32,7 @@ interface StepReviewProps {
 }
 
 export function StepReview({
-  url, element, variantResult, goal, testName, onTestNameChange, hasDomain,
+  url, element, variantResult, changes, goal, testName, onTestNameChange, hasDomain,
 }: StepReviewProps) {
   // Breakpoint-Umschalter der Vorschau: umgesetzt ueber die ECHTE iframe-Breite
   // (transform: scale loest keine Media-Queries aus). Desktop ist breiter als
@@ -55,6 +55,8 @@ export function StepReview({
   // Eine visuelle Vorschau ist nur belastbar, wenn der Picker sowohl das Markup
   // als auch die Styles der Zielseite mitgebracht hat. Sonst: Textvergleich.
   const canRenderPreview = !!element.originalCss.trim() && !!element.originalHtml.trim()
+
+  const appliedEntries = changes.entries.filter((e) => e.status === 'applied')
 
   return (
     <div className="space-y-4">
@@ -99,22 +101,7 @@ export function StepReview({
                     <Sparkles className="h-3 w-3" />
                     Preview
                   </p>
-                  {/* Breakpoint-Umschalter */}
-                  <div className="flex rounded-[var(--radius-sm)] border border-border bg-bg-0 p-0.5">
-                    {BREAKPOINTS.map((bp) => (
-                      <button
-                        key={bp.value}
-                        onClick={() => setBreakpoint(bp.value)}
-                        className={`rounded-[var(--radius-sm)] px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-                          breakpoint === bp.value
-                            ? 'bg-fill-invert text-text-on-invert'
-                            : 'text-text-3 hover:text-text'
-                        }`}
-                      >
-                        {bp.label}
-                      </button>
-                    ))}
-                  </div>
+                  <BreakpointSwitcher value={breakpoint} onChange={setBreakpoint} />
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 overflow-x-auto">
                   <ElementPreview
@@ -130,6 +117,9 @@ export function StepReview({
                     siteCss={element.styleContext?.css ?? element.originalCss}
                     scopeToSelector
                     selector={element.selector || element.elementName}
+                    // Einzel-Block pro iframe: ohne explizites adoptFrom liefe
+                    // adoptPresentationPreview nie (Index-Regel braucht Block 0).
+                    adoptFrom={element.originalHtml}
                     width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
                   />
                 </div>
@@ -148,9 +138,18 @@ export function StepReview({
                 variant={extractTextFromHtml(variantResult.variant_html || variantResult.variant)}
               />
             )}
-            {variantResult.explanation && (
-              <p className="mt-1.5 text-[10px] text-text-3 italic">{variantResult.explanation}</p>
-            )}
+          </div>
+        )}
+
+        {/* Die Änderungsliste statt CSS-Dump + Textzeile — dieselben Zeilen
+            wie in StepChange, read-only. */}
+        {appliedEntries.length > 0 && (
+          <div>
+            <p className="mb-1.5 text-[11px] font-medium text-text-2">Changes</p>
+            <ChangeList
+              entries={appliedEntries}
+              readOnly
+            />
           </div>
         )}
 
@@ -173,16 +172,6 @@ export function StepReview({
             Give your test a descriptive name
           </p>
         </div>
-
-        {/* CSS preview (collapsed) */}
-        {variantResult?.variant_css && (
-          <div>
-            <p className="mb-1 text-[11px] font-medium text-text-2">CSS Changes</p>
-            <code className="block max-h-24 overflow-y-auto rounded-[var(--radius-md)] bg-bg-0 p-2.5 text-[10px] text-text-3 font-mono leading-relaxed whitespace-pre-wrap">
-              {variantResult.variant_css}
-            </code>
-          </div>
-        )}
       </div>
 
       {/* Sample-size expectation — same thresholds the winner-check cron uses
@@ -250,7 +239,7 @@ function DetailRow({ icon: Icon, label, value }: { icon: typeof Globe; label: st
  * nackt rendert und B die Wahrheit zeigt.
  */
 function ElementPreview({
-  label, html, css, siteCss, scopeToSelector, selector, width,
+  label, html, css, siteCss, scopeToSelector, selector, adoptFrom, width,
 }: {
   label: string
   html: string
@@ -258,10 +247,11 @@ function ElementPreview({
   siteCss?: string
   scopeToSelector?: boolean
   selector?: string
+  adoptFrom?: string
   width: number
 }) {
   const srcDoc = buildPreviewSrcDoc(
-    [{ html, css, scopeToSelector, selector }],
+    [{ html, css, scopeToSelector, selector, adoptFrom }],
     { siteCss }
   )
   return (
@@ -286,7 +276,7 @@ function ElementPreview({
  * Ein iframe wuerde hier einen ungestylten Browser-Default rendern — der sieht
  * dem echten Element nicht aehnlich und ist als Vorschau schlicht falsch. Der
  * Textvergleich zeigt stattdessen genau das, was gesichert bekannt ist: die
- * Textaenderung. Formulierung bewusst wie im AI-Block in StepVariantB.
+ * Textaenderung.
  */
 function TextComparison({ original, variant }: { original: string; variant: string }) {
   return (

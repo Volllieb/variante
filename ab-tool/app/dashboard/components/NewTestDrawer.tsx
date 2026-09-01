@@ -6,24 +6,36 @@
  * Slide-in von rechts, nimmt 50vw auf Desktop, 100vw auf Mobile.
  * Enthält die komplette Wizard-State-Machine und rendert die 4 Steps.
  *
- * Flow ohne KI (ausser Variant-Generierung):
+ * Flow:
  * Step 0: URL + Element auf Live-Site wählen
  * Step 1: Goal/Metrik wählen (VOR der Variante — die Variante soll aufs Ziel
  *         hin gebaut werden, nicht umgekehrt)
- * Step 2: Variant B (KI-generiert — Ausnahme)
+ * Step 2: Change — Änderungsliste als Delta auf A (KI nur als Vorschlagsquelle)
  * Step 3: Review + Create
  *
- * Draft: Fortschritt wird automatisch serverseitig gespeichert (debounced).
+ * Die Änderungsliste (variantChanges) ist die Quelle der Wahrheit:
+ * variantResult wird bei jeder Listenänderung aus composeVariant() neu
+ * abgeleitet, nie direkt gesetzt. Draft: Fortschritt wird automatisch
+ * serverseitig gespeichert (debounced).
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Loader2, FlaskConical, Check, ArrowLeft, ArrowRight } from 'lucide-react'
 import { StepUrlAndElement } from './new-test/StepUrlAndElement'
 import type { TestRow } from './TestCard'
-import { StepVariantB } from './new-test/StepVariantB'
+import { StepChange } from './new-test/StepChange'
 import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
-import { collectedOriginalComputed } from './new-test/delta'
+import {
+  collectedOriginalComputed,
+  buildStyleBaseline,
+  composeVariant,
+  diffCssToEntries,
+  diffTextToEntry,
+  entryId,
+} from './new-test/delta'
+import type { ChangeEntry, ChangeProperty, StyleBaseline, VariantChangeSet } from './new-test/types'
+import { extractTextFromHtml } from '@/lib/previewDoc'
 import { useFocusTrap } from '@/lib/useFocusTrap'
 
 
@@ -63,6 +75,8 @@ interface WizardState {
   url: string
   selectedElement: ElementSelection | null
   elementConfirmed: boolean
+  /** Änderungsliste — Quelle der Wahrheit; variantResult wird daraus abgeleitet. */
+  variantChanges: VariantChangeSet
   variantResult: VariantResult | null
   selectedGoal: GoalSelection | null
   goalConfirmed: boolean
@@ -75,11 +89,113 @@ const INITIAL_STATE: WizardState = {
   url: '',
   selectedElement: null,
   elementConfirmed: false,
+  variantChanges: { mode: 'inherit', entries: [], baseline: null },
   variantResult: null,
   selectedGoal: null,
   goalConfirmed: false,
   testName: '',
   testStatus: 'active',
+}
+
+// ─── Resume-Helfer: variant_b_changes laden/validieren ───
+
+const CHANGE_PROPERTIES: ReadonlySet<string> = new Set([
+  'text', 'bgColor', 'textColor', 'fontSize', 'fontWeight', 'borderRadius',
+  'paddingX', 'paddingY', 'borderWidth', 'borderColor', 'borderStyle',
+  'hoverBgColor', 'hoverScale', 'hoverShadow', 'other',
+])
+const CHANGE_SOURCES: ReadonlySet<string> = new Set(['manual', 'ai', 'figma'])
+const CHANGE_STATUSES: ReadonlySet<string> = new Set(['applied', 'suggested'])
+
+function sanitizeBaseline(raw: unknown): StyleBaseline | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const num = (v: unknown): number | undefined => (typeof v === 'number' && !Number.isNaN(v) ? v : undefined)
+  const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined)
+  const b: StyleBaseline = {
+    ...(str(o.bgColor) !== undefined ? { bgColor: str(o.bgColor) } : {}),
+    ...(str(o.textColor) !== undefined ? { textColor: str(o.textColor) } : {}),
+    ...(str(o.borderColor) !== undefined ? { borderColor: str(o.borderColor) } : {}),
+    ...(str(o.borderStyle) !== undefined ? { borderStyle: str(o.borderStyle) } : {}),
+    ...(num(o.fontSize) !== undefined ? { fontSize: num(o.fontSize) } : {}),
+    ...(num(o.fontWeight) !== undefined ? { fontWeight: num(o.fontWeight) } : {}),
+    ...(num(o.borderRadius) !== undefined ? { borderRadius: num(o.borderRadius) } : {}),
+    ...(num(o.paddingX) !== undefined ? { paddingX: num(o.paddingX) } : {}),
+    ...(num(o.paddingY) !== undefined ? { paddingY: num(o.paddingY) } : {}),
+    ...(num(o.borderWidth) !== undefined ? { borderWidth: num(o.borderWidth) } : {}),
+  }
+  return Object.keys(b).length ? b : null
+}
+
+/**
+ * Parsed die persistierte Änderungsliste. Kommt als jsonb-Objekt (Supabase
+ * parst) oder als JSON-String — beides wird akzeptiert. Unbekannte/ungültige
+ * Zeilen fliegen raus statt den Drawer zu crashen.
+ */
+function parseChanges(raw: unknown): VariantChangeSet | null {
+  if (typeof raw === 'string') {
+    try { raw = JSON.parse(raw) } catch { return null }
+  }
+  if (!raw || typeof raw !== 'object') return null
+  const obj = raw as Record<string, unknown>
+  if (!Array.isArray(obj.entries)) return null
+  const entries: ChangeEntry[] = []
+  for (const e of obj.entries) {
+    if (!e || typeof e !== 'object') continue
+    const row = e as Record<string, unknown>
+    if (typeof row.property !== 'string' || !CHANGE_PROPERTIES.has(row.property)) continue
+    entries.push({
+      id: typeof row.id === 'string' && row.id ? row.id : entryId(),
+      property: row.property as ChangeProperty,
+      before: typeof row.before === 'string' ? row.before : '',
+      after: typeof row.after === 'string' ? row.after : '',
+      source: CHANGE_SOURCES.has(String(row.source)) ? row.source as ChangeEntry['source'] : 'ai',
+      status: CHANGE_STATUSES.has(String(row.status)) ? row.status as ChangeEntry['status'] : 'suggested',
+      ...(typeof row.explanation === 'string' ? { explanation: row.explanation } : {}),
+      ...(typeof row.rawCss === 'string' ? { rawCss: row.rawCss } : {}),
+    })
+  }
+  return {
+    mode: obj.mode === 'scratch' ? 'scratch' : 'inherit',
+    entries,
+    baseline: sanitizeBaseline(obj.baseline),
+  }
+}
+
+/**
+ * Alttest ohne variant_b_changes: Liste aus variant_b_css/-html rekonstruieren
+ * — derselbe Diff-Pfad wie für KI-Ergebnisse, nur direkt 'applied' (die
+ * Änderungen sind ja bereits der Zustand von B). Ein Sonderfall für den
+ * Status, keiner für das Parsen.
+ */
+function reconstructChanges(
+  originalHtml: string | null | undefined,
+  variantHtml: string | null | undefined,
+  variantCss: string | null | undefined,
+  baseline: StyleBaseline | null
+): VariantChangeSet {
+  const textEntry = diffTextToEntry(originalHtml ?? '', variantHtml ?? null, 'ai')
+  const entries = [
+    ...diffCssToEntries(variantCss ?? null, baseline, 'ai'),
+    ...(textEntry ? [textEntry] : []),
+  ].map((e) => ({ ...e, status: 'applied' as const }))
+  return { mode: 'inherit', entries, baseline }
+}
+
+/** Komponiert variantResult aus der Änderungsliste — nie direkt gesetzt. */
+function resultFromChanges(
+  changes: VariantChangeSet,
+  originalHtml: string,
+  selector: string
+): VariantResult | null {
+  if (!changes.entries.some((e) => e.status === 'applied')) return null
+  const { html, css } = composeVariant(changes, originalHtml, selector)
+  return {
+    variant: extractTextFromHtml(html),
+    variant_html: html,
+    variant_css: css,
+    explanation: '',
+  }
 }
 
 // ─── Props ───
@@ -175,13 +291,29 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             }
           }
         }
-        // Determine first incomplete step
+        // Änderungsliste laden — fehlt sie (Alttest), wird sie aus
+        // variant_b_css/-html rekonstruiert. Baseline: gemessene Computed-
+        // Styles aus dem site_css (.__original-Block), sonst die
+        // mitpersistierte Baseline der Liste.
+        const computed = collectedOriginalComputed(resumeTest.site_css ?? '')
+        const measuredBaseline = buildStyleBaseline(computed)
+        const parsedChanges = parseChanges(resumeTest.variant_b_changes)
+        const variantChanges = parsedChanges
+          ? { ...parsedChanges, baseline: parsedChanges.baseline ?? measuredBaseline }
+          : reconstructChanges(
+              resumeTest.original_html,
+              resumeTest.variant_b_html,
+              resumeTest.variant_b_css,
+              measuredBaseline,
+            )
+        // Determine first incomplete step — "hat Variante" heisst jetzt:
+        // die Änderungsliste trägt angewandte Zeilen.
         let startStep = 0
         const hasElement = !!resumeTest.selector
-        const hasVariant = !!resumeTest.variant_b_html
+        const hasVariant = variantChanges.entries.some((e) => e.status === 'applied')
         const hasGoal = !!resumeTest.goal
         if (hasElement && hasGoal && hasVariant) startStep = 3   // all done → Review
-        else if (hasElement && hasGoal) startStep = 2              // Variant missing
+        else if (hasElement && hasGoal) startStep = 2              // Change missing
         else if (hasElement) startStep = 1                        // Goal missing
         // else startStep = 0                                     // Element missing
 
@@ -192,17 +324,17 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             selector: resumeTest.selector,
             originalHtml: resumeTest.original_html ?? '',
             originalCss: resumeTest.site_css ?? '',
-            elementType: 'element',
+            // element_type kommt seit 044 aus der DB — vorher 'element',
+            // was getEditorCategory immer auf 'button' fallen liess.
+            elementType: resumeTest.element_type ?? 'element',
             elementName: resumeTest.selector,
-            styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: collectedOriginalComputed(resumeTest.site_css) ?? {} } : undefined,
+            styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: computed ?? {} } : undefined,
           } : null,
           elementConfirmed: !!resumeTest.selector,
-          variantResult: resumeTest.variant_b_html ? {
-            variant: resumeTest.variant_b_html,
-            variant_html: resumeTest.variant_b_html ?? undefined,
-            variant_css: resumeTest.variant_b_css ?? undefined,
-            explanation: '',
-          } : null,
+          variantChanges,
+          variantResult: resumeTest.selector
+            ? resultFromChanges(variantChanges, resumeTest.original_html ?? '', resumeTest.selector)
+            : null,
           selectedGoal: goalParsed,
           goalConfirmed: !!goalParsed,
           testName: resumeTest.name?.startsWith('Demo test') ? '' : (resumeTest.name ?? ''),
@@ -217,6 +349,17 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         if (!res.ok) return
         const { draft } = await res.json()
         if (draft && mountedRef.current) {
+          const draftComputed = collectedOriginalComputed(draft.site_css ?? '')
+          const draftBaseline = buildStyleBaseline(draftComputed)
+          const draftParsed = parseChanges(draft.variant_b_changes)
+          const draftChanges = draftParsed
+            ? { ...draftParsed, baseline: draftParsed.baseline ?? draftBaseline }
+            : reconstructChanges(
+                draft.original_html,
+                draft.variant_b_html,
+                draft.variant_b_css,
+                draftBaseline,
+              )
           setState((prev) => ({
             ...prev,
             step: draft.step ?? 0,
@@ -225,17 +368,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               selector: draft.selector,
               originalHtml: draft.original_html ?? '',
               originalCss: draft.site_css ?? '',
-              elementType: 'element',
-              elementName: draft.selector,
-              styleContext: draft.site_css ? { css: draft.site_css, computed: collectedOriginalComputed(draft.site_css) ?? {} } : undefined,
+              elementType: draft.element_type ?? 'element',
+              elementName: draft.element_name ?? draft.selector,
+              styleContext: draft.site_css ? { css: draft.site_css, computed: draftComputed ?? {} } : undefined,
             } : null,
             elementConfirmed: !!draft.selector,
-            variantResult: draft.variant_text ? {
-              variant: draft.variant_text,
-              variant_html: draft.variant_b_html ?? undefined,
-              variant_css: draft.variant_b_css ?? undefined,
-              explanation: '',
-            } : null,
+            variantChanges: draftChanges,
+            variantResult: draft.selector
+              ? resultFromChanges(draftChanges, draft.original_html ?? '', draft.selector)
+              : null,
             selectedGoal: draft.goal ? (() => {
               // Parse encoded goal formats:
               //   'click:div.selector' → type=click, selector=div.selector
@@ -288,6 +429,12 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             variant_b_html: s.variantResult?.variant_html ?? null,
             variant_b_css: s.variantResult?.variant_css ?? null,
             variant_text: s.variantResult?.variant ?? null,
+            // Änderungsliste als JSON — die Quelle der Wahrheit fürs Resume.
+            variant_b_changes: s.variantChanges.entries.length
+              ? JSON.stringify(s.variantChanges)
+              : null,
+            element_type: s.selectedElement?.elementType ?? null,
+            element_name: s.selectedElement?.elementName ?? null,
             goal: s.selectedGoal ? (s.selectedGoal.selector ? `click:${s.selectedGoal.selector}` : 'click') : null,
             goal_selector: s.selectedGoal?.selector ?? null,
             auto_name: s.testName || null,
@@ -300,6 +447,22 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
   const updateState = useCallback((patch: Partial<WizardState>) => {
     setState((prev) => {
       const next = { ...prev, ...patch }
+      saveDraft(next)
+      return next
+    })
+  }, [saveDraft])
+
+  /**
+   * Die eine Schreibstelle für die Änderungsliste: variantResult wird bei
+   * jeder Listenänderung aus composeVariant() neu abgeleitet — der
+   * Abwärtsfluss ist damit immer Liste → Ergebnis, nie umgekehrt.
+   */
+  const applyVariantChanges = useCallback((changes: VariantChangeSet) => {
+    setState((prev) => {
+      const next: WizardState = { ...prev, variantChanges: changes }
+      next.variantResult = prev.selectedElement
+        ? resultFromChanges(changes, prev.selectedElement.originalHtml, prev.selectedElement.selector || prev.selectedElement.elementName)
+        : null
       saveDraft(next)
       return next
     })
@@ -322,7 +485,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
       // Bug 3: selector must be a valid CSS selector, not element name
       if (!state.selectedElement.selector) {
-        setCreateError('No CSS selector — please re-select the element in Step 1.')
+        setCreateError('No CSS selector — please go back to the Element step and re-select the element.')
         setCreating(false)
         return
       }
@@ -332,10 +495,15 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         site_url: state.url,
         selector,
         goal,
-        goal_selector: state.selectedGoal.selector ?? undefined,
-        variant_b_html: state.variantResult?.variant_html ?? undefined,
-        variant_b_css: state.variantResult?.variant_css ?? undefined,
-        variant_text: state.variantResult?.variant ?? undefined,
+        // null statt undefined: ein Resume-PATCH muss die Felder auch LEEREN
+        // können — undefined würde den Key aus dem JSON-Body streichen.
+        variant_b_html: state.variantResult?.variant_html ?? null,
+        variant_b_css: state.variantResult?.variant_css ?? null,
+        variant_text: state.variantResult?.variant ?? null,
+        variant_b_changes: state.variantChanges.entries.length
+          ? JSON.stringify(state.variantChanges)
+          : null,
+        element_type: state.selectedElement.elementType || null,
         original_html: state.selectedElement.originalHtml,
         // Ohne site_css rendert die Preview auf der Results-Seite spaeter
         // ungestylt — bis 08/2026 wurde es aus dem Wizard nie mitgeschickt.
@@ -456,12 +624,14 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
     switch (step) {
       case 0: return state.selectedElement !== null && state.elementConfirmed
       case 1: return state.selectedGoal !== null && state.goalConfirmed
-      case 2: return state.variantResult !== null
+      // Eine leere Änderungsliste ist kein Test — B wäre identisch mit A.
+      // (Server-Guard empty_variant fängt zusätzlich Altbestand und PATCH ab.)
+      case 2: return state.variantChanges.entries.some((e) => e.status === 'applied')
       default: return true
     }
   }
 
-  const stepLabels = ['Element', 'Goal', 'Variant', 'Review']
+  const stepLabels = ['Element', 'Goal', 'Change', 'Review']
 
   // ─── Render ───
 
@@ -553,8 +723,26 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               url={state.url}
               onUrlChange={(url) => updateState({ url, selectedElement: null, elementConfirmed: false })}
               selectedElement={state.selectedElement}
-              onElementSelected={(el) => updateState({ selectedElement: el, elementConfirmed: false })}
-              onConfirm={() => updateState({ elementConfirmed: true })}
+              // Ein neues Element macht die alte Änderungsliste wertlos —
+              // Zeilen und Ergebnis starten frisch, die Baseline wird beim
+              // Bestätigen einmalig gemessen.
+              onElementSelected={(el) => updateState({
+                selectedElement: el,
+                elementConfirmed: false,
+                variantChanges: { mode: 'inherit', entries: [], baseline: null },
+                variantResult: null,
+              })}
+              onConfirm={() => {
+                // Baseline einmalig bestimmen, wenn das Element bestätigt
+                // wird (buildStyleBaseline aus den gemessenen Computed-Styles).
+                // Ohne Picker degeneriert das Delta bewusst zu absoluten
+                // Werten — Step 0 warnt dann sichtbar.
+                const baseline = buildStyleBaseline(state.selectedElement?.styleContext?.computed) ?? null
+                updateState({
+                  elementConfirmed: true,
+                  variantChanges: { ...state.variantChanges, baseline: baseline ?? state.variantChanges.baseline },
+                })
+              }}
               verifiedDomains={localDomains}
               domainConnectState={domainConnectState}
               domainConnectError={domainConnectError}
@@ -575,18 +763,12 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             />
           )}
 
-          {/* Step 2: Variant B */}
+          {/* Step 2: Change — Änderungsliste als Delta auf A */}
           {state.step === 2 && state.selectedElement && (
-            <StepVariantB
+            <StepChange
               element={state.selectedElement}
-              variantResult={state.variantResult}
-              onVariantUpdate={(patch) => {
-                updateState({
-                  variantResult: state.variantResult
-                    ? { ...state.variantResult, ...patch }
-                    : patch as VariantResult,
-                })
-              }}
+              changes={state.variantChanges}
+              onChanges={applyVariantChanges}
             />
           )}
 
@@ -596,6 +778,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               url={state.url}
               element={state.selectedElement}
               variantResult={state.variantResult}
+              changes={state.variantChanges}
               goal={state.selectedGoal}
               testName={state.testName}
               hasDomain={localDomains.length > 0}
