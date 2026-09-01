@@ -51,7 +51,10 @@ export function validateManualSelector(raw: string): ManualSelectorResult {
   if (sel.length > 512) {
     return { ok: false, selector: sel, error: 'Selector is too long (max 512 characters).' }
   }
-  if (/[<>{};]/.test(sel)) {
+  // `<` bleibt tabu (Markup-Injection); `>` nicht: der Picker baut Selektoren
+  // mit parts.join(' > ') — die manuelle Eingabe muss genau diese Form
+  // annehmen können. isParsable() validiert ohnehin über querySelector.
+  if (/[<{};]/.test(sel)) {
     return { ok: false, selector: sel, error: 'Invalid CSS selector. Try something like: .my-class, #my-id, button.cta' }
   }
   if (!/^[.#[a-zA-Z_*]/.test(sel)) {
