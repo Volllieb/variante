@@ -13,16 +13,18 @@
  * in der Liste (inkl. `other`-Roh-CSS) und wird beim Editieren einzelner
  * Zeilen nicht ersetzt — dasselbe Garant wie früher baseCss → mergeVariantCss.
  *
- * Manual-first: die KI ist Vorschlagsquelle („Suggest changes"), kein
- * Auto-Trigger mehr beim Betreten des Steps.
+ * Die Änderungen entstehen ausschliesslich manuell. Der frühere KI-Pfad
+ * ("Suggest changes") ist raus — er lieferte keine brauchbaren Designs.
+ * `status: 'suggested'` bleibt im Datenmodell: Alttests und Drafts tragen es,
+ * und die Liste kann solche Zeilen weiterhin annehmen oder verwerfen.
  */
 
 import { useState, useCallback } from 'react'
-import { Plus, Sparkles, Loader2, AlertCircle, ChevronDown, ExternalLink, Palette, AlertTriangle } from 'lucide-react'
+import { Plus, Sparkles, ChevronDown, ExternalLink, Palette, AlertTriangle } from 'lucide-react'
 import { ChangeList } from './ChangeList'
 import { ButtonEditor } from './ButtonEditor'
 import { TextInputEditor } from './TextInputEditor'
-import { composeVariant, diffCssToEntries, diffTextToEntry, entryId, baselineValue } from './delta'
+import { composeVariant, diffTextToEntry, entryId, baselineValue } from './delta'
 import { getEditorCategory } from './types'
 import type { ChangeEntry, ChangeProperty, VariantChangeSet } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
@@ -34,8 +36,6 @@ interface StepChangeProps {
   changes: VariantChangeSet
   onChanges: (next: VariantChangeSet) => void
 }
-
-type SuggestState = 'idle' | 'loading' | 'error'
 
 /** „+ Add change"-Menü je Editor-Kategorie (getEditorCategory). */
 const ADD_MENU: Record<'button' | 'text', Array<{ property: ChangeProperty; label: string }>> = {
@@ -57,10 +57,6 @@ const COLOR_FALLBACKS: Partial<Record<ChangeProperty, string>> = {
 
 export function StepChange({ element, changes, onChanges }: StepChangeProps) {
   const category = getEditorCategory(element.elementType)
-
-  // ── Suggest changes (KI als Vorschlagsquelle — kein Auto-Trigger) ──
-  const [suggestState, setSuggestState] = useState<SuggestState>('idle')
-  const [suggestError, setSuggestError] = useState('')
 
   // ── Inline-Editor-Zeile (kontrolliert, damit neue Zeilen direkt aufgehen) ──
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -121,52 +117,6 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
     },
     [changes, element.originalHtml, updateEntries],
   )
-
-  // ─── Suggest changes ───
-
-  const handleSuggest = useCallback(async () => {
-    setSuggestState('loading')
-    setSuggestError('')
-
-    try {
-      const res = await fetch('/api/test-wizard/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          element: element.elementName || element.selector,
-          original: element.originalHtml || `<${element.elementType}>`,
-          elementType: element.elementType,
-          selector: element.selector || undefined,
-          pageContext: element.styleContext?.css || undefined,
-        }),
-      })
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Generation failed' }))
-        setSuggestError(err.message ?? err.error ?? 'AI generation failed')
-        setSuggestState('error')
-        return
-      }
-
-      const data = await res.json()
-      const textEntry = diffTextToEntry(element.originalHtml, data.variant_html ?? null, 'ai')
-      if (textEntry && data.explanation) textEntry.explanation = data.explanation
-      const suggested = [
-        ...diffCssToEntries(data.variant_css ?? null, changes.baseline, 'ai'),
-        ...(textEntry ? [textEntry] : []),
-      ]
-      // Regenerate ersetzt nur die suggested-Zeilen — manuelle Edits bleiben.
-      updateEntries([
-        ...changes.entries.filter((e) => e.status !== 'suggested'),
-        ...suggested,
-      ])
-      setEditingId(null)
-      setSuggestState('idle')
-    } catch {
-      setSuggestError('Network error — please try again.')
-      setSuggestState('error')
-    }
-  }, [element, changes, updateEntries])
 
   // ─── Advanced / Scratch ───
 
@@ -265,26 +215,8 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
         )}
       </div>
 
-      {/* Suggest-Error: Banner ÜBER der Liste — die Liste bleibt bedienbar */}
-      {suggestState === 'error' && (
-        <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] border border-err/20 bg-err/[0.04] px-3 py-2.5">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-err/60" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium text-err/80">AI suggestions failed</p>
-            <p className="mt-0.5 text-[11px] text-text-3">{suggestError}</p>
-          </div>
-          <button
-            type="button"
-            onClick={handleSuggest}
-            className="shrink-0 rounded-[var(--radius-sm)] border border-border px-2.5 py-1 text-[10px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
       {/* Änderungsliste — im Scratch-Zustand ersetzt der Hinweis die Zeilen,
-          und die Delta-Aktionen (Add/Suggest) verschwinden: ein Delta auf dem
+          und "Add change" verschwindet: ein Delta auf dem
           Scratch-Ergebnis wäre ein gemischtes Modell. Zurück geht es nur über
           "Back to change list" (verwirft das Scratch-Ergebnis). */}
       {changes.mode === 'scratch' ? (
@@ -311,7 +243,7 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
             onEntriesChange={updateEntries}
           />
 
-          {/* Aktionen: manuelle Zeile hinzufügen + KI-Vorschläge */}
+          {/* Aktion: manuelle Zeile hinzufügen */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <button
@@ -338,19 +270,6 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={handleSuggest}
-              disabled={suggestState === 'loading'}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-pro/25 bg-pro/[0.05] px-3.5 py-2 text-[12px] font-medium text-pro transition-colors hover:bg-pro/[0.09] disabled:opacity-50"
-            >
-              {suggestState === 'loading' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="h-3.5 w-3.5" />
-              )}
-              {suggestState === 'loading' ? 'Suggesting…' : 'Suggest changes'}
-            </button>
           </div>
         </>
       )}

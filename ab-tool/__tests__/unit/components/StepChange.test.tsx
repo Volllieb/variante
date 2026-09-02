@@ -1,11 +1,9 @@
 /**
- * StepChange — der neue Step 2: Manual-first, KI als Vorschlagsquelle.
+ * StepChange — Step 2: die Änderungsliste entsteht rein manuell.
  *
- * Die beiden entscheidenden Regressionen, die der Umbau schliesst:
- * 1. KEIN Auto-Trigger der KI beim Betreten (vorher feuerte /api/test-wizard/
- *    generate sofort beim Mount).
- * 2. Ein Fehler-/429-Banner der KI lässt die manuelle Liste bedienbar —
- *    die KI ist Zusatz, nicht Blockade.
+ * Die Regression, die der Umbau schliesst: der KI-Pfad für Designvorschläge
+ * ist raus. Weder beim Mount noch auf Klick darf /api/test-wizard/generate
+ * feuern; bestehende `suggested`-Zeilen aus Alt-Drafts bleiben aber bedienbar.
  */
 
 import { useState } from 'react'
@@ -98,87 +96,26 @@ describe('StepChange — Manual-first', () => {
   })
 })
 
-describe('StepChange — Suggest changes', () => {
-  it('ruft den Endpoint erst auf Klick und übernimmt die Antwort als suggested-Zeilen', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        variant: 'Start now',
-        variant_html: '<button class="cta">Start now</button>',
-        variant_css: '.cta { background-color: rgb(255, 0, 0); letter-spacing: 0.5px; }',
-        explanation: 'Dringlichkeit statt Generik.',
-      }),
-    } as Response)
-
-    const { onChanges } = renderStep()
+describe('StepChange — kein KI-Vorschlagspfad', () => {
+  it('bietet keine KI-Designvorschlaege an und ruft den Generate-Endpoint nie auf', () => {
+    renderStep()
+    expect(screen.queryByRole('button', { name: 'Suggest changes' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/AI suggestions/i)).not.toBeInTheDocument()
     expect(fetchMock).not.toHaveBeenCalled()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Suggest changes' }))
-    await waitFor(() => expect(onChanges).toHaveBeenCalled())
-
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    const [, init] = fetchMock.mock.calls[0]
-    const body = JSON.parse(String((init as RequestInit).body))
-    expect(body.element).toBe('CTA')
-    expect(body.pageContext).toBe(ELEMENT.styleContext?.css)
-
-    const next = onChanges.mock.calls[0][0]
-    const suggested = next.entries.filter((e) => e.status === 'suggested')
-    expect(suggested.some((e) => e.property === 'text' && e.after === 'Start now')).toBe(true)
-    expect(suggested.some((e) => e.property === 'bgColor')).toBe(true)
-    // letter-spacing ist nicht abbildbar → eine other-Zeile.
-    expect(suggested.some((e) => e.property === 'other' && e.rawCss?.includes('letter-spacing'))).toBe(true)
-    // Explanation hängt an der Text-Zeile.
-    const text = suggested.find((e) => e.property === 'text')
-    expect(text?.explanation).toBe('Dringlichkeit statt Generik.')
   })
 
-  it('zeigt bei 429 ein Banner und lässt die Liste bedienbar', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 429,
-      json: async () => ({ message: 'Max 10 variant generations per minute.' }),
-    } as Response)
-
-    const { onChanges } = renderStep()
-    fireEvent.click(screen.getByRole('button', { name: 'Suggest changes' }))
-    await waitFor(() => expect(screen.getByText(/AI suggestions failed/)).toBeInTheDocument())
-    expect(screen.getByText('Max 10 variant generations per minute.')).toBeInTheDocument()
-
-    // Die Liste bleibt bedienbar: manuelle Zeile geht trotz Fehler-Banner.
-    fireEvent.click(screen.getByRole('button', { name: 'Add change' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Background' }))
-    expect(onChanges).toHaveBeenCalled()
-    expect(onChanges.mock.calls[0][0].entries[0]).toMatchObject({ property: 'bgColor', status: 'applied' })
-  })
-
-  it('Regenerate ersetzt nur suggested-Zeilen — manuelle bleiben', async () => {
-    const withManual: VariantChangeSet = {
+  it('rendert bestehende suggested-Zeilen aus Alt-Drafts weiterhin annehmbar', () => {
+    const withSuggested: VariantChangeSet = {
       mode: 'inherit',
       baseline: null,
       entries: [
-        { id: 'm1', property: 'text', before: 'Old text', after: 'Handwritten', source: 'manual', status: 'applied' },
         { id: 's-old', property: 'bgColor', before: '', after: '#00ff00', source: 'ai', status: 'suggested' },
       ],
     }
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        variant: 'New',
-        variant_html: '<button class="cta">New</button>',
-        variant_css: '.cta { background-color: rgb(0, 0, 255); }',
-        explanation: '',
-      }),
-    } as Response)
-
-    const { onChanges } = renderStep(withManual)
-    fireEvent.click(screen.getByRole('button', { name: 'Suggest changes' }))
-    await waitFor(() => expect(onChanges).toHaveBeenCalled())
-
+    const { onChanges } = renderStep(withSuggested)
+    fireEvent.click(screen.getByRole('button', { name: /Accept .* suggestion/ }))
     const next = onChanges.mock.calls[0][0]
-    expect(next.entries.find((e) => e.id === 'm1')).toBeDefined()
-    expect(next.entries.some((e) => e.id === 's-old')).toBe(false)
-    expect(next.entries.filter((e) => e.status === 'suggested').length).toBeGreaterThan(0)
+    expect(next.entries.find((e) => e.id === 's-old')).toMatchObject({ status: 'applied' })
   })
 })
 
@@ -208,7 +145,6 @@ describe('StepChange — Advanced / Scratch', () => {
     expect(screen.getByText('B replaces A completely')).toBeInTheDocument()
     // Im Scratch-Zustand gibt es keine Delta-Aktionen — kein gemischtes Modell.
     expect(screen.queryByRole('button', { name: 'Add change' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Suggest changes' })).not.toBeInTheDocument()
   })
 
   it('"Back to change list" verwirft Scratch und kehrt zur leeren Liste zurück', () => {

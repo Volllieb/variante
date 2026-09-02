@@ -8,10 +8,12 @@
  *   manual — CSS-Selektor manuell eingeben (z. B. wenn Element hinter Login, in Shadow-DOM,
  *            oder Selektor bereits bekannt ist)
  *
- * Domain-Connect ist inline im URL-Feld verankert statt als eigene Banner-Box darüber —
- * vorher gab es zwei URL-Eingaben auf einem Screen (Banner + Feld), was redundant wirkte.
- * Ohne verbundene Domain leitet sich der zu verbindende Hostname direkt aus dem getippten
- * URL-Feld ab; es gibt kein zweites Eingabefeld dafür.
+ * Die Seite wird NICHT frei eingegeben: mit verbundener Domain gibt es nur die
+ * Auswahlliste der Domains, deren Snippet geprueft ist — kein Pfad-Feld und keine
+ * freie URL. Eine Unterseite wurde nie auf das Snippet geprueft und ist damit
+ * nicht messbar; sie anzubieten hiess, einen Test zu versprechen, der still
+ * nichts zaehlt. Ohne verbundene Domain steht genau ein Feld da: der Hostname,
+ * der verbunden werden soll (Snippet-Check inline).
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -231,21 +233,24 @@ export function StepUrlAndElement({
   const hasSnippet = verifiedDomains.length > 0
   const showPickerMode = mode === 'picker'
 
-  // Does the current URL point at an already-connected domain? If so we lock
-  // the domain and only let the user edit the path — that's the one thing
-  // that was genuinely ambiguous before: whether to type "example.com" or
-  // "example.com/about" into a single free-text field.
-  const matchedDomain = verifiedDomains.find((d) => {
-    const withProtocol = `https://${d.url}`
-    return url === withProtocol || url.startsWith(`${withProtocol}/`)
-  })
-  // Ein Test gehoert auf GENAU EINE Seite. Der Wizard erzeugt deshalb immer
-  // einen Pfad; '/' ist die Startseite. Das Backend kann zwar weiterhin
-  // sitewide (site_url ohne Pfad, pathOf -> ''), aber nur fuer Bestandstests —
-  // anbieten tun wir es nicht mehr: ein Selektor wie '.cta' trifft auf jeder
-  // Unterseite etwas anderes, und die Zaehler mischen dann Publikum, das nie
-  // dieselbe Seite gesehen hat.
-  const pathValue = matchedDomain ? url.slice(`https://${matchedDomain.url}`.length) || '/' : ''
+  // Ein Test laeuft auf GENAU der verbundenen Seite, deren Snippet geprueft
+  // wurde. Deshalb gibt es hier weder eine Pfad-Eingabe noch eine freie URL:
+  // Eine Unterseite ist nie auf das Snippet geprueft worden und damit nicht
+  // testbar — sie anzubieten hat nur zwei URL-Felder erzeugt, die dasselbe
+  // zu meinen schienen. Die Auswahl ist die Domain, die URL ist ihre Wurzel.
+  const matchedDomain = verifiedDomains.find((d) => url === `https://${d.url}/`)
+  const selectedDomain = matchedDomain?.url
+    ?? verifiedDomains.find((d) => url.startsWith(`https://${d.url}`))?.url
+    ?? verifiedDomains[0]?.url
+  const desiredUrl = selectedDomain ? `https://${selectedDomain}/` : ''
+
+  // Alt-Drafts und Alttests koennen noch einen Pfad oder eine nie verbundene
+  // Domain tragen. Beides wird auf die verbundene Wurzel gezogen, sobald der
+  // Step sichtbar ist — der Wizard soll nie eine Seite anzeigen, die er nicht
+  // testen kann.
+  useEffect(() => {
+    if (desiredUrl && url !== desiredUrl) onUrlChange(desiredUrl)
+  }, [desiredUrl, url, onUrlChange])
 
   // Inline domain-connect status for the CURRENTLY typed hostname. If the user
   // edits the URL after a connect attempt, the status reverts to idle rather
@@ -257,91 +262,55 @@ export function StepUrlAndElement({
   return (
     <div className="space-y-5">
       <p className="text-[13px] leading-relaxed text-text-2">
-        Choose the page where your element lives, then pick it.
+        Pick the element you want to test on your connected page.
       </p>
 
-      {/* ── Page URL ── */}
+      {/* ── Page ── */}
       <div>
-        {verifiedDomains.length > 0 && (
-          <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Domain</label>
-        )}
-
-        {verifiedDomains.length > 0 && (
-          <div className="relative mb-2.5">
-            <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
-            <select
-              value={matchedDomain?.url ?? ''}
-              onChange={(e) => {
-                // Mit trailing slash = Startseite. Seit pathOf() die Wurzel als
-                // '/' erhaelt, meint dieser Default genau das, was er aussieht.
-                const nextUrl = e.target.value ? `https://${e.target.value}/` : ''
-                onUrlChange(nextUrl)
-                setScanState('idle'); setScanResult(null); setScanError('')
-                if (selectedElement) {
-                  onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' })
-                }
-              }}
-              className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
-            >
-              {verifiedDomains.map((d) => (
-                <option key={d.url} value={d.url}>{d.url}</option>
-              ))}
-              <option value="">Other domain…</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
-          </div>
-        )}
-
-        {/* Page: locked domain-prefix + path-only input once a connected site is
-            selected — structurally impossible to type the domain twice. Falls
-            back to one plain full-URL field only when there's no connected
-            domain to lock to yet. */}
-        {matchedDomain ? (
-          <div>
+        {hasSnippet ? (
+          <>
             <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Page</label>
-            <div className="flex items-stretch overflow-hidden rounded-[7px] border border-border bg-bg-1 focus-within:border-border-strong focus-within:ring-2 focus-within:ring-text/10">
-              <span className="flex shrink-0 select-none items-center border-r border-border bg-bg-2 px-3 text-[13px] text-text-3">
-                {matchedDomain.url}
-              </span>
-              <input
-                type="text"
-                value={pathValue}
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
+              <select
+                value={selectedDomain ?? ''}
                 onChange={(e) => {
-                  const raw = e.target.value
-                  // Leeres Feld faellt auf die Startseite zurueck, nicht auf
-                  // "ganze Domain" — der Test soll immer eine Seite meinen.
-                  const path = raw === '' ? '/' : raw.startsWith('/') ? raw : `/${raw}`
-                  onUrlChange(`https://${matchedDomain.url}${path}`)
-                  if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
+                  onUrlChange(`https://${e.target.value}/`)
+                  setScanState('idle'); setScanResult(null); setScanError('')
                 }}
-                placeholder="/pricing"
-                className="w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none"
-              />
+                className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+              >
+                {verifiedDomains.map((d) => (
+                  <option key={d.url} value={d.url}>{d.url}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
             </div>
             <p className="mt-1 text-[10px] text-text-3">
-              {pathValue === '/'
-                ? 'Runs on the homepage only.'
-                : `Runs on ${pathValue.replace(/\/+$/, '')} and everything below it.`}
+              The test runs on this page — the one your snippet is verified on. Sub-pages
+              aren&apos;t offered: their snippet was never checked, so a test there
+              couldn&apos;t be measured.
             </p>
-          </div>
+          </>
         ) : (
           <div>
+            <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Your site</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
               <input
-                type="url"
+                type="text"
                 value={url}
                 onChange={(e) => {
                   onUrlChange(e.target.value)
                   if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
                 }}
-                placeholder="https://example.com/pricing"
+                placeholder="yoursite.com"
                 className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
               />
             </div>
 
-            {/* Inline domain-connect — derives the hostname from the URL already
-                typed above instead of asking for it a second time. */}
+            {/* Inline domain-connect — derives the hostname from what was typed
+                above instead of asking for it a second time. */}
             {urlValid && currentHostname && (
               <div className="mt-1.5 text-[11px]">
                 {connectState === 'verified' ? (
@@ -363,7 +332,7 @@ export function StepUrlAndElement({
                     className="inline-flex items-center gap-1.5 text-text-3 transition-colors hover:text-pro cursor-pointer"
                   >
                     <Globe className="h-3 w-3" />
-                    Connect {currentHostname} to go live later
+                    Connect {currentHostname}
                   </button>
                 )}
                 {domainConnectError && connectState === 'idle' && (
@@ -372,7 +341,9 @@ export function StepUrlAndElement({
               </div>
             )}
 
-            <p className="mt-1 text-[10px] text-text-3">Full URL of the exact page — the element you pick must be on it.</p>
+            <p className="mt-1 text-[10px] text-text-3">
+              Connect the site that has the snippet installed — that page becomes the one this test runs on.
+            </p>
           </div>
         )}
       </div>

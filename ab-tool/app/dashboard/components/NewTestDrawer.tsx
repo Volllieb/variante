@@ -162,6 +162,18 @@ function parseChanges(raw: unknown): VariantChangeSet | null {
   }
 }
 
+/** Host einer (evtl. unvollstaendigen) URL — leer, wenn sie keinen ergibt. */
+function hostOf(raw: string): string {
+  const trimmed = raw.trim()
+  if (!trimmed) return ''
+  try {
+    return new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`)
+      .hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+
 /**
  * Alttest ohne variant_b_changes: Liste aus variant_b_css/-html rekonstruieren
  * — derselbe Diff-Pfad wie für KI-Ergebnisse, nur direkt 'applied' (die
@@ -721,15 +733,22 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           {state.step === 0 && (
             <StepUrlAndElement
               url={state.url}
-              // Neue Seite = neues Element — Änderungsliste und Ergebnis
+              // Andere Seite = neues Element — Änderungsliste und Ergebnis
               // starten frisch, sonst hinge ein stale Delta am Draft.
-              onUrlChange={(url) => updateState({
-                url,
-                selectedElement: null,
-                elementConfirmed: false,
-                variantChanges: { mode: 'inherit', entries: [], baseline: null },
-                variantResult: null,
-              })}
+              // Bleibt der Host gleich (Step 0 normalisiert Alt-URLs auf die
+              // verbundene Wurzel), ist das keine neue Seite: die Auswahl darf
+              // dann nicht verloren gehen.
+              onUrlChange={(url) => updateState(
+                hostOf(url) === hostOf(state.url)
+                  ? { url }
+                  : {
+                      url,
+                      selectedElement: null,
+                      elementConfirmed: false,
+                      variantChanges: { mode: 'inherit', entries: [], baseline: null },
+                      variantResult: null,
+                    }
+              )}
               selectedElement={state.selectedElement}
               // Ein neues Element macht die alte Änderungsliste wertlos —
               // Zeilen und Ergebnis starten frisch, die Baseline wird beim
