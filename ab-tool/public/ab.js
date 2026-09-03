@@ -388,6 +388,13 @@
         // localStorage an das offene Dashboard-Tab weiter. Nutzdaten stehen im
         // Fragment, gehen also nie an den Server.
         function returnToDashboard(el, sel, text) {
+          function tryNavigate(payload) {
+            try {
+              location.href = (origin || 'https://www.getvariante.com') +
+                '/picker-return#' + encodeURIComponent(JSON.stringify(payload))
+              return true
+            } catch (_) { return false }
+          }
           try {
             var ctx = cfg.mode === 'goal' ? null : styleContext(el)
             // Das Fragment geht per encodeURIComponent raus, und die blaeht CSS
@@ -417,15 +424,28 @@
             // Bewusst `origin` (Herkunft des ab.js-Scripts) statt cfg.apiBase:
             // apiBase ist über ?ab_api= steuerbar, und eine Navigation dorthin
             // wäre ein Open-Redirect mit angehängten Auswahldaten.
-            location.href = (origin || 'https://www.getvariante.com') +
-              '/picker-return#' + encodeURIComponent(JSON.stringify(payload))
-            return true
+            if (tryNavigate(payload)) return true
+            // Voller Payload nicht kodierbar: encodeURIComponent wirft einen
+            // URIError, wenn die Eingabe kaputte UTF-16-Surrogate enthaelt.
+            // JSON.stringify escaped solche seit ES2019 zwar selbst, aeltere
+            // Engines geben sie aber durch — und jeder andere Wurf beim
+            // Encoden darf die Auswahl nicht kosten. Der Selektor ist das
+            // einzige zwingende Feld fuer den Wizard (PickerReturnClient
+            // faellt fuer html/css/styleContext auf leere Werte zurueck),
+            // also minimal erneut senden, statt die Auswahl hinter einer
+            // falschen Fehlermeldung zu verlieren.
+            return tryNavigate({ mode: payload.mode, selector: sel, tagName: el.tagName, origin: location.origin })
           } catch (_) { return false }
         }
 
         function onClick(e) {
           e.preventDefault(); e.stopPropagation()
-          var el = e.target, sel = cssSelector(el)
+          var el = e.target
+          // Hover-Rahmen VOR der Erfassung entfernen: onOut feuert beim direkten
+          // Klick oft nicht, das outline hinge sonst ueber outerHTML fest in
+          // Variante A (blauer Rahmen, der nicht mehr verschwindet).
+          if (el.style) el.style.outline = ''
+          var sel = cssSelector(el)
           var text = (el.innerText || el.textContent || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 200)
           var sentToOpener = postToOpener(el, sel, text)
 
@@ -458,8 +478,10 @@
             // Swap-Modus brach beim zweiten Klick kommentarlos ab.
             var e1 = reorderEl1
             var s1 = reorderSel1
-            var el1Html = e1.outerHTML, el1Css = collectCss(e1)
+            // Erst entmarkieren, dann erfassen — das orangene Swap-Highlight
+            // hinge sonst im gespeicherten original_html fest.
             e1.style.outline = ''
+            var el1Html = e1.outerHTML, el1Css = collectCss(e1)
             cleanup()
             hideBanner()
 
