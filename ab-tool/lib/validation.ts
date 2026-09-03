@@ -95,6 +95,7 @@ export const updateTestBody = z.object({
   min_visitors: minVisitors.optional(),
   min_uplift: minUplift.optional(),
   significance_level: significanceLevel.optional(),
+  winner: z.enum(['A', 'B']).optional(),
   variant_b_html: z.string().nullable().optional(),
   variant_b_css: z.string().nullable().optional(),
   original_html: z.string().nullable().optional(),

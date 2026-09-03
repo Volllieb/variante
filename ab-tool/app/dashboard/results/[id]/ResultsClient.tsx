@@ -225,6 +225,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
   const [busy, setBusy] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // Manuelles Winner-Override: Variante, für die gerade das Inline-Confirm
+  // offen ist (Pattern analog zu deleteConfirm).
+  const [declaringWinner, setDeclaringWinner] = useState<'A' | 'B' | null>(null)
   const [showRawData, setShowRawData] = useState(false)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalType, setGoalType] = useState<'element' | 'click' | 'url'>(() => parseGoal(initial.goal).type)
@@ -513,6 +516,31 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       await refresh()
     } catch {
       setError('Failed to apply the winner. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Manuelles Winner-Override: setzt winner + status='done' in einem Schritt
+  // und schaltet die Variante damit sofort live — unabhängig davon, ob der
+  // Algorithmus (evaluateWinner) bereits entschieden hat. Die Auto-Guardrails
+  // (Min-Visitors, Min-Runtime, SRM) gelten weiterhin nur für die automatische
+  // Erkennung; hier entscheidet der Nutzer bewusst selbst.
+  async function declareWinner(variant: 'A' | 'B') {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/tests/${experimentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winner: variant, status: 'done' }),
+      })
+      if (!res.ok) throw new Error('patch failed')
+      setDeclaringWinner(null)
+      await refresh()
+    } catch {
+      setError('Failed to declare the winner. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -1013,6 +1041,8 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
           {[a, b].map((v, i) => {
             const isWinner = winner === v.id
             const isVariantB = i === 1
+            const other = v.id === 'A' ? b : a
+            const isLowerCr = v.cr < other.cr
             return (
               <div
                 key={v.id}
@@ -1061,6 +1091,46 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   }`}>
                     {formatDelta(lift)} vs A
                   </div>
+                )}
+
+                {/* Manuelles Winner-Override: nur solange kein Gewinner feststeht
+                    und der Test läuft/pausiert. Sobald der Algorithmus oder ein
+                    früherer Override `winner` gesetzt hat, verschwindet der Weg. */}
+                {!winner && (status === 'active' || status === 'paused') && (
+                  declaringWinner !== v.id ? (
+                    <button
+                      onClick={() => setDeclaringWinner(v.id as 'A' | 'B')}
+                      className="mt-4 flex cursor-pointer items-center gap-1.5 text-xs text-text-3 transition-colors hover:text-text"
+                    >
+                      <Trophy className="h-3.5 w-3.5" /> Declare winner
+                    </button>
+                  ) : (
+                    <div className={`mt-4 rounded-[var(--radius-md)] border p-3 ${
+                      isLowerCr ? 'border-err/20 bg-err-bg' : 'border-border bg-bg-2'
+                    }`}>
+                      <p className={`text-xs ${isLowerCr ? 'text-err' : 'text-text-2'}`}>
+                        {isLowerCr
+                          ? `Variant ${v.label} currently has a lower conversion rate (${formatPercent(v.cr)} vs ${formatPercent(other.cr)}). Declare it winner anyway?`
+                          : `Declare Variant ${v.label} as the winner? This ends the test and serves it to all visitors.`}
+                      </p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          onClick={() => declareWinner(v.id as 'A' | 'B')}
+                          disabled={busy}
+                          className="cursor-pointer text-xs font-semibold text-ok transition-colors hover:opacity-80 disabled:opacity-50"
+                        >
+                          Yes, declare winner
+                        </button>
+                        <button
+                          onClick={() => setDeclaringWinner(null)}
+                          disabled={busy}
+                          className="cursor-pointer text-xs text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )
                 )}
               </div>
             )

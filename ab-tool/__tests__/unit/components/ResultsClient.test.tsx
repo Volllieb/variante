@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ExperimentData } from '@/lib/getExperimentStats'
 
 vi.mock('next/navigation', () => ({
@@ -259,5 +259,106 @@ describe('Results-Hero-Card', () => {
     expect(visitors?.getAttribute('aria-valuenow')).toBe('99')
     expect(screen.getByText(/○ Visitors\/arm/)).toBeTruthy()
     expect(screen.getByText(/✓ Conversions\/arm/)).toBeTruthy()
+  })
+})
+
+// ── Manuelles Winner-Override ──
+// Der Nutzer kann jederzeit selbst einen Gewinner erklären — vor der
+// Auto-Erkennung oder gegen deren Datenlage. Der Fetch-Mock spiegelt den
+// PATCH-Zustand: sobald declareWinner durch ist, liefert /api/results den
+// beendeten Test mit Gewinner und die Override-Buttons verschwinden.
+describe('Manuelles Winner-Override', () => {
+  function renderActive() {
+    let state: ExperimentData = experiment({ status: 'active' })
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/tests/t1' && init?.method === 'PATCH') {
+        const body = JSON.parse(String(init.body))
+        if (body.winner && body.status === 'done') {
+          state = experiment({ status: 'done', winner: body.winner })
+        }
+        return { ok: true, json: async () => ({}) }
+      }
+      if (url === '/api/results/t1') {
+        return { ok: true, json: async () => state }
+      }
+      return { ok: true, json: async () => ({ daily: [] }) }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    renderCard(state)
+    return fetchMock
+  }
+
+  it('bietet bei laufendem Test ohne Gewinner einen Button pro Variante', () => {
+    renderActive()
+    expect(screen.getAllByText('Declare winner')).toHaveLength(2)
+  })
+
+  it('bietet den Override auch bei pausiertem Test', () => {
+    renderCard(experiment({ status: 'paused' }))
+    expect(screen.getAllByText('Declare winner')).toHaveLength(2)
+  })
+
+  it('schaltet die gewählte Variante per PATCH in einem Schritt live und schliesst das Confirm', async () => {
+    const fetchMock = renderActive()
+    // B hat die höhere CR (53 % vs 11 %) → neutrales Confirm ohne Warnung.
+    fireEvent.click(screen.getAllByText('Declare winner')[1])
+    expect(screen.getByText(/Declare Variant B as the winner\?/)).toBeTruthy()
+    expect(screen.queryByText(/lower conversion rate/)).toBeNull()
+
+    fireEvent.click(screen.getByText('Yes, declare winner'))
+    await waitFor(() => expect(screen.queryByText('Yes, declare winner')).toBeNull())
+
+    const patch = fetchMock.mock.calls.find(
+      ([url, init]) => url === '/api/tests/t1' && (init as RequestInit)?.method === 'PATCH'
+    )
+    expect(patch).toBeTruthy()
+    expect(JSON.parse(String((patch![1] as RequestInit).body))).toEqual({ winner: 'B', status: 'done' })
+    // Nach dem Refresh liefert /api/results den beendeten Test: kein Override mehr.
+    await waitFor(() => expect(screen.queryByText('Declare winner')).toBeNull())
+  })
+
+  it('warnt, wenn die gewählte Variante die niedrigere CR hat — Cancel bricht ohne PATCH ab', () => {
+    const fetchMock = renderActive()
+    fireEvent.click(screen.getAllByText('Declare winner')[0]) // A: 11.3 % vs 53.3 %
+    const warn = screen.getByText(/Variant A currently has a lower conversion rate/)
+    expect(warn.textContent).toContain('11.3%')
+    expect(warn.textContent).toContain('53.3%')
+    expect(screen.getByText(/Declare it winner anyway\?/)).toBeTruthy()
+
+    fireEvent.click(screen.getByText('Cancel'))
+    expect(screen.queryByText('Yes, declare winner')).toBeNull()
+    expect(screen.getAllByText('Declare winner')).toHaveLength(2)
+    expect(
+      fetchMock.mock.calls.some(([url, init]) => url === '/api/tests/t1' && (init as RequestInit)?.method === 'PATCH')
+    ).toBe(false)
+  })
+
+  it('zeigt einen Fehler, wenn der PATCH fehlschlägt', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/tests/t1' && init?.method === 'PATCH') {
+          return { ok: false, json: async () => ({}) }
+        }
+        if (url === '/api/results/t1') return { ok: true, json: async () => experiment({ status: 'active' }) }
+        return { ok: true, json: async () => ({ daily: [] }) }
+      })
+    )
+    renderCard(experiment({ status: 'active' }))
+    fireEvent.click(screen.getAllByText('Declare winner')[0])
+    fireEvent.click(screen.getByText('Yes, declare winner'))
+    expect(await screen.findByText('Failed to declare the winner. Please try again.')).toBeTruthy()
+  })
+
+  it('bietet keinen Override, wenn bereits ein Gewinner feststeht', () => {
+    renderCard(experiment({ status: 'active', winner: 'B' }))
+    expect(screen.queryByText('Declare winner')).toBeNull()
+  })
+
+  it('bietet keinen Override bei beendeten oder nicht gestarteten Tests', () => {
+    renderCard(experiment({ status: 'done' }))
+    expect(screen.queryByText('Declare winner')).toBeNull()
+    renderCard(experiment({ status: 'draft' }))
+    expect(screen.queryByText('Declare winner')).toBeNull()
   })
 })
