@@ -68,6 +68,11 @@ export interface GoalSelection {
   type: 'click'
   selector?: string
   label: string
+  /**
+   * Herkunft des Goals — bestimmt, welchen Modus StepGoal beim Wiedereinstieg
+   * zeigt. 'tested' = das getestete Element selbst zählt (Default für Buttons).
+   */
+  source: 'tested' | 'picker' | 'manual'
 }
 
 interface WizardState {
@@ -292,14 +297,18 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       if (resumeTest) {
         if (!mountedRef.current) return
         // Parse goal from DB format (e.g. "click:.selector" or "click")
-        let goalParsed = null
+        let goalParsed: GoalSelection | null = null
         if (resumeTest.goal) {
           const goalStr = resumeTest.goal
           if (goalStr.startsWith('click:')) {
+            const goalSelector = goalStr.slice(6)
             goalParsed = {
               type: 'click' as const,
-              selector: goalStr.slice(6),
-              label: goalStr.slice(6) ? `Clicks on ${goalStr.slice(6)}` : 'Clicks on element',
+              selector: goalSelector,
+              label: goalSelector ? `Clicks on ${goalSelector}` : 'Clicks on element',
+              // Identisch mit dem getesteten Selektor → das Element selbst ist
+              // das Goal, StepGoal zeigt dann den 'tested'-Modus.
+              source: goalSelector && goalSelector === resumeTest.selector ? 'tested' : 'picker',
             }
           }
         }
@@ -409,6 +418,8 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                 type: 'click' as const,
                 selector: selector ?? draft.goal_selector ?? undefined,
                 label: draft.goal ?? '',
+                // Identisch mit dem getesteten Selektor → 'tested'-Modus in StepGoal.
+                source: (selector ?? draft.goal_selector) === draft.selector ? 'tested' : 'picker',
               }
             })() : null,
             goalConfirmed: !!draft.goal,
@@ -783,6 +794,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             <StepGoal
               elementType={state.selectedElement?.elementType ?? 'element'}
               elementName={state.selectedElement?.elementName ?? ''}
+              elementSelector={state.selectedElement?.selector ?? ''}
               url={state.url}
               selectedGoal={state.selectedGoal}
               onGoalSelected={(goal) => updateState({ selectedGoal: goal, goalConfirmed: false })}

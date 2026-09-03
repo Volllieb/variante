@@ -42,7 +42,7 @@ const changes: VariantChangeSet = {
   ],
 }
 
-const goal: GoalSelection = { type: 'click', selector: '.cta', label: 'Click .cta' }
+const goal: GoalSelection = { type: 'click', selector: '.cta', label: 'Click .cta', source: 'picker' }
 
 /** Text der Vergleichsspalte unter dem gegebenen Label. */
 function paneValue(label: string): string {

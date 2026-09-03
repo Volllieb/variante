@@ -114,7 +114,11 @@ export function StepUrlAndElement({
         // styleContext (neues ab.js) hat Vorrang, flaches css deckt alte
         // Snippet-Versionen ab, die es vor dem Rollout gab.
         originalCss: p.styleContext?.css ?? p.css ?? '',
+        // Links sind klickbar wie Buttons — 'link' macht sie im Goal-Step
+        // für den "Tested element"-Default wählbar (getEditorCategory kennt
+        // den Typ bereits als Button-Editor).
         elementType: tag === 'button' ? 'button'
+          : tag === 'a' ? 'link'
           : /^h[1-6]$/.test(tag) ? 'headline'
           : 'element',
         elementName: p.text || p.selector,

@@ -5,14 +5,18 @@
  *
  * Click-only: GoalSelection['type'] hat nur einen möglichen Wert ('click'),
  * es gibt also nichts zwischen mehreren Zieltypen zu wählen — nur WELCHES
- * Element den Klick zählt. Zwei Modi dafür:
+ * Element den Klick zählt. Drei Modi:
+ *   tested — das getestete Element selbst zählt als Conversion. Default für
+ *            klickbare Elemente (button/link): wer einen Button testet, muss
+ *            das Goal nicht ein zweites Mal picken. Nicht klickbar → gegraut
+ *            mit Hover-Meldung.
  *   picker — Öffnet die Seite mit ?ab_goal=1 (benötigt installiertes Snippet)
  *   manual — CSS-Selektor manuell eingeben (Fallback ohne Snippet)
  */
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  MousePointerClick, ExternalLink, Check, Loader2, Code2,
+  MousePointerClick, ExternalLink, Check, Loader2, Code2, Crosshair,
 } from 'lucide-react'
 import type { GoalSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
@@ -21,46 +25,67 @@ import { usePickerBridge } from '@/lib/pickerBridge'
 interface StepGoalProps {
   elementType: string
   elementName: string
+  /** CSS-Selektor des getesteten Elements — Basis für den 'tested'-Modus. */
+  elementSelector: string
   url: string
   selectedGoal: GoalSelection | null
   onGoalSelected: (goal: GoalSelection) => void
   onConfirm: () => void
 }
 
-type GoalMode = 'picker' | 'manual'
+type GoalMode = 'tested' | 'picker' | 'manual'
+
+/** Elemente, deren Klicks als Goal taugen — nur für sie ist 'tested' wählbar. */
+const CLICKABLE_TYPES = new Set(['button', 'link'])
 
 export function StepGoal({
-  elementType, elementName, url, selectedGoal, onGoalSelected, onConfirm,
+  elementType, elementName, elementSelector, url, selectedGoal, onGoalSelected, onConfirm,
 }: StepGoalProps) {
+  const elementClickable = CLICKABLE_TYPES.has(elementType)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
   const [pickerBlocked, setPickerBlocked] = useState(false)
   const [pickedElement, setPickedElement] = useState<{ selector: string; text: string } | null>(null)
-  const [mode, setMode] = useState<GoalMode>('picker')
+  // Klickbares Element → 'tested' ist der Default, sonst startet der Picker.
+  // Beim Wiedereinstieg (Back-Navigation, Draft-Resume) bestimmt das
+  // vorhandene Goal den Modus, damit nichts Überschriebenes neu aufpoppt.
+  const [mode, setMode] = useState<GoalMode>(() => {
+    if (!selectedGoal) return elementClickable ? 'tested' : 'picker'
+    if (selectedGoal.selector === elementSelector) return 'tested'
+    return selectedGoal.source === 'manual' ? 'manual' : 'picker'
+  })
   const [manualSelector, setManualSelector] = useState('')
   const [manualSelectorError, setManualSelectorError] = useState('')
   const autoSelected = useRef(false)
   const autoOpenedPicker = useRef(false)
   const pickerTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  // Auto-select: if element is a button, pre-select click goal (only once)
+  // Tested element: Ist das getestete Element selbst klickbar, ist es der
+  // Default-Goal — kein zweiter Picker-Roundtrip. Genau einmal vorwählen.
   useEffect(() => {
-    if (!selectedGoal && elementType === 'button' && !autoSelected.current) {
+    if (mode === 'tested' && elementClickable && !selectedGoal && !autoSelected.current) {
       autoSelected.current = true
       onGoalSelected({
         type: 'click',
+        selector: elementSelector || undefined,
         label: `Clicks on "${elementName}"`,
+        source: 'tested',
       })
     }
-  }, [elementType, elementName, selectedGoal, onGoalSelected])
+  }, [mode, elementClickable, elementSelector, elementName, selectedGoal, onGoalSelected])
 
-  // Auto-open picker once (only in picker mode) so the user lands straight on
-  // "pick the element" instead of an extra click through a goal-type screen.
+  // Auto-open picker once when the step opens in picker mode without a goal
+  // (nicht klickbares Element) — der User landet direkt auf "Pick on site"
+  // statt vor einem leeren Screen. Klickbare Elemente starten im
+  // 'tested'-Modus, für sie öffnet kein Popup.
+  // pickedElement/waitingForPicker bewusst nicht in den Deps: das Popup soll
+  // nur beim Eintritt in den Modus aufgehen, nicht bei jeder Picker-Antwort.
   useEffect(() => {
-    if (mode === 'picker' && !pickedElement && !autoOpenedPicker.current && !waitingForPicker) {
+    if (mode === 'picker' && !selectedGoal && !pickedElement && !autoOpenedPicker.current && !waitingForPicker) {
       autoOpenedPicker.current = true
       openGoalPicker()
     }
-  }, [mode])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, selectedGoal])
 
   // Cleanup picker timeout on unmount
   useEffect(() => {
@@ -80,6 +105,7 @@ export function StepGoal({
         type: 'click',
         selector: p.selector,
         label: p.text ? `Clicks on "${p.text}"` : `Clicks on ${p.selector}`,
+        source: 'picker',
       })
       setWaitingForPicker(false)
       setPickerBlocked(false)
@@ -106,6 +132,29 @@ export function StepGoal({
     }, 30000)
   }
 
+  /**
+   * Moduswechsel = Goal-Wechsel: 'tested' setzt das Goal sofort aufs getestete
+   * Element, 'picker' öffnet die Seite direkt, wenn noch nichts gepickt ist.
+   * So zeigt der Modus immer, was das Goal IST — nie einen Zustand, bei dem
+   * Anzeige und Auswahl auseinanderlaufen.
+   */
+  function switchMode(next: GoalMode) {
+    if (next === mode) return
+    if (next === 'tested' && elementClickable) {
+      onGoalSelected({
+        type: 'click',
+        selector: elementSelector || undefined,
+        label: `Clicks on "${elementName}"`,
+        source: 'tested',
+      })
+    }
+    setMode(next)
+    if (next === 'picker' && !pickedElement) {
+      autoOpenedPicker.current = false
+      openGoalPicker()
+    }
+  }
+
   function handleChangePicker() {
     autoOpenedPicker.current = false
     setPickedElement(null)
@@ -126,13 +175,17 @@ export function StepGoal({
       type: 'click',
       selector: result.selector,
       label: `Clicks on ${result.selector}`,
+      source: 'manual',
     })
   }
 
+  // Der Confirm-Button ist genau dann aktiv, wenn das im aktuellen Modus
+  // sichtbare Goal auch das ausgewählte ist — kein Unsichtbar-Goal bestätigen.
   const isConfirmDisabled = (() => {
     if (!selectedGoal) return true
+    if (mode === 'picker' && selectedGoal.source !== 'picker') return true
     if (mode === 'manual' && !selectedGoal.selector) return true
-    if (mode === 'picker' && !pickedElement && !selectedGoal.selector) return true
+    if (mode === 'tested' && !selectedGoal.selector) return true
     return false
   })()
 
@@ -146,8 +199,31 @@ export function StepGoal({
 
       {/* Mode Toggle — always visible so user can switch if picker fails */}
       <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5">
+        {/* Tested element — Default für klickbare Elemente. Sonst gegraut; der
+            Tooltip erklärt warum. Wrapper statt title auf dem disabled Button:
+            Firefox feuert auf disabled-Elementen kein :hover. */}
+        <div
+          className="group relative flex-1"
+          title={elementClickable ? undefined : 'It seems that the tested element is not clickable'}
+        >
+          <button
+            onClick={() => elementClickable && switchMode('tested')}
+            disabled={!elementClickable}
+            className={`flex w-full items-center justify-center rounded-[5px] py-1.5 text-[12px] font-medium transition-colors ${
+              mode === 'tested' ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
+            } ${elementClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
+          >
+            <Crosshair className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
+            Tested element
+          </button>
+          {!elementClickable && (
+            <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded-[var(--radius-md)] border border-border bg-bg-2 px-2 py-1 text-[10px] text-text-2 group-hover:block">
+              It seems that the tested element is not clickable
+            </span>
+          )}
+        </div>
         <button
-          onClick={() => setMode('picker')}
+          onClick={() => switchMode('picker')}
           className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
             mode === 'picker' ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
           }`}
@@ -156,7 +232,7 @@ export function StepGoal({
           Visual Picker
         </button>
         <button
-          onClick={() => setMode('manual')}
+          onClick={() => switchMode('manual')}
           className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
             mode === 'manual' ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
           }`}
@@ -169,10 +245,37 @@ export function StepGoal({
       {/* Target element — no goal-TYPE choice here, there's only ever one
           (a click); the only real decision is WHICH element counts. */}
       <div className="rounded-[var(--radius-md)] border border-border bg-bg-0 p-3">
+        {/* ── TESTED MODE ── */}
+        {mode === 'tested' && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
+                <Check className="h-3 w-3 text-ok" />
+                <span className="text-[10px] font-medium text-ok">
+                  Defaulted to your tested {elementType}
+                </span>
+              </div>
+            </div>
+            <p className="text-[12px] text-text-2">{selectedGoal?.label ?? `Clicks on "${elementName}"`}</p>
+            <div className="mt-1.5 rounded-[var(--radius-md)] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
+              <span className="text-text-3">Selector: </span>{elementSelector || '—'}
+            </div>
+            <p className="mt-2 text-[11px] text-text-3">
+              A conversion is counted when visitors click the element you&apos;re testing.
+            </p>
+            <button
+              onClick={() => switchMode('picker')}
+              className="mt-1 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
+            >
+              Pick a different goal element
+            </button>
+          </div>
+        )}
+
         {/* ── PICKER MODE ── */}
         {mode === 'picker' && (
           <>
-            {pickedElement || selectedGoal?.selector ? (
+            {pickedElement || (selectedGoal?.source === 'picker' && selectedGoal.selector) ? (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
@@ -191,22 +294,6 @@ export function StepGoal({
                   className="mt-2 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
                 >
                   Change element
-                </button>
-              </div>
-            ) : selectedGoal && elementType === 'button' ? (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
-                    <Check className="h-3 w-3 text-ok" />
-                    <span className="text-[10px] font-medium text-ok">Defaulted to your tested button</span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-text-3">{selectedGoal.label}</p>
-                <button
-                  onClick={openGoalPicker}
-                  className="mt-2 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
-                >
-                  Pick a different element
                 </button>
               </div>
             ) : (
@@ -230,7 +317,7 @@ export function StepGoal({
                 {pickerBlocked && (
                   <div className="mt-2 rounded-[var(--radius-md)] border border-err/20 bg-err/5 px-3 py-2 text-[10px] text-err/80">
                     Popup was blocked. Please allow popups for this site and try again — or switch to{' '}
-                    <button onClick={() => setMode('manual')} className="underline hover:text-err cursor-pointer">Manual Selector</button>.
+                    <button onClick={() => switchMode('manual')} className="underline hover:text-err cursor-pointer">Manual Selector</button>.
                   </div>
                 )}
               </div>
@@ -241,7 +328,7 @@ export function StepGoal({
         {/* ── MANUAL MODE ── */}
         {mode === 'manual' && (
           <div className="space-y-2.5">
-            {selectedGoal?.selector ? (
+            {selectedGoal?.source === 'manual' && selectedGoal.selector ? (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
@@ -253,7 +340,10 @@ export function StepGoal({
                   <span className="text-text-3">Selector: </span>{selectedGoal.selector}
                 </div>
                 <button
-                  onClick={() => { onGoalSelected({ type: 'click', label: 'Clicks on element' }); setManualSelector('') }}
+                  onClick={() => {
+                    onGoalSelected({ type: 'click', label: 'Clicks on element', source: 'manual' })
+                    setManualSelector('')
+                  }}
                   className="mt-2 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
                 >
                   Change element
