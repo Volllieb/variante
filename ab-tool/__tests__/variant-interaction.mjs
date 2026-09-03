@@ -170,6 +170,21 @@ check('Link aus dem Wrapper landet auf dem Button in der Variante', () => {
   assert.equal(b.querySelector('a').getAttribute('href'), '/signup')
 })
 
+// Praesentation (Hintergrund, Padding, Radius) sitzt oft auf dem WRAPPER, das
+// interaktive <a> darin ist ein bloss verpacktes Primitive ohne eigene
+// Klassen. adoptPresentation zog frueher die Klassen von diesem interaktiven
+// Kind statt vom Wrapper — B stand dann komplett ungestylt da, obwohl A
+// sichtbar Klassen trug. Genau dieses Muster (Style auf dem Container, nacktes
+// <a> darin) ist bei responsiven Sites haeufig getrennt fuer Mobile-Markup, wo
+// der Wrapper zusaetzliche/andere Utility-Klassen hat als am Desktop-Pfad.
+check('Klassen des Wrappers landen auf der Variante, nicht die des nackten <a> darin', () => {
+  const { doc, api } = page('<div id="hero-actions" class="cta-wrapper hover-btn"><a href="/signup">Get started</a></div>')
+  api.applyDom('#hero-actions', 'B', '<a class="ab-variant-b">Start free</a>', KEY)
+  const b = doc.querySelector(`[data-ab-el="${KEY}"]`)
+  assert.ok(b.classList.contains('cta-wrapper'), 'Wrapper-Klasse fehlt auf der Variante')
+  assert.ok(b.classList.contains('hover-btn'), 'Wrapper-Klasse fehlt auf der Variante')
+})
+
 // ── Fall 4: A hängt an einem JS-Listener ───────────────────────────────────
 console.log('\n── A wird von JS gesteuert (React, SPA-Router) ──\n')
 

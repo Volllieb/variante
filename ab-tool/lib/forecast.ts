@@ -317,11 +317,24 @@ export function forecastDecision(params: {
     return (target - have) / perDay
   }
 
+  // Tempo im Messfenster (7 bzw. 3 Tage) kann 0 sein, obwohl der Arm insgesamt
+  // längst konvertiert hat — die Conversions lagen einfach außerhalb des
+  // Fensters (Schub am Anfang, seither Flaute). Das ist ein Aussage über die
+  // jüngste Dynamik, kein Beweis für ein kaputtes Goal: "no-conversions" soll
+  // nur bei einem Arm feuern, der NOCH NIE konvertiert hat. Hat er das schon,
+  // fällt die Prognose auf den Lebenszeit-Schnitt zurück — ehrlich vorsichtig,
+  // statt fälschlich Alarm zu schlagen.
+  const lifetimeDaysForRate = Math.max(1, elapsed)
+  function conversionRateFor(have: number, measured: number): number {
+    if (measured > 0 || have === 0) return measured
+    return have / lifetimeDaysForRate
+  }
+
   const legs: [number | null, ForecastLimit][] = [
     [daysUntil(a.views, minVisitorsPerArm, rate.visitorsA), 'visitors'],
     [daysUntil(b.views, minVisitorsPerArm, rate.visitorsB), 'visitors'],
-    [daysUntil(a.conversions, minConversionsPerArm, rate.conversionsA), 'conversions'],
-    [daysUntil(b.conversions, minConversionsPerArm, rate.conversionsB), 'conversions'],
+    [daysUntil(a.conversions, minConversionsPerArm, conversionRateFor(a.conversions, rate.conversionsA)), 'conversions'],
+    [daysUntil(b.conversions, minConversionsPerArm, conversionRateFor(b.conversions, rate.conversionsB)), 'conversions'],
   ]
 
   for (const [value, limit] of legs) {

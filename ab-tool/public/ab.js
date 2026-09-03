@@ -1188,10 +1188,18 @@
         var dst = findAction(node, ACTION_SEL_DST) || node
         var mode = src ? portInteraction(src, dst) : null
         // Klassen/Styles von A auf B, bevor A ersetzt oder versteckt wird.
-        // Auch ohne interaktives src (h2/p/div/…): adoptPresentation braucht
-        // nur das Original. Scratch-Varianten solcher Elemente bekamen sonst
-        // nie A's Klassen und verloren das komplette Site-CSS.
-        adoptPresentation(src || el, dst)
+        // IMMER von el, nie von src: el ist das vom Picker ausgewaehlte
+        // Element und traegt dessen Praesentation (Hintergrund, Padding,
+        // Radius, Layout). src ist nur fuer die INTERAKTION relevant
+        // (portInteraction) und kann ein bloss verpacktes <a>/<button> ohne
+        // eigene Klassen sein, waehrend die Optik auf dem Wrapper sitzt
+        // ("<div class='cta-wrapper'><a>Text</a></div>"). Traf adoptPresentation
+        // in diesem Fall bisher src, bekam B dessen (leere) Klassenliste statt
+        // der Wrapper-Klassen und stand komplett ungestylt da — auf Seiten mit
+        // getrennter Mobile-Komposition (eigener DOM-Zweig fuer schmale
+        // Viewports) traf genau das den mobilen Pfad und nie den Desktop-Pfad,
+        // den die Autoren beim Anlegen des Tests gesehen hatten.
+        adoptPresentation(el, dst)
         // Cursor jetzt lesen: im navigate-Zweig ist A gleich weg.
         var srcCursor = src ? readCursor(src) : null
         if (mode === 'navigate') {

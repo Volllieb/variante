@@ -311,6 +311,26 @@ check('null Conversions in einem Arm → Goal-Diagnose statt no-traffic', () => 
   assert.equal(forecast.limitedBy, 'no-conversions')
 })
 
+check('bereits getrackte Conversions, nur die letzten 7 Tage flau → kein Fehlalarm', () => {
+  // B hat 2 Conversions — beide vor über einer Woche, seither Flaute. Das
+  // Recent-Fenster (7 Tage) misst dafür 0/Tag, obwohl das Goal nachweislich
+  // schon gefeuert hat. "no-conversions" wäre hier eine falsche Diagnose
+  // ("goal may not be firing") für einen Arm, der längst konvertiert hat.
+  const forecast = forecastDecision({
+    ...base,
+    a: { views: 5000, conversions: 100 },
+    b: { views: 4000, conversions: 2 },
+    createdAt: started(20),
+    now: NOW,
+    daily: days([
+      [6, 200, 150, 5, 0], [5, 200, 150, 4, 0], [4, 200, 150, 6, 0],
+      [3, 200, 150, 5, 0], [2, 200, 150, 4, 0], [1, 200, 150, 5, 0],
+      [0, 200, 150, 5, 0],
+    ]),
+  })
+  assert.notEqual(forecast.limitedBy, 'no-conversions')
+})
+
 check('frischer Test ohne Besucher ist keine no-traffic-Lage', () => {
   const forecast = forecastDecision({
     ...base,
