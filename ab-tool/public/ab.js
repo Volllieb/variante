@@ -395,6 +395,16 @@
               return true
             } catch (_) { return false }
           }
+          // Selektor ist das einzige zwingende Feld: PickerReturnClient und
+          // usePickerBridge akzeptieren fehlendes html/css/styleContext/text.
+          function minimalPayload() {
+            return {
+              mode: cfg.mode === 'goal' ? 'goal' : 'element',
+              selector: sel,
+              tagName: el.tagName,
+              origin: location.origin,
+            }
+          }
           try {
             var ctx = cfg.mode === 'goal' ? null : styleContext(el)
             // Das Fragment geht per encodeURIComponent raus, und die blaeht CSS
@@ -429,13 +439,16 @@
             // URIError, wenn die Eingabe kaputte UTF-16-Surrogate enthaelt.
             // JSON.stringify escaped solche seit ES2019 zwar selbst, aeltere
             // Engines geben sie aber durch — und jeder andere Wurf beim
-            // Encoden darf die Auswahl nicht kosten. Der Selektor ist das
-            // einzige zwingende Feld fuer den Wizard (PickerReturnClient
-            // faellt fuer html/css/styleContext auf leere Werte zurueck),
-            // also minimal erneut senden, statt die Auswahl hinter einer
-            // falschen Fehlermeldung zu verlieren.
-            return tryNavigate({ mode: payload.mode, selector: sel, tagName: el.tagName, origin: location.origin })
-          } catch (_) { return false }
+            // Encoden darf die Auswahl nicht kosten. Also minimal erneut
+            // senden, statt die Auswahl hinter einer falschen Fehlermeldung
+            // zu verlieren.
+            return tryNavigate(minimalPayload())
+          } catch (_) {
+            // Selbst wenn schon der AUFBAU des vollen Payloads wirft —
+            // styleContext/collectCss sind intern abgesichert, aber jede
+            // Kundenseite ist anders — minimal zustellen statt false.
+            return tryNavigate(minimalPayload())
+          }
         }
 
         function onClick(e) {

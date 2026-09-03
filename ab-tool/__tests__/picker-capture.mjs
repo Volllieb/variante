@@ -176,9 +176,9 @@ await check('voller Payload: html, css und styleContext kommen an', () => {
 await check('Encoder-Fehler beim vollen Payload → minimaler Payload kommt an', () => {
   // Simuliert eine Engine/Inhalte, bei denen der volle Payload nicht kodierbar
   // ist: kaputte UTF-16-Surrogate in HTML/CSS liessen encodeURIComponent in
-  // aelteren Engines einen URIError werfen. Der volle Payload ist lang, der
-  // minimale kurz — der Stub kippt an der Laenge.
-  const encode = (s) => { if (s.length > 200) throw new URIError('URI malformed'); return globalThis.encodeURIComponent(s) }
+  // aelteren Engines einen URIError werfen. Der Stub kippt am "html"-Key —
+  // der existiert nur im vollen Payload, der minimale hat ihn nie.
+  const encode = (s) => { if (s.indexOf('"html"') > -1) throw new URIError('URI malformed'); return globalThis.encodeURIComponent(s) }
   const el = { tagName: 'BUTTON', outerHTML: '<button class="cta">Sign up</button>' }
   const { fn, loc } = makeReturnToDashboard({ encode })
   assert.strictEqual(fn(el, '#cta', 'Sign up'), true)
@@ -188,6 +188,21 @@ await check('Encoder-Fehler beim vollen Payload → minimaler Payload kommt an',
   assert.strictEqual(data.tagName, 'BUTTON')
   assert.strictEqual(data.html, undefined)
   assert.strictEqual(data.css, undefined)
+  assert.strictEqual(data.styleContext, undefined)
+})
+
+await check('Aufbau des vollen Payloads wirft → minimaler Payload kommt an', () => {
+  // Der Catch von returnToDashboard darf die Auswahl nicht kosten: wirft
+  // styleContext (unerwartet, aber jede Kundenseite ist anders), muss der
+  // minimale Payload trotzdem rausgehen.
+  const styleContext = () => { throw new Error('styleContext exploded') }
+  const el = { tagName: 'BUTTON', outerHTML: '<button class="cta">Sign up</button>' }
+  const { fn, loc } = makeReturnToDashboard({ styleContext })
+  assert.strictEqual(fn(el, '#cta', 'Sign up'), true)
+  const data = decodeFragment(loc.href)
+  assert.strictEqual(data.selector, '#cta')
+  assert.strictEqual(data.mode, 'element')
+  assert.strictEqual(data.html, undefined)
   assert.strictEqual(data.styleContext, undefined)
 })
 
