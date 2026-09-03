@@ -2,7 +2,7 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeFetch } from '@/lib/safeFetch'
 import { safeError } from '@/lib/safeLog'
-import { stripForCRO, extractStructure, analyzePage, getCachedInsights, cacheInsights } from '@/lib/croAnalyze'
+import { stripForCRO, extractStructure, analyzePage, getCachedInsights, cacheInsights, AnalyzeError } from '@/lib/croAnalyze'
 
 export const maxDuration = 60
 
@@ -116,6 +116,12 @@ export async function POST(req: Request) {
     }, { headers: corsHeaders('POST, OPTIONS') })
   } catch (err) {
     safeError('suggestions-analyze', err)
+    // AnalyzeError traegt die Ursache — "AI generation failed" fuer jeden
+    // Zustand hat den Aufrufer im Dunkeln gelassen (Guthaben? Key? SPA-Seite?).
+    if (err instanceof AnalyzeError) {
+      const status = err.kind === 'no-candidates' ? 422 : err.kind === 'rate-limit' ? 429 : 502
+      return Response.json({ error: err.kind, message: err.message }, { status, headers: corsHeaders('POST, OPTIONS') })
+    }
     return Response.json({ error: 'AI generation failed' }, { status: 502, headers: corsHeaders('POST, OPTIONS') })
   }
 }

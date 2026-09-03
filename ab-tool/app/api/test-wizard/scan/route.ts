@@ -15,7 +15,7 @@ import { getSessionUser } from '@/lib/supabaseServer'
 import { getPlanForUser } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits, startOfBillingMonth } from '@/lib/planLimits'
-import { analyzePageWithPrimary, stripForCRO, extractStructure } from '@/lib/croAnalyze'
+import { analyzePageWithPrimary, stripForCRO, extractStructure, extractCandidates, detectPageLanguage, AnalyzeError } from '@/lib/croAnalyze'
 import { safeFetch } from '@/lib/safeFetch'
 import { checkRateLimit } from '@/lib/rateLimit'
 
@@ -101,10 +101,20 @@ export async function POST(req: Request) {
 
   // ─── Scan: HTML holen + analysieren ───
   // Plan SEC-08: safeFetch mit DNS-Prüfung statt rohem fetch().
+  //
+  // Zeitbudget: maxDuration ist 60s. Vorher standen hier 25s Seiten-Fetch und
+  // 45s OpenAI — zusammen 70s, also mehr als die Funktion leben darf. Bei einer
+  // langsamen Seite wurde der Prozess mitten im AI-Call gekillt und der Client
+  // sah einen Netzwerkfehler statt einer Aussage. Jetzt: 12s + max. 35s.
   try {
     const pageRes = await safeFetch(url, {
-      timeoutMs: 25_000,
+      timeoutMs: 12_000,
       maxSize: 2_000_000, // 2 MB für HTML-Seiten
+      // Ohne UA liefern manche Sites eine Bot-Variante der Seite aus.
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; varianteBot/1.0; +https://www.getvariante.com)',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     })
     if (!pageRes.ok) {
       const msg = pageRes.error || (
@@ -122,41 +132,92 @@ export async function POST(req: Request) {
 
     const html = stripForCRO(rawHtml)
     const structure = extractStructure(html)
+    // Kandidaten aus dem ROHEN HTML: stripForCRO entfernt Attribute und kürzt
+    // auf 80 KB, beides kostet Selektoren, die es live noch gibt.
+    const candidates = extractCandidates(rawHtml)
+
+    if (candidates.length === 0) {
+      return Response.json({
+        error: 'no candidates',
+        message: 'No testable elements found on this page. If it renders client-side, use the visual picker instead.',
+      }, { status: 422, headers })
+    }
 
     const { suggestions, primarySuggestionIndex } = await Sentry.startSpan(
       { name: 'scan.analyzePage', op: 'ai.cro.scan' },
-      async () => analyzePageWithPrimary(html, structure)
+      async () => analyzePageWithPrimary(html, structure, { candidates, language: detectPageLanguage(rawHtml) })
     )
 
-    const primarySuggestion = suggestions[primarySuggestionIndex] ?? null
+    // Nur Vorschläge, die auf ein real existierendes Element zeigen, sind im
+    // Wizard brauchbar — alles andere erzeugt einen Test, der auf nichts zeigt.
+    const usable = suggestions.filter((s) => !!s.selector)
+    if (usable.length === 0) {
+      return Response.json({
+        error: 'no usable suggestions',
+        message: 'The analysis found no element it could target reliably. Pick the element yourself with the visual picker.',
+      }, { status: 422, headers })
+    }
+
+    const primary = suggestions[primarySuggestionIndex]
+    const primarySuggestion = primary?.selector ? primary : usable[0]
+
+    const toClient = (s: typeof primarySuggestion) => ({
+      selector: s.selector ?? null,
+      element: s.element,
+      rationale: s.why,
+      elementType: s.type === 'text' && s.element.toLowerCase().includes('button') ? 'button'
+        : s.type === 'text' && /h[1-6]/i.test(s.element) ? 'headline'
+        : s.type === 'text' ? 'text'
+        : s.type === 'layout' ? 'layout'
+        : 'element',
+    })
 
     return Response.json({
-      suggestions,
-      primarySuggestionIndex,
-      primarySuggestion: primarySuggestion ? {
-        selector: primarySuggestion.selector ?? null,
-        element: primarySuggestion.element,
-        rationale: primarySuggestion.why,
-        elementType: primarySuggestion.type === 'text' && primarySuggestion.element.toLowerCase().includes('button') ? 'button'
-          : primarySuggestion.type === 'text' && /h[1-6]/i.test(primarySuggestion.element) ? 'headline'
-          : primarySuggestion.type === 'text' ? 'text'
-          : primarySuggestion.type === 'layout' ? 'layout'
-          : 'element',
-      } : null,
+      suggestions: usable.map(toClient),
+      primarySuggestionIndex: usable.indexOf(primarySuggestion),
+      primarySuggestion: toClient(primarySuggestion),
     }, { headers })
   } catch (err) {
+    // AnalyzeError trägt die Ursache — daraus wird eine Aussage, die dem Nutzer
+    // sagt, ob ein zweiter Versuch überhaupt etwas ändern kann. Vorher endete
+    // jeder AI-Fehler in "Bitte versuche es erneut", auch bei leerem Guthaben.
+    if (err instanceof AnalyzeError) {
+      safeError('scan-failed', { url, error: `${err.kind}: ${err.message}` })
+      const { status, message } = describeAnalyzeError(err.kind)
+      return Response.json({ error: err.kind, message, retryable: RETRYABLE_KINDS.has(err.kind) }, { status, headers })
+    }
+
     const msg = err instanceof Error ? err.message : String(err)
     safeError('scan-failed', { url, error: msg })
-    // Gib die echte Fehlermeldung zurück, damit der User weiss was los ist
     return Response.json({
       error: 'scan failed',
-      message: msg.includes('timed out') || msg.includes('timeout') || msg.includes('abort')
-        ? 'Die Analyse hat zu lange gedauert. Bei großen Seiten kann das vorkommen — versuche es erneut.'
-        : msg.includes('AI generation failed') || msg.includes('Failed to parse')
-          ? 'Die KI-Analyse ist fehlgeschlagen. Bitte versuche es erneut.'
-          : msg.includes('fetch') || msg.includes('ENOTFOUND') || msg.includes('ECONNREFUSED')
-            ? 'Die Seite konnte nicht geladen werden. Prüfe die URL und ob die Seite online ist.'
-            : `Analyse fehlgeschlagen: ${msg.slice(0, 200)}`,
+      message: /timed out|timeout|abort/i.test(msg)
+        ? 'The analysis took too long. That can happen on large pages — try again.'
+        : `Analysis failed: ${msg.slice(0, 200)}`,
+      retryable: true,
     }, { status: 502, headers })
+  }
+}
+
+/** Endzustände brauchen keinen zweiten Versuch — der Client blendet dort das
+ *  "Try again" aus, statt in eine Schleife zu laden. */
+const RETRYABLE_KINDS = new Set(['rate-limit', 'upstream', 'empty', 'parse'])
+
+function describeAnalyzeError(kind: AnalyzeError['kind']): { status: number; message: string } {
+  switch (kind) {
+    case 'no-key':
+    case 'auth':
+      return { status: 503, message: 'AI analysis is unavailable right now — the AI service rejected our credentials. This is on our side.' }
+    case 'quota':
+      return { status: 503, message: 'AI analysis is temporarily out of budget. Pick the element yourself with the visual picker in the meantime.' }
+    case 'rate-limit':
+      return { status: 429, message: 'The AI service is busy. Wait a few seconds and try again.' }
+    case 'no-candidates':
+      return { status: 422, message: 'No testable elements found on this page. If it renders client-side, use the visual picker instead.' }
+    case 'parse':
+    case 'empty':
+      return { status: 502, message: 'The AI returned an unusable answer. Try again — this is usually a one-off.' }
+    default:
+      return { status: 502, message: 'The AI service is not responding. Try again in a moment.' }
   }
 }

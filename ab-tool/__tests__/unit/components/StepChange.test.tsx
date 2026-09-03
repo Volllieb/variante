@@ -8,7 +8,7 @@
 
 import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { StepChange } from '@/app/dashboard/components/new-test/StepChange'
 import type { ElementSelection } from '@/app/dashboard/components/NewTestDrawer'
 import type { VariantChangeSet } from '@/app/dashboard/components/new-test/types'

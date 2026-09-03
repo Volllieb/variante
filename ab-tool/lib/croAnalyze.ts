@@ -3,9 +3,11 @@
 // Kein Cost-Tracking hier — das machen die Aufrufer (increment_gen_cost RPC).
 // Cache-Layer: site_insights vermeidet wiederholte Fetch+Analyze (24h TTL).
 
+import * as cheerio from 'cheerio'
 import { safeError } from '@/lib/safeLog'
 import { redactPII } from '@/lib/pii'
 import { supabase } from '@/lib/supabase'
+import { extractRelevantElements } from '@/lib/extractPageCode'
 
 const MODEL = 'gpt-4o-mini'
 
@@ -15,6 +17,12 @@ const CACHE_TTL_HOURS = 24
 // Maximale HTML-Größe für die Analyse: 80KB. Reicht für die Struktur
 // (Headlines, CTAs, Layout), spart Token-Kosten und verhindert Timeouts.
 const MAX_HTML_BYTES = 80_000
+
+// Wie viel rohes HTML in den Prompt geht. Kandidatenliste und extrahierte
+// Struktur tragen das Signal; das HTML liefert nur noch Formulierungs-Kontext.
+// Vorher gingen die vollen 80 KB mit — ~25k Token pro Scan, also 12% des
+// TPM-Budgets fuer eine einzige Anfrage.
+const PROMPT_HTML_CHARS = 12_000
 
 export interface CROSuggestion {
   element: string // "CTA-Button (Hero)"
@@ -344,77 +352,241 @@ export function extractStyleContext(html: string): string {
   return parts.join('\n\n').slice(0, 3000)
 }
 
-export const CRO_SYSTEM_PROMPT = `Du bist ein CRO-Spezialist (Conversion Rate Optimization) für A/B-Tests.
-Analysiere die bereitgestellte Webseite und schlage 4 konkrete, umsetzbare A/B-Tests vor.
+export const CRO_SYSTEM_PROMPT = `You are a CRO (conversion rate optimization) specialist for A/B tests.
+You are given a page's structure and a numbered list of ELEMENT CANDIDATES that
+were extracted from the live DOM. Each candidate has a verified CSS selector.
 
-KRITERIEN für deine Analyse:
-1. **Headlines & Copy**: Sind die Überschriften nutzenorientiert? Könnte eine andere Formulierung mehr Conversions bringen?
-2. **CTAs (Buttons/Links)**: Sind die Call-to-Action-Texte handlungsorientiert? Könnte ein anderer Text, eine andere Farbe oder Platzierung besser konvertieren?
-3. **Social Proof**: Fehlen Testimonials, Kundenlogos, Bewertungen oder Nutzerzahlen?
-4. **Reibungsverluste**: Zu lange Formulare, unnötige Pflichtfelder, unklare nächste Schritte?
-5. **Dringlichkeit & Knappheit**: Fehlen zeitlich begrenzte Angebote oder Verfügbarkeitshinweise?
-6. **Vertrauen**: Fehlen Gütesiegel, Garantien, Rückgaberecht-Hinweise?
-7. **Above the Fold**: Ist der wichtigste Inhalt ohne Scrollen sichtbar?
+Your job: propose 4 concrete A/B tests, each anchored to ONE candidate.
 
-REGELN:
-- Jeder Vorschlag MUSS sich auf ein konkretes Element der analysierten Seite beziehen.
-- Keine generischen Tipps — jeder Vorschlag muss spezifisch zur übergebenen Seite passen.
-- Gib NUR valides JSON zurück, kein Markdown, keine Erklärungen.
-- Format: ein JSON-Objekt {"suggestions": [...]} mit 4 Objekten, jedes mit
-  "element", "original", "variant", "why", "type" und optional "selector".
-- "type" ist die Art der Änderung: "text" (Copy-Änderung), "color" (Farbwechsel),
-  "css" (Styling-Tweak) oder "layout" (Umordnung/Sichtbarkeit).
-- "selector" nur angeben, wenn er sich eindeutig aus dem HTML ableiten lässt
-  (id oder eindeutige Klasse). Im Zweifel weglassen.
-- "primarySuggestionIndex": der Index (0–3) des EINEN Vorschlags, der den
-  größten Conversion-Impact verspricht. Wähle den, der am schnellsten und
-  einfachsten umsetzbar ist UND die höchste Conversion-Wirkung hat.
-  Bevorzuge: Button/CTA > Headline > Social Proof > Layout.`
+WHAT TO LOOK FOR:
+1. Headlines & copy — is the promise specific and benefit-driven?
+2. CTAs — is the label action-oriented? Does it remove risk ("free", "no card")?
+3. Social proof — are testimonials, logos, counts missing where they'd reassure?
+4. Friction — long forms, unnecessary fields, unclear next step.
+5. Urgency & scarcity — time limits, availability.
+6. Trust — guarantees, return policy, security badges.
+7. Above the fold — is the key message visible without scrolling?
 
-// Few-Shot-Beispiel für stabiles JSON-Format
-export const FEW_SHOT_EXAMPLE = `Beispiel für eine SaaS-Landingpage:
+RULES:
+- Every suggestion MUST set "candidate" to the index of the element it changes,
+  taken from the CANDIDATES list. Never invent a selector — you don't emit
+  selectors at all, only the index.
+- Prefer candidates of kind "cta" and "heading": they carry the most conversion
+  weight and are the safest to swap.
+- "original" MUST be the candidate's current text, copied verbatim.
+- "variant" is the replacement text. Keep it in the SAME LANGUAGE as the page.
+- "why" is one sentence, in ENGLISH, explaining the conversion rationale.
+- No generic advice — each suggestion must be specific to this page.
+- Never propose the same candidate twice.
+- "type" is the kind of change: "text" (copy), "color", "css" (styling) or
+  "layout" (reordering/visibility).
+- "primarySuggestionIndex" is a TOP-LEVEL field: the 0-based position in your
+  own "suggestions" array of the ONE test with the highest expected impact
+  that is also quick to ship. Prefer CTA > headline > social proof > layout.
 
-{
-  "suggestions": [
-    {
-      "element": "H1-Headline",
-      "original": "Welcome to Our Platform",
-      "variant": "Convert 30% More Visitors — Without Changing Your Stack",
-      "why": "Die aktuelle Headline ist generisch. Eine nutzenorientierte Headline mit konkretem Versprechen steigert die Verweildauer und Conversion.",
-      "type": "text"
-    },
-    {
-      "element": "CTA-Button (Hero)",
-      "original": "Get Started",
-      "variant": "Start Free — No Credit Card",
-      "why": "Der CTA kommuniziert keine Risikofreiheit. Der Zusatz 'No Credit Card' reduziert die Einstiegshürde und erhöht die Klickrate.",
-      "type": "text",
-      "selector": "#hero-cta"
-    },
-    {
-      "element": "Pricing-Sektion",
-      "original": "Monatliche Abrechnung",
-      "variant": "Jährliche Abrechnung als Default + 20% Rabatt-Badge",
-      "why": "Jährliche Abrechnung erhöht den Customer Lifetime Value. Ein Rabatt-Badge macht den Vorteil sofort sichtbar.",
-      "type": "layout"
-    },
-    {
-      "element": "Footer / Ende der Page",
-      "original": "Kein Social Proof vorhanden",
-      "variant": "Testimonial-Leiste: 'Bereits 2,000+ Teams optimieren mit uns' + 3 Kundenlogos",
-      "why": "Ohne Social Proof fehlt die soziale Bestätigung. Kundenlogos und Nutzerzahlen bauen Vertrauen auf und reduzieren Absprünge.",
-      "type": "layout"
+Return ONLY valid JSON, no markdown:
+{"suggestions": [{"candidate": 0, "element": "...", "original": "...", "variant": "...", "why": "...", "type": "text"}], "primarySuggestionIndex": 0}`
+
+// Few-Shot: zeigt exakt das Zielformat — vollstaendig und parsebar. Frueher
+// stand hier eine Assistant-Turn mit dem Literal {"suggestions":[...]}, also
+// ungueltigem JSON; das Modell hat das Format davon gelernt, nicht trotz.
+export const FEW_SHOT_EXAMPLE = `Example — for these candidates:
+
+CANDIDATES:
+[0] heading/h1  "Welcome to Our Platform"
+[1] cta/a       "Get Started"
+[2] text/p      "We help teams work better."
+
+You answer:
+
+{"suggestions":[{"candidate":1,"element":"Hero CTA","original":"Get Started","variant":"Start Free — No Credit Card","why":"The label promises no risk reduction; naming the free entry lowers the barrier to the first click.","type":"text"},{"candidate":0,"element":"H1 headline","original":"Welcome to Our Platform","variant":"Convert 30% More Visitors — Without Changing Your Stack","why":"A generic welcome states no benefit; a concrete outcome gives visitors a reason to keep reading.","type":"text"},{"candidate":2,"element":"Hero subline","original":"We help teams work better.","variant":"Join 2,000+ teams shipping faster every week.","why":"Adding a user count supplies the social proof the page currently lacks.","type":"text"},{"candidate":1,"element":"Hero CTA","original":"Get Started","variant":"High-contrast button colour","why":"The CTA competes with surrounding elements; more contrast makes the next step unmistakable.","type":"color"}],"primarySuggestionIndex":0}`
+
+// ─── Kandidaten: DOM-verifizierte Elemente statt geratener Selektoren ───
+
+/** Ein Element, das der Scan wirklich testen kann. */
+export interface ElementCandidate {
+  selector: string
+  text: string
+  tag: string
+  kind: 'cta' | 'heading' | 'text' | 'form'
+}
+
+/**
+ * Baut die Kandidatenliste aus dem HTML — jeder Selektor ist gegen den
+ * geparsten DOM verifiziert (genau ein Treffer) und stammt nicht vom Modell.
+ *
+ * Warum ueberhaupt: Das Modell hat Selektoren frei erfunden. Gemessen an vier
+ * realen Seiten kam bei drei von vier Vorschlaegen gar keiner zurueck, und der
+ * eine, der kam, war ein href ("/signup") statt eines Selektors. Ein Vorschlag
+ * ohne Selektor ist im Wizard wertlos: er erzeugt einen Test, der live auf
+ * nichts zeigt und still nichts zaehlt.
+ */
+export function extractCandidates(html: string): ElementCandidate[] {
+  try {
+    const $ = cheerio.load(html)
+    // Textgleiche Kandidaten zusammenfassen: Seiten rendern dieselbe Headline
+    // oft mehrfach (Desktop/Mobile, Overlay-Kopien). extractRelevantElements
+    // dedupliziert nur ueber den Selektor, das Modell sah also dasselbe Element
+    // zweimal — und hat auf stripe.com prompt zwei Vorschlaege fuer dieselbe
+    // Headline gebaut. Der erste Treffer gewinnt (DOM-Reihenfolge = eher oben).
+    const seenText = new Set<string>()
+    const out: ElementCandidate[] = []
+    for (const e of extractRelevantElements($)) {
+      const key = `${e.kind}:${e.text.toLowerCase().replace(/\s+/g, ' ').trim()}`
+      if (seenText.has(key)) continue
+      const candidate: ElementCandidate = { selector: e.selector, text: e.text, tag: e.tag, kind: e.kind }
+      if (!isTestableCandidate(candidate)) continue
+      seenText.add(key)
+      out.push(candidate)
     }
-  ]
-}`
+    return out
+  } catch (err) {
+    safeError('croAnalyze-candidates', { message: err instanceof Error ? err.message : String(err) })
+    return []
+  }
+}
 
-// GPT-4o-mini-Call: Seite analysieren, Suggestions als Array zurückgeben.
-// Wirft bei API-/Parse-Fehlern; leeres Array ist ein valides Ergebnis
-// (Aufrufer entscheidet, wie er damit umgeht).
+/** Sprache der Seite aus <html lang>, sonst null. */
+export function detectPageLanguage(html: string): string | null {
+  const lang = html.match(/<html[^>]*\slang=["']([a-zA-Z-]{2,8})["']/i)?.[1]
+  return lang ? lang.toLowerCase() : null
+}
+
+// Reine Navigations-, Consent- und Chrome-Controls. Sie sehen fuer den
+// Kandidaten-Extraktor aus wie CTAs (Tag <button>, Klasse "…button…"), taugen
+// aber als A/B-Test nichts: auf stripe.com hat das Modell prompt den
+// "Zurück"-Button zum besten Test-Element gekuert.
+const UTILITY_CONTROL =
+  /^(zurück|zurueck|back|next|weiter|vor|previous|close|schliessen|schließen|menu|menü|toggle|open menu|search|suche|skip to (main )?content|zum inhalt springen|accept( all)?|alle akzeptieren|ablehnen|decline|reject( all)?|einstellungen|settings|play|pause|deutsch|english( \(us\))?|language|sprache|share|teilen|copy|kopieren|print|drucken|more|mehr|\d+|[<>«»→←↑↓✕×]+)$/i
+
+// Consent- und Rechts-Links tragen freien Text ("Cookie Preferences",
+// "Datenschutzerklärung") und rutschen deshalb an der Exact-Match-Liste vorbei.
+// Auf vercel.com hat das Modell "Cookie Preferences" zum besten Test gekuert.
+const CONSENT_OR_LEGAL =
+  /(cookie|consent|privacy|datenschutz|impressum|imprint|terms|agb|legal|gdpr|dsgvo)/i
+
+function isTestableCandidate(c: ElementCandidate): boolean {
+  const text = c.text.trim()
+  if (text.length < 2) return false
+  if (UTILITY_CONTROL.test(text)) return false
+  // Headlines und Fliesstext duerfen ueber Datenschutz reden — nur anklickbare
+  // Controls fliegen raus. Der Consent-Link traegt oft keine CTA-Klasse und
+  // landet deshalb als kind 'text' in der Liste; die Tag-Pruefung faengt ihn.
+  const isControl = c.kind === 'cta' || c.tag === 'a' || c.tag === 'button'
+  if (isControl && CONSENT_OR_LEGAL.test(text)) return false
+  return true
+}
+
+function renderCandidates(candidates: ElementCandidate[]): string {
+  return candidates.map((c, i) => `[${i}] ${c.kind}/${c.tag} :: "${c.text}"`).join('\n')
+}
+
+// ─── OpenAI-Call ───
+
 export interface AnalyzePageResult {
   suggestions: CROSuggestion[]
   /** 0-basierter Index des AI-gewählten besten Erst-Test-Elements */
   primarySuggestionIndex: number
+}
+
+/**
+ * Fehlerklassen, die der Aufrufer unterscheiden kann. Frueher warf diese Datei
+ * fuer JEDEN Zustand 'AI generation failed' — die Route konnte daraus nur
+ * "Analyse fehlgeschlagen, versuch es erneut" machen, auch wenn ein weiterer
+ * Versuch garantiert wieder scheitert (fehlendes Guthaben, falscher Key).
+ */
+export class AnalyzeError extends Error {
+  constructor(
+    readonly kind: 'no-key' | 'auth' | 'quota' | 'rate-limit' | 'upstream' | 'empty' | 'parse' | 'no-candidates',
+    message: string,
+  ) {
+    super(message)
+    this.name = 'AnalyzeError'
+  }
+}
+
+const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504])
+const MAX_ATTEMPTS = 3
+
+/** Gesamtbudget fuer alle Versuche — die Route hat maxDuration 60s. */
+const AI_TOTAL_BUDGET_MS = 35_000
+const AI_ATTEMPT_TIMEOUT_MS = 18_000
+
+function classifyStatus(status: number, body: string): AnalyzeError {
+  if (status === 401 || status === 403) {
+    return new AnalyzeError('auth', `OpenAI rejected the API key (${status})`)
+  }
+  if (status === 429) {
+    // insufficient_quota ist KEIN Rate-Limit: erneut versuchen hilft nie.
+    return /insufficient_quota|billing|exceeded your current quota/i.test(body)
+      ? new AnalyzeError('quota', 'OpenAI account is out of credit')
+      : new AnalyzeError('rate-limit', 'OpenAI rate limit reached')
+  }
+  return new AnalyzeError('upstream', `OpenAI returned ${status}`)
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Ruft OpenAI mit Retry auf. Transiente Zustaende (429-Rate-Limit, 5xx,
+ * Netzwerkabbruch) bekommen bis zu MAX_ATTEMPTS Versuche mit Backoff — genau
+ * die Faelle, in denen der Nutzer bisher "Bitte versuche es erneut" gelesen
+ * und selbst geklickt hat. Endzustaende (Key, Guthaben) brechen sofort ab.
+ */
+async function callOpenAI(body: unknown, apiKey: string): Promise<string> {
+  const deadline = Date.now() + AI_TOTAL_BUDGET_MS
+  let last: AnalyzeError | null = null
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const remaining = deadline - Date.now()
+    if (remaining <= 1_000) break
+
+    let res: Response
+    try {
+      res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        signal: AbortSignal.timeout(Math.min(AI_ATTEMPT_TIMEOUT_MS, remaining)),
+        body: JSON.stringify(body),
+      })
+    } catch (err) {
+      // Timeout/Netzwerk — transient, also erneut versuchen solange Budget da ist.
+      last = new AnalyzeError('upstream', err instanceof Error ? err.message : 'network error')
+      safeError('croAnalyze-openai-network', { message: `attempt ${attempt}: ${last.message}` })
+      const backoff = Math.min(500 * attempt, deadline - Date.now())
+      if (backoff > 0) await sleep(backoff)
+      continue
+    }
+
+    if (res.ok) {
+      const json = await res.json() as {
+        choices?: Array<{ message?: { content?: string }; finish_reason?: string }>
+      }
+      const raw = json.choices?.[0]?.message?.content
+      if (!raw) throw new AnalyzeError('empty', 'OpenAI returned an empty response')
+      if (json.choices?.[0]?.finish_reason === 'length') {
+        safeError('croAnalyze-truncated', { message: `finish_reason=length, ${raw.length} chars` })
+      }
+      return raw
+    }
+
+    const text = await res.text().catch(() => '')
+    const err = classifyStatus(res.status, text)
+    safeError('croAnalyze-openai-error', { message: `attempt ${attempt}: ${res.status} ${text.slice(0, 200)}` })
+    if (err.kind === 'auth' || err.kind === 'quota') throw err
+    last = err
+    if (!RETRYABLE_STATUS.has(res.status)) throw err
+
+    // Retry-After respektieren, sonst quadratischer Backoff (0.6s, 2.4s).
+    const retryAfter = Number(res.headers.get('retry-after'))
+    const waitMs = Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.min(retryAfter * 1000, 5_000)
+      : 600 * attempt * attempt
+    if (waitMs >= deadline - Date.now()) break
+    await sleep(waitMs)
+  }
+
+  throw last ?? new AnalyzeError('upstream', 'OpenAI request failed')
 }
 
 export async function analyzePage(
@@ -426,76 +598,113 @@ export async function analyzePage(
   return result.suggestions
 }
 
-/** Erweiterte Analyse mit Primary-Suggestion-Index für den neuen Wizard-Flow. */
+/**
+ * Analyse mit Primary-Index fuer den Wizard.
+ *
+ * Das Modell waehlt AUS der Kandidatenliste (Index), es erfindet keine
+ * Selektoren mehr. Der Selektor am Ergebnis stammt damit immer aus dem DOM.
+ */
 export async function analyzePageWithPrimary(
   html: string,
   structure: string,
-  options?: { pageGoal?: string; industry?: string }
+  options?: { pageGoal?: string; industry?: string; candidates?: ElementCandidate[]; language?: string | null }
 ): Promise<AnalyzePageResult> {
   const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) throw new Error('OPENAI_API_KEY missing')
+  if (!apiKey) throw new AnalyzeError('no-key', 'OPENAI_API_KEY missing')
 
-  const context: string[] = []
-  if (options?.pageGoal) context.push(`Conversion-Ziel der Seite: ${options.pageGoal}`)
-  if (options?.industry) context.push(`Branche: ${options.industry}`)
-
-  const prompt = [
-    'Analysiere diese Webseite und schlage 4 spezifische A/B-Tests vor.',
-    ...(context.length ? ['', ...context] : []),
-    '',
-    'SEITEN-STRUKTUR (extrahiert):',
-    structure || '(keine Struktur extrahierbar)',
-    '',
-    'SEITEN-HTML (gekürzt, ohne Scripts/Styles):',
-    html,
-    '',
-    'Gib NUR das JSON-Objekt {"suggestions": [...]} mit 4 Vorschlägen zurück. Kein Markdown, kein wrapping.',
-  ].join('\n')
-
-  const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    signal: AbortSignal.timeout(45_000), // 45s — maxDuration der Route ist 60s
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: 'system', content: CRO_SYSTEM_PROMPT },
-        { role: 'user', content: FEW_SHOT_EXAMPLE },
-        { role: 'assistant', content: '{"suggestions":[...]}' }, // acknowledge example
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2048,
-      response_format: { type: 'json_object' },
-    }),
-  })
-
-  if (!aiRes.ok) {
-    const errText = await aiRes.text().catch(() => '')
-    safeError('croAnalyze-openai-error', { message: `status ${aiRes.status}: ${errText.slice(0, 300)}` })
-    throw new Error('AI generation failed')
+  const candidates = options?.candidates ?? extractCandidates(html)
+  if (candidates.length === 0) {
+    throw new AnalyzeError('no-candidates', 'No testable elements found in the page HTML')
   }
 
-  const json = await aiRes.json() as { choices: Array<{ message: { content: string } }> }
-  const raw = json.choices?.[0]?.message?.content
-  if (!raw) throw new Error('Empty AI response')
+  const context: string[] = []
+  if (options?.pageGoal) context.push(`Conversion goal of the page: ${options.pageGoal}`)
+  if (options?.industry) context.push(`Industry: ${options.industry}`)
+  // Ohne diesen Satz hat das Modell die deutschen Stripe-Texte in englische
+  // Varianten uebersetzt — eine Variante in der falschen Sprache ist als
+  // A/B-Test wertlos, egal wie gut die Copy ist.
+  const language = options?.language ?? detectPageLanguage(html)
+  if (language) {
+    context.push(`The page is written in "${language}". Every "variant" MUST be in that language.`)
+  }
 
-  // Parse JSON (mit Fallback für Markdown-Fences)
-  let parsed: { suggestions?: CROSuggestion[]; primarySuggestionIndex?: number }
+  // Die Kandidatenliste und die Struktur tragen das Signal. Das rohe HTML war
+  // vorher bis 80 KB gross (~25k Token pro Scan) und hat die Antwort messbar
+  // nicht verbessert — es hat vor allem das TPM-Budget des OpenAI-Keys
+  // aufgefressen, und genau daraus entstehen die 429, die der Nutzer als
+  // "KI-Analyse fehlgeschlagen" gesehen hat.
+  const prompt = [
+    `Analyse this page and propose ${Math.min(4, candidates.length)} specific A/B tests — each on a DIFFERENT candidate.`,
+    ...(context.length ? ['', ...context] : []),
+    '',
+    'CANDIDATES (choose by index — these are the only testable elements):',
+    renderCandidates(candidates),
+    '',
+    'PAGE STRUCTURE:',
+    structure || '(no structure extractable)',
+    '',
+    'HTML EXCERPT (for wording context only):',
+    html.slice(0, PROMPT_HTML_CHARS),
+    '',
+    `Return ONLY the JSON object with "suggestions" (${Math.min(4, candidates.length)} items, each with a distinct "candidate") and "primarySuggestionIndex".`,
+  ].join('\n')
+
+  const raw = await callOpenAI({
+    model: MODEL,
+    messages: [
+      { role: 'system', content: CRO_SYSTEM_PROMPT },
+      { role: 'user', content: FEW_SHOT_EXAMPLE },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.7,
+    max_tokens: 2048,
+    response_format: { type: 'json_object' },
+  }, apiKey)
+
+  let parsed: { suggestions?: Array<CROSuggestion & { candidate?: number }>; primarySuggestionIndex?: number }
   try {
     const cleaned = raw.replace(/```(?:json)?\s*/g, '').replace(/```\s*$/g, '').trim()
     parsed = JSON.parse(cleaned)
   } catch {
     safeError('croAnalyze-parse-error', { message: raw.slice(0, 300) })
-    throw new Error('Failed to parse AI response')
+    throw new AnalyzeError('parse', 'Could not parse the AI response')
   }
 
-  const suggestions = (parsed.suggestions ?? []).slice(0, 4)
+  // Index → verifizierter Selektor. Ein Vorschlag mit unbekanntem Index behaelt
+  // KEINEN Selektor, statt einen erfundenen zu bekommen.
+  //
+  // Doppelte Kandidaten fliegen raus: auf einer Seite mit nur zwei Kandidaten
+  // (news.ycombinator.com) hat das Modell dieselben zwei Elemente zweimal
+  // vorgeschlagen — vier Zeilen, aber nur zwei Tests. Lieber zwei ehrliche.
+  const usedCandidates = new Set<number>()
+  const suggestions: CROSuggestion[] = []
+  for (const s of parsed.suggestions ?? []) {
+    if (suggestions.length >= 4) break
+    const idx = typeof s.candidate === 'number' ? s.candidate : -1
+    const candidate = idx >= 0 && idx < candidates.length ? candidates[idx] : null
+    if (candidate) {
+      if (usedCandidates.has(idx)) continue
+      usedCandidates.add(idx)
+    }
+    suggestions.push({
+      element: s.element ?? candidate?.text ?? 'Element',
+      original: s.original ?? candidate?.text ?? '',
+      variant: s.variant ?? '',
+      why: s.why ?? '',
+      type: s.type,
+      ...(candidate ? { selector: candidate.selector } : {}),
+    })
+  }
+
+  const withSelector = suggestions.findIndex((s) => s.selector)
   const primarySuggestionIndex = typeof parsed.primarySuggestionIndex === 'number'
     && parsed.primarySuggestionIndex >= 0
     && parsed.primarySuggestionIndex < suggestions.length
+    && !!suggestions[parsed.primarySuggestionIndex]?.selector
     ? parsed.primarySuggestionIndex
-    : 0 // Fallback: erstes Element
+    // Fallback: der erste Vorschlag, der wirklich einen Selektor hat — ein
+    // "Best pick" ohne Selektor waere im Wizard nicht anklickbar.
+    : Math.max(0, withSelector)
 
   return { suggestions, primarySuggestionIndex }
 }

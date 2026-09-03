@@ -85,6 +85,7 @@ export function StepUrlAndElement({
   const [scanState, setScanState] = useState<ScanState>('idle')
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [scanError, setScanError] = useState('')
+  const [scanRetryable, setScanRetryable] = useState(true)
 
   // Ref haelt den aktuellen Callback, ohne den postMessage-Listener bei jeder
   // neuen Callback-Identitaet neu aufzubauen. Schreiben MUSS im Effect passieren:
@@ -174,21 +175,28 @@ export function StepUrlAndElement({
       if (!res.ok) {
         const err = await res.json().catch(() => ({ message: 'Scan failed' }))
         setScanError(err.message ?? err.error ?? 'Page analysis failed')
+        // Die Route sagt jetzt, ob ein zweiter Versuch etwas aendern kann.
+        // Ohne das stand unter JEDEM Fehler "Try again" — auch unter denen,
+        // die garantiert wieder genauso ausgehen (Guthaben, Key, SPA-Seite).
+        setScanRetryable(err.retryable !== false)
         setScanState('error')
         return
       }
 
       const data = await res.json()
+      // Nur Vorschlaege mit Selektor sind anwendbar. Die Route filtert das
+      // bereits, aber ein Vorschlag ohne Selektor wuerde hier ein Element mit
+      // selector:'' erzeugen — ein Test, der live auf nichts zeigt.
       const suggestions: ScanSuggestion[] = [data.primarySuggestion, ...(data.suggestions ?? [])]
-        .filter(Boolean)
-        // dedup by element name
+        .filter((s: ScanSuggestion | null): s is ScanSuggestion => !!s?.selector)
         .filter((s: ScanSuggestion, i: number, arr: ScanSuggestion[]) =>
-          arr.findIndex((x) => x.element === s.element) === i
+          arr.findIndex((x) => x.selector === s.selector) === i
         )
         .slice(0, 3)
 
       if (suggestions.length === 0) {
-        setScanError('No elements found to test on this page. Try picking manually.')
+        setScanError('No elements found to test on this page. Try picking one yourself.')
+        setScanRetryable(false)
         setScanState('error')
         return
       }
@@ -197,14 +205,15 @@ export function StepUrlAndElement({
       setScanState('success')
     } catch {
       setScanError('Network error — please try again.')
+      setScanRetryable(true)
       setScanState('error')
     }
   }, [url, urlValid])
 
   function applySuggestion(s: ScanSuggestion) {
-    const sel = s.selector ?? ''
+    if (!s.selector) return
     onElementSelected({
-      selector: sel,
+      selector: s.selector,
       originalHtml: '', // AI doesn't provide HTML — user can add manually if needed
       originalCss: '',
       elementType: s.elementType || 'element',
@@ -368,10 +377,12 @@ export function StepUrlAndElement({
             </span>
           )}
           {scanState === 'error' && (
-            <span className="inline-flex items-center gap-1.5 text-err/80">
+            <span className="inline-flex flex-wrap items-center gap-x-1.5 text-err/80">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              {scanError}{' '}
-              <button onClick={runScan} className="underline hover:text-err cursor-pointer">Try again</button>
+              {scanError}
+              {scanRetryable && (
+                <button onClick={runScan} className="underline hover:text-err cursor-pointer">Try again</button>
+              )}
             </span>
           )}
         </div>
