@@ -233,11 +233,27 @@ export default function Document() {
       <>
         <p>Once your variant is generated, you control the experiment from the dashboard:</p>
         <ul className="list-disc space-y-2 pl-5">
-          <li><strong className="font-semibold text-white">Start:</strong> Begins 50/50 traffic split. Visitors are assigned randomly and stay in their variant group (stored in localStorage).</li>
+          <li><strong className="font-semibold text-white">Start:</strong> Begins 50/50 traffic split. Each visitor is assigned deterministically and keeps the same variant across page views — cookieless by default, no storage on the visitor&apos;s device.</li>
           <li><strong className="font-semibold text-white">Pause:</strong> Temporarily stops the experiment. All visitors see Variant A.</li>
           <li><strong className="font-semibold text-white">Resume:</strong> Continues the experiment from where it left off.</li>
           <li><strong className="font-semibold text-white">Pick winner:</strong> Manually declare a winner. All visitors are switched to the winning variant.</li>
         </ul>
+        <h3 className="mt-5 text-sm font-semibold text-white">Previewing Both Variants</h3>
+        <p>
+          Because assignment is sticky, your own browser stays in the same group forever — so a
+          running test can look like it only ever serves one variant. Add{' '}
+          <code className="rounded bg-black px-1 py-0.5 text-[11px] text-[#ededed]/80 ring-1 ring-white/10">?ab_variant=a</code>{' '}
+          or{' '}
+          <code className="rounded bg-black px-1 py-0.5 text-[11px] text-[#ededed]/80 ring-1 ring-white/10">?ab_variant=b</code>{' '}
+          to any page of your site to force a variant. A small label in the corner confirms which
+          one you are looking at.
+        </p>
+        <p>
+          Preview views are never counted: no visitor, no conversion — even if you click the goal
+          element. Your live numbers stay clean. The same links sit in each test&apos;s card menu in
+          the dashboard under <strong className="font-semibold text-white">Preview A</strong> and{' '}
+          <strong className="font-semibold text-white">Preview B</strong>.
+        </p>
         <h3 className="mt-5 text-sm font-semibold text-white">Conversion Tracking</h3>
         <p>
           Variante tracks conversions via a simple JavaScript call. Add this wherever a conversion
