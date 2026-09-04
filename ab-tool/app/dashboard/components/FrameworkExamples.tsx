@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js"</script>
+        <script async src="https://www.getvariante.com/ab.js"></script>
       </head>
       <body>{children}</body>
     </html>
@@ -38,7 +38,7 @@ export default function Document() {
         <script dangerouslySetInnerHTML={{
           __html: \`document.documentElement.classList.add("__ab_pending");(function p(){if(window.__ab_pending_resolve)document.documentElement.classList.remove("__ab_pending");else setTimeout(p,50)})();setTimeout(function(){document.documentElement.classList.remove("__ab_pending")},10000)\`
         }} />
-        <script async src="https://www.getvariante.com/ab.js"</script>
+        <script async src="https://www.getvariante.com/ab.js"></script>
       </Head>
       <body><Main /><NextScript /></body>
     </Html>
