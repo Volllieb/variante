@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
-import { stripe } from '@/lib/stripe'
+import { stripe, constructStripeEvent } from '@/lib/stripe'
+import * as Sentry from '@sentry/nextjs'
 import type Stripe from 'stripe'
 
 // ponytail: Idempotenz via stripe_webhook_events (Event-ID als PK).
@@ -16,17 +17,22 @@ export async function POST(req: Request) {
   if (!secret) {
     return Response.json({ error: 'STRIPE_WEBHOOK_SECRET missing' }, { status: 500 })
   }
+  // Optional: Secret des Testmodus-Endpoints (Stripe Dashboard → Webhooks).
+  const testSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST
 
   const sig = req.headers.get('stripe-signature') || ''
   const body = await req.text()
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, secret)
+    event = constructStripeEvent(stripe, body, sig, secret, testSecret)
   } catch (e) {
     console.error('[stripe:webhook] signature error:', e)
+    Sentry.captureException(e, { tags: { route: 'stripe-webhook' } })
     return Response.json({ error: 'invalid signature' }, { status: 400 })
   }
+
+  console.log('[stripe:webhook] received:', event.id, event.type)
 
   // Idempotenz-Check: Event schon verarbeitet?
   const { data: existing } = await supabase

@@ -59,9 +59,12 @@ vercel rollback                # oder: vercel promote <alte-deployment-url>
 **Symptom:** Kunde zahlt, bleibt aber auf Free. Stripe Dashboard → Webhooks zeigt Failures.
 
 - Diagnose: Stripe Dashboard → Developers → Webhooks → Delivery-Log. Sentry nach `stripe` filtern.
+  - Delivery-Log zeigt den HTTP-Status pro Attempt: `400` = Signatur-Mismatch (Secret falsch oder Modus-Mismatch, s. u.), `5xx` = Handler-Crash, Timeout/Connection-Error = Request kam nie an.
+  - Auf dem Server: Signaturfehler landen via `captureException` in Sentry, erfolgreiche Events loggen `[stripe:webhook] received:`.
 - Stripe retried automatisch (bis zu 3 Tage, exponentiell). Idempotency ist implementiert (Migration 008) — Retries sind gefahrlos.
 - Manueller Replay: Stripe Dashboard → Webhook-Event → "Resend".
 - Wenn `STRIPE_WEBHOOK_SECRET` rotiert wurde: neuen Wert in Vercel setzen + redeploy.
+- **Testmodus:** Testmodus-Events sind mit dem Secret des TEST-Endpoints signiert (`STRIPE_WEBHOOK_SECRET_TEST` in Vercel). Failt nur der Test-Endpoint (Warnmail „Testmodus"), fehlt meist genau dieses Secret — im Stripe-Dashboard das Test-Secret auslesen, in Vercel setzen, redeployen. Oder, falls der Test-Endpoint nicht gebraucht wird: im Stripe-Dashboard löschen. Achtung: Stripe deaktiviert einen 3 Tage lang fehlschlagenden Endpoint automatisch.
 
 ## Szenario: Rate-Limit blockiert legitime User
 
