@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X, Target } from 'lucide-react'
+import { MoreHorizontal, Pause, Play, Trash2, Pencil, Check, X, Target, Eye } from 'lucide-react'
 import { calcSignificance } from '@/lib/significance'
 import { displayDay, estimateTimeToDecision } from '@/lib/decisions'
 import type { DailyPoint } from '@/lib/forecast'
@@ -64,6 +64,25 @@ function formatDuration(iso: string): string {
   if (hours >= 1) return `${hours}h`
   if (mins >= 1) return `${mins}m`
   return `${secs}s`
+}
+
+/**
+ * Live-URL, die eine bestimmte Variante erzwingt (ab.js: ?ab_variant=a|b).
+ *
+ * Ohne diesen Link ist die eigene Variante A fuer den Betreiber unsichtbar:
+ * ab.js bucketet deterministisch aus IP-Hash + User-Agent, derselbe Browser
+ * landet also dauerhaft im selben Arm. Der Preview-Aufruf zaehlt weder Besucher
+ * noch Conversion und laesst die laufende Zuweisung unberuehrt.
+ */
+function previewUrl(siteUrl: string | null, variant: 'a' | 'b'): string | null {
+  if (!siteUrl) return null
+  try {
+    const u = new URL(siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`)
+    u.searchParams.set('ab_variant', variant)
+    return u.toString()
+  } catch {
+    return null
+  }
 }
 
 function issueLabel(code: string): string {
@@ -324,7 +343,30 @@ export function TestCard({
             </button>
 
             {menuOpen && (
-              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-40 rounded-[var(--radius-md)] border border-border bg-bg-2 py-1">
+              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-44 rounded-[var(--radius-md)] border border-border bg-bg-2 py-1">
+                {/* Die ganze Karte ist ein <Link> — ein verschachteltes <a> waere
+                    ungueltiges HTML und wuerde den Karten-Link zerreissen. Darum
+                    window.open statt href, wie bei den uebrigen Menuepunkten. */}
+                {(['a', 'b'] as const).map((v) => {
+                  const href = previewUrl(t.site_url, v)
+                  if (!href) return null
+                  return (
+                    <button
+                      key={v}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        window.open(href, '_blank', 'noopener,noreferrer')
+                        setMenuOpen(false)
+                      }}
+                      title={`Open ${domain ?? 'the site'} with variant ${v.toUpperCase()} forced — not counted as a visitor`}
+                      className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"
+                    >
+                      <Eye className="h-3.5 w-3.5" /> Preview {v.toUpperCase()}
+                    </button>
+                  )
+                })}
+
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameOpen(true); setMenuOpen(false) }}
                   className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"

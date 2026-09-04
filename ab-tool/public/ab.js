@@ -594,6 +594,30 @@
 
     return // ← picker mode: normalen A/B-Flow NICHT ausführen
   }
+  // =========================================================================
+  // PREVIEW MODE — ?ab_variant=a|b
+  // Sticky Assignment leitet die Variante deterministisch aus dem Request-Hash
+  // ab (lib/assignBucket.ts): derselbe Browser auf derselben Leitung landet
+  // IMMER im selben Arm. Fuer den Besucher ist das genau richtig, fuer den
+  // Betreiber war es eine Sackgasse — wer einmal in B gebucketet ist, bekommt
+  // sein Original nie wieder zu Gesicht und kann nicht pruefen, was die andere
+  // Haelfte seiner Besucher sieht.
+  //
+  // Der Preview-Parameter haengt sich NEBEN den Test, nicht hinein:
+  //   - kein /api/assign  -> kein gezaehlter Besucher, kein Token
+  //   - kein active.push  -> keine Conversion, auch bei Klick auf das Goal
+  //   - keine Persistenz  -> nur dieser Seitenaufruf, der Arm bleibt unberuehrt
+  // Die Statistik des laufenden Tests kann durch Anschauen also nicht kippen.
+  // =========================================================================
+  var __abPreview = (function () {
+    try {
+      var v = new URLSearchParams(location.search).get('ab_variant')
+      if (!v) return null
+      v = v.trim().toUpperCase()
+      return v === 'A' || v === 'B' ? v : null
+    } catch (_) { return null }
+  })()
+
   // Anti-Flicker: Klasse auf <html> entfernen (vom Snippet gesetzt). Idempotent.
   function reveal() {
     window.__ab_pending_resolve = true // inline fallback: hör auf zu polln
@@ -624,6 +648,28 @@
         'box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.9'
       beginApply()
       document.body.appendChild(a)
+      endApply()
+    } catch (_) {}
+  }
+
+  // Preview-Hinweis. Ohne ihn ist der Modus wertlos: Variante A sieht per
+  // Definition aus wie die unveraenderte Seite — wer sie aufruft, weiss sonst
+  // nicht, ob der Preview ueberhaupt gegriffen hat oder ob der Test gar nicht
+  // laeuft. Der Hinweis sagt zugleich, dass dieser Aufruf nicht in die
+  // Statistik geht, damit niemand den eigenen Test "kaputtschaut".
+  function showPreviewBadge(variant) {
+    try {
+      if (document.getElementById('__ab_preview_badge') || !document.body) return
+      var d = document.createElement('div')
+      d.id = '__ab_preview_badge'
+      d.textContent = 'Variante preview: Variant ' + variant + ' — not tracked'
+      d.style.cssText =
+        'position:fixed;bottom:12px;left:12px;z-index:2147483647;' +
+        'background:#111;color:#fff;font:600 11px -apple-system,Segoe UI,sans-serif;' +
+        'padding:6px 10px;border-radius:8px;pointer-events:none;' +
+        'box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.9'
+      beginApply()
+      document.body.appendChild(d)
       endApply()
     } catch (_) {}
   }
@@ -1320,6 +1366,23 @@
         gsel = goalSel
       }
       active.push({ key: key, variant: variant, goalSel: gsel })
+    }
+
+    // Preview (?ab_variant=a|b) steht VOR jeder anderen Entscheidung — auch vor
+    // force: auf einem abgeschlossenen Test mit Gewinner B ist das Original
+    // sonst ueberhaupt nicht mehr aufrufbar, obwohl genau der Vorher-Nachher-
+    // Vergleich der Grund ist, warum man es sehen will.
+    if (__abPreview) {
+      if (__abPreview === 'B') {
+        var pApplied = t.variant_b_html
+          ? applyDom(selector, 'B', t.variant_b_html, key, t.variant_b_css)
+          : false
+        if (!pApplied) applyCss(key, t.variant_b_css)
+      }
+      // 'A' braucht keinen Zweig: das Original steht bereits im DOM, und ohne
+      // applyCss/keepCss raeumt dropUnusedCss ein zuvor injiziertes B-CSS ab.
+      showPreviewBadge(__abPreview)
+      return Promise.resolve()   // kein assign, kein active.push
     }
 
     // Abgeschlossener Test mit Gewinner B: ALLE Besucher bekommen B ausgeliefert,
