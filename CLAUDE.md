@@ -44,7 +44,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/app/components/` | Geteilte UI-Primitives (Button, Card, Toast, Tooltip, Skeleton, `VariantPreview`) |
 | `ab-tool/components/` | Nur Landing-/Logo-Grafiken (`PandaLogo`, `LandingIcons`, `TechLogos`) |
 | `ab-tool/app/{page,LandingDemo,LandingTrySite}.tsx` | Landingpage; Copy in `lib/landingCopy.ts` |
-| `ab-tool/app/{login,signup,update-password,onboarding,auth}/` | Auth- und Onboarding-Seiten |
+| `ab-tool/app/{login,signup,update-password,onboarding,auth}/` | Auth- und Onboarding-Seiten (`onboarding/components/` = Header, StepIndicator) |
 | `ab-tool/app/results/[id]/` | Öffentliche Results-Seite (Share-Link) |
 | `ab-tool/app/picker-return/` | Rücksprungseite des Element-Pickers |
 | `ab-tool/lib/` | Geteilte Logik (überwiegend Server); `lib/hooks/` = Client-Hooks (`useRealtime`, `useTestList`, `usePersistedValue`, `useFocusTrap`) |

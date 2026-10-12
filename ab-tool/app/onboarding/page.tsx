@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
-import { Check, Copy, Globe, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react'
+import { Check, Copy, Globe, ArrowRight, Loader2 } from 'lucide-react'
 import { SNIPPET_CODE, personalizedSnippet } from '@/lib/snippetCode'
-
-type Step = 1 | 2 | 3
+import type { Step } from './types'
+import { OnboardingHeader } from './components/OnboardingHeader'
+import { StepIndicator } from './components/StepIndicator'
 
 type CheckState =
   | { phase: 'input'; error?: string }
@@ -552,74 +553,6 @@ export default function OnboardingPage() {
           </div>
         </div>
       </main>
-    </div>
-  )
-}
-
-// ── Shared sub-components ──
-
-function OnboardingHeader({
-  step,
-  setStep,
-  router,
-}: {
-  step: Step
-  setStep: (s: Step) => void
-  router: ReturnType<typeof useRouter>
-}) {
-  return (
-    <header className="shrink-0 border-b border-border bg-bg-0/95 px-4 sm:px-6">
-      <div className="flex items-center justify-between py-2.5 sm:py-3 max-w-6xl mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
-          >
-            <PandaLogo size="md" />
-            variante
-          </Link>
-          {step > 1 && (
-            <button
-              onClick={() => setStep((step - 1) as Step)}
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back
-            </button>
-          )}
-        </div>
-        <button
-          onClick={() => router.push('/dashboard')}
-          aria-label="Skip onboarding and go to dashboard"
-          className="rounded-full px-4 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
-        >
-          Skip to dashboard
-        </button>
-      </div>
-    </header>
-  )
-}
-
-function StepIndicator({ step }: { step: Step }) {
-  return (
-    <div className="flex items-center justify-center gap-2 mb-8" role="list" aria-label="Onboarding progress">
-      {([1, 2, 3] as const).map((s) => (
-        <div key={s} className="flex items-center gap-2" role="listitem">
-          <div
-            aria-current={s === step ? 'step' : undefined}
-            className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold transition-colors ${
-              s === step
-                ? 'bg-white text-black'
-                : s < step
-                ? 'bg-ok/20 text-ok'
-                : 'bg-bg-2 text-text-3'
-            }`}
-          >
-            {s < step ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : s}
-          </div>
-          {s < 3 && <div className={`h-px w-8 sm:w-12 ${s < step ? 'bg-ok/40' : 'bg-border'}`} aria-hidden="true" />}
-        </div>
-      ))}
     </div>
   )
 }
