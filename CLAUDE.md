@@ -68,7 +68,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | Element-Picker | `public/ab.js` (Block `?ab_pick=`), `app/api/capture/`, `lib/pickerBridge.ts`, `app/picker-return/` |
 | Tracking / Ausspielung | `public/ab.js`, `app/api/{resolve,assign,event}/`, `lib/assignBucket.ts`, `lib/assignToken.ts`, `lib/variantHash.ts` |
 | Statistik / Gewinner | `lib/significance.ts`, `lib/getExperimentStats.ts`, `lib/forecast.ts`, `lib/decisions.ts`, `app/api/cron/check-winners/` |
-| Results-Seite | `app/dashboard/results/[id]/ResultsClient.tsx`, `lib/resultsHelpers.ts` |
+| Results-Seite | `app/dashboard/results/[id]/ResultsClient.tsx` (State + Handler), Abschnitte in `results/[id]/components/` (Toolbar, HeroStats, TrendCharts, ArmStatsCards, VariantComparison, GoalEditor, RawDataTable, PreviewPanel, AutoWinnerPanel), `lib/resultsHelpers.ts` |
 | Auth | `lib/auth.ts` (API), `lib/supabaseServer.ts` (Server Components), `lib/supabaseBrowser.ts` (Login/Signup), `proxy.ts` |
 | Domain-Freigabe / Snippet-Check | `lib/domainGate.ts`, `app/api/domains/`, `lib/snippetCheck.ts`, `lib/snippetCode.ts`, `app/dashboard/components/snippet-status/` (Badge, VerifiedBadge, Banner) |
 | Billing / Plan-Limits | `app/api/billing/{checkout,portal}`, `app/api/stripe/webhook`, `lib/stripe.ts`, `lib/planLimits.ts` |
@@ -114,7 +114,7 @@ Lokal ist kein Dashboard-Login möglich (`.env.local` hat Platzhalter) → UI-Zu
 
 ## Große Dateien (nur gezielt lesen)
 
-`app/dashboard/results/[id]/ResultsClient.tsx` (~1700), `public/ab.js` (~1670), `figma-plugin/src/ui.html` (~1080), `app/dashboard/account/AccountClient.tsx` (~1000), `app/dashboard/components/NewTestDrawer.tsx` (~960), `lib/croAnalyze.ts` (~760), `new-test/delta.ts` (~720), `new-test/StepUrlAndElement.tsx` (~690), `app/onboarding/page.tsx` (~630).
+`public/ab.js` (~1670), `figma-plugin/src/ui.html` (~1080), `app/dashboard/account/AccountClient.tsx` (~1000), `app/dashboard/components/NewTestDrawer.tsx` (~960), `lib/croAnalyze.ts` (~760), `new-test/delta.ts` (~720), `new-test/StepUrlAndElement.tsx` (~690), `app/onboarding/page.tsx` (~630).
 
 ## Stolperfallen
 
