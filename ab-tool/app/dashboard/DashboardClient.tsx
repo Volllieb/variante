@@ -16,16 +16,13 @@ import { DecisionList } from './components/DecisionList'
 import { PeriodSelector, parsePeriod, periodLabel, periodNote, trendLabel, type Period } from './components/PeriodSelector'
 import { TrendChart } from './components/TrendChart'
 import { formatCompact, formatPercent, formatDelta } from '@/lib/formatNumber'
-import {
-  FlaskConical,
-  Plus,
-  Check,
-  Globe,
-  ChevronDown,
-} from 'lucide-react'
+import { Plus, Check, ChevronDown } from 'lucide-react'
 import { SnippetStatusBadge } from './components/snippet-status/SnippetStatusBadge'
 import { PlanUsageBar } from './components/PlanUsageBar'
 import { RefreshIndicator, useRefreshTransition } from './components/RefreshIndicator'
+import { PreviewReadyBlocker } from './components/overview/PreviewReadyBlocker'
+import { OverviewCard } from './components/overview/OverviewCard'
+import { EmptyDashboard } from './components/overview/EmptyDashboard'
 
 /** So viele Tests zeigt die Overview — die vollständige Liste lebt in /dashboard/tests. */
 const TOP_TESTS = 5
@@ -450,124 +447,6 @@ export function DashboardClient({
 
       <RefreshIndicator active={isPending} />
 
-    </div>
-  )
-}
-
-/* ── Sub-components ── */
-
-/**
- * Der Blocker für den Hybrid-Onboarding-Fall: Variante existiert schon, das
- * Snippet fehlt. Ersetzt den Snippet-Banner, statt ihn zu verdoppeln — die
- * Verifikation selbst läuft dann über /dashboard/account.
- */
-function PreviewReadyBlocker({ test }: { test: TestRow }) {
-  return (
-    <div className="mb-5 flex flex-col gap-4 rounded-[var(--radius-lg)] border border-pro/25 bg-pro/[0.05] p-4 sm:flex-row sm:items-center">
-      {test.preview_variant_screenshot_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={test.preview_variant_screenshot_url} alt="" className="h-20 w-32 shrink-0 rounded-[var(--radius-md)] border border-border object-cover object-top" />
-      )}
-      <div className="min-w-0 flex-1">
-        <h2 className="text-[14px] font-semibold text-text">Your variant is ready — one step left</h2>
-        <p className="mt-1 text-[12px] text-text-2">
-          <span className="font-medium text-text">{test.name}</span> is saved as a draft. Add the one-line snippet to your site and this test goes live.
-        </p>
-      </div>
-      <a href="/dashboard/account" className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[12px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">
-        <Globe className="h-3.5 w-3.5" />
-        Install snippet
-      </a>
-    </div>
-  )
-}
-
-// ponytail: Die `icon`-Prop wurde durchgereicht, aber im Markup nie gerendert.
-function OverviewCard({
-  label,
-  value,
-  hint,
-  hintTitle,
-  delta,
-  tone,
-}: {
-  label: string
-  value: string
-  hint?: string
-  /** Erklärung zum Zeitbezug, als title auf der Hint-Zeile. */
-  hintTitle?: string
-  /** Veränderung zur Vorperiode. `value: null` = keine Vorperiode zum Vergleichen. */
-  delta?: { value: number | null; unit: '%' | 'pp' }
-  tone?: 'ok' | 'pro' | 'err'
-}) {
-  const colorClass = tone === 'ok' ? 'text-ok' : tone === 'pro' ? 'text-pro' : tone === 'err' ? 'text-err' : 'text-text'
-  const bgTint = tone === 'ok' ? 'bg-ok/[0.04]' : tone === 'err' ? 'bg-err/[0.04]' : ''
-
-  // Ein Δ von exakt 0 ist eine Aussage ("unverändert"), null dagegen heißt:
-  // die Vorperiode war leer — dann ist jede Prozentangabe erfunden.
-  const d = delta?.value ?? null
-  const deltaClass = d === null || Math.abs(d) < 0.05 ? 'text-text-3' : d > 0 ? 'text-ok' : 'text-err'
-
-  return (
-    <div className={`relative min-w-0 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 ${bgTint}`}>
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-text-3">{label}</span>
-      </div>
-      <p
-        className={`truncate text-[24px] font-semibold tabular-nums leading-none tracking-tight ${colorClass}`}
-        title={value}
-      >
-        {value}
-      </p>
-      {(hint || delta) && (
-        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-text-3">
-          {delta && (
-            <span className={`tabular-nums font-medium ${deltaClass}`}>
-              {d === null ? '—' : `${formatDelta(d).replace('%', '')}${delta.unit}`}
-            </span>
-          )}
-          {hint && <span className="truncate" title={hintTitle}>{hint}</span>}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function EmptyDashboard({
-  hasVerifiedDomain,
-  isPro,
-  onNewTest,
-}: {
-  hasVerifiedDomain: boolean
-  isPro: boolean
-  onNewTest: () => void
-}) {
-  return (
-    <div className="py-8 text-center">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-bg-2">
-        <FlaskConical className="h-6 w-6 text-text-3" />
-      </div>
-      <h2 className="text-[15px] font-semibold text-text">Create your first test</h2>
-      <p className="mt-1.5 text-[13px] text-text-2 max-w-sm mx-auto">
-        {hasVerifiedDomain
-          ? 'Run your first A/B test in minutes. Pick a page element, let the AI generate a variant, and go live.'
-          : 'Tests are saved as drafts until you install the snippet on your site.'}
-      </p>
-      <div className="mt-5 flex items-center justify-center gap-3">
-        <button
-          onClick={onNewTest}
-          className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover"
-        >
-          <Plus className="h-4 w-4" />
-          New test
-        </button>
-      </div>
-      {!isPro && (
-        <p className="mt-3 text-[11px] text-text-3">
-          Free plan: 1 active test, 1 domain.{' '}
-          <a href="/dashboard/billing" className="underline hover:text-text-2 transition-colors">Upgrade</a>
-        </p>
-      )}
     </div>
   )
 }

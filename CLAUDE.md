@@ -39,7 +39,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/` | Next.js-16-App (Vercel Root Dir): Landing, Dashboard, API |
 | `ab-tool/app/api/<name>/route.ts` | API-Routen (App Router, je Ordner eine Route) |
 | `ab-tool/app/dashboard/` | Dashboard: `DashboardClient.tsx`, `Sidebar.tsx`, Unterseiten `tests/`, `results/[id]/`, `account/`, `billing/` (je `page.tsx` server + `*Client.tsx`) |
-| `ab-tool/app/dashboard/components/` | Dashboard-Komponenten; `NewTestDrawer.tsx` = Test-Wizard |
+| `ab-tool/app/dashboard/components/` | Dashboard-Komponenten; `NewTestDrawer.tsx` = Test-Wizard, `overview/` = Bausteine der Overview-Seite (`DashboardClient`) |
 | `ab-tool/app/dashboard/components/new-test/` | Wizard-Steps (`StepUrlAndElement`, `StepGoal`, `StepChange`, `StepReview`), Editoren, `delta.ts` (CSS-Diff/Change-Modell), `types.ts` |
 | `ab-tool/app/components/` | Geteilte UI-Primitives (Button, Card, Toast, Tooltip, Skeleton, `VariantPreview`) |
 | `ab-tool/components/` | Nur Landing-/Logo-Grafiken (`PandaLogo`, `LandingIcons`, `TechLogos`) |
