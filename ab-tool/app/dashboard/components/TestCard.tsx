@@ -7,9 +7,9 @@ import { calcSignificance } from '@/lib/significance'
 import { displayDay, estimateTimeToDecision } from '@/lib/decisions'
 import type { DailyPoint } from '@/lib/forecast'
 import { describeDbGoal } from '@/lib/resultsHelpers'
-import { formatCompact, formatPercent, formatDelta, formatCount } from '@/lib/formatNumber'
-import { significanceTone } from './sigVisual'
-
+import { formatPercent, formatDelta, formatCount } from '@/lib/formatNumber'
+import { extractDomain, formatDuration, previewUrl, issueLabel } from './testCardHelpers'
+import { SigPie } from './SigPie'
 
 export type TestRow = {
   id: string
@@ -41,92 +41,6 @@ export type TestRow = {
   traffic_split?: number | null
   min_visitors?: number | null
   min_uplift?: number | null
-}
-
-function extractDomain(url: string | null): string | null {
-  if (!url) return null
-  try {
-    const u = new URL(url.startsWith('http') ? url : `https://${url}`)
-    return u.hostname
-  } catch {
-    return null
-  }
-}
-
-function formatDuration(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime()
-  const secs = Math.floor(ms / 1000)
-  const mins = Math.floor(secs / 60)
-  const hours = Math.floor(mins / 60)
-  const days = Math.floor(hours / 24)
-
-  if (days >= 1) return `${days}d`
-  if (hours >= 1) return `${hours}h`
-  if (mins >= 1) return `${mins}m`
-  return `${secs}s`
-}
-
-/**
- * Live-URL, die eine bestimmte Variante erzwingt (ab.js: ?ab_variant=a|b).
- *
- * Ohne diesen Link ist die eigene Variante A fuer den Betreiber unsichtbar:
- * ab.js bucketet deterministisch aus IP-Hash + User-Agent, derselbe Browser
- * landet also dauerhaft im selben Arm. Der Preview-Aufruf zaehlt weder Besucher
- * noch Conversion und laesst die laufende Zuweisung unberuehrt.
- */
-function previewUrl(siteUrl: string | null, variant: 'a' | 'b'): string | null {
-  if (!siteUrl) return null
-  try {
-    const u = new URL(siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`)
-    u.searchParams.set('ab_variant', variant)
-    return u.toString()
-  } catch {
-    return null
-  }
-}
-
-function issueLabel(code: string): string {
-  const labels: Record<string, string> = {
-    missing_name: 'No name',
-    missing_site_url: 'No website',
-    missing_selector: 'No element selected',
-    missing_variant: 'No variant design',
-    missing_goal: 'No conversion goal',
-    empty_variant: 'Variant is identical to the original',
-  }
-  return labels[code] ?? code
-}
-
-/* ── Pie chart: significance progress, visitors in center ── */
-function SigPie({ significance, visitors, size }: { significance: number; visitors: number; size: number }) {
-  const r = size / 2 - 3
-  const c = size / 2
-  const circ = 2 * Math.PI * r
-  const pct = Math.min(1, Math.max(0, significance))
-  const tone = significanceTone(pct)
-  const strokeColor = tone.stroke
-  const bgColor = tone.fill
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      <circle cx={c} cy={c} r={r} fill={bgColor} stroke="var(--color-border)" strokeWidth="1.5" />
-      <circle
-        cx={c}
-        cy={c}
-        r={r}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeDasharray={`${circ * pct} ${circ * (1 - pct)}`}
-        transform={`rotate(-90 ${c} ${c})`}
-        style={{ transition: 'stroke-dasharray var(--duration-slow) var(--ease-out)' }}
-      />
-      <text x={c} y={c} textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="600" fill="var(--color-text)">
-        {formatCompact(visitors)}
-      </text>
-    </svg>
-  )
 }
 
 export function TestCard({
@@ -506,4 +420,3 @@ export function TestCard({
     </Link>
   )
 }
-
