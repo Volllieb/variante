@@ -84,6 +84,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 
 - **Dateinamen:** React-Komponenten `PascalCase.tsx`, Lib-Module `camelCase.ts`, Client-Hooks `useX.ts` in `lib/hooks/`, Route-Ordner `kebab-case`. Import-Alias `@/` = `ab-tool/`.
 - **Seiten:** `page.tsx` (Server Component, lädt Daten) + `*Client.tsx` (`'use client'`) + `loading.tsx`/`error.tsx` daneben.
+- **Große Client-Seiten:** State, Effekte und Handler bleiben im `*Client.tsx`/Step; die Abschnitte sind präsentationale Komponenten in einem Unterordner (`components/`, `sections/`, `step-url/`) und bekommen Werte und Setter **unter identischem Namen** als Props. Neue Abschnitte nach demselben Muster anlegen.
 - **API-Route-Muster:** `export async function OPTIONS() { return preflight(methods) }` → `getApiUser(req)` / `unauthorized()` → `parseBody(req, zodSchema, methods)` → Supabase via `lib/supabase.ts` → `Response.json(..., { headers: corsHeaders(methods) })`. Plan-Gates mit `paymentRequired()`; Cron-Routen in `cronRoute()` wrappen.
 - **Fehler:** API antwortet `{ error: '<kurz>' }` (+ optional `message`, `details`) mit passendem Status; Logging über `safeError`/`safeWarn` (`lib/safeLog.ts`, PII-redigiert) statt rohem `console.error`. Ausgehende Fetches auf Nutzer-URLs nur über `lib/safeFetch.ts`.
 - **State:** kein globaler Store; React-`useState` lokal, Wizard-State in `NewTestDrawer`, Persistenz über `usePersistedValue`, Live-Updates über `useRealtime` (Supabase Realtime).
@@ -114,7 +115,7 @@ Lokal ist kein Dashboard-Login möglich (`.env.local` hat Platzhalter) → UI-Zu
 
 ## Große Dateien (nur gezielt lesen)
 
-`public/ab.js` (~1670), `figma-plugin/src/ui.html` (~1080), `app/dashboard/components/NewTestDrawer.tsx` (~960), `lib/croAnalyze.ts` (~760), `new-test/delta.ts` (~720), `app/onboarding/page.tsx` (~630).
+`public/ab.js` (~1600), `figma-plugin/src/ui.html` (~1080), `app/dashboard/components/NewTestDrawer.tsx` (~930), `new-test/delta.ts` (~660), `app/onboarding/page.tsx` (~560), `lib/forecast.ts` (~540). Die `*Client.tsx` der Results- und Account-Seite (~500) enthalten überwiegend State und Handler — die Abschnitte liegen in `components/` bzw. `sections/`.
 
 ## Stolperfallen
 
@@ -122,3 +123,4 @@ Lokal ist kein Dashboard-Login möglich (`.env.local` hat Platzhalter) → UI-Zu
 - `/api/event` = Conversion aus `ab.js`; `/api/events` = Activity-Log eines Tests (Dashboard).
 - `lib/supabase.ts` nutzt den Service-Role-Key: jede Query muss selbst auf `user_id`/`temp_session_id` filtern.
 - Plan nie aus `user_metadata` lesen, immer `getPlanForUser()` / `profiles.plan` (SEC-05).
+- `lib/utils.ts` enthält nur `cn()` (Pfad von `components.json`/shadcn erwartet); `lib/cache.ts` (Redis-Cache) wird derzeit nirgends importiert.
