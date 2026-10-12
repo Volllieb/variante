@@ -40,7 +40,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/app/api/<name>/route.ts` | API-Routen (App Router, je Ordner eine Route) |
 | `ab-tool/app/dashboard/` | Dashboard: `DashboardClient.tsx`, `Sidebar.tsx`, Unterseiten `tests/`, `results/[id]/` (+ `components/`), `account/` (+ `sections/`, `types.ts`), `billing/` (je `page.tsx` server + `*Client.tsx`) |
 | `ab-tool/app/dashboard/components/` | Dashboard-Komponenten; `NewTestDrawer.tsx` = Test-Wizard, `overview/` = Bausteine der Overview-Seite (`DashboardClient`) |
-| `ab-tool/app/dashboard/components/new-test/` | Wizard-Steps (`StepUrlAndElement`, `StepGoal`, `StepChange`, `StepReview`), Editoren, `delta.ts` (CSS-Diff/Change-Modell), `types.ts` |
+| `ab-tool/app/dashboard/components/new-test/` | Wizard-Steps (`StepUrlAndElement`, `StepGoal`, `StepChange`, `StepReview`), Editoren, `delta.ts` (CSS-Diff/Change-Modell), `types.ts`; `step-url/` = Bausteine von Step 0 (PageField, ScanSuggestions, PickerModePanel, ManualSelectorForm, SelectedElementCard) |
 | `ab-tool/app/components/` | Geteilte UI-Primitives (Button, Card, Toast, Tooltip, Toggle, Skeleton, `VariantPreview`, `PandaLogo`); `landing/` = Landing-Grafiken (`LandingIcons`, `TechLogos`) |
 | `ab-tool/app/{page,LandingDemo,LandingTrySite}.tsx` | Landingpage; Copy in `lib/landingCopy.ts` |
 | `ab-tool/app/{login,signup,update-password,onboarding,auth}/` | Auth- und Onboarding-Seiten (`onboarding/components/` = Header, StepIndicator) |
@@ -114,7 +114,7 @@ Lokal ist kein Dashboard-Login möglich (`.env.local` hat Platzhalter) → UI-Zu
 
 ## Große Dateien (nur gezielt lesen)
 
-`public/ab.js` (~1670), `figma-plugin/src/ui.html` (~1080), `app/dashboard/components/NewTestDrawer.tsx` (~960), `lib/croAnalyze.ts` (~760), `new-test/delta.ts` (~720), `new-test/StepUrlAndElement.tsx` (~690), `app/onboarding/page.tsx` (~630).
+`public/ab.js` (~1670), `figma-plugin/src/ui.html` (~1080), `app/dashboard/components/NewTestDrawer.tsx` (~960), `lib/croAnalyze.ts` (~760), `new-test/delta.ts` (~720), `app/onboarding/page.tsx` (~630).
 
 ## Stolperfallen
 
