@@ -488,9 +488,9 @@ interface WizardState {
 - `DashboardClient.tsx`: `figmaListening`-Timer-`useEffect`
 - `TestCreationPanel.tsx`: Komplette Datei (wird durch Drawer ersetzt, siehe 3.2)
 - `app/dashboard/tests/new/`: Existiert nicht, war nie gebaut.
-- `lib/useRealtime.ts`: `useTestsInsert`-Hook (falls nirgends sonst verwendet)
+- `lib/hooks/useRealtime.ts`: `useTestsInsert`-Hook (falls nirgends sonst verwendet)
 
-**Artefakt:** `app/dashboard/DashboardClient.tsx` (Edit), `lib/useRealtime.ts` (Edit)
+**Artefakt:** `app/dashboard/DashboardClient.tsx` (Edit), `lib/hooks/useRealtime.ts` (Edit)
 
 **Aufwand:** trivial (Code entfernen, ~50 Zeilen)
 

@@ -47,7 +47,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/app/{login,signup,update-password,onboarding,auth}/` | Auth- und Onboarding-Seiten |
 | `ab-tool/app/results/[id]/` | Öffentliche Results-Seite (Share-Link) |
 | `ab-tool/app/picker-return/` | Rücksprungseite des Element-Pickers |
-| `ab-tool/lib/` | Server-Logik **und** Client-Hooks (`use*.ts`) gemischt |
+| `ab-tool/lib/` | Geteilte Logik (überwiegend Server); `lib/hooks/` = Client-Hooks (`useRealtime`, `useTestList`, `usePersistedValue`, `useFocusTrap`) |
 | `ab-tool/public/ab.js` | Kunden-Snippet, ES5-IIFE, ohne Build, von ESLint ausgenommen |
 | `ab-tool/public/test-page/` | Statische Testseite für Picker/Snippet |
 | `ab-tool/__tests__/*.mjs` | Node-Unit-Tests (`test:node`), `unit/` = Vitest+jsdom, `e2e/` = Playwright, `load/` = k6 |
@@ -83,7 +83,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 
 ## Konventionen
 
-- **Dateinamen:** React-Komponenten `PascalCase.tsx`, Lib-Module `camelCase.ts`, Hooks `useX.ts` (in `lib/`), Route-Ordner `kebab-case`. Import-Alias `@/` = `ab-tool/`.
+- **Dateinamen:** React-Komponenten `PascalCase.tsx`, Lib-Module `camelCase.ts`, Client-Hooks `useX.ts` in `lib/hooks/`, Route-Ordner `kebab-case`. Import-Alias `@/` = `ab-tool/`.
 - **Seiten:** `page.tsx` (Server Component, lädt Daten) + `*Client.tsx` (`'use client'`) + `loading.tsx`/`error.tsx` daneben.
 - **API-Route-Muster:** `export async function OPTIONS() { return preflight(methods) }` → `getApiUser(req)` / `unauthorized()` → `parseBody(req, zodSchema, methods)` → Supabase via `lib/supabase.ts` → `Response.json(..., { headers: corsHeaders(methods) })`. Plan-Gates mit `paymentRequired()`; Cron-Routen in `cronRoute()` wrappen.
 - **Fehler:** API antwortet `{ error: '<kurz>' }` (+ optional `message`, `details`) mit passendem Status; Logging über `safeError`/`safeWarn` (`lib/safeLog.ts`, PII-redigiert) statt rohem `console.error`. Ausgehende Fetches auf Nutzer-URLs nur über `lib/safeFetch.ts`.

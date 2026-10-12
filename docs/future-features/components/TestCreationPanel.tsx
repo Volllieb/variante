@@ -22,7 +22,7 @@ import {
   Copy,
 } from 'lucide-react'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { useTestsInsert } from '@/lib/useRealtime'
+import { useTestsInsert } from '@/lib/hooks/useRealtime'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
 
 // ─── Token-Palette (bestehendes Dashboard-Design) ───

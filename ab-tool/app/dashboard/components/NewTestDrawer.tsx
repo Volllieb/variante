@@ -36,7 +36,7 @@ import {
 } from './new-test/delta'
 import type { ChangeEntry, ChangeProperty, StyleBaseline, VariantChangeSet } from './new-test/types'
 import { extractTextFromHtml } from '@/lib/previewDoc'
-import { useFocusTrap } from '@/lib/useFocusTrap'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 
 
 // ─── Types ───

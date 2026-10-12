@@ -20,7 +20,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
-vi.mock('@/lib/useRealtime', () => ({ useTestUpdate: () => {} }))
+vi.mock('@/lib/hooks/useRealtime', () => ({ useTestUpdate: () => {} }))
 
 vi.mock('@/app/components/VariantPreview', () => ({
   VariantPreview: () => <div data-testid="variant-preview" />,

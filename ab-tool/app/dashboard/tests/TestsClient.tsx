@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useTestList } from '@/lib/useTestList'
+import { useTestList } from '@/lib/hooks/useTestList'
 import type { DailyStatRow } from '@/lib/dashboardStats'
 import { Tooltip } from '@/app/components/Tooltip'
 import { EmptyState } from '@/app/components/EmptyState'
