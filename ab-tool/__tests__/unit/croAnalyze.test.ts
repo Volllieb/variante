@@ -13,12 +13,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import {
-  extractCandidates,
-  detectPageLanguage,
-  analyzePageWithPrimary,
-  AnalyzeError,
-} from '@/lib/croAnalyze'
+import { analyzePageWithPrimary, AnalyzeError } from '@/lib/croAnalyze'
+import { extractCandidates, detectPageLanguage } from '@/lib/croExtract'
 
 const PAGE = `<!doctype html>
 <html lang="de-DE">

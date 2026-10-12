@@ -2,7 +2,8 @@ import { corsHeaders, preflight } from '@/lib/cors'
 import { getApiUser, unauthorized, paymentRequired } from '@/lib/auth'
 import { safeFetch } from '@/lib/safeFetch'
 import { safeError } from '@/lib/safeLog'
-import { stripForCRO, extractStructure, analyzePage, getCachedInsights, cacheInsights, AnalyzeError } from '@/lib/croAnalyze'
+import { analyzePage, getCachedInsights, cacheInsights, AnalyzeError } from '@/lib/croAnalyze'
+import { stripForCRO, extractStructure } from '@/lib/croExtract'
 
 export const maxDuration = 60
 
