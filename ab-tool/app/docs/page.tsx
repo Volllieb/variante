@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { PandaLogo } from '@/components/PandaLogo'
+import { PandaLogo } from '@/app/components/PandaLogo'
 
 export const metadata: Metadata = {
   title: 'Documentation — How Variante Works',

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { PandaLogo } from '@/components/PandaLogo'
+import { PandaLogo } from '@/app/components/PandaLogo'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {

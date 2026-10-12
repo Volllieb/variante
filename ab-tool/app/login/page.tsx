@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { classifyAuthError } from '@/lib/authErrors'
 import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
-import { PandaLogo } from '@/components/PandaLogo'
+import { PandaLogo } from '@/app/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 
 function norm(s: string): string {

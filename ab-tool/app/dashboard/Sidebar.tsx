@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { PandaLogo } from '@/components/PandaLogo'
+import { PandaLogo } from '@/app/components/PandaLogo'
 import { NotificationCenter } from '@/app/components/NotificationCenter'
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PandaLogo } from '@/components/PandaLogo'
+import { PandaLogo } from '@/app/components/PandaLogo'
 import { ChevronLeft } from 'lucide-react'
 import type { Step } from '../types'
 

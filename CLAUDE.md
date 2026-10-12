@@ -41,8 +41,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/app/dashboard/` | Dashboard: `DashboardClient.tsx`, `Sidebar.tsx`, Unterseiten `tests/`, `results/[id]/`, `account/`, `billing/` (je `page.tsx` server + `*Client.tsx`) |
 | `ab-tool/app/dashboard/components/` | Dashboard-Komponenten; `NewTestDrawer.tsx` = Test-Wizard, `overview/` = Bausteine der Overview-Seite (`DashboardClient`) |
 | `ab-tool/app/dashboard/components/new-test/` | Wizard-Steps (`StepUrlAndElement`, `StepGoal`, `StepChange`, `StepReview`), Editoren, `delta.ts` (CSS-Diff/Change-Modell), `types.ts` |
-| `ab-tool/app/components/` | Geteilte UI-Primitives (Button, Card, Toast, Tooltip, Skeleton, `VariantPreview`) |
-| `ab-tool/components/` | Nur Landing-/Logo-Grafiken (`PandaLogo`, `LandingIcons`, `TechLogos`) |
+| `ab-tool/app/components/` | Geteilte UI-Primitives (Button, Card, Toast, Tooltip, Skeleton, `VariantPreview`, `PandaLogo`); `landing/` = Landing-Grafiken (`LandingIcons`, `TechLogos`) |
 | `ab-tool/app/{page,LandingDemo,LandingTrySite}.tsx` | Landingpage; Copy in `lib/landingCopy.ts` |
 | `ab-tool/app/{login,signup,update-password,onboarding,auth}/` | Auth- und Onboarding-Seiten (`onboarding/components/` = Header, StepIndicator) |
 | `ab-tool/app/results/[id]/` | Öffentliche Results-Seite (Share-Link) |
