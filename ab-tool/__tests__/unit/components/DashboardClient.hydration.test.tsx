@@ -17,7 +17,7 @@ vi.mock('@/lib/supabaseBrowser', () => ({
     auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }) },
   }),
 }))
-vi.mock('@/app/dashboard/components/SnippetStatusBadge', () => ({ SnippetStatusBadge: () => <div /> }))
+vi.mock('@/app/dashboard/components/snippet-status/SnippetStatusBadge', () => ({ SnippetStatusBadge: () => <div /> }))
 vi.mock('@/app/dashboard/components/AgentPanel', () => ({ AgentPanel: () => <div /> }))
 vi.mock('@/app/dashboard/components/WhatToTestNext', () => ({ WhatToTestNext: () => <div /> }))
 vi.mock('@/app/dashboard/components/TrendChart', () => ({ TrendChart: () => <div /> }))

@@ -23,7 +23,7 @@ import {
   Globe,
   ChevronDown,
 } from 'lucide-react'
-import { SnippetStatusBadge } from './components/SnippetStatusBadge'
+import { SnippetStatusBadge } from './components/snippet-status/SnippetStatusBadge'
 import { PlanUsageBar } from './components/PlanUsageBar'
 import { RefreshIndicator, useRefreshTransition } from './components/RefreshIndicator'
 

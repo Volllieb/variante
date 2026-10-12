@@ -29,7 +29,7 @@ vi.mock('@/lib/supabaseBrowser', () => ({
   }),
 }))
 
-vi.mock('@/app/dashboard/components/SnippetStatusBadge', () => ({
+vi.mock('@/app/dashboard/components/snippet-status/SnippetStatusBadge', () => ({
   SnippetStatusBadge: () => <div data-testid="snippet-status" />,
 }))
 
