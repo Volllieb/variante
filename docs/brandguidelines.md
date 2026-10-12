@@ -1,476 +1,395 @@
-# Brand Guidelines — Variante
+# Brand Guidelines — variante
 
-> v2 — Kompletter Design-Pivot weg von "Figma-nativ + Dark-Aurora-Glass" hin zu einem
-> eigenen, monochromen Dashboard-System ("Panda": nur Schwarz/Weiß/Grau + 3 Funktionsfarben).
-> Struktur 1:1 vom Vercel-Dashboard übernommen und auf A/B-Testing übersetzt.
-> Gilt für **alle vier Oberflächen**: Web-Dashboard, Landingpage, Login, Figma-Plugin.
+> **v3** — Regelwerk, keine Historie (Pivot- und Migrationsgeschichte: `docs/historie.md`).
+> Gilt für Web-Dashboard, Login/Signup, Landingpage und (eingeschränkt, §9) das Figma-Plugin.
+> Tokens: `ab-tool/app/globals.css` (`:root` + `@theme`). Primitives: `ab-tool/app/components/`.
+> **„TODO Phase 1"** = Komponente fehlt oder weicht ab; bis dahin gilt die Regel, nicht der Ist-Code.
 
 ---
 
-## 1. Produkt-Identität & Design-Richtung
+## 1. Produkt & Prinzipien
 
 | Attribut | Wert |
 |---|---|
-| **Produkt** | Variante — A/B-Testing aus Figma, kein Dev nötig |
-| **Schreibweise** | **Eigene Flächen:** „variante" (klein, Stilmittel) — **Offizielle/Fremdflächen:** „Variante" (groß, z. B. Stripe, Kreditkartenabrechnung, Impressum, Rechnungen) |
-| **Oberflächen** | Landingpage · Login/Signup · Web-Dashboard · Figma-Plugin |
-| **Referenz-Struktur** | Vercel-Dashboard (Sidebar-Nav, Workspace-Bar, Card-Grid, Toolbar-Pattern) |
-| **Farbwelt** | Monochrom (Schwarz/Weiß/Grau) — **kein** Marken-Akzentton mehr |
-| **Maskottchen-Logik** | Panda = schwarz-weiß → rechtfertigt die rein monochrome Palette |
-| **Design-Prinzip** | Technisch, übersichtlich, strukturiert — man sieht immer sofort, wo man ist und was man tun kann |
-| **Free/Pro-Prinzip** | Eingeschränkte Bereiche bleiben **sichtbar**, nie versteckt — Upsell durch Sichtbarkeit + klare Kennzeichnung |
-| **Tonalität** | Direkt, dev-frei, ermächtigend, „volle Kontrolle" |
+| **Produkt** | variante — A/B-Tests für jede Website: Snippet `ab.js` einbinden, Element im Dashboard per Picker wählen, KI baut Variante B, variante misst. Kein Dev nötig. |
+| **Schreibweise** | Eigene Flächen: „variante" (klein). Fremd-/Rechtsflächen (Stripe, Rechnung, Impressum): „Variante". |
+| **Referenz-Struktur** | Vercel-Dashboard: Sidebar-Nav, Card-Grid, Toolbar-Pattern |
+| **Farbwelt** | Monochrom (Panda = schwarz-weiß) + genau 3 Funktionsfarben. Kein Marken-Akzent. Dark-only. |
+| **Design-Prinzip** | Technisch, dicht, strukturiert — man sieht sofort, wo man ist und was man tun kann. |
+| **Free/Pro** | Eingeschränktes bleibt **sichtbar** und wird erklärt, nie versteckt (§7). |
+| **Tonalität** | Direkt, dev-frei, „volle Kontrolle". UI-Texte Englisch. |
 
-
-**Abgelöst:** Das bisherige Dark-Aurora/Glassmorphism-System der Landingpage/des Dashboards
-(Violet/Fuchsia-Gradients, Blur-Blobs, `bg-white/[0.03]`-Glass-Cards) sowie der Figma-Blue
-(`#0D99FF`) als eigenständige Markenfarbe. Siehe [Abschnitt 9 – Migration](#9-migration--was-sich-ändert).
+**Kernregeln (nicht verhandelbar):** monochrom · 3 Funktionsfarben · kein Shadow/Gradient/Blur/Glow ·
+Gewichte nur 400/500/600 · Pro-Features sichtbar statt versteckt.
 
 ---
 
-## 2. Design Tokens — Farbsystem
+## 2. Farben
 
-### 2.1 Basis (monochrom, für alle App-Oberflächen: Dashboard, Login, Landingpage)
+| Token (CSS) | Tailwind | Wert | Einsatz |
+|---|---|---|---|
+| `--color-bg-0` | `bg-bg-0` | `#000` | Seiten-Canvas, Sidebar, Drawer |
+| `--color-bg-1` | `bg-bg-1` | `#0a0a0a` | Card-Fill, Inputs, Dropdown-Panel |
+| `--color-bg-2` | `bg-bg-2` | `#111` | Nested Fill: aktiver Nav-Eintrag, Hover, neutrale Badge |
+| `--color-border` | `border-border` | `white/10` | Standard-Hairline |
+| `--color-border-strong` | `border-border-strong` | `white/18` | Hover, betonte Trennung, gesperrte Card |
+| `--color-text` | `text-text` | `#ededed` | Primärtext, Werte |
+| `--color-text-2` | `text-text-2` | `#ededed/62` | Sekundärtext |
+| `--color-text-3` | `text-text-3` | `#ededed/58` | Meta, Placeholder, Hilfetext (AA-konform, ≥ 4.5:1) |
+| `--color-fill-invert` (+`-hover`) | `bg-fill-invert` | `#fff` | Primär-Button |
+| `--color-text-on-invert` | `text-text-on-invert` | `#000` | Text auf Primär-Button |
+| `--color-ok` / `-bg` | `text-ok` / `bg-ok-bg` | `#2fd76c` | aktiv, live, Erfolg, Gewinner |
+| `--color-pro` / `-bg` | `text-pro` / `bg-pro-bg` | `#f5a623` | Pro, gesperrt, Limit erreicht, Warnung |
+| `--color-err` / `-bg` | `text-err` / `bg-err-bg` | `#f5455c` | Fehler, Verlierer, destruktiv |
 
-```css
---bg-0:           #000000;   /* Seiten-Canvas, Sidebar */
---bg-1:           #0a0a0a;   /* Card-Fill, eine Stufe heller */
---bg-2:           #111111;   /* Nested Fill: aktiver Nav-Eintrag, Search-Input, Hover */
---border:         rgba(255,255,255,.10);   /* Standard-Hairline */
---border-strong:  rgba(255,255,255,.18);   /* Hover / betonte Trennung / gesperrte Cards */
---text:           #ededed;                 /* Primärtext */
---text-2:         rgba(237,237,237,.62);   /* Sekundärtext */
---text-3:         rgba(237,237,237,.40);   /* Meta/Placeholder/disabled */
-```
-
-**Regel:** Keine zusätzlichen Grautöne erfinden. Jede neue Text-/Border-Abstufung leitet sich
-aus Weiß-Opacity ab (skaliert automatisch, kein Extra-Hex-Wert nötig).
-
-### 2.2 Inverted (Primär-Buttons, CTAs)
-
-```css
---fill-invert:      #ffffff;
---text-on-invert:   #000000;
-```
-
-Primär-Buttons sind immer weiß gefüllt mit schwarzem Text (nie farbig) — z. B. „New test",
-„Upgrade", „Sign in". Genau ein invertierter Button pro Screen/Section.
-
-### 2.3 Funktionsfarben — genau 3, nur für Bedeutung, nie Dekoration
-
-```css
---ok:        #2fd76c;   --ok-bg:   rgba(47,215,108,.12);   /* aktiv / live / Erfolg */
---pro:       #f5a623;   --pro-bg:  rgba(245,166,35,.12);   /* gesperrt / Pro / Upgrade */
---err:       #f5455c;   --err-bg:  rgba(245,69,92,.12);    /* Fehler */
-```
-
-Keine vierte Funktionsfarbe hinzufügen. „Draft"/neutral nutzt `--text-3` + `--bg-2`, keine eigene Farbe.
-
-### 2.4 Figma-Plugin-spezifisch — "Figma-native, nicht Panda"
-
-Das Plugin läuft **in** Figma, nicht daneben. Ein Plugin, das wie ein Fremdkörper aussieht
-(schwarzes Panda-Dashboard in Figmas heller/dunkler UI), fühlt sich billig an. Figma-Nutzer
-erwarten native Widgets, native Focus-Rings, native Light/Dark-Adaption. Das ist **kein**
-Kompromiss bei der Brand-Identity — es ist Respekt vor dem Host-Kontext.
-
-**Prinzip:** Würde ein Figma-Nutzer denken „aha, ein Figma-Plugin" oder „was ist das für ein
-fremdes Ding da in meiner Sidebar"? Ersteres ist das Ziel. Die Marke „Variante" transportiert
-sich über Logo, Tonalität und die 3 Farbtupfer — nicht über einen komplett eigenen Look.
-
-**Was reinkommt (Panda-Anteil):**
-- Die **3 Funktionsfarben** auf Figma-Status-Tokens gemappt
-- Dieselbe **Status-Ikonografie** (Dot/Ring, Badges) wie im Dashboard
-- Gleiche **Gating-Sprache** (Pro-Features sichtbar, nicht versteckt)
-- Gleiche **Tonalität** und **Terminologie**
-
-**Was rausfliegt:**
-- `#0D99FF` als eigener Akzent — Buttons/Fokus nutzen Figmas native Tokens
-- Shadows (`--elev-0` bis `elev-3`), Gradients, `brand-subtle`-Hintergründe
-- Selbstgebaute Button-/Input-/Card-Styles zugunsten von `--figma-color-*`
-
-**Token-Mapping:**
-
-| Panda-Token | Figma-Token |
-|---|---|
-| `--ok` / `--ok-bg` | `--figma-color-bg-success` / `--figma-color-text-success` |
-| `--pro` / `--pro-bg` | `--figma-color-bg-warning` / `--figma-color-text-warning` |
-| `--err` / `--err-bg` | `--figma-color-bg-danger` / `--figma-color-text-danger` |
-| Hintergrund, Text, Border | `--figma-color-bg`, `--figma-color-text`, `--figma-color-border` |
-
-Das Plugin bekommt **keinen eigenen Akzent mehr** — Figma's eigene native Darstellung bestimmt
-das Look & Feel.
-
-### 2.5 Radius
-
-```css
---r-card:   10px;   /* Cards */
---r-ctrl:   6px;    /* Buttons, Inputs, Icon-Buttons, Badges */
---r-pill:   5px;    /* Kleine Tags/Status-Pills */
---r-full:   50%;    /* Avatare */
-```
-
-Kein Schatten (`box-shadow`), kein Gradient, kein Blur — irgendwo im System. Tiefe entsteht
-ausschließlich über Hairline-Borders + eine Stufe Fill-Helligkeit (`--bg-0` → `--bg-1` → `--bg-2`).
+- Keine weiteren Grautöne und keine vierte Funktionsfarbe. Neutral/Draft = `text-text-3` + `bg-bg-2`.
+- Funktionsfarben nur für Bedeutung, nie Dekoration. Tönungen per Opacity-Modifier (`border-ok/20`) sind erlaubt.
+- Tiefe entsteht nur über Hairline + Fill-Stufe (`bg-0 → bg-1 → bg-2`), nie über Schatten.
 
 ---
 
 ## 3. Typografie
 
-### 3.1 Font-Stack
+**Font:** `--font-sans` (Inter-Stack), `--font-mono` (`font-mono`). Monospace **nur** für Maschinenwerte:
+Kontingente (`8.2K / 10K`), IDs, URLs/Pfade, Snippet-Code, Token. Nie für Prosa oder Labels.
+Ziffern im Dashboard sind global `tabular-nums` (`app/dashboard/layout.tsx`).
 
-```css
---font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
---font-mono: ui-monospace, "SF Mono", "Fira Code", monospace;
-```
+**Gewichte:** `font-normal` (400) Fließtext · `font-medium` (500) Labels, Nav aktiv, Kartentitel, Werte ·
+`font-semibold` (600) Buttons, Badges, Überschriften. **Nie** `font-bold`/700+.
 
-### 3.2 Gewichts-Skala (strikt — nie mehr als diese drei)
+**Size-Skala Dashboard / Login** (Token → Klasse):
 
-| Weight | Einsatz |
-|---|---|
-| 400 (regular) | Fließtext, Beschreibungen, sekundäre Werte |
-| 500 (medium) | Section-Labels, aktive Nav-Items, Kartentitel, Zahlen/Werte |
-| 600 (semibold) | Buttons, Badges/Pills, Alert-Headline |
-
-**Nie** 700/800 verwenden — auch nicht auf der Landingpage. Hierarchie entsteht über Gewicht
-und Farbe (`--text` vs. `--text-2` vs. `--text-3`), nicht über große Size-Sprünge.
-
-### 3.3 Monospace-Regel
-
-Monospace **ausschließlich** für Maschinenwerte: Kontingente (`8.2K / 10K`), IDs (`9vK5j3zdz`),
-Pfade/URLs, Zähler, Test-Token. Signalisiert „das ist Daten", nie für Prosa oder Labels.
-
-### 3.4 Size-Skala nach Oberfläche
-
-| Kontext | Base | Meta/Klein | Hero/Emphasis |
+| Token | Klasse | Größe | Einsatz |
 |---|---|---|---|
-| **Dashboard / Login** (dicht) | 13px | 11px | 15–16px (Kartentitel) |
-| **Landingpage** (luftig) | 16px | 13px | 44–56px (Hero-Headline, responsive) |
-| **Figma-Plugin** (360px Sidebar) | 12px | 10–11px | 13px (Titel) |
+| `--text-meta` | `text-meta` | 11px | Meta, Section-Labels, Badges, Hilfe-/Fehlertext, Tabellen-Header |
+| `--text-small` | `text-small` | 12px | Sekundäre Zeilen, Buttons `sm`/`md`, Tabellenzellen, Tooltips |
+| `--text-body` | `text-body` | 13px | Standard (Body-Default im Dashboard-Layout), Nav, Inputs |
+| `--text-title` | `text-title` | 15px | Card-/Drawer-/Dialog-Titel |
+| `--text-heading` | `text-heading` | 18px | Seitentitel (H1) — genau einer pro Seite |
+| `--text-display` | `text-display` | 24px | KPI-Werte |
+| `--text-display-lg` | `text-display-lg` | 36px | Hero-Zahl der Results-Seite (Uplift), Error-Code |
 
-Landingpage nutzt denselben Font-Stack und dieselbe Gewichts-Skala — nur größer skaliert und
-mit mehr Zeilenhöhe (`line-height: 1.5–1.6` statt 1.3–1.4 im Dashboard).
+10px und kleiner sind im Dashboard verboten (Ausnahme: Zähler-Bubble an Icon-Buttons, max. 1 Zeichen → `text-meta` reicht ebenfalls).
+14px gibt es nicht; ehemalige 14px-Titel → `text-title`.
 
----
-
-## 4. Layout & Spacing
-
-### 4.1 App-Shell (Dashboard)
-
-```
-┌──────────┬──────────────────────────────────────────────────┐
-│ Sidebar  │ Main Content (card-based, einspaltig)            │
-│ 220px    │                                                  │
-│ fixed    │ [Scope-Selector Header]                          │
-│          │ [KPI-Card-Grid (5 Cards, nur wenn Tests > 0)]     │
-│ [Panda]  │ [Tests-Card: Toolbar + TestCard-Grid]            │
-│ Nav      │                                                  │
-│ Settings │                                                  │
-│ Avatar   │                                                  │
-└──────────┴──────────────────────────────────────────────────┘
-```
-
-- **Sidebar:** 220px fixed left, `border-right: 1px solid var(--border)`, Logo oben, Nav (Overview, Tests)
-  mit 13px Text/7px 9px Padding/6px Radius, collapsible Settings (Billing, Account, ChevronDown-Rotation),
-  Avatar am unteren Rand (Gravatar + JS-Fallback colored initials, Email, Plan-Badge)
-- **Keine Topbar.** Navigation nur via Sidebar.
-- **Main Content:** `<main className="pl-[220px]">`, einspaltig, max-width 1200px, Padding 24px.
-- **Toolbar:** In der Tests-Card — Search (flex: 1), Sort/Filter-Icon-Buttons, "New test"-CTA.
-- **Cards:** `--bg-1`, `--r-card` (6px), Hairline-Border. Health-Warning-Banner (wenn Issues) vor den KPIs.
-
-### 4.2 Landingpage-Shell ("gleiches System, mehr Luft")
-
-- Gleiche Tokens (`--bg-0`, `--border`, Card-Style) wie das Dashboard — bewusst **keine** eigene
-  Marketing-Palette.
-- Section-Abstand: 64–120px vertikal zwischen Hero/Features/Pricing/Footer (App-Dichte: 16–20px).
-- Feature-/Pricing-Cards nutzen exakt dieselben Card-Tokens (`--bg-1`, `--r-card`, Hairline-Border) —
-  das signalisiert „das ist dasselbe Produkt", keine separate Marketing-Fassade.
-- Pricing-Vergleich (Free vs. Pro) verwendet dieselbe Gating-Sprache wie das Dashboard
-  (siehe Abschnitt 6) statt einer eigenen Pricing-Tabellen-Optik.
-
-### 4.3 Spacing-Skala (gemeinsam)
-
-```css
---gap-xs: 4px;  --gap-sm: 8px;  --gap-md: 12px;  --gap-lg: 20px;  --gap-xl: 32px;
-```
-
-Dashboard nutzt überwiegend `xs–md`, Landingpage überwiegend `lg–xl` plus die großen
-Section-Abstände aus 4.2.
+**Landingpage** nutzt Tailwind-Standardgrößen (`text-sm` … `text-5xl`) bzw. die `.hero-*`/`.section-*`-Klassen
+in `globals.css`: Base 16px, Meta 13px, Hero 36–56px responsive, `leading-relaxed`. Gleiche Gewichte.
 
 ---
 
-## 5. Component Patterns
+## 4. Radius, Spacing, Motion
 
-### 5.1 Sidebar-Nav-Item
+### 4.1 Radius
+
+| Token | Tailwind | Wert | Einsatz |
+|---|---|---|---|
+| `--radius-sm` | `rounded-sm` | 4px | Badges/Pills, Checkbox, kleine Inline-Controls |
+| `--radius-md` | `rounded-md` | 6px | **Cards**, Buttons, Inputs, Icon-Buttons, Dropdown-Panels, Tooltips |
+| `--radius-lg` | `rounded-lg` | 10px | nur Modal-Dialog (§6.6). Nicht für Cards. |
+| — | `rounded-full` | 50% | Status-Dots, Avatare, Progress-Bars, Toggle-Switch |
+
+Bestehende Schreibweise `rounded-[var(--radius-md)]` ist gleichwertig; neuer Code nutzt `rounded-md`.
+Cards mit `--radius-lg` sind Altbestand und werden in Phase 4 auf `md` gezogen.
+
+### 4.2 Spacing (Layout-Abstände)
+
+| Token | Tailwind | Wert | Einsatz |
+|---|---|---|---|
+| `--spacing-tight` | `gap-tight`, `p-tight` … | 4px | Icon↔Text, Label↔Wert in KPI |
+| `--spacing-snug` | `gap-snug` … | 8px | Elemente in einer Zeile, Toolbar-Items |
+| `--spacing-base` | `gap-base` … | 12px | Cards im Grid, Card-Inhalt vertikal |
+| `--spacing-loose` | `gap-loose` … | 20px | Sections innerhalb einer Seite |
+| `--spacing-section` | `mt-section` … | 32px | Seitenblöcke; Landing: Vielfache (64–120px) |
+
+Namen bewusst nicht `xs…xl`: in Tailwind v4 löst `max-w-sm/md/lg` zuerst `--spacing-*` auf — `--spacing-md`
+würde `max-w-md` auf 12px schrumpfen. Innenabstände von Controls (Button, Input, Badge) liegen in der Komponente
+und dürfen Tailwinds 4px-Raster nutzen (`px-2.5`, `py-1.5`). **Keine** Arbitrary-Werte (`p-[7px]`).
+
+### 4.3 Motion
+
+`--duration-fast` 120ms (Farbe/Opacity, Default aller `transition-*`) · `--duration-base` 160ms (Flächen-Hover,
+`.surface-interactive`) · `--duration-slow` 320ms (Progress, Drawer-Slide) · Easing `--ease-out`.
+Kein Hover-Lift im Dashboard (`.card-lift` nur Landingpage). `prefers-reduced-motion` wird global respektiert.
+
+---
+
+## 5. Layout
+
+### 5.1 App-Shell (Dashboard)
 
 ```
-┌─────────────────────────────┐
-│ 🧪  Tests                   │  ← aktiv: bg-2 + weight 500
-│ 🚀  Results                 │  ← inaktiv: text-2
-│ 📊  Analytics          🔒   │  ← gesperrt: text-3 + Lock-Icon rechts
-└─────────────────────────────┘
+┌──────────┬──────────────────────────────────────────────┐
+│ Sidebar  │ <main> einspaltig, max-w 1200px, Padding 24px │
+│ 220px    │                                              │
+│ Logo     │ Ebene 0–6 (§8.1)                              │
+│ Overview │                                              │
+│ Tests    │                                              │
+│ ─────    │                                              │
+│ Account  │                                              │
+│ Billing  │                                              │
+│ Docs ↗   │                                              │
+│ Avatar   │                                              │
+└──────────┴──────────────────────────────────────────────┘
 ```
 
-- Aktiv: `background: var(--bg-2); font-weight: 500; color: var(--text)`
-- Inaktiv: `color: var(--text-2)`, kein Background
-- **Gesperrt (Free-Plan):** `color: var(--text-3)` + `<i class="ti ti-lock">` rechtsbündig —
-  **Item bleibt immer in der Liste**, wird nie entfernt oder ausgeblendet
+- Sidebar: `app/dashboard/Sidebar.tsx`, 220px, `bg-bg-0`, `border-r border-border`. Keine Topbar ab `md`.
+- Main: `app/dashboard/layout.tsx` → `md:pl-[220px]`, Body `text-body` (13px).
+- Seitenkopf: `<PageHeader>` aus `app/components/PageHeader.tsx` (Titel `text-heading`, Breadcrumbs, Actions-Slot).
 
-### 5.2 Toolbar-Pattern (Seiten-Ebene, nicht Section-Ebene)
+### 5.2 Responsive
 
-Wie bei Vercel liegt die Toolbar **über dem gesamten Content**, nicht nur über einer einzelnen
-Karten-Section — die Suche durchsucht global (hier: alle Tests), nicht nur die sichtbare Spalte.
-Reihenfolge, Suche nimmt den Restplatz ein (`flex: 1`), Rest ist fixed-width und rechtsbündig:
+| Breakpoint | Verhalten |
+|---|---|
+| `< md` (768px) | Sidebar ist Off-Canvas-Drawer (`-translate-x-full`), geöffnet über 48px-Topbar mit Menü-Button (`fixed top-0 h-12`), Backdrop `bg-black/60`, schließt bei Routenwechsel und `Esc`, Body-Scroll gesperrt. Main `pt-12`. |
+| `≥ md` | Sidebar fix sichtbar, Main `md:pl-[220px] md:pt-0`. |
+| KPI-Grid | `grid-cols-2` → `sm:grid-cols-3` → `xl:grid-cols-5` |
+| Drawer | `< sm` volle Breite, `≥ sm` 50vw |
+| Toolbar | Suche bricht über volle Breite um, Icon-Buttons + CTA in zweiter Zeile |
 
-```
-[Suche ...................................] [Sortieren] [Grid] [List] [+ New test]
-```
+Touch-Targets auf Mobile ≥ 44px (Menü-/Close-Buttons `h-11 w-11`). Keine horizontale Seiten-Scrollbar;
+Tabellen scrollen in ihrem Container (`overflow-x-auto`).
 
-- Suche: `background: var(--bg-1); border: 1px solid var(--border)`, Icon + Placeholder, `flex: 1`
-- Sortieren/Filter: quadratischer Icon-Button (34×34px), gleiche Border/Fill wie Suche
-- Grid/List-View-Toggle: zwei quadratische Icon-Buttons nebeneinander, aktiver Zustand
-  `background: var(--bg-2); border-color: var(--border-strong)`
-- Primär-CTA: invertiert (weiß/schwarz), `+`-Icon vorangestellt, immer ganz rechts
+### 5.3 Landingpage & Login
 
-Section-Labels (z. B. „Tests", „Usage") bleiben darunter, ohne eigene Toolbar — die Toolbar
-gilt für die ganze Seite.
+Gleiche Tokens, mehr Luft: Section-Abstand 64–120px, Container `.container` (72rem). Feature-/Pricing-Cards
+= Card aus §6.3, keine eigene Marketing-Palette. Landing-Buttons sind Pills (`.btn-primary`/`.btn-secondary`,
+`rounded-full`) — einzige erlaubte Abweichung von §6.1.
+Login/Signup: zentrierte Card auf `bg-bg-0`, ein Primär-Button, Sekundär-Links `text-text-2`.
 
-### 5.3 Card (Basis-Baustein für alles)
+---
 
-```css
-.card {
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--r-card);
-  padding: 14px 16px;
-}
-```
+## 6. Komponenten
 
-Kein Schatten, kein Hover-Lift — nur `border-color: var(--border-strong)` bei Hover, wenn klickbar.
+### 6.1 Button → `<Button>` (`app/components/Button.tsx`)
 
-### 5.4 Status-Indikator (Dot/Ring) — überall wiederverwendet
+| Pattern | Umsetzung |
+|---|---|
+| Primär (invertiert) | `<Button variant="primary">` — genau **einer** pro Screen/Section, CTA ganz rechts |
+| Sekundär (outlined) | `<Button variant="secondary">` |
+| Destruktiv | `<Button variant="danger">` |
+| Ghost / Text-Aktion | `<Button variant="ghost">` |
+| Link als Button | `<Button href="…">` |
+| Icon-Button (quadratisch 32px, Toolbar 36px) | **TODO Phase 1:** `size="icon"` fehlt; aktuell handgebaut z. B. in `FilterDropdown.tsx` |
+
+Größen: `sm` (`text-meta`), `md` (`text-small`, Default), `lg` (Landing/Onboarding). Icon links vom Label, `h-3.5 w-3.5`.
+**TODO Phase 1:** Button nutzt noch `text-[11px]`/`[12px]`/`[14px]`, `lg` → `text-body`; disabled+`href` wird nicht deaktiviert.
+
+### 6.2 Badge / Pill → `<Badge>` (`app/components/Badge.tsx`)
+
+`<Badge tone="ok|pro|err|neutral" dot?>` — `text-meta`, `font-semibold`, `rounded-sm`, `px-1.5 py-0.5`.
+Neutral `bg-bg-2 text-text-2`, sonst `bg-{tone}-bg text-{tone}`. Pro-Badge: Text `PRO`, uppercase.
+**TODO Phase 1:** Badge ist `rounded-full` + `font-medium`, Größe `sm` = 9px → auf diese Regel ziehen.
+
+### 6.3 Card → `<Card>` (`app/components/Card.tsx`)
+
+`bg-bg-1`, `border border-border`, `rounded-md`, Padding `p-4` (`padding="md"`). Klickbar → zusätzlich
+`.surface-interactive` (Hover: `border-border-strong` + `bg-bg-2`). Kein Lift, kein Schatten.
+Tones `ok/pro/err` nur für Banner/Hinweis-Cards (`variant="banner"`). `variant="dashed"` = Empty State/Drop-Zone.
+**TODO Phase 1:** Card nutzt `--radius-lg` → `--radius-md`; `variant="lift"` entfernen (Lift ist Landing-only, dort `.card-lift`); `interactive`-Prop für `.surface-interactive`.
+
+### 6.4 Status-Indikator (Dot/Ring)
 
 | Zustand | Darstellung |
 |---|---|
-| Aktiv/Live | gefüllter Kreis, `--ok` |
-| Draft/Neutral | gestrichelter Kreis, `--text-3` |
-| Fehler | gefüllter Kreis, `--err` |
+| Aktiv/Live | gefüllter Kreis `bg-ok`, 6–8px, `rounded-full` |
+| Draft/Neutral | gestrichelter Ring `border-text-3` |
+| Pausiert | gefüllter Kreis `bg-text-3` |
+| Fehler | gefüllter Kreis `bg-err` |
 
-Dieselbe Ikonografie in: Test-Karten (oben rechts), Activity-Feed, künftig auch im Figma-Plugin
-(Ergebnis-Screen, Dashboard-Screen).
+Gleiche Ikonografie in TestCard, DecisionList, Activity-Feed, Plugin. **TODO Phase 1:** `<StatusDot status>` fehlt (heute je Datei inline).
 
-### 5.5 Badges / Pills
+### 6.5 Formular-Felder
 
-```css
-.pill {
-  font-size: 11px; font-weight: 600;
-  border-radius: var(--r-pill);
-  padding: 2–3px 7–8px;
-}
-```
-
-- Neutral: `background: var(--bg-2); border: 1px solid var(--border); color: var(--text-2)`
-- Erfolg: `background: var(--ok-bg); color: var(--ok)`
-- Pro/Gesperrt: `background: var(--pro-bg); color: var(--pro); text-transform: uppercase`
-- Fehler: `background: var(--err-bg); color: var(--err)`
-
-### 5.6 Buttons
-
-| Type | Style |
+| Element | Regel |
 |---|---|
-| Primär (invertiert) | `background: #fff; color: #000; font-weight: 600` |
-| Sekundär (outlined) | `background: transparent; border: 1px solid var(--border-strong); color: var(--text)` |
-| Icon-Button | quadratisch, `border: 1px solid var(--border); background: var(--bg-1)` |
+| Input / Select / Textarea | `bg-bg-1 border border-border rounded-md px-3 py-2 text-body text-text placeholder:text-text-3`; Höhe 36px |
+| Label | über dem Feld, `text-meta font-medium text-text-2`, Abstand Label→Input `gap-tight` (4px), für jedes Feld Pflicht (`<label htmlFor>`) |
+| Hilfetext | unter dem Feld, `text-meta text-text-3`, Abstand `gap-tight` |
+| Fehlertext | ersetzt den Hilfetext, `text-meta text-err`, Feld `border-err`, `aria-invalid` + `aria-describedby` |
+| Feld↔Feld | `gap-base` (12px); Gruppen `gap-loose` |
+| Checkbox / Toggle | Checkbox `rounded-sm`, Toggle `rounded-full`; Label rechts, klickbar |
+| Formular-Aktionen | rechtsbündig, Primär rechts außen, Sekundär links daneben |
 
-### 5.7 Usage/Quota-Row
+**TODO Phase 1:** `<Input>`, `<Textarea>`, `<Select>`, `<Field label hint error>` fehlen (heute rohe Elemente).
 
-```
-🔘 Visitors tracked                    8.2K / 10K
-```
+### 6.6 Drawer & Modal
 
-- Label links (Icon + `--text-2`), Wert rechts in **Monospace**, `--text-2`
-- Bei Erreichen des Limits: Wert-Farbe wechselt auf `--pro` (nicht `--err` — Limit ist ein
-  Upgrade-Anlass, kein Fehler)
-- Free-Plan-Limits (z. B. „1 / 1"-Tests) erhalten einen Fortschrittsbalken:
-  `background: var(--bg-2); height: 4px; border-radius: 2px` mit `--text`-Füllung —
-  signalisiert Auslastung auf einen Blick, ohne zusätzliches Label
+- **Drawer** (Wizard, Detail-Panels): rechts, `bg-bg-0 border-l border-border`, `< sm` voll, `≥ sm` 50vw, `.animate-slide-in-right`,
+  Backdrop `bg-black/60`. Kopf: Titel `text-title` + Close-Icon-Button; Fuß: Aktionen rechts, sticky.
+  `role="dialog" aria-modal aria-labelledby`, Fokus-Trap, `Esc` schließt, Fokus kehrt zum Auslöser zurück.
+  Referenz: `NewTestDrawer.tsx`. **TODO Phase 1:** generischer `<Drawer>` fehlt; `NewTestDrawer` nutzt `shadow-2xl` (verboten).
+- **Modal** (nur Bestätigungen, max. 1 Frage): zentriert, `max-w-md`, `bg-bg-1 border border-border rounded-lg p-6`, gleiche a11y-Regeln.
+  Nie als Upsell (§7). **TODO Phase 1:** `<Modal>` / `<ConfirmDialog>` fehlt.
 
-### 5.8 Stats-Bar (Dashboard Overview)
+### 6.7 Tabs & Segmented Control
 
-Vier Cards in einer Zeile direkt unter der Toolbar, oberhalb der Test-Liste:
+- **Tabs** (Seiten-Unterbereiche): Text-Tabs `text-body`, inaktiv `text-text-2`, aktiv `text-text font-medium` + 2px-Unterstrich `bg-text`,
+  Leiste `border-b border-border`. `role="tablist"/"tab"`, `aria-selected`, Pfeiltasten. Aktuell nicht im Einsatz.
+- **Segmented Control** (2–4 Optionen, z. B. Zeitraum 7/30/All, Preview A/B): Container `bg-bg-1 border border-border rounded-md p-0.5`,
+  aktive Option `bg-bg-2 text-text`, sonst `text-text-3`; `aria-pressed`. Vorbilder: `PeriodSelector.tsx`, `new-test/PreviewStateToggle.tsx`.
 
-| Card | Inhalt |
-|---|---|
-| Active tests | Zahl + Free: `1 / 1` mit Fortschrittsbalken (siehe 5.7) |
-| Total visitors | Zahl, Monospace |
-| Conversions | Zahl, Monospace |
-| Plan | Free: „Upgrade →"-Button (invertiert) / Pro: „Pro" mit grünem Dot (`--ok`) |
+**TODO Phase 1:** `<Tabs>` und `<SegmentedControl>` fehlen.
 
-Cards nutzen exakt denselben Card-Style wie 5.3, `display: flex; flex-direction: column; gap: 4px`.
-Label in `--text-3` (11px, weight 500), Wert in `--text` (15–16px, weight 500, Monospace für Zahlen).
+### 6.8 Dropdown / Menü
 
-### 5.9 Winner-Alert
+Auslöser = Icon-Button oder Sekundär-Button mit `ChevronDown`. Panel: `absolute z-50 bg-bg-1 border border-border rounded-md p-1`,
+min. 180px breit, 4px Abstand zum Auslöser. Item: `px-2.5 py-1.5 text-body text-text-2 rounded-sm hover:bg-bg-2 hover:text-text`,
+aktiv mit `Check`-Icon rechts. Gruppen-Label `text-meta text-text-3 uppercase`. Destruktives Item `text-err`, unten, abgetrennt.
+`aria-haspopup`/`aria-expanded`, `role="menu"` bzw. `"listbox"`, `Esc` + Klick außerhalb schließen.
+Vorbild: `FilterDropdown.tsx`. **TODO Phase 1:** `<Dropdown>`/`<Menu>` fehlt.
 
-Prominente Zeile zwischen Stats-Bar und Test-Liste, nur wenn ein Test einen signifikanten Winner
-hat UND Nutzer Pro-Plan hat:
+### 6.9 Tabellen
 
-```
-⚡ Hero Button Test: B leads by +28% — View →
-```
+`w-full text-small`. Header: `text-meta font-medium text-text-3`, `border-b border-border`, `pb-2`. Zeilen: `border-b border-border`
+(letzte ohne), `py-2`, Hover `bg-bg-2` nur wenn klickbar. Zahlen rechtsbündig + `tabular-nums`, IDs/URLs `font-mono`.
+Container `overflow-x-auto`. Leere Tabelle → Empty State statt Kopfzeile ohne Inhalt.
+Vorbild: Rohdaten-Tabelle in `ResultsClient.tsx`. **TODO Phase 1:** `<Table>` fehlt.
 
-- Icon + Testname + Variant-Info + Uplift + Link
-- `background: var(--bg-1); border: 1px solid var(--border); border-left: 3px solid var(--ok)`
-- Farbe des linken Balkens: `--ok`-Grün — Winner ist Erfolg, kein Alarm
+### 6.10 Tooltip → `<Tooltip>` (`app/components/Tooltip.tsx`)
 
-### 5.10 Empty State / Figma-Prompt
+Nur Zusatzinfo, nie einzige Quelle einer Aktion. `bg-bg-2 border border-border-strong rounded-md text-small`, Delay 300ms.
+**TODO Phase 1:** `shadow-lg` entfernen; Tooltip auch bei Tastatur-Fokus zeigen (`group-focus-within`).
 
-Wenn keine Tests existieren, erscheint statt der leeren Test-Liste ein Figma-Prompt mit
-Schritt-für-Schritt-Anleitung. Die weiteren Zustände (Awaiting Figma, Test Received, Timeout)
-sind temporäre UI-Zustände derselben Komponente und folgen denselben Token-Regeln.
+### 6.11 Toast → `useToast()` (`app/components/Toast.tsx`)
 
-**Visuelles Pattern (IDLE):**
-- Zentrierte Card (`--bg-1`, `--r-card`, Hairline-Border) innerhalb des Content-Bereichs
-- Icon (🎨) + Headline (`font-weight: 500`) + nummerierte Schrittliste in `--text-2`
-- Ein invertierter Primär-Button („Open Figma Plugin") + sekundärer Cancel-Link in `--text-3`
-- Health-Check-Link in `--text-3` unterhalb der Buttons
+Bestätigung nach Aktionen, unten rechts, auto-dismiss. Typen `success` (ok), `error` (err), `warning` (pro), `info` (neutral).
+Fehler, die eine Handlung verlangen, gehören inline ans Feld/die Card, nicht in einen Toast.
 
-**Regel:** Der Prompt nutzt exakt dieselben Card-, Button- und Typografie-Tokens wie der Rest
-des Dashboards — keine Sonderbehandlung, kein separates „Onboarding-Theme".
+### 6.12 Empty State → `<EmptyState>` (`app/components/EmptyState.tsx`)
+
+Dashed Card, lucide-Icon in `bg-bg-2`-Kreis, Titel `text-body font-semibold`, ein Satz `text-small text-text-2`, eine Primär-Aktion.
+**Leeres Dashboard:** „Create your first test" öffnet den Test-Wizard (`NewTestDrawer`): URL eingeben → Element per Picker wählen →
+KI baut Variante B. Ist das Snippet noch nicht verifiziert, zeigt der Empty State zuerst den Snippet-Schritt (Ebene 1, §8.1).
+**TODO Phase 1:** `EmptyState` nutzt `text-[13px]/[12px]` und `rounded-lg` → Tokens.
+
+### 6.13 Weitere vorhandene Primitives
+
+`<PageHeader>` (Seitenkopf), `<Breadcrumbs>` (Unterseiten), `Skeleton*` (`Skeleton.tsx`, Loading-States in `loading.tsx`),
+`<NotificationCenter>`, `<VariantPreview>` (iframe-Vorschau A/B). Charts: `recharts` über `app/components/ui/chart.tsx` + `chartTheme.ts`.
+
+### 6.14 Usage/Quota-Zeile & Winner-Hinweis
+
+- Quota: Label links (`text-text-2`), Wert rechts `font-mono`; bei Limit Wert `text-pro` (Limit = Upgrade-Anlass, kein Fehler).
+  Free-Limits mit Progress-Bar `h-1 rounded-full bg-bg-2`, Füllung `bg-text`. Umsetzung: `PlanUsageBar` (DashboardClient).
+- Gewinner: Zeile in der `DecisionList` mit `ok`-Dot, Testname, Uplift, „View →". Kein eigener Alert-Banner.
 
 ---
 
-## 6. Free/Pro-Gating-Sprache (Kernstück der Anforderung)
+## 7. Zustände interaktiver Elemente
 
-Das Produkt muss immer zeigen: „du hast Kontrolle, aber manche Bereiche sind eingeschränkt" —
-**nie** durch Verstecken, sondern durch sichtbare, klar erklärte Beschränkung.
+| Zustand | Regel |
+|---|---|
+| **Default** | wie Komponente definiert |
+| **Hover** | Primär `bg-fill-invert-hover`; Sekundär/Inputs `border-border-strong` + `text-text`; Flächen `.surface-interactive`. Nur mit `@media (hover)`-sicheren Mitteln, kein Transform. |
+| **Focus** | `:focus-visible` global (`globals.css`): 2px-Ring `white/40` mit 2px Abstand. Nie `outline-none` ohne Ersatz. Kein farbiger Ring. |
+| **Active** | `active:scale-[0.98]` nur an Buttons |
+| **Disabled** | `opacity-40` + `pointer-events-none`, `disabled`/`aria-disabled` setzen; Grund per Tooltip oder Hilfetext, wenn nicht offensichtlich |
+| **Loading** | Button: `loading`-Prop (Spinner `Loader2` links, Label bleibt, Breite bleibt). Flächen: `Skeleton`, kein Spinner über ganzer Seite. |
+| **Error** | Feld `border-err` + Fehlertext (§6.5); Card-Ebene `tone="err"`-Banner mit konkreter Handlung; nie nur Farbe ohne Text |
+| **Selected/Active** | `bg-bg-2 text-text font-medium` (Nav, Segmente, Menü-Items) |
+| **Gesperrt (Pro)** | §7.1 |
 
-1. **Nav-Ebene:** Gesperrter Menüpunkt bleibt sichtbar, `text-3` + Lock-Icon rechts (5.1)
-2. **Karten-Ebene:** Gesperrte Karte bleibt an ihrer natürlichen Position im Grid,
-   `opacity: .55` + `border: 1px solid var(--border-strong)` + `PRO`-Badge (oben rechts) +
-   ein Satz Begründung in `--text-3` (z. B. „Available on Pro")
-3. **Aktions-Ebene:** Upgrade-CTA ist nie ein Modal-Interrupt, sondern ein sichtbarer,
-   permanent platzierter Button/Pill (Usage-Karte, Alerts-Karte, Pricing-Section) —
-   dieselbe visuelle Sprache auf allen vier Oberflächen
-4. **Nie:** Feature komplett ausblenden, generischen „Upgrade"-Hinweis ohne Kontext,
-   Pop-up-Upsell beim Klick
+### 7.1 Free/Pro-Gating
+
+1. **Nav:** gesperrter Eintrag bleibt, `text-text-3` + `Lock`-Icon rechts.
+2. **Card:** bleibt an ihrer Position, `opacity-55 border-border-strong` + `<Badge tone="pro">PRO</Badge>` oben rechts + ein Satz Begründung `text-text-3` („Available on Pro").
+3. **Aktion:** Upgrade-CTA ist ein permanent platzierter Button/Pill (Usage, Billing, Pricing) — nie Modal beim Klick.
+4. **Nie:** Feature ausblenden, Upgrade-Hinweis ohne Kontext, Pop-up-Upsell.
 
 ---
 
-## 7. Screen-/Seiten-Struktur pro Oberfläche
+## 8. Seiten-Struktur
 
-### 7.1 Web-Dashboard
+### 8.1 Overview (`/dashboard`, `DashboardClient.tsx`)
 
-**Layout (Vercel-Style):** 220px fixed Sidebar (left) + `<main>`-Content rechts. Keine Topbar.
-Sidebar-Logo oben, Nav in der Mitte (Overview, Tests), collapsible Settings (Billing, Account),
-Avatar mit Gravatar + JS-Fallback am unteren Rand.
-
-**Content (Overview `/dashboard`):** Card-basiert, einspaltig, in einer festen Ebenen-Reihenfolge —
-die Seite beantwortet erst „was hindert mich", dann „was will eine Entscheidung", dann „wie läuft es".
+Keine Toolbar — Suche/Sort/Filter wirken auf die volle Liste und liegen auf `/dashboard/tests`.
 
 | Ebene | Inhalt | sichtbar |
 |---|---|---|
-| 0 | Kontextleiste: Scope-Selector (Dropdown „All domains" / Domain-Name) + Test-Count + „New test"-CTA, Snippet-Status, Plan-Verbrauch | immer |
-| 1 | Blocker — genau **einer**. Snippet-Banner *oder* Preview-Draft-Karte, nie beide gestapelt | bis das Snippet verifiziert ist |
-| 2 | `DecisionList` („Needs your decision"): eine Zeile pro Test mit offener Handlung (Gewinner, entscheidungsreif, kaputte Datenbasis, Health, Draft, stehengeblieben), max. 5 + „more waiting" | wenn Entscheidungen anstehen |
-| 3 | KPI-Card-Grid (5 Cards: Active Tests, Visitors, Winning Tests, Avg Conv Rate, Avg Uplift) | ab 1 Test |
-| 5 | „Your tests": Top-5 nach **Entscheidungsreife** (nicht nach Besuchern) + „View all" | immer (sonst EmptyDashboard) |
-| 6 | Agent-Panel, „What to test next" | wie bisher |
+| 0 | Kontextleiste: Scope-Selector („All domains"/Domain) + Test-Count + „New test" (Primär), Snippet-Status, Plan-Verbrauch (`PlanUsageBar`) | immer |
+| 1 | Blocker — genau einer: Snippet-Banner *oder* Preview-Draft-Card | bis Snippet verifiziert |
+| 2 | `DecisionList` „Needs your decision": max. 5 Zeilen + „more waiting" | wenn Entscheidungen offen |
+| 3 | KPI-Grid, **5 Cards**: Active Tests, Visitors, Winning Tests, Avg Conv Rate, Avg Uplift. Label `text-meta text-text-3`, Wert `text-display font-semibold` | ab 1 Test |
+| 4 | Trend-Chart (Zeitraum-Selector 7 / 30 / All time) | wenn Trenddaten |
+| 5 | „Your tests": Top 5 nach Entscheidungsreife + „View all" | ab 1 Test, sonst Empty State |
+| 6 | Agent-Panel „What to test next" | siehe `DashboardClient` |
 
-**Zeitbezug:** Der Zeitraum-Selektor (7 / 30 / All time) steuert Visitors und Avg Conv Rate samt Δ
-zur Vorperiode. Die Tages-Zeiträume enden **gestern** — `daily_stats` wird vom Cron nachts
-abgeschlossen, für heute existiert keine vollständige Zeile. „All time" liest stattdessen die Zähler
-aus `tests` und ist damit aktuell. Active/Winning Tests sind Zustände, kein Zeitraum.
+Zeitraum steuert Visitors und Avg Conv Rate samt Δ zur Vorperiode; Tages-Zeiträume enden gestern (Cron schließt `daily_stats`
+nachts ab), „All time" liest die Live-Zähler aus `tests`. Avg Uplift mittelt nur über Tests mit deklariertem Gewinner.
 
-**Avg Uplift** mittelt ausschließlich über Tests mit deklariertem Gewinner — ein Mittel über alle
-Tests ist eine Zahl aus Rauschen. **Keine Toolbar auf der Overview:** Suche, Sortierung und Filter
-gehören zu `/dashboard/tests`, wo sie auf die vollständige Liste wirken; eine Toolbar über einer auf
-fünf Einträge gekürzten Liste filtert etwas, das der User gar nicht sieht.
+### 8.2 Tests (`/dashboard/tests`)
 
-**Content (`/dashboard/tests`):** Vollständige Test-Liste als Card mit Toolbar (Search/Sort/Filter)
-+ Grid von TestCards.
+`<PageHeader>` + Toolbar über der ganzen Liste: `[Suche (flex-1)] [Sort] [Filter] [+ New test]`. Suche = Input (§6.5) mit
+`Search`-Icon; Sort/Filter = Icon-Buttons + Dropdown (§6.8); CTA = Primär-Button rechts. Darunter Grid aus `TestCard`.
 
-**Wizard-Pattern (Test-Erstellung):** 4-Step-Wizard im Dashboard (`NewTestDrawer`, nicht
-Figma-Plugin): 1. Element (URL + Picker) → 2. Goal → 3. Variant → 4. Review. Der Variant-Step hat
-einen 3-Way-Switcher (AI Generate / Manual / Figma): AI schlägt automatisch eine Variante vor,
-User akzeptiert, editiert oder baut manuell. Figma dient dort nur als visuelle Inspiration (Link
-zum Plugin öffnet Figma in neuem Tab) — keine automatische Übernahme, keine Pflicht.
-Wizard speichert Drafts (`wizard_drafts`-Tabelle, ein Draft pro User).
+### 8.3 Test-Wizard (`NewTestDrawer` + `new-test/*`)
 
-**State-Management:** Leerzustand (EmptyDashboard: Icon + Title + "Create your first test"-CTA),
-Partial-Data-Zustände, Error-Zustände. Gating: Free-Badge + Lock-Icon für Pro-Features,
-nie verstecken (Abschnitt 6).
+Drawer (§6.6), 4 Schritte: 1 Element (URL + Picker) → 2 Goal → 3 Variant (AI Generate / Manual) → 4 Review.
+Schritt-Anzeige oben, Aktionen (Back / Continue bzw. Create test) im sticky Fuß. Draft wird gespeichert (`wizard_drafts`).
 
-### 7.2 Landingpage
+### 8.4 Results (`/dashboard/results/[id]`)
 
-Hero (großer Type-Scale, invertierter CTA-Button) → Feature-Cards (identische Card-Tokens wie
-Dashboard) → Pricing (Free/Pro mit der Gating-Sprache aus Abschnitt 6, keine separate
-Pricing-Tabellen-Optik) → Footer. Gleiche Farbwelt wie das Dashboard, nur luftiger (4.2).
+Hero-Zahl (Uplift) `text-display-lg`, Farbe nach Ergebnis (`ok`/`err`/neutral `text-text-3`), Signifikanz als Badge,
+darunter Charts und Rohdaten-Tabelle (§6.9). Öffentliche Share-Variante `/results/[id]` nutzt dieselben Bausteine.
 
-### 7.3 Login/Signup
+### 8.5 Account / Billing
 
-Zentrierte Card (`--bg-1`, Hairline-Border, `--r-card`) auf `--bg-0`-Canvas. Ein invertierter
-Primär-Button („Sign in"), Sekundär-Links in `--text-2`. Fokus-State auf Inputs: `border-color:
-var(--border-strong)` + `outline: 1px solid rgba(255,255,255,.25)` — **kein farbiger Fokus-Ring**,
-da kein Marken-Akzent mehr existiert.
-
-### 7.4 Figma-Plugin
-
-**Strategie:** Figma-native, nicht Panda. Das Plugin respektiert den Host-Kontext — es soll sich
-anfühlen wie ein natives Figma-Feature, nicht wie eine eingebettete Fremd-App.
-
-- **Farbwelt:** `--figma-color-*`-Tokens (Light/Dark automatisch), kein eigenes Farbsystem.
-  Details und Token-Mapping siehe §2.4.
-- **Kein `#0D99FF`-Akzent mehr** — Buttons, Fokus, Hover nutzen Figmas native Darstellung.
-- **Keine eigenen Schatten, Gradients, Blur** — Figma hebt Elemente selbst.
-- **Status:** Dot/Ring aus 5.4 für Test-/Ergebnis-Zustände.
-- **Struktur:** Stats-Only, 320×360px. Kein Wizard, keine Test-Erstellung im Plugin — zwei Screens
-  (Connect, Dashboard/Stats), sonst Link ins Web-Dashboard.
-
-**Migration (abgeschlossen):**
-1. `--brand`/`--brand-hover`/`--brand-subtle`/`--brand-border` entfernt, Figma-native Tokens durchgängig.
-2. Wizard-Screens (Setup/Snippet/Preview/Gate/Element/Design/Generate/Metric) aus `ui.html` entfernt —
-   Test-Erstellung läuft ausschließlich über den Dashboard-Wizard (Abschnitt 7.1).
-3. Funktionsfarben gemappt (siehe 2.4 Token-Mapping).
-4. Keine eigenen Schatten.
+`<PageHeader>` + Cards je Thema; Pro-Zeilen nach §7.1. Destruktive Aktionen (Konto löschen) unten, `variant="danger"` + Bestätigungs-Modal.
 
 ---
 
-## 8. Anti-Patterns (nicht tun)
+## 9. Figma-Plugin
 
-| Anti-Pattern | Grund |
+Das Plugin läuft **in** Figma und sieht nativ aus, nicht nach Panda. Struktur: Stats-only, 320×360px, zwei Screens
+(Connect, Stats), Test-Erstellung nur im Web-Dashboard.
+
+- Farben/Buttons/Fokus: ausschließlich `--figma-color-*` (Light/Dark automatisch), kein eigener Akzent, keine Schatten.
+- Mapping: `ok` → `--figma-color-{bg,text}-success`, `pro` → `…-warning`, `err` → `…-danger`; Fläche/Text/Border → `--figma-color-bg/-text/-border`.
+- Übernommen aus Panda: Status-Dots (§6.4), Gating-Sprache (§7.1), Tonalität, Terminologie.
+- Größen: Base 12px, Meta 11px, Titel 13px.
+
+---
+
+## 10. Icons
+
+- **lucide-react**, ausschließlich. `currentColor`, Stroke-Default, nie gefüllt.
+- Größen: `h-3.5 w-3.5` in Buttons/Badges, `h-4 w-4` Standard/Nav, `h-5 w-5` Mobile-Topbar, `h-6 w-6` Empty State.
+- Icon-only-Buttons brauchen `aria-label`; dekorative Icons `aria-hidden="true"`.
+- Keine Emojis als funktionale Icons. Ausnahme: Status-Dots (§6.4) sind gefüllte Kreise, keine Icons.
+
+---
+
+## 11. Anti-Patterns
+
+| Nicht tun | Grund |
 |---|---|
-| Marken-Akzentfarbe (Violet/Fuchsia/Figma-Blue) als UI-Farbe | Widerspricht der monochromen „Panda"-Identität |
-| Gradient, Blur, Glow, Aurora-Hintergründe | Bricht mit der flachen, technischen Optik |
-| Box-Shadow/Card-Lift bei Hover | Tiefe entsteht nur über Border + Fill-Stufe |
-| Gesperrte Features ausblenden | Upsell-Strategie ist Sichtbarkeit, nicht Verstecken |
-| Font-Weight 700/800 | Hierarchie läuft über 400/500/600, sonst wirkt es wieder wie das alte Marketing-System |
-| Vierte Funktionsfarbe einführen | Nur `ok`/`pro`/`err` — mehr Farbe verwässert die Bedeutung |
-| Eigene Marketing-Palette auf der Landingpage | Nutzer-Entscheidung: „gleiches System, mehr Luft" — keine zweite Optik |
-| Panda-Monochrom-Palette ins Figma-Plugin zwingen | Plugin läuft *in* Figma — natives Look & Feel hat Vorrang vor Marken-Durchsetzung (§2.4) |
-| Modal-Upsell beim Klick auf gesperrtes Feature | Beschränkung muss vorher sichtbar sein, nicht als Überraschung |
+| Akzentfarbe (Violet/Fuchsia/Figma-Blue) | bricht die monochrome Identität |
+| Gradient, Blur, Glow, Shadow, Hover-Lift im Dashboard | Tiefe nur über Border + Fill |
+| Gesperrte Features ausblenden / Modal-Upsell | Upsell durch Sichtbarkeit |
+| 700+ Gewicht | Hierarchie über 400/500/600 + Farbe |
+| Vierte Funktionsfarbe | verwässert Bedeutung |
+| Eigene Marketing-Palette | „gleiches System, mehr Luft" |
+| Panda-Look im Figma-Plugin | Host-Kontext hat Vorrang |
 
 ---
 
-## 9. Migration — Historie (abgeschlossen)
+## 12. Verboten im Code (Grundlage für ESLint, Phase 3)
 
-Betroffene Dateien — alle Punkte sind umgesetzt, Stand siehe `docs/historie.md`:
+Gilt für `ab-tool/app/**` und `ab-tool/components/**` (`*.tsx`). Ausnahme jeweils, wo genannt.
 
-- [ab-tool/app/dashboard/DashboardClient.tsx](ab-tool/app/dashboard/DashboardClient.tsx) —
-  komplett von Dark-Aurora/Glass (Violet/Fuchsia-Gradients, `bg-white/[0.03]`) auf die neue
-  Sidebar+Card-Struktur umbauen
-- [ab-tool/app/login/page.tsx](ab-tool/app/login/page.tsx) — auf zentrierte Card im neuen
-  Token-System umstellen
-- Landingpage (`ab-tool/app/page.tsx`) — Hero/Features/Pricing im „gleiches System, mehr Luft"-Ansatz
-- [ab-tool/app/globals.css](ab-tool/app/globals.css) — `@theme`-Block auf die Tokens aus
-  Abschnitt 2 umstellen, `lp-*`-Aurora-Utilities (Zeilen 58–143) entfernen
-- [figma-plugin/src/ui.html](figma-plugin/src/ui.html) — erledigt: `#0D99FF`-Brand-Variablen entfernt,
-  Wizard-Screens komplett entfernt (Plugin ist Stats-Only) — keine Gating-Konvention im Plugin nötig
+| # | Verboten | Stattdessen |
+|---|---|---|
+| 1 | `font-bold`, `font-extrabold`, `font-black` | `font-semibold` |
+| 2 | `shadow-*` (außer `shadow-none`), `drop-shadow-*` | Border + Fill-Stufe |
+| 3 | `bg-gradient-*`, `bg-linear-*`, `from-*`/`via-*`/`to-*`, `blur-*`, `backdrop-blur-*` | — |
+| 4 | `text-[Npx]` / `text-[Nrem]` | `text-meta` … `text-display-lg`; Landing: Tailwind-Standardgrößen |
+| 5 | `rounded-[Npx]`, `rounded-xl` … `rounded-3xl` | `rounded-sm` / `rounded-md` / `rounded-lg` / `rounded-full` |
+| 6 | Arbitrary Spacing `p*-[Npx]`, `m*-[Npx]`, `gap*-[Npx]`, `space-*-[Npx]` | Spacing-Tokens (§4.2) oder 4px-Raster |
+| 7 | Hex-/rgb-Farben in Klassen (`bg-[#…]`, `text-[rgb(…)]`) und Tailwind-Palettenfarben (`text-gray-*`, `bg-blue-*` …) | Farb-Tokens (§2) |
+| 8 | Rohe `<button>` außerhalb `app/components/` | `<Button>` (Icon-Button nach Phase 1) |
+| 9 | Rohe `<input>`, `<select>`, `<textarea>` außerhalb `app/components/` | `<Input>`/`<Select>`/`<Textarea>` (Phase 1) |
+| 10 | `outline-none` ohne `focus-visible:`-Ersatz | globaler `:focus-visible`-Ring |
+| 11 | Icons aus anderen Bibliotheken als `lucide-react` | lucide |
 
----
-
-## 10. Icon-Styleguide (produktweit)
-
-- Tabler Outline Icons (`ti ti-*`), `currentColor`, 14–16px Standard, 20–22px Sidebar/Avatare
-- Keine Emojis als funktionale Icons (Panda-Emoji 🐼 ist Ausnahme: reines Avatar-Platzhalter-Symbol,
-  kein UI-Icon)
-- Stroke-basiert, dünn (1.1–1.5), nie gefüllt/Bold-Variante — Ausnahme: Status-Kreise (5.4) sind
-  bewusst gefüllt, da sie einen Zustand markieren, kein Aktions-Icon sind
+Ausnahmen: Landing-Grafiken in `ab-tool/components/` (Logo-SVGs dürfen Hex), `public/ab.js` und `figma-plugin/` (eigene Regeln, §9).
+Regeln 8–9 greifen erst, wenn die Phase-1-Komponenten existieren.

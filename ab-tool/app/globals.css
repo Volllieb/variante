@@ -34,7 +34,8 @@
   --duration-slow: 320ms;   /* Progress-Bars, Donut-Sweeps */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Border-radius scale */
+  /* Border-radius scale (brandguidelines v3 §4.1): sm = Badges, md = Cards +
+     Controls, lg = nur Modal-Dialog. Cards auf lg sind Altbestand (Phase 4). */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
@@ -80,6 +81,34 @@
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
+
+  /* Schriftgrößen-Skala (brandguidelines v3 §3). Erzeugt text-meta … text-display-lg
+     inkl. Zeilenhöhe. Ersetzt die 9 Arbitrary-Größen (text-[9px] … text-[24px]);
+     Umstellung des Bestands ist Phase 4. Landingpage bleibt auf Tailwind-Standardgrößen. */
+  --text-meta: 11px;
+  --text-meta--line-height: 16px;
+  --text-small: 12px;
+  --text-small--line-height: 18px;
+  --text-body: 13px;
+  --text-body--line-height: 20px;
+  --text-title: 15px;
+  --text-title--line-height: 22px;
+  --text-heading: 18px;
+  --text-heading--line-height: 26px;
+  --text-display: 24px;
+  --text-display--line-height: 1;
+  --text-display-lg: 36px;
+  --text-display-lg--line-height: 1;
+
+  /* Layout-Spacing (brandguidelines v3 §4.2) → gap-base, p-snug, mt-section …
+     Bewusst nicht xs/sm/md/lg/xl: Tailwind v4 löst max-w-* zuerst über
+     --spacing-* auf (danach --container-*), --spacing-md würde max-w-md auf 12px
+     schrumpfen. Das 4px-Raster (p-2, gap-1.5) bleibt daneben gültig. */
+  --spacing-tight: 4px;
+  --spacing-snug: 8px;
+  --spacing-base: 12px;
+  --spacing-loose: 20px;
+  --spacing-section: 32px;
 }
 
 @layer base {
