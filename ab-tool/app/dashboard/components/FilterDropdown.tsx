@@ -1,7 +1,18 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { Filter, X, Check } from 'lucide-react'
+import { Filter, X } from 'lucide-react'
+
+import { Button } from '@/app/components'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/app/components/ui/dropdown-menu'
 
 /* ── Filter types ── */
 
@@ -66,6 +77,18 @@ export function getActiveFilterCount(f: FilterState): number {
 
 /* ── Component ── */
 
+/**
+ * Filter-Menü (brandguidelines v3 §6.8).
+ *
+ * Phase 2: lag als handgebautes Panel hier — eigener Klick-außerhalb-Listener,
+ * eigener Esc-Handler, ein `role="listbox"` mit drei unabhängigen Gruppen
+ * darin (das ist keine Listbox) und ein handgebauter Icon-Button. Das macht
+ * jetzt Radix über <DropdownMenu>, die Gruppen sind drei echte Radio-Gruppen,
+ * und der Auslöser ist <Button size="icon-lg"> (36px, auf Toolbar-Höhe).
+ *
+ * `onSelect` wird pro Option abgefangen: ein Filter-Menü mit drei Gruppen soll
+ * sich nicht nach dem ersten Klick schließen.
+ */
 export function FilterDropdown({
   filter,
   onChange,
@@ -73,159 +96,79 @@ export function FilterDropdown({
   filter: FilterState
   onChange: (f: FilterState) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
   const activeCount = getActiveFilterCount(filter)
-
-  // Close on click outside
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (ref.current && !ref.current.contains(e.target as Node)) {
-      setOpen(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [open, handleClickOutside])
-
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open])
 
   function set<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     onChange({ ...filter, [key]: value })
   }
 
-  function reset() {
-    onChange({ ...DEFAULT_FILTER })
-  }
-
   return (
-    <div ref={ref} className="relative shrink-0">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-controls="filter-dropdown-panel"
-        aria-haspopup="true"
-        aria-label={`Filter${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
-        className="relative flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-0 text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
-      >
-        <Filter className="h-3.5 w-3.5" />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="secondary"
+          size="icon-lg"
+          className="relative bg-bg-0"
+          aria-label={`Filter${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
+        >
+          <Filter className="h-3.5 w-3.5" aria-hidden />
+          {activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-pro px-1 text-meta font-semibold leading-none text-text-on-invert">
+              {activeCount}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-[220px]">
+        <DropdownMenuLabel>Status</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={filter.status}
+          onValueChange={(v) => set('status', v as StatusFilter)}
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <DropdownMenuRadioItem key={opt} value={opt} onSelect={(e) => e.preventDefault()}>
+              {STATUS_LABELS[opt]}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Created</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={filter.date}
+          onValueChange={(v) => set('date', v as DateFilter)}
+        >
+          {DATE_OPTIONS.map((opt) => (
+            <DropdownMenuRadioItem key={opt} value={opt} onSelect={(e) => e.preventDefault()}>
+              {DATE_LABELS[opt]}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Winner</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={filter.winner}
+          onValueChange={(v) => set('winner', v as WinnerFilter)}
+        >
+          {WINNER_OPTIONS.map((opt) => (
+            <DropdownMenuRadioItem key={opt} value={opt} onSelect={(e) => e.preventDefault()}>
+              {WINNER_LABELS[opt]}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+
         {activeCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-pro px-[3px] text-[9px] font-bold leading-none text-black">
-            {activeCount}
-          </span>
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => onChange({ ...DEFAULT_FILTER })}>
+              <X className="h-3 w-3" aria-hidden />
+              Reset filters
+            </DropdownMenuItem>
+          </>
         )}
-      </button>
-
-      {open && (
-        <div id="filter-dropdown-panel" role="listbox" aria-label="Filter options" className="absolute right-0 top-[40px] z-50 w-[220px] rounded-[var(--radius-md)] border border-border bg-bg-1 p-3">
-          {/* Header */}
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-text-2">Filters</span>
-            {activeCount > 0 && (
-              <button
-                onClick={reset}
-                className="flex cursor-pointer items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none rounded-[var(--radius-sm)] px-1.5 py-0.5"
-              >
-                <X className="h-3 w-3" />
-                Reset
-              </button>
-            )}
-          </div>
-
-          {/* Status */}
-          <FilterSection label="Status">
-            {STATUS_OPTIONS.map((opt) => (
-              <FilterOption
-                key={opt}
-                active={filter.status === opt}
-                onClick={() => set('status', opt)}
-              >
-                {STATUS_LABELS[opt]}
-              </FilterOption>
-            ))}
-          </FilterSection>
-
-          {/* Date */}
-          <FilterSection label="Created">
-            {DATE_OPTIONS.map((opt) => (
-              <FilterOption
-                key={opt}
-                active={filter.date === opt}
-                onClick={() => set('date', opt)}
-              >
-                {DATE_LABELS[opt]}
-              </FilterOption>
-            ))}
-          </FilterSection>
-
-          {/* Winner */}
-          <FilterSection label="Winner" isLast>
-            {WINNER_OPTIONS.map((opt) => (
-              <FilterOption
-                key={opt}
-                active={filter.winner === opt}
-                onClick={() => set('winner', opt)}
-              >
-                {WINNER_LABELS[opt]}
-              </FilterOption>
-            ))}
-          </FilterSection>
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ── Sub-components ── */
-
-function FilterSection({
-  label,
-  children,
-  isLast,
-}: {
-  label: string
-  children: React.ReactNode
-  isLast?: boolean
-}) {
-  return (
-    <div className={`${isLast ? '' : 'mb-2 border-b border-border pb-2'}`}>
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-text-3">
-        {label}
-      </span>
-      <div className="flex flex-col gap-0.5">{children}</div>
-    </div>
-  )
-}
-
-function FilterOption({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      role="option"
-      aria-selected={active}
-      className="flex w-full cursor-pointer items-center justify-between rounded-[var(--radius-sm)] px-2 py-1 text-left text-[12px] transition-colors hover:bg-bg-2"
-    >
-      <span className={active ? 'text-text' : 'text-text-2'}>{children}</span>
-      {active && <Check className="h-3 w-3 shrink-0 text-ok" />}
-    </button>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

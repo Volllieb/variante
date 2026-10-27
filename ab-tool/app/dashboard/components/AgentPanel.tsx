@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react'
+import { Button, Card } from '@/app/components'
 
 // ─── Tool-Labels ───
 
@@ -67,19 +68,19 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
   if (!domain || !hasVerifiedDomain) return null
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1">
+    <Card padding="none">
       {/* Header */}
-      <button
+      <Button variant="ghost"
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left"
+        className="w-full justify-between px-4 py-3 text-left hover:bg-transparent"
       >
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-pro/10">
             <Bot className="h-3.5 w-3.5 text-pro" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-text">Auto-Optimize</p>
-            <p className="text-[11px] text-text-3">
+            <p className="text-body font-semibold text-text">Auto-Optimize</p>
+            <p className="text-meta text-text-3">
               AI agent scans {host}, finds optimizations, creates tests — one click
             </p>
           </div>
@@ -89,19 +90,19 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
         ) : (
           <ChevronDown className="h-4 w-4 shrink-0 text-text-3" />
         )}
-      </button>
+      </Button>
 
       {expanded && (
         <div className="border-t border-border px-4 py-3">
           {/* Idle state */}
           {!hasRun && !isRunning && (
-            <button
+            <Button variant="primary" size="md"
               onClick={handleRun}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:bg-pro/90 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+              className="bg-pro hover:bg-pro/90"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Optimize {host}
-            </button>
+            </Button>
           )}
 
           {/* Messages */}
@@ -114,7 +115,7 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
                     {m.parts.map((part, i) => {
                       if (part.type === 'text' && part.text.trim()) {
                         return (
-                          <p key={i} className="text-[11px] leading-relaxed text-text-2">
+                          <p key={i} className="text-meta leading-relaxed text-text-2">
                             {part.text}
                           </p>
                         )
@@ -128,7 +129,7 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
                         return (
                           <p
                             key={i}
-                            className={`flex items-center gap-1.5 text-[10px] ${
+                            className={`flex items-center gap-1.5 text-meta ${
                               done ? 'text-ok/70' : failed ? 'text-err/70' : 'text-pro/70'
                             }`}
                           >
@@ -150,7 +151,7 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
 
               {/* Running indicator */}
               {isRunning && (
-                <div className="flex items-center gap-2 py-1 text-[11px] text-pro">
+                <div className="flex items-center gap-2 py-1 text-meta text-pro">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   Working…
                 </div>
@@ -158,7 +159,7 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
 
               {/* Error */}
               {error && (
-                <p className="text-[11px] text-err/70 flex items-center gap-1.5">
+                <p className="text-meta text-err/70 flex items-center gap-1.5">
                   <XCircle className="h-3 w-3 shrink-0" />
                   {error.message || 'Agent run failed'}
                 </p>
@@ -166,18 +167,19 @@ export function AgentPanel({ domain, hasVerifiedDomain, onRefreshed }: Props) {
 
               {/* Retry button */}
               {(isDone || error) && (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={handleRun}
-                  className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+                  className="mt-1 w-full gap-1.5 rounded-sm py-1.5 text-meta"
                 >
                   <Sparkles className="h-3 w-3" />
                   Run again
-                </button>
+                </Button>
               )}
             </div>
           )}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

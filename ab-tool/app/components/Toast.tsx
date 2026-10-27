@@ -108,17 +108,17 @@ function ToastItem({
 
   return (
     <div
-      className={`pointer-events-auto flex items-center gap-3 rounded-[var(--radius-lg)] border ${c.border} ${c.bg} px-4 py-3 shadow-lg backdrop-blur-sm animate-[fadeIn_0.2s_ease-out] max-w-sm`}
+      className={`pointer-events-auto flex max-w-sm items-center gap-base rounded-md border ${c.border} ${c.bg} px-4 py-3 animate-fade-in`}
       role="alert"
     >
-      <Icon className={`h-4 w-4 shrink-0 ${c.text}`} />
-      <p className={`flex-1 text-[13px] leading-snug ${c.text}`}>{t.message}</p>
+      <Icon className={`h-4 w-4 shrink-0 ${c.text}`} aria-hidden />
+      <p className={`flex-1 text-body leading-snug ${c.text}`}>{t.message}</p>
       <button
         onClick={() => dismiss(t.id)}
-        className={`cursor-pointer ${c.text}/60 hover:${c.text} shrink-0`}
+        className="shrink-0 cursor-pointer text-text-3 transition-colors hover:text-text"
         aria-label="Dismiss"
       >
-        <X className="h-3.5 w-3.5" />
+        <X className="h-3.5 w-3.5" aria-hidden />
       </button>
     </div>
   )

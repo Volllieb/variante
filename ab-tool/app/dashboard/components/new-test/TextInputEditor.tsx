@@ -19,6 +19,7 @@ import { inheritRootHtml, scratchVariantHtml } from './delta'
 import type { EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
 import { extractTextFromHtml } from '@/lib/previewDoc'
+import { Button, Card, SegmentedControl } from '@/app/components'
 
 interface TextInputEditorProps {
   element: ElementSelection
@@ -84,34 +85,29 @@ export function TextInputEditor({ element, originalHtml, baseCss, modeLocked, on
           In der Advanced-Ausklappung von StepChange ist der Modus fest
           'scratch' — der Umschalter entfällt dann komplett. */}
       {!modeLocked && (
-        <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-0 p-0.5">
-          {([
-            { value: 'inherit', label: 'Inherit from A' },
-            { value: 'scratch', label: 'From scratch' },
-          ] as const).map((m) => (
-            <button
-              key={m.value}
-              type="button"
-              onClick={() => setMode(m.value)}
-              className={`flex-1 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
-                mode === m.value
-                  ? 'bg-fill-invert text-text-on-invert'
-                  : 'text-text-2 hover:text-text'
-              }`}
-              title={m.value === 'inherit'
-                ? 'B inherits markup, classes and responsive behavior from A — only the text changes'
-                : 'B is rebuilt completely (own markup)'}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label="Variant B base"
+          value={mode}
+          onChange={setMode}
+          options={[
+            {
+              value: 'inherit',
+              label: 'Inherit from A',
+              title: 'B inherits markup, classes and responsive behavior from A — only the text changes',
+            },
+            {
+              value: 'scratch',
+              label: 'From scratch',
+              title: 'B is rebuilt completely (own markup)',
+            },
+          ]}
+        />
       )}
 
       {/* Live Preview — iframe mit echtem Site-CSS, A und B nebeneinander */}
-      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
-        <p className="mb-3 text-[11px] font-medium text-text-2">Live Preview</p>
-        <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
+      <Card>
+        <p className="mb-3 text-meta font-medium text-text-2">Live Preview</p>
+        <div className="overflow-hidden rounded-md border border-border bg-bg-0">
           <iframe
             srcDoc={srcDoc}
             sandbox=""
@@ -119,46 +115,48 @@ export function TextInputEditor({ element, originalHtml, baseCss, modeLocked, on
             className="h-24 w-full"
           />
         </div>
-      </div>
+      </Card>
 
       {/* Text Input */}
       <div>
-        <label className="mb-1.5 block text-[11px] font-medium text-text-2">Text</label>
+        <label className="mb-1.5 block text-meta font-medium text-text-2">Text</label>
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text"
           maxLength={200}
-          className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+          className="w-full rounded-md border border-border bg-bg-0 px-3 py-2 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
         />
       </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-border pt-4">
-        <button
+        <Button
+          variant="ghost"
           type="button"
           onClick={handleReset}
-          className="flex cursor-pointer items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text"
+          className="gap-1 text-meta"
         >
           <RotateCcw className="h-3 w-3" />
           Reset to original
-        </button>
+        </Button>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="secondary" size="md"
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary" size="md"
             type="button"
             onClick={handleApply}
-            className="cursor-pointer rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
+            className="hover:opacity-90"
           >
             Apply
-          </button>
+          </Button>
         </div>
       </div>
     </div>

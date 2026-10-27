@@ -92,7 +92,7 @@ export function RefreshIndicator({ active }: { active: boolean }) {
     <div
       role="status"
       aria-live="polite"
-      className={`pointer-events-none fixed bottom-4 left-4 z-[9998] md:left-[236px] flex items-center gap-1.5 rounded-full border border-border bg-bg-2 px-3 py-1.5 text-[11px] text-text-2 shadow-lg transition-opacity ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`pointer-events-none fixed bottom-4 left-4 z-[9998] md:left-[236px] flex items-center gap-1.5 rounded-full border border-border bg-bg-2 px-3 py-1.5 text-meta text-text-2 shadow-lg transition-opacity ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
       {phase === 'updating' && (
         <>

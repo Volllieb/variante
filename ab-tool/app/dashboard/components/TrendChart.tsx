@@ -12,6 +12,7 @@ import {
 import { chartMargin, gridProps, lineProps, xAxisProps, yAxisProps, SERIES } from './chartTheme'
 import { formatCount } from '@/lib/formatNumber'
 
+import { Card } from '@/app/components'
 /**
  * Trend über den gewählten Zeitraum: Besucher und Conversions.
  *
@@ -40,15 +41,15 @@ export function TrendChart({ data, label }: { data: TrendPoint[]; label: string 
   }))
 
   return (
-    <div className="mb-6 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+    <Card className="mb-6">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-3.5 w-3.5 text-text-3" />
-          <span className="text-[11px] font-medium uppercase tracking-wider text-text-3">
+          <span className="text-meta font-medium uppercase tracking-wider text-text-3">
             Traffic &amp; conversions
           </span>
         </div>
-        <span className="text-[11px] text-text-3">{label}</span>
+        <span className="text-meta text-text-3">{label}</span>
       </div>
 
       <ChartContainer
@@ -80,6 +81,6 @@ export function TrendChart({ data, label }: { data: TrendPoint[]; label: string 
           />
         </LineChart>
       </ChartContainer>
-    </div>
+    </Card>
   )
 }

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Sparkles, Globe, Lock, Loader2, RefreshCw, Bot, CheckCircle2, XCircle, Search, FlaskConical, Wand2 } from 'lucide-react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
+import { Button, Card } from '@/app/components'
 
 interface Suggestion {
   element: string
@@ -57,22 +58,22 @@ function FreeTeaser({ domain }: { domain: string | null }) {
     <div>
       <div className="mb-3 flex items-center gap-2">
         <Sparkles className="h-3.5 w-3.5 text-pro" />
-        <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
-        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">PRO</span>
+        <h2 className="text-body font-semibold text-text">What to test next</h2>
+        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-meta font-semibold text-pro">PRO</span>
       </div>
 
       {/* Geblurrter Inhalt */}
-      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-border bg-bg-1">
+      <Card padding="none" className="relative overflow-hidden">
         {/* Blur-Layer */}
         <div className="pointer-events-none select-none px-3.5 py-3 space-y-2.5 blur-[6px]">
           {TEASER_SUGGESTIONS.map((tip) => (
-            <div key={tip.element} className="flex items-start gap-2 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2">
+            <div key={tip.element} className="flex items-start gap-2 rounded-md border border-border bg-bg-2 px-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] leading-relaxed text-text-2">
+                <p className="text-meta leading-relaxed text-text-2">
                   Test <span className="font-medium text-text/90">&ldquo;{tip.original}&rdquo;</span> vs{' '}
                   <span className="font-medium text-pro">&ldquo;{tip.variant}&rdquo;</span>
                 </p>
-                <p className="mt-0.5 text-[10px] text-text-3">{tip.why}</p>
+                <p className="mt-0.5 text-meta text-text-3">{tip.why}</p>
               </div>
             </div>
           ))}
@@ -81,26 +82,26 @@ function FreeTeaser({ domain }: { domain: string | null }) {
         {/* Paywall Overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-bg-1/70 backdrop-blur-[2px]">
           <Lock className="h-5 w-5 text-pro" />
-          <p className="text-[12px] font-medium text-text">Page-specific AI suggestions</p>
-          <p className="max-w-[200px] text-center text-[11px] leading-relaxed text-text-3">
+          <p className="text-small font-medium text-text">Page-specific AI suggestions</p>
+          <p className="max-w-[200px] text-center text-meta leading-relaxed text-text-3">
             Our AI analyzes your page and suggests what to test next — specific to your site, not generic tips.
           </p>
           <Link
             href="/dashboard/billing"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:bg-pro/90"
+            className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-pro px-3 py-1.5 text-meta font-semibold text-text-on-invert transition-opacity hover:bg-pro/90"
           >
             <Sparkles className="h-3 w-3" />
             Upgrade to Pro
           </Link>
         </div>
-      </div>
+      </Card>
 
       {/* Auto-optimize teaser */}
       {domain && (
-        <div className="mt-3 flex items-center gap-2.5 rounded-[var(--radius-md)] border border-pro/10 bg-pro/[0.02] px-3 py-2.5">
+        <div className="mt-3 flex items-center gap-2.5 rounded-md border border-pro/10 bg-pro/[0.02] px-3 py-2.5">
           <Bot className="h-3.5 w-3.5 shrink-0 text-pro/40" />
-          <p className="flex-1 text-[11px] text-text-3">Auto-optimize {domain.replace(/^https?:\/\//, '')} — creates tests in one click</p>
-          <span className="shrink-0 rounded-full border border-pro/20 px-1.5 py-0.5 text-[9px] font-semibold text-pro/60">PRO</span>
+          <p className="flex-1 text-meta text-text-3">Auto-optimize {domain.replace(/^https?:\/\//, '')} — creates tests in one click</p>
+          <span className="shrink-0 rounded-full border border-pro/20 px-1.5 py-0.5 text-meta font-semibold text-pro/60">PRO</span>
         </div>
       )}
     </div>
@@ -114,15 +115,15 @@ function NoUrlPrompt() {
     <div>
       <div className="mb-3 flex items-center gap-2">
         <Sparkles className="h-3.5 w-3.5 text-pro" />
-        <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
-        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">PRO</span>
+        <h2 className="text-body font-semibold text-text">What to test next</h2>
+        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-meta font-semibold text-pro">PRO</span>
       </div>
-      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4 text-center">
+      <Card className="text-center">
         <Globe className="mx-auto h-4 w-4 text-text-3" />
-        <p className="mt-2 text-[12px] text-text-3">
+        <p className="mt-2 text-small text-text-3">
           Add a website and create a test first — then AI can analyze your page for specific suggestions.
         </p>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -198,11 +199,11 @@ function ProSuggestions({ siteUrl, domain, onRefreshed }: { siteUrl: string; dom
     <div>
       <div className="mb-3 flex items-center gap-2">
         <Sparkles className="h-3.5 w-3.5 text-pro" />
-        <h2 className="text-[13px] font-semibold text-text">What to test next</h2>
-        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-[9px] font-semibold text-pro">AI</span>
+        <h2 className="text-body font-semibold text-text">What to test next</h2>
+        <span className="rounded-full border border-pro/30 bg-pro/10 px-1.5 py-0.5 text-meta font-semibold text-pro">AI</span>
       </div>
 
-      <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-3.5">
+      <Card>
         {/* Idle: Noch nie generiert → CTA */}
         {state === 'idle' && (
           <div className="flex flex-col items-center gap-3 py-3">
@@ -210,19 +211,19 @@ function ProSuggestions({ siteUrl, domain, onRefreshed }: { siteUrl: string; dom
               <Wand2 className="h-4 w-4 text-pro" />
             </div>
             <div className="text-center">
-              <p className="text-[12px] font-medium text-text">AI-powered CRO suggestions</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-text-3">
+              <p className="text-small font-medium text-text">AI-powered CRO suggestions</p>
+              <p className="mt-1 text-meta leading-relaxed text-text-3">
                 Analyzes your page and suggests specific A/B tests — tailored to your site, not generic tips.
               </p>
             </div>
-            <button
+            <Button variant="primary" size="md"
               onClick={fetchSuggestions}
-              className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:bg-pro/90 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+              className="bg-pro hover:bg-pro/90"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Analyze my page
-            </button>
-            <p className="text-[10px] text-text-3">~$0.005 per generation · Results cached for 24h</p>
+            </Button>
+            <p className="text-meta text-text-3">~$0.005 per generation · Results cached for 24h</p>
           </div>
         )}
 
@@ -230,7 +231,7 @@ function ProSuggestions({ siteUrl, domain, onRefreshed }: { siteUrl: string; dom
         {state === 'loading' && (
           <div className="flex flex-col items-center gap-2 py-4">
             <Loader2 className="h-5 w-5 animate-spin text-pro" />
-            <p className="text-[11px] text-text-2">Analyzing {siteUrl.replace(/^https?:\/\//, '')}…</p>
+            <p className="text-meta text-text-2">Analyzing {siteUrl.replace(/^https?:\/\//, '')}…</p>
           </div>
         )}
 
@@ -238,32 +239,33 @@ function ProSuggestions({ siteUrl, domain, onRefreshed }: { siteUrl: string; dom
         {state === 'done' && (
           <div className="space-y-2.5">
             {suggestions.map((s, i) => (
-              <div key={i} className="flex items-start gap-2 rounded-[var(--radius-md)] border border-pro/10 bg-pro/[0.03] px-3 py-2">
+              <div key={i} className="flex items-start gap-2 rounded-md border border-pro/10 bg-pro/[0.03] px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-pro">
+                  <p className="text-meta font-medium uppercase tracking-wider text-pro">
                     {s.element}
                   </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-text-2">
+                  <p className="mt-1 text-meta leading-relaxed text-text-2">
                     Test{' '}
                     <span className="font-medium text-text/90 line-through decoration-err/40">&ldquo;{s.original}&rdquo;</span>
                     {' '}vs{' '}
                     <span className="font-medium text-ok">&ldquo;{s.variant}&rdquo;</span>
                   </p>
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-text-3">{s.why}</p>
+                  <p className="mt-0.5 text-meta leading-relaxed text-text-3">{s.why}</p>
                 </div>
               </div>
             ))}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-text-3">
+              <span className="text-meta text-text-3">
                 {analyzedAt ? `Analyzed ${formatTimeAgo(analyzedAt)}` : ''}
               </span>
-              <button
+              <Button
+                variant="secondary"
                 onClick={fetchSuggestions}
-                className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-2.5 py-1 text-[11px] text-text-3 transition-colors hover:border-border-strong hover:text-text-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+                className="gap-1.5 px-2.5 py-1 text-meta text-text-3 hover:text-text-2"
               >
                 <RefreshCw className="h-3 w-3" />
                 Regenerate
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -271,17 +273,17 @@ function ProSuggestions({ siteUrl, domain, onRefreshed }: { siteUrl: string; dom
         {/* Error */}
         {state === 'error' && (
           <div className="flex flex-col items-center gap-2 py-3">
-            <p className="text-[11px] text-err/70">{error}</p>
-            <button
+            <p className="text-meta text-err/70">{error}</p>
+            <Button
+              variant="secondary" size="sm"
               onClick={fetchSuggestions}
-              className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
-            </button>
+            </Button>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Auto-optimize agent */}
       {domain && <MiniAgent domain={domain} onRefreshed={onRefreshed} />}
@@ -324,24 +326,24 @@ function MiniAgent({ domain, onRefreshed }: { domain: string; onRefreshed?: () =
   }
 
   return (
-    <div className="mt-3 rounded-[var(--radius-md)] border border-pro/10 bg-pro/[0.02] p-3">
+    <div className="mt-3 rounded-md border border-pro/10 bg-pro/[0.02] p-3">
       <div className="flex items-center gap-2 mb-2">
         <Bot className="h-3.5 w-3.5 text-pro" />
-        <p className="text-[11px] font-medium text-text">Auto-optimize</p>
+        <p className="text-meta font-medium text-text">Auto-optimize</p>
       </div>
 
       {!hasRun && !isRunning && (
         <div>
-          <p className="text-[11px] leading-relaxed text-text-3">
+          <p className="text-meta leading-relaxed text-text-3">
             One click. Agent scans {host}, finds optimizations, generates variants, creates tests.
           </p>
-          <button
+          <Button variant="primary" size="sm"
             onClick={handleRun}
-            className="mt-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-pro px-3 py-1.5 text-[11px] font-semibold text-black transition-opacity hover:bg-pro/90 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+            className="mt-2.5 bg-pro hover:bg-pro/90"
           >
             <Sparkles className="h-3 w-3" />
             Optimize {host}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -354,7 +356,7 @@ function MiniAgent({ domain, onRefreshed }: { domain: string; onRefreshed?: () =
                 {m.parts.map((part, i) => {
                   if (part.type === 'text' && part.text.trim()) {
                     return (
-                      <p key={i} className="text-[11px] leading-relaxed text-text-2">
+                      <p key={i} className="text-meta leading-relaxed text-text-2">
                         {part.text}
                       </p>
                     )
@@ -368,7 +370,7 @@ function MiniAgent({ domain, onRefreshed }: { domain: string; onRefreshed?: () =
                     return (
                       <p
                         key={i}
-                        className={`flex items-center gap-1.5 text-[10px] ${
+                        className={`flex items-center gap-1.5 text-meta ${
                           done ? 'text-ok/70' : failed ? 'text-err/70' : 'text-pro/70'
                         }`}
                       >
@@ -389,27 +391,28 @@ function MiniAgent({ domain, onRefreshed }: { domain: string; onRefreshed?: () =
             ))}
 
           {isRunning && (
-            <div className="flex items-center gap-2 py-1 text-[11px] text-pro">
+            <div className="flex items-center gap-2 py-1 text-meta text-pro">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               Working…
             </div>
           )}
 
           {error && (
-            <p className="text-[11px] text-err/70 flex items-center gap-1.5">
+            <p className="text-meta text-err/70 flex items-center gap-1.5">
               <XCircle className="h-3 w-3 shrink-0" />
               {error.message || 'Agent run failed'}
             </p>
           )}
 
           {(isDone || error) && (
-            <button
+            <Button
+              variant="secondary"
               onClick={handleRun}
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[5px] border border-border py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+              className="mt-1 w-full gap-1.5 rounded-sm py-1.5 text-meta"
             >
               <RefreshCw className="h-3 w-3" />
               Run again
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -18,6 +18,7 @@ import {
   FlaskConical,
   Code,
 } from 'lucide-react'
+import { Button } from '@/app/components'
 
 /* ── Component ── */
 
@@ -76,26 +77,28 @@ export function TestsClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find test…"
-            className="w-full h-[30px] rounded-[var(--radius-md)] border border-border bg-bg-1 py-1.5 pl-8 pr-3 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+            className="w-full h-[30px] rounded-md border border-border bg-bg-1 py-1.5 pl-8 pr-3 text-body text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
           />
         </div>
         <FilterDropdown filter={filter} onChange={setFilter} />
         <Tooltip content="Refresh test list">
-          <button
+          <Button
+            variant="secondary" size="icon"
             onClick={refresh}
-            className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-border bg-bg-1 text-text-2 transition-colors hover:border-border-strong hover:text-text"
+            className="h-[30px] w-[30px] bg-bg-1"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isPending ? 'animate-spin' : ''}`} />
-          </button>
+          </Button>
         </Tooltip>
         <Tooltip content="Create new test">
-          <button
+          <Button
+            variant="primary" size="sm"
             onClick={() => { setResumeTest(null); setNewTestOpen(true) }}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover"
+            className="shrink-0"
           >
             <Plus className="h-3.5 w-3.5" />
             New test
-          </button>
+          </Button>
         </Tooltip>
       </div>
 
@@ -146,17 +149,18 @@ export function TestsClient({
         >
           <div className="flex items-center gap-3">
             {hasFigmaPlugin ? (
-              <button
+              <Button
+                variant="primary"
                 onClick={() => { setResumeTest(null); setNewTestOpen(true) }}
-                className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3.5 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover"
+                className="gap-1.5 px-3.5 py-2 text-small"
               >
                 <Plus className="h-3.5 w-3.5" />
                 New test
-              </button>
+              </Button>
             ) : (
               <a
                 href="/dashboard/health"
-                className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border-strong px-3.5 py-2 text-[12px] font-medium text-text-2 transition-colors hover:border-border hover:text-text"
+                className="flex items-center gap-1.5 rounded-md border border-border-strong px-3.5 py-2 text-small font-medium text-text-2 transition-colors hover:border-border hover:text-text"
               >
                 <Code className="h-3.5 w-3.5" />
                 Install snippet

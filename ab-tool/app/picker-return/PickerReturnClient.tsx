@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react'
 import { Check, AlertCircle, Loader2 } from 'lucide-react'
 import { PICKER_STORAGE_KEY } from '@/lib/pickerBridge'
 
+import { Card } from '@/app/components'
 type State = 'working' | 'done' | 'error'
 type Outcome = { state: 'done'; selector: string } | { state: 'error' }
 
@@ -144,13 +145,13 @@ export function PickerReturnClient() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-bg-0 px-6">
-      <div className="w-full max-w-sm rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8 text-center">
+      <Card padding="none" className="w-full max-w-sm p-8 text-center">
         {state === 'working' && (
           <>
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-bg-2">
               <Loader2 className="h-6 w-6 animate-spin text-text-3" />
             </div>
-            <p className="text-[15px] font-semibold text-text">Sending your selection…</p>
+            <p className="text-title font-semibold text-text">Sending your selection…</p>
           </>
         )}
 
@@ -159,11 +160,11 @@ export function PickerReturnClient() {
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-ok/10 ring-1 ring-ok/20">
               <Check className="h-6 w-6 text-ok" />
             </div>
-            <p className="text-[15px] font-semibold text-text">Element sent to your wizard</p>
-            <p className="mt-1.5 text-[12px] text-text-3">
+            <p className="text-title font-semibold text-text">Element sent to your wizard</p>
+            <p className="mt-1.5 text-small text-text-3">
               You can close this tab and continue in the dashboard.
             </p>
-            <code className="mt-4 inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[var(--radius-sm)] bg-bg-2 px-2.5 py-1.5 font-mono text-[11px] text-text-2">
+            <code className="mt-4 inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-sm bg-bg-2 px-2.5 py-1.5 font-mono text-meta text-text-2">
               {selector}
             </code>
           </>
@@ -174,14 +175,14 @@ export function PickerReturnClient() {
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-err/10 ring-1 ring-err/20">
               <AlertCircle className="h-6 w-6 text-err" />
             </div>
-            <p className="text-[15px] font-semibold text-text">Nothing to hand over</p>
-            <p className="mt-1.5 text-[12px] text-text-3">
+            <p className="text-title font-semibold text-text">Nothing to hand over</p>
+            <p className="mt-1.5 text-small text-text-3">
               Open this page from the element picker, or paste the CSS selector into the
               wizard&apos;s Manual Selector field.
             </p>
           </>
         )}
-      </div>
+      </Card>
     </main>
   )
 }

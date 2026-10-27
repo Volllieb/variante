@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
+import { Button, Card } from '@/app/components'
 
 interface ColorPickerProps {
   value: string
@@ -63,16 +64,17 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
   return (
     <div className="relative" ref={ref}>
       <div className="mb-1.5 flex items-center justify-between">
-        <label className="text-[11px] font-medium text-text-2">{label}</label>
+        <label className="text-meta font-medium text-text-2">{label}</label>
         {originalColor && onReset && (
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onReset}
-            className="flex cursor-pointer items-center gap-1 text-[10px] text-text-3 transition-colors hover:text-text"
+            className="gap-1 text-meta"
             title={`Reset to original (${originalColor})`}
           >
             ↺ Reset
-          </button>
+          </Button>
         )}
       </div>
       <div className="flex items-center gap-2">
@@ -81,7 +83,7 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
           type="color"
           value={isValidHex(value) ? value : '#000000'}
           onChange={(e) => { setInputValue(e.target.value); onChange(e.target.value) }}
-          className="h-8 w-10 cursor-pointer rounded-[var(--radius-sm)] border border-border bg-transparent p-0.5 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-[3px] [&::-webkit-color-swatch]:border-0"
+          className="h-8 w-10 cursor-pointer rounded-sm border border-border bg-transparent p-0.5 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0"
         />
         {/* Hex Input */}
         <div className="relative flex-1">
@@ -92,21 +94,21 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
             onFocus={() => setShowPresets(true)}
             placeholder="#000000"
             maxLength={7}
-            className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 py-2 pl-3 pr-2.5 text-[12px] font-mono text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+            className="w-full rounded-md border border-border bg-bg-0 py-2 pl-3 pr-2.5 text-small font-mono text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
           />
         </div>
       </div>
 
       {/* Preset Swatches */}
       {showPresets && (
-        <div className="absolute left-0 top-full z-10 mt-1.5 w-full rounded-[var(--radius-md)] border border-border bg-bg-1 p-2.5 shadow-lg">
+        <Card padding="none" className="absolute left-0 top-full z-10 mt-1.5 w-full p-2.5 shadow-lg">
           <div className="grid grid-cols-8 gap-1.5">
             {PRESETS.map((color) => (
               <button
                 key={color}
                 type="button"
                 onClick={() => { setInputValue(color); onChange(color); setShowPresets(false) }}
-                className={`h-6 w-6 cursor-pointer rounded-[var(--radius-sm)] border transition-transform hover:scale-110 ${
+                className={`h-6 w-6 cursor-pointer rounded-sm border transition-transform hover:scale-110 ${
                   value === color ? 'border-text ring-1 ring-text' : 'border-border'
                 }`}
                 style={{ backgroundColor: color }}
@@ -114,7 +116,7 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
               />
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )

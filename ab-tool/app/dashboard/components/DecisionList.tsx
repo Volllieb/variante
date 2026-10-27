@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { AlertTriangle, ArrowRight, Clock, Gauge, Pencil, Trophy } from 'lucide-react'
 import type { Decision, DecisionKind } from '@/lib/decisions'
+import { Button } from '@/app/components'
 
 const ICONS: Record<DecisionKind, typeof Trophy> = {
   winner: Trophy,
@@ -44,16 +45,16 @@ export function DecisionList({
   return (
     <section
       aria-labelledby="decisions-heading"
-      className="mb-6 rounded-[var(--radius-lg)] border border-border bg-bg-1"
+      className="mb-6 rounded-md border border-border bg-bg-1"
     >
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <h2
           id="decisions-heading"
-          className="text-[11px] font-medium uppercase tracking-wider text-text-3"
+          className="text-meta font-medium uppercase tracking-wider text-text-3"
         >
           Needs your decision
         </h2>
-        <span className="text-[11px] tabular-nums text-text-3">{decisions.length}</span>
+        <span className="text-meta tabular-nums text-text-3">{decisions.length}</span>
       </div>
 
       <ul>
@@ -66,29 +67,30 @@ export function DecisionList({
             >
               <Icon className={`h-4 w-4 shrink-0 ${TONE[d.severity]}`} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-text" title={d.testName}>
+                <p className="truncate text-body font-medium text-text" title={d.testName}>
                   {d.testName}
                 </p>
-                <p className="mt-0.5 truncate text-[12px] text-text-2" title={d.headline}>
+                <p className="mt-0.5 truncate text-small text-text-2" title={d.headline}>
                   {d.headline}
                 </p>
               </div>
               {d.action.href ? (
                 <Link
                   href={d.action.href}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-md)] border border-border bg-bg-0 px-2.5 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-bg-0 px-2.5 py-1.5 text-small font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
                 >
                   {d.action.label}
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               ) : (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => onFinishDraft?.(d.testId)}
-                  className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-[var(--radius-md)] border border-border bg-bg-0 px-2.5 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+                  className="shrink-0 gap-1 bg-bg-0 px-2.5 py-1.5 text-small"
                 >
                   {d.action.label}
                   <ArrowRight className="h-3 w-3" />
-                </button>
+                </Button>
               )}
             </li>
           )
@@ -99,7 +101,7 @@ export function DecisionList({
         <div className="border-t border-border px-4 py-2.5 text-center">
           <Link
             href="/dashboard/tests"
-            className="text-[12px] font-medium text-text-3 transition-colors hover:text-text-2"
+            className="text-small font-medium text-text-3 transition-colors hover:text-text-2"
           >
             {hidden} more waiting →
           </Link>

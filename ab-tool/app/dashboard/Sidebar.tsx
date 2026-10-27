@@ -18,6 +18,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import { Button, Card } from '@/app/components'
 
 function avatarColor(email: string): string {
   let hash = 0
@@ -99,18 +100,19 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
     <>
       {/* Mobile-Topbar mit Hamburger — nur unter md */}
       <div className="fixed left-0 right-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-border bg-bg-0 px-3 md:hidden">
-        <button
+        <Button
+          variant="ghost" size="icon"
           onClick={() => setMobileOpen(true)}
           aria-label="Open navigation"
           aria-expanded={mobileOpen}
           aria-controls="dashboard-sidebar"
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-2 transition-colors hover:bg-bg-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+          className="h-11 w-11"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
-        </button>
+        </Button>
         <Link href="/dashboard" className="flex items-center gap-2">
           <PandaLogo size="sm" />
-          <span className="text-[14px] font-semibold text-text">variante</span>
+          <span className="text-title font-semibold text-text">variante</span>
         </Link>
       </div>
 
@@ -130,20 +132,21 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         }`}
       >
         {/* Close-Button im Drawer — nur mobil */}
-        <button
+        <Button
+          variant="ghost" size="icon"
           onClick={() => setMobileOpen(false)}
           aria-label="Close navigation"
-          className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+          className="absolute right-2 top-3 h-11 w-11 md:hidden"
         >
           <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        </Button>
       {/* Logo */}
       <Link
         href="/dashboard"
         className="flex items-center gap-2.5 px-3 py-4"
       >
         <PandaLogo size="sm" />
-        <span className="text-[14px] font-semibold text-text">variante</span>
+        <span className="text-title font-semibold text-text">variante</span>
       </Link>
 
       {/* Navigation */}
@@ -184,7 +187,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
           href="/docs"
           target="_blank"
           rel="noopener noreferrer"
-          className="relative flex items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
+          className="relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-body text-text-2 transition-colors hover:bg-bg-2 hover:text-text"
         >
           <BookOpen className="h-4 w-4 shrink-0" />
           <span>Docs</span>
@@ -200,12 +203,13 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
         <div className="mb-1.5">
           <NotificationCenter />
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setPopoverOpen((v) => !v)}
           aria-expanded={popoverOpen}
           aria-controls="sidebar-account-popover"
           aria-haspopup="menu"
-          className="flex w-full items-center gap-2.5 rounded-[var(--radius-md)] p-1.5 text-left transition-colors hover:bg-bg-2 cursor-pointer"
+          className="w-full gap-2.5 p-1.5 text-left"
         >
           {avatarUrl && !avatarLoadFailed ? (
             <Image
@@ -220,7 +224,7 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
             />
           ) : (
             <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-meta font-semibold"
               style={{
                 background: `${avatarColor(email)}1f`,
                 color: avatarColor(email),
@@ -230,10 +234,10 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-medium text-text leading-tight">
+            <p className="truncate text-small font-medium text-text leading-tight">
               {email}
             </p>
-            <p className="text-[11px] text-text-3 leading-tight">
+            <p className="text-meta text-text-3 leading-tight">
               {plan === 'free' ? 'Free' : plan === 'pro' ? 'Pro' : 'Agency'}
             </p>
           </div>
@@ -242,22 +246,23 @@ export function Sidebar({ email, plan, avatarUrl }: SidebarProps) {
               popoverOpen ? 'rotate-180' : ''
             }`}
           />
-        </button>
+        </Button>
 
         {/* Popover — only sign out, navigation is in sidebar */}
         {popoverOpen && (
-          <div id="sidebar-account-popover" role="menu" className="absolute bottom-full left-3 right-3 mb-1 rounded-[var(--radius-md)] border border-border bg-bg-1 p-1">
-            <button
+          <Card padding="none" id="sidebar-account-popover" role="menu" className="absolute bottom-full left-3 right-3 mb-1 p-1">
+            <Button
+              variant="ghost"
               onClick={async () => {
                 await getBrowserSupabase().auth.signOut()
                 window.location.href = '/'
               }}
-              className="flex w-full items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-bg-2 hover:text-text cursor-pointer"
+              className="w-full gap-2.5 px-2.5 py-1.5 text-body"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               <span>Sign out</span>
-            </button>
-          </div>
+            </Button>
+          </Card>
         )}
       </div>
       </aside>
@@ -280,7 +285,7 @@ function SidebarLink({
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
-      className={`relative flex items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] transition-colors ${
+      className={`relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-body transition-colors ${
         active
           ? 'bg-bg-2 font-medium text-text'
           : 'text-text-2 hover:bg-bg-2 hover:text-text'

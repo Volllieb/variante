@@ -21,6 +21,7 @@ import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown, Co
 import type { ElementSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
 import { usePickerBridge } from '@/lib/pickerBridge'
+import { Button, Card, SegmentedControl } from '@/app/components'
 
 type DomainConnectState = 'idle' | 'saving' | 'not-found' | 'verified'
 
@@ -274,7 +275,7 @@ export function StepUrlAndElement({
 
   return (
     <div className="space-y-5">
-      <p className="text-[13px] leading-relaxed text-text-2">
+      <p className="text-body leading-relaxed text-text-2">
         Pick the element you want to test on your connected page.
       </p>
 
@@ -282,7 +283,7 @@ export function StepUrlAndElement({
       <div>
         {hasSnippet ? (
           <>
-            <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Page</label>
+            <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">Page</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
               <select
@@ -291,7 +292,7 @@ export function StepUrlAndElement({
                   onUrlChange(`https://${e.target.value}/`)
                   setScanState('idle'); setScanResult(null); setScanError('')
                 }}
-                className="w-full appearance-none rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+                className="w-full appearance-none rounded-md border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-body text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
               >
                 {verifiedDomains.map((d) => (
                   <option key={d.url} value={d.url}>{d.url}</option>
@@ -299,7 +300,7 @@ export function StepUrlAndElement({
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
             </div>
-            <p className="mt-1 text-[10px] text-text-3">
+            <p className="mt-1 text-meta text-text-3">
               The test runs on this page — the one your snippet is verified on. Sub-pages
               aren&apos;t offered: their snippet was never checked, so a test there
               couldn&apos;t be measured.
@@ -307,7 +308,7 @@ export function StepUrlAndElement({
           </>
         ) : (
           <div>
-            <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">Your site</label>
+            <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">Your site</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
               <input
@@ -318,14 +319,14 @@ export function StepUrlAndElement({
                   if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
                 }}
                 placeholder="yoursite.com"
-                className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+                className="w-full rounded-md border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
               />
             </div>
 
             {/* Inline domain-connect — derives the hostname from what was typed
                 above instead of asking for it a second time. */}
             {urlValid && currentHostname && (
-              <div className="mt-1.5 text-[11px]">
+              <div className="mt-1.5 text-meta">
                 {connectState === 'verified' ? (
                   <span className="inline-flex items-center gap-1.5 font-medium text-ok">
                     <Check className="h-3 w-3" /> {currentHostname} connected
@@ -337,16 +338,17 @@ export function StepUrlAndElement({
                 ) : connectState === 'not-found' ? (
                   <span className="inline-flex flex-wrap items-center gap-x-1.5 text-pro/90">
                     Snippet not found on {currentHostname} — paste it in your site&apos;s &lt;head&gt;, then{' '}
-                    <button onClick={() => onConnectDomain(currentHostname)} className="underline hover:text-pro cursor-pointer">retry</button>.
+                    <Button variant="link" size="inline" onClick={() => onConnectDomain(currentHostname)}>retry</Button>.
                   </span>
                 ) : (
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => onConnectDomain(currentHostname)}
-                    className="inline-flex items-center gap-1.5 text-text-3 transition-colors hover:text-pro cursor-pointer"
+                    className="gap-1.5 hover:text-pro"
                   >
                     <Globe className="h-3 w-3" />
                     Connect {currentHostname}
-                  </button>
+                  </Button>
                 )}
                 {domainConnectError && connectState === 'idle' && (
                   <span className="ml-1.5 text-err/80">{domainConnectError}</span>
@@ -354,7 +356,7 @@ export function StepUrlAndElement({
               </div>
             )}
 
-            <p className="mt-1 text-[10px] text-text-3">
+            <p className="mt-1 text-meta text-text-3">
               Connect the site that has the snippet installed — that page becomes the one this test runs on.
             </p>
           </div>
@@ -364,15 +366,15 @@ export function StepUrlAndElement({
       {/* ── AI Suggestion — a single inline trigger instead of its own card,
           so it doesn't visually compete with picking the element yourself. ── */}
       {urlValid && (
-        <div className="text-[12px]">
+        <div className="text-small">
           {scanState === 'idle' && (
-            <button
+            <Button variant="link" size="inline"
               onClick={runScan}
-              className="inline-flex items-center gap-1.5 text-pro transition-colors hover:text-pro/80 cursor-pointer"
+              className="gap-1.5 text-pro no-underline hover:text-pro/80"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Not sure which element? Let AI suggest one
-            </button>
+            </Button>
           )}
           {scanState === 'loading' && (
             <span className="inline-flex items-center gap-1.5 text-text-3">
@@ -385,7 +387,7 @@ export function StepUrlAndElement({
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               {scanError}
               {scanRetryable && (
-                <button onClick={runScan} className="underline hover:text-err cursor-pointer">Try again</button>
+                <Button variant="link" size="inline" onClick={runScan}>Try again</Button>
               )}
             </span>
           )}
@@ -397,7 +399,7 @@ export function StepUrlAndElement({
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Zap className="h-3 w-3 text-pro" />
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-pro">AI suggestions</p>
+            <p className="text-meta font-semibold uppercase tracking-wider text-pro">AI suggestions</p>
           </div>
           {scanResult.suggestions.map((s, i) => {
             const isPrimary = scanResult.primarySuggestion?.element === s.element
@@ -405,81 +407,76 @@ export function StepUrlAndElement({
               <button
                 key={s.element}
                 onClick={() => applySuggestion(s)}
-                className={`flex w-full cursor-pointer items-start gap-2.5 rounded-[var(--radius-md)] px-3 py-2.5 text-left transition-colors ${
+                className={`flex w-full cursor-pointer items-start gap-2.5 rounded-md px-3 py-2.5 text-left transition-colors ${
                   isPrimary
                     ? 'border border-pro/25 bg-pro/[0.05] hover:bg-pro/[0.09]'
                     : 'border border-border hover:border-border-strong'
                 }`}
               >
-                <div className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${
+                <div className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-meta font-semibold ${
                   isPrimary ? 'bg-pro/15 text-pro' : 'bg-bg-2 text-text-3'
                 }`}>
                   {i + 1}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-[12px] font-semibold text-text">{s.element}</p>
+                    <p className="truncate text-small font-semibold text-text">{s.element}</p>
                     {isPrimary && (
-                      <span className="shrink-0 rounded-full bg-pro/15 px-1.5 py-0.5 text-[9px] font-semibold text-pro">
+                      <span className="shrink-0 rounded-full bg-pro/15 px-1.5 py-0.5 text-meta font-semibold text-pro">
                         Best pick
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 line-clamp-1 text-[11px] leading-relaxed text-text-3">{s.rationale}</p>
+                  <p className="mt-0.5 line-clamp-1 text-meta leading-relaxed text-text-3">{s.rationale}</p>
                 </div>
               </button>
             )
           })}
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setScanState('idle')}
-            className="text-[11px] text-text-3 transition-colors hover:text-text-2 cursor-pointer"
+            className="text-meta"
           >
             Dismiss suggestions
-          </button>
+          </Button>
         </div>
       )}
 
       {/* ── Mode Toggle ── */}
-      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5">
-        <button
-          onClick={() => { setMode('picker'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' }) }}
-          className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-            mode === 'picker'
-              ? 'bg-bg-2 text-text'
-              : 'text-text-3 hover:text-text-2'
-          }`}
-        >
-          <MousePointerClick className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-          Visual Picker
-        </button>
-        <button
-          onClick={() => { setMode('manual'); if (selectedElement) onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' }) }}
-          className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-            mode === 'manual'
-              ? 'bg-bg-2 text-text'
-              : 'text-text-3 hover:text-text-2'
-          }`}
-        >
-          <Code2 className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-          Manual Selector
-        </button>
-      </div>
+      <SegmentedControl
+        label="How to pick the element"
+        grow
+        value={mode}
+        onChange={(next) => {
+          setMode(next)
+          // Moduswechsel verwirft die Auswahl: der Selektor aus dem Picker
+          // passt nicht zu einem von Hand getippten und umgekehrt.
+          if (selectedElement) {
+            onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' })
+          }
+        }}
+        options={[
+          { value: 'picker', label: <><MousePointerClick className="h-3.5 w-3.5" />Visual Picker</> },
+          { value: 'manual', label: <><Code2 className="h-3.5 w-3.5" />Manual Selector</> },
+        ]}
+      />
 
       {/* ── PICKER MODE ── */}
       {showPickerMode && (
         <div className="space-y-2">
-          <button
+          <Button
+            variant="primary"
             onClick={openPicker}
             disabled={!urlValid || waitingForPicker}
-            className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-fill-invert px-5 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full gap-2 rounded-md px-5 py-2.5 text-body hover:opacity-90 disabled:opacity-20"
           >
             <ExternalLink className="h-4 w-4" />
             Open page &amp; click element
-          </button>
+          </Button>
 
           {/* Single status slot — replaces four previously separate, differently
               colored boxes with one line that shows exactly what's relevant now. */}
-          <div className="text-[11px]">
+          <div className="text-meta">
             {waitingForPicker ? (
               <span className="flex items-center gap-1.5 text-text-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -489,14 +486,14 @@ export function StepUrlAndElement({
               <span className="flex items-start gap-1.5 text-err/80">
                 <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
                 <span>
-                  Pop-up blocked. <button onClick={openPicker} className="underline hover:text-err cursor-pointer">Try again</button>, or{' '}
-                  <button onClick={() => { setMode('manual'); setPickerBlocked(false) }} className="underline hover:text-err cursor-pointer">enter the selector manually</button>.
+                  Pop-up blocked. <Button variant="link" size="inline" onClick={openPicker}>Try again</Button>, or{' '}
+                  <Button variant="link" size="inline" onClick={() => { setMode('manual'); setPickerBlocked(false) }}>enter the selector manually</Button>.
                 </span>
               </span>
             ) : !hasSnippet && !selectedElement ? (
               <span className="text-pro/80">
                 Uses the snippet installed on your site. Install it first, or{' '}
-                <button onClick={() => setMode('manual')} className="underline hover:text-pro cursor-pointer">enter a CSS selector manually</button>.
+                <Button variant="link" size="inline" onClick={() => setMode('manual')}>enter a CSS selector manually</Button>.
               </span>
             ) : !url.trim() ? (
               <span className="text-text-3">Enter a URL above, then open the page to click an element.</span>
@@ -512,7 +509,7 @@ export function StepUrlAndElement({
         <div className="space-y-3">
           {/* CSS Selector */}
           <div>
-            <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">
+            <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
               CSS Selector
             </label>
             <input
@@ -521,34 +518,35 @@ export function StepUrlAndElement({
               onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
               onKeyDown={(e) => e.key === 'Enter' && confirmManual()}
               placeholder=".cta-button, #hero-headline, button.primary"
-              className="w-full rounded-[7px] border border-border bg-bg-1 py-2.5 px-3 text-[13px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+              className="w-full rounded-md border border-border bg-bg-1 py-2.5 px-3 text-body text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
             />
             {manualSelectorError && (
-              <p className="mt-1 text-[11px] text-err">{manualSelectorError}</p>
+              <p className="mt-1 text-meta text-err">{manualSelectorError}</p>
             )}
-            <p className="mt-1 text-[11px] text-text-3">
-              Examples: <code className="text-text-2 bg-bg-2 px-1 rounded text-[10px]">.my-class</code>,{' '}
-              <code className="text-text-2 bg-bg-2 px-1 rounded text-[10px]">#my-id</code>,{' '}
-              <code className="text-text-2 bg-bg-2 px-1 rounded text-[10px]">button.cta</code>
+            <p className="mt-1 text-meta text-text-3">
+              Examples: <code className="text-text-2 bg-bg-2 px-1 rounded text-meta">.my-class</code>,{' '}
+              <code className="text-text-2 bg-bg-2 px-1 rounded text-meta">#my-id</code>,{' '}
+              <code className="text-text-2 bg-bg-2 px-1 rounded text-meta">button.cta</code>
             </p>
           </div>
 
           {/* Type / Name / HTML — optional, tucked behind a disclosure since
               most manual entries only need the selector. */}
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setShowMoreOptions((v) => !v)}
-            className="flex items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text-2 cursor-pointer"
+            className="gap-1 text-meta"
           >
             <ChevronDown className={`h-3 w-3 transition-transform ${showMoreOptions ? 'rotate-180' : ''}`} />
             {showMoreOptions ? 'Fewer options' : 'More options'}
             <span className="text-text-3/60">(type, name, HTML)</span>
-          </button>
+          </Button>
 
           {showMoreOptions && (
-            <div className="space-y-3 rounded-[var(--radius-md)] border border-border bg-bg-1 p-3">
+            <Card padding="sm" className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">
+                  <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
                     Element Type
                   </label>
                   {/* Only types with a real editor behind them: button/link open the
@@ -559,7 +557,7 @@ export function StepUrlAndElement({
                   <select
                     value={manualElementType}
                     onChange={(e) => setManualElementType(e.target.value)}
-                    className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[13px] text-text cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="w-full rounded-md border border-border bg-bg-0 py-2.5 px-3 text-body text-text cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   >
                     <option value="element">Generic Element</option>
                     <option value="button">Button</option>
@@ -569,7 +567,7 @@ export function StepUrlAndElement({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">
+                  <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
                     Display Name
                   </label>
                   <input
@@ -577,13 +575,13 @@ export function StepUrlAndElement({
                     value={manualElementName}
                     onChange={(e) => setManualElementName(e.target.value)}
                     placeholder='e.g. "Hero CTA Button"'
-                    className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="w-full rounded-md border border-border bg-bg-0 py-2.5 px-3 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[11px] font-medium text-text-3 uppercase tracking-wider">
+                <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
                   Original HTML <span className="font-normal text-text-3/60">(helps AI generate better variants)</span>
                 </label>
                 <textarea
@@ -591,61 +589,62 @@ export function StepUrlAndElement({
                   onChange={(e) => setManualHtml(e.target.value)}
                   placeholder='<button class="cta">Get Started</button>'
                   rows={3}
-                  className="w-full rounded-[7px] border border-border bg-bg-0 py-2.5 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 resize-none"
+                  className="w-full rounded-md border border-border bg-bg-0 py-2.5 px-3 text-small text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 resize-none"
                 />
               </div>
-            </div>
+            </Card>
           )}
 
           {/* Confirm button */}
-          <button
+          <Button
+            variant="primary"
             onClick={confirmManual}
-            className="flex w-full items-center justify-center gap-1.5 rounded-[7px] bg-fill-invert px-5 py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
+            className="w-full gap-1.5 rounded-md px-5 py-2.5 text-body hover:opacity-90"
           >
             <Check className="h-4 w-4" />
             Confirm Element
-          </button>
+          </Button>
         </div>
       )}
 
       {/* ── Selected element (shared between both modes) ── */}
       {selectedElement && (
         <>
-          <div className="rounded-[var(--radius-lg)] border border-ok/20 bg-ok/5 p-4">
+          <div className="rounded-md border border-ok/20 bg-ok/5 p-4">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-ok/15">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ok/15">
                 <Check className="h-4 w-4 text-ok" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-semibold text-text">{selectedElement.elementName}</p>
-                <p className="mt-1 text-[12px] text-text-2 capitalize">{selectedElement.elementType}</p>
-                <code className="mt-2 inline-block rounded-[var(--radius-sm)] bg-bg-1 px-2 py-0.5 text-[10px] text-text-3 font-mono">
+                <p className="text-body font-semibold text-text">{selectedElement.elementName}</p>
+                <p className="mt-1 text-small text-text-2 capitalize">{selectedElement.elementType}</p>
+                <code className="mt-2 inline-block rounded-sm bg-bg-1 px-2 py-0.5 text-meta text-text-3 font-mono">
                   {selectedElement.selector}
                 </code>
               </div>
             </div>
             <div className="mt-4 flex gap-2">
-              <button
+              <Button variant="primary" size="md"
                 onClick={onConfirm}
-                className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-ok px-4 py-2 text-[12px] font-semibold text-black transition-opacity hover:opacity-90 cursor-pointer"
+                className="bg-ok hover:bg-ok/90"
               >
                 <Check className="h-3.5 w-3.5" />
                 Confirm &amp; continue
-              </button>
+              </Button>
               {showPickerMode ? (
-                <button
+                <Button
+                  variant="secondary" size="md"
                   onClick={openPicker}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                 >
                   Pick different element
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
+                  variant="secondary" size="md"
                   onClick={() => onElementSelected({ selector: '', originalHtml: '', originalCss: '', elementType: 'element', elementName: '' })}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[12px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                 >
                   Change element
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -656,21 +655,21 @@ export function StepUrlAndElement({
               Textvergleich in Step 4 — der Nutzer soll die Auswahl korrigieren
               können, bevor sie festgenagelt ist. */}
           {!selectedElement.styleContext && (
-            <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] border border-pro/20 bg-pro/[0.04] px-3 py-2.5">
+            <div className="flex items-start gap-2.5 rounded-md border border-pro/20 bg-pro/[0.04] px-3 py-2.5">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pro" />
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] leading-relaxed text-text-2">
+                <p className="text-meta leading-relaxed text-text-2">
                   Picked without the visual picker — we can&apos;t measure how this
                   element looks on your site. Your changes will be written as
                   absolute values instead of a delta, and the preview stays text-only.
                 </p>
-                <button
+                <Button variant="link" size="inline"
                   onClick={openPicker}
-                  className="mt-1.5 inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-pro underline transition-colors hover:text-pro/80"
+                  className="mt-1.5 gap-1 text-meta font-medium text-pro hover:text-pro/80"
                 >
                   <MousePointerClick className="h-3 w-3" />
                   Pick it visually instead
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -679,7 +678,7 @@ export function StepUrlAndElement({
 
       {/* Note about picker popup */}
       {pickerOpen && !waitingForPicker && !selectedElement && (
-        <p className="text-[11px] text-text-3">
+        <p className="text-meta text-text-3">
           If the picker didn&apos;t open, make sure your site allows pop-ups from this domain.
         </p>
       )}

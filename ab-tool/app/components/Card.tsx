@@ -1,20 +1,39 @@
 'use client'
 
-import type { ReactNode } from 'react'
+/**
+ * Card (brandguidelines v3 §6.3).
+ *
+ * Phase 1: Radius war `--radius-lg` (10px), laut §4.1 sind Cards `md` (6px) —
+ * `lg` bleibt dem Modal vorbehalten. `variant="lift"` ist weg: Hover-Lift ist
+ * Landing-only und heißt dort `.card-lift`. Dafür gibt es `interactive` für
+ * klickbare Cards, das `.surface-interactive` setzt (Hover auf Border + Fill)
+ * statt in jeder Datei eigene Hover-Klassen zu wiederholen.
+ *
+ * Restliche div-Props gehen durch: eine Card ist je nach Inhalt auch mal eine
+ * Live-Region (<EmptyState>) oder klickbar, und beides soll ohne Wrapper-div
+ * gehen, der die Fläche verdoppelt.
+ */
 
-type CardVariant = 'default' | 'lift' | 'banner' | 'dashed'
+import type { ComponentProps, ReactNode } from 'react'
+
+import { cn } from '@/lib/utils'
+
+type CardVariant = 'default' | 'banner' | 'dashed'
 type CardTone = 'ok' | 'pro' | 'err' | 'neutral'
-type CardPadding = 'sm' | 'md' | 'lg'
+type CardPadding = 'none' | 'sm' | 'md' | 'lg'
 
-interface CardProps {
+interface CardProps extends ComponentProps<'div'> {
   variant?: CardVariant
   tone?: CardTone
   padding?: CardPadding
-  className?: string
+  /** Klickbare Card: Hover auf border-border-strong + bg-bg-2. */
+  interactive?: boolean
   children: ReactNode
 }
 
 const paddingMap: Record<CardPadding, string> = {
+  /** Fuer Karten, die ihre Abschnitte selbst abpolstern (Listen mit Trennern). */
+  none: '',
   sm: 'p-3',
   md: 'p-4',
   lg: 'p-6',
@@ -38,21 +57,24 @@ export function Card({
   variant = 'default',
   tone = 'neutral',
   padding = 'md',
-  className = '',
+  interactive = false,
+  className,
   children,
+  ...rest
 }: CardProps) {
-  const base = 'rounded-[var(--radius-lg)] border'
-  const p = paddingMap[padding]
-
-  const variantClasses: Record<CardVariant, string> = {
-    default: `${base} ${toneBorderMap[tone]} ${toneBgMap[tone]} ${p}`,
-    lift: `${base} ${toneBorderMap[tone]} ${toneBgMap[tone]} ${p} card-lift`,
-    banner: `${base} ${toneBorderMap[tone]} ${toneBgMap[tone]} ${p}`,
-    dashed: `${base} border-dashed ${toneBorderMap[tone]} ${toneBgMap[tone]} ${p}`,
-  }
-
   return (
-    <div className={`${variantClasses[variant]} ${className}`}>
+    <div
+      className={cn(
+        'rounded-md border',
+        toneBorderMap[tone],
+        toneBgMap[tone],
+        paddingMap[padding],
+        variant === 'dashed' && 'border-dashed',
+        interactive && 'surface-interactive cursor-pointer',
+        className,
+      )}
+      {...rest}
+    >
       {children}
     </div>
   )

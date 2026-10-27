@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Button, Card, Field, Input } from '@/app/components'
 
 function norm(s: string): string {
   return s.trim().toLowerCase()
@@ -172,7 +173,7 @@ export default function LoginPage() {
     setGoogleLoading(false)
   }
 
-  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-text-3 text-sm">Loading…</p></div>
+  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-body text-text-3">Loading…</p></div>
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-0 antialiased">
@@ -181,7 +182,7 @@ export default function LoginPage() {
         <div className="mb-8 flex justify-center">
           <Link
             href="/"
-            className="flex items-center gap-2 text-xl font-semibold text-white transition-opacity hover:opacity-75"
+            className="flex items-center gap-2 text-heading font-semibold text-text transition-opacity hover:opacity-75"
           >
             <PandaLogo size="lg" />
             variante
@@ -189,18 +190,19 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8">
-          <h1 className="text-2xl font-semibold text-white">
+        <Card className="p-8">
+          <h1 className="text-heading font-semibold text-text">
             Welcome back
           </h1>
-          <p className="mt-1 text-sm text-text-3">Log in to manage your experiments.</p>
+          <p className="mt-1 text-small text-text-3">Log in to manage your experiments.</p>
 
           {/* Google */}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="lg"
             onClick={handleGoogleLogin}
             disabled={googleLoading}
-            className="mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[var(--radius-md)] border border-border bg-bg-1 text-sm font-medium text-white/80 transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-40"
+            className="mt-6 h-11 w-full gap-3"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden={true}>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -209,118 +211,101 @@ export default function LoginPage() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             {googleLoading ? 'Connecting…' : 'Continue with Google'}
-          </button>
+          </Button>
 
           {/* Divider */}
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex items-center gap-base">
             <div className="h-px flex-1 bg-border" />
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-text-3">or</span>
+            <span className="text-meta font-semibold uppercase tracking-wider text-text-3">or</span>
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <form onSubmit={submit} className="mt-5 space-y-4">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider text-text-2">
-                Email
-              </label>
-              <input
-                id="login-email"
+          <form onSubmit={submit} className="mt-5 flex flex-col gap-base">
+            <Field label="Email">
+              <Input
                 type="email"
                 required
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
-            </div>
+            </Field>
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="login-password" className="text-xs font-semibold uppercase tracking-wider text-text-2">
-                Password
-              </label>
+            <Field label="Password">
               <div className="relative">
-                <input
-                  id="login-password"
+                <Input
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 pr-11 text-sm text-white placeholder:text-text-3 transition-colors duration-200 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                  className="pr-10"
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 transition-colors hover:text-text-2"
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                  {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </Button>
               </div>
-            </div>
+            </Field>
 
             {/* Error / success */}
             {err && (
-              <p className="rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
+              <p className="rounded-md border border-err/20 bg-err-bg px-4 py-3 text-meta text-err">
                 {err}
               </p>
             )}
             {googleErr && (
-              <p className="rounded-[var(--radius-md)] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro">
+              <p className="rounded-md border border-pro/20 bg-pro-bg px-4 py-3 text-meta text-pro">
                 {googleErr}
               </p>
             )}
             {notConfirmed && (
-              <div className="rounded-[var(--radius-md)] border border-pro/20 bg-pro-bg px-4 py-3 text-xs text-pro space-y-2">
+              <div className="flex flex-col items-start gap-snug rounded-md border border-pro/20 bg-pro-bg px-4 py-3 text-meta text-pro">
                 <p>Your email isn&rsquo;t confirmed yet — check your inbox or resend the confirmation link.</p>
-                <button
-                  type="button"
+                <Button
+                  variant="link"
+                  size="inline"
+                  className="font-semibold"
                   onClick={handleResendConfirmation}
                   disabled={loading}
-                  className="font-semibold underline transition-colors hover:opacity-80 disabled:opacity-40"
                 >
                   Resend confirmation email
-                </button>
+                </Button>
               </div>
             )}
             {confirmationSent && (
-              <p className="rounded-[var(--radius-md)] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
+              <p className="rounded-md border border-ok/20 bg-ok-bg px-4 py-3 text-meta text-ok">
                 Confirmation link resent — check your email.
               </p>
             )}
             {resetSent && (
-              <p className="rounded-[var(--radius-md)] border border-ok/20 bg-ok-bg px-4 py-3 text-xs text-ok">
+              <p className="rounded-md border border-ok/20 bg-ok-bg px-4 py-3 text-meta text-ok">
                 Password reset link sent — check your email.
               </p>
             )}
 
-            {/* Actions */}
+            {/* Actions — Primär rechts außen wäre hier falsch: „Log in" ist die
+                Hauptaktion und steht am Anfang der Lesereihenfolge (§5.3). */}
             <div className="flex items-center justify-between pt-1">
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-md)] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none"
-              >
+              <Button type="submit" size="lg" loading={loading} className="h-11">
                 {loading ? 'Signing in…' : 'Log in'}
-                {!loading && <ArrowRight className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                disabled={loading}
-                className="text-xs text-text-3 transition-colors duration-200 hover:text-text disabled:opacity-40"
-              >
+                {!loading && <ArrowRight className="h-4 w-4" aria-hidden />}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleReset} disabled={loading}>
                 Forgot password?
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
+        </Card>
 
-        <p className="mt-5 text-center text-sm text-text-3">
+        <p className="mt-5 text-center text-body text-text-3">
           No account yet?{' '}
-          <Link href={`/signup${source || plan ? `?${new URLSearchParams({ source, plan }).toString()}` : ''}`} className="font-semibold text-white transition-colors hover:text-text">
+          <Link href={`/signup${source || plan ? `?${new URLSearchParams({ source, plan }).toString()}` : ''}`} className="font-semibold text-text transition-colors hover:text-text-2">
             Sign up free
           </Link>
         </p>

@@ -19,6 +19,7 @@ import { ColorPicker } from './ColorPicker'
 import { PropertySlider } from './PropertySlider'
 import { describeChange } from './delta'
 import type { ChangeEntry, ChangeProperty } from './types'
+import { Button, SegmentedControl } from '@/app/components'
 
 interface ChangeListProps {
   entries: ChangeEntry[]
@@ -68,7 +69,7 @@ export function ChangeList({
   if (entries.length === 0) {
     if (readOnly) return null
     return (
-      <p className="rounded-[var(--radius-md)] border border-dashed border-border px-4 py-5 text-center text-[12px] text-text-3">
+      <p className="rounded-md border border-dashed border-border px-4 py-5 text-center text-small text-text-3">
         No changes yet — Variant B is identical to your original.
       </p>
     )
@@ -116,7 +117,7 @@ export function ChangeList({
         return (
           <div
             key={entry.id}
-            className={`rounded-[var(--radius-md)] border px-3 py-2.5 ${
+            className={`rounded-md border px-3 py-2.5 ${
               isSuggested ? 'border-pro/25 bg-pro/[0.04]' : 'border-border bg-bg-1'
             }`}
           >
@@ -124,17 +125,17 @@ export function ChangeList({
               {/* Label + Quelle */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <p className={`text-[12px] font-medium ${isSuggested ? 'text-pro' : 'text-text'}`}>
+                  <p className={`text-small font-medium ${isSuggested ? 'text-pro' : 'text-text'}`}>
                     {label}
                   </p>
                   {entry.source === 'ai' && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-pro/15 px-1.5 py-0.5 text-[9px] font-semibold text-pro">
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-pro/15 px-1.5 py-0.5 text-meta font-semibold text-pro">
                       <Sparkles className="h-2.5 w-2.5" />
                       AI
                     </span>
                   )}
                   {entry.source === 'figma' && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-bg-2 px-1.5 py-0.5 text-[9px] font-semibold text-text-3">
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-bg-2 px-1.5 py-0.5 text-meta font-semibold text-text-3">
                       <Palette className="h-2.5 w-2.5" />
                       Figma
                     </span>
@@ -143,7 +144,7 @@ export function ChangeList({
                 {/* Die other-Zeile trägt ihr Roh-CSS selbst — ein "set to
                     Custom CSS" unter dem Label wäre nur Rauschen. */}
                 {entry.property !== 'other' && (
-                  <p className="mt-0.5 truncate text-[11px] text-text-2">
+                  <p className="mt-0.5 truncate text-meta text-text-2">
                     {before === ''
                       ? <><span className="text-text-3">set to</span> <span className="font-mono text-text">{after}</span></>
                       : <><span className="font-mono text-text-3">{before}</span>
@@ -158,47 +159,50 @@ export function ChangeList({
                 <div className="flex shrink-0 items-center gap-1">
                   {isSuggested ? (
                     <>
-                      <button
+                      <Button variant="ghost" size="icon"
                         type="button"
                         onClick={() => accept(entry.id)}
-                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-ok transition-colors hover:bg-ok/10"
+                        className="h-6 w-6 text-ok hover:bg-ok/10"
                         title="Accept suggestion"
                         aria-label={`Accept ${label} suggestion`}
                       >
                         <Check className="h-3.5 w-3.5" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon"
                         type="button"
                         onClick={() => remove(entry.id)}
-                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text"
+                        className="h-6 w-6 rounded-sm"
                         title="Dismiss suggestion"
                         aria-label={`Dismiss ${label} suggestion`}
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </>
                   ) : (
                     <>
                       {editable && (
-                        <button
+                        <Button
+                          variant="ghost"
                           type="button"
                           onClick={() => setActiveEditingId(isEditing ? null : entry.id)}
-                          className="flex h-6 cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] px-1.5 text-[10px] font-medium text-text-3 transition-colors hover:bg-bg-2 hover:text-text"
+                          className="h-6 gap-1 rounded-sm px-1.5 text-meta"
                           aria-label={`Edit ${label}`}
                         >
                           <Pencil className="h-3 w-3" />
                           Edit
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
+                        variant="ghost" size="icon"
                         type="button"
                         onClick={() => remove(entry.id)}
-                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-text-3 transition-colors hover:bg-bg-2 hover:text-text"
+                        className="h-6 w-6 rounded-sm"
                         title={`Remove ${label} change`}
                         aria-label={`Remove ${label} change`}
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
@@ -207,17 +211,17 @@ export function ChangeList({
 
             {/* Erklärung des KI-Vorschlags */}
             {entry.explanation && (
-              <p className="mt-1 text-[10px] leading-relaxed text-text-3 italic">{entry.explanation}</p>
+              <p className="mt-1 text-meta leading-relaxed text-text-3 italic">{entry.explanation}</p>
             )}
 
             {/* Roh-CSS der other-Zeile — nicht editierbar, als Gruppe verwirfbar */}
             {entry.property === 'other' && entry.rawCss && (
               <details className="mt-1.5">
-                <summary className="flex cursor-pointer items-center gap-1 text-[10px] text-text-3 transition-colors hover:text-text-2">
+                <summary className="flex cursor-pointer items-center gap-1 text-meta text-text-3 transition-colors hover:text-text-2">
                   <ChevronDown className="h-3 w-3" />
                   Raw CSS
                 </summary>
-                <code className="mt-1 block max-h-24 overflow-y-auto rounded-[var(--radius-md)] bg-bg-0 p-2.5 text-[10px] font-mono leading-relaxed whitespace-pre-wrap text-text-3">
+                <code className="mt-1 block max-h-24 overflow-y-auto rounded-md bg-bg-0 p-2.5 text-meta font-mono leading-relaxed whitespace-pre-wrap text-text-3">
                   {entry.rawCss}
                 </code>
               </details>
@@ -231,13 +235,14 @@ export function ChangeList({
                   onChange={(after) => patch(entry.id, { after })}
                 />
                 <div className="mt-2 flex justify-end">
-                  <button
+                  <Button
+                    variant="primary"
                     type="button"
                     onClick={() => setActiveEditingId(null)}
-                    className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-2.5 py-1 text-[10px] font-semibold text-text-on-invert transition-opacity hover:opacity-90"
+                    className="rounded-sm px-2.5 py-1 text-meta hover:opacity-90"
                   >
                     Done
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -281,23 +286,14 @@ function InlineControl({ entry, onChange }: { entry: ChangeEntry; onChange: (aft
   if (entry.property === 'borderStyle') {
     return (
       <div>
-        <p className="mb-1.5 text-[11px] font-medium text-text-2">{label}</p>
-        <div className="flex gap-1">
-          {BORDER_STYLES.map((bs) => (
-            <button
-              key={bs.value}
-              type="button"
-              onClick={() => onChange(bs.value)}
-              className={`flex-1 cursor-pointer rounded-[var(--radius-md)] px-2 py-1.5 text-[11px] font-medium transition-colors ${
-                entry.after === bs.value
-                  ? 'bg-bg-2 text-text'
-                  : 'bg-bg-1 text-text-3 hover:text-text'
-              }`}
-            >
-              {bs.label}
-            </button>
-          ))}
-        </div>
+        <p className="mb-1.5 text-meta font-medium text-text-2">{label}</p>
+        <SegmentedControl
+          label={label}
+          grow
+          value={String(entry.after)}
+          onChange={onChange}
+          options={BORDER_STYLES.map((bs) => ({ value: bs.value, label: bs.label }))}
+        />
       </div>
     )
   }
@@ -305,7 +301,7 @@ function InlineControl({ entry, onChange }: { entry: ChangeEntry; onChange: (aft
   // text und alles sonst nicht Spezifische: einfaches Textfeld
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-medium text-text-2">{label}</p>
+      <p className="mb-1.5 text-meta font-medium text-text-2">{label}</p>
       <input
         type="text"
         value={entry.after}
@@ -313,7 +309,7 @@ function InlineControl({ entry, onChange }: { entry: ChangeEntry; onChange: (aft
         placeholder={label}
         maxLength={200}
         autoFocus
-        className="w-full rounded-[var(--radius-md)] border border-border bg-bg-0 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+        className="w-full rounded-md border border-border bg-bg-0 px-3 py-2 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
       />
     </div>
   )

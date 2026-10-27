@@ -21,6 +21,7 @@ import {
 import type { GoalSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
 import { usePickerBridge } from '@/lib/pickerBridge'
+import { Button, SegmentedControl } from '@/app/components'
 
 interface StepGoalProps {
   elementType: string
@@ -192,83 +193,60 @@ export function StepGoal({
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-[13px] leading-relaxed text-text-2">
+        <p className="text-body leading-relaxed text-text-2">
           Pick the element users must click to count as a conversion.
         </p>
       </div>
 
-      {/* Mode Toggle — always visible so user can switch if picker fails */}
-      <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5">
-        {/* Tested element — Default für klickbare Elemente. Sonst gegraut; der
-            Tooltip erklärt warum. Wrapper statt title auf dem disabled Button:
-            Firefox feuert auf disabled-Elementen kein :hover. */}
-        <div
-          className="group relative flex-1"
-          title={elementClickable ? undefined : 'It seems that the tested element is not clickable'}
-        >
-          <button
-            onClick={() => elementClickable && switchMode('tested')}
-            disabled={!elementClickable}
-            className={`flex w-full items-center justify-center rounded-[5px] py-1.5 text-[12px] font-medium transition-colors ${
-              mode === 'tested' ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
-            } ${elementClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'}`}
-          >
-            <Crosshair className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-            Tested element
-          </button>
-          {!elementClickable && (
-            <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded-[var(--radius-md)] border border-border bg-bg-2 px-2 py-1 text-[10px] text-text-2 group-hover:block">
-              It seems that the tested element is not clickable
-            </span>
-          )}
-        </div>
-        <button
-          onClick={() => switchMode('picker')}
-          className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-            mode === 'picker' ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
-          }`}
-        >
-          <MousePointerClick className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-          Visual Picker
-        </button>
-        <button
-          onClick={() => switchMode('manual')}
-          className={`flex-1 rounded-[5px] py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-            mode === 'manual' ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
-          }`}
-        >
-          <Code2 className="inline h-3.5 w-3.5 mr-1.5 -mt-0.5" />
-          Manual Selector
-        </button>
-      </div>
+      {/* Mode Toggle — always visible so user can switch if picker fails.
+          Phase 2: war ein handgebauter Umschalter; die gesperrte Option
+          brauchte dort einen Wrapper mit eigenem Tooltip, weil Firefox auf
+          disabled-Buttons kein :hover feuert. <SegmentedControl> nutzt
+          aria-disabled und kommt ohne den Wrapper aus. */}
+      <SegmentedControl
+        label="How to pick the element"
+        grow
+        value={mode}
+        onChange={switchMode}
+        options={[
+          {
+            value: 'tested',
+            label: <><Crosshair className="h-3.5 w-3.5" />Tested element</>,
+            disabled: !elementClickable,
+            title: elementClickable ? undefined : 'It seems that the tested element is not clickable',
+          },
+          { value: 'picker', label: <><MousePointerClick className="h-3.5 w-3.5" />Visual Picker</> },
+          { value: 'manual', label: <><Code2 className="h-3.5 w-3.5" />Manual Selector</> },
+        ]}
+      />
 
       {/* Target element — no goal-TYPE choice here, there's only ever one
           (a click); the only real decision is WHICH element counts. */}
-      <div className="rounded-[var(--radius-md)] border border-border bg-bg-0 p-3">
+      <div className="rounded-md border border-border bg-bg-0 p-3">
         {/* ── TESTED MODE ── */}
         {mode === 'tested' && (
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
                 <Check className="h-3 w-3 text-ok" />
-                <span className="text-[10px] font-medium text-ok">
+                <span className="text-meta font-medium text-ok">
                   Defaulted to your tested {elementType}
                 </span>
               </div>
             </div>
-            <p className="text-[12px] text-text-2">{selectedGoal?.label ?? `Clicks on "${elementName}"`}</p>
-            <div className="mt-1.5 rounded-[var(--radius-md)] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
+            <p className="text-small text-text-2">{selectedGoal?.label ?? `Clicks on "${elementName}"`}</p>
+            <div className="mt-1.5 rounded-md bg-bg-1 p-2.5 font-mono text-meta text-text-2 break-all">
               <span className="text-text-3">Selector: </span>{elementSelector || '—'}
             </div>
-            <p className="mt-2 text-[11px] text-text-3">
+            <p className="mt-2 text-meta text-text-3">
               A conversion is counted when visitors click the element you&apos;re testing.
             </p>
-            <button
+            <Button variant="link" size="inline"
               onClick={() => switchMode('picker')}
-              className="mt-1 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
+              className="mt-1 text-meta text-text"
             >
               Pick a different goal element
-            </button>
+            </Button>
           </div>
         )}
 
@@ -280,44 +258,44 @@ export function StepGoal({
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
                     <Check className="h-3 w-3 text-ok" />
-                    <span className="text-[10px] font-medium text-ok">Element selected</span>
+                    <span className="text-meta font-medium text-ok">Element selected</span>
                   </div>
                 </div>
-                <div className="rounded-[var(--radius-md)] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
+                <div className="rounded-md bg-bg-1 p-2.5 font-mono text-meta text-text-2 break-all">
                   <span className="text-text-3">Selector: </span>{pickedElement?.selector ?? selectedGoal?.selector}
                   {pickedElement?.text && (
                     <><br /><span className="text-text-3">Text: </span>&ldquo;{pickedElement.text}&rdquo;</>
                   )}
                 </div>
-                <button
+                <Button variant="link" size="inline"
                   onClick={handleChangePicker}
-                  className="mt-2 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
+                  className="mt-2 text-meta text-text"
                 >
                   Change element
-                </button>
+                </Button>
               </div>
             ) : (
               <div>
-                <p className="text-[11px] text-text-3 mb-2">
+                <p className="text-meta text-text-3 mb-2">
                   Click &quot;Pick on site&quot;, then click the element on your page.
                 </p>
-                <button
+                <Button
+                  variant="secondary" size="sm"
                   onClick={openGoalPicker}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] text-text-2 transition-colors hover:border-border-strong hover:text-text cursor-pointer"
                 >
                   <ExternalLink className="h-3 w-3" />
                   Pick on site
-                </button>
+                </Button>
                 {waitingForPicker && (
-                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-text">
+                  <div className="mt-2 flex items-center gap-1.5 text-meta text-text">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Waiting for element selection…
                   </div>
                 )}
                 {pickerBlocked && (
-                  <div className="mt-2 rounded-[var(--radius-md)] border border-err/20 bg-err/5 px-3 py-2 text-[10px] text-err/80">
+                  <div className="mt-2 rounded-md border border-err/20 bg-err/5 px-3 py-2 text-meta text-err/80">
                     Popup was blocked. Please allow popups for this site and try again — or switch to{' '}
-                    <button onClick={() => switchMode('manual')} className="underline hover:text-err cursor-pointer">Manual Selector</button>.
+                    <Button variant="link" size="inline" onClick={() => switchMode('manual')}>Manual Selector</Button>.
                   </div>
                 )}
               </div>
@@ -333,25 +311,25 @@ export function StepGoal({
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1">
                     <Check className="h-3 w-3 text-ok" />
-                    <span className="text-[10px] font-medium text-ok">Element selected</span>
+                    <span className="text-meta font-medium text-ok">Element selected</span>
                   </div>
                 </div>
-                <div className="rounded-[var(--radius-md)] bg-bg-1 p-2.5 font-mono text-[11px] text-text-2 break-all">
+                <div className="rounded-md bg-bg-1 p-2.5 font-mono text-meta text-text-2 break-all">
                   <span className="text-text-3">Selector: </span>{selectedGoal.selector}
                 </div>
-                <button
+                <Button variant="link" size="inline"
                   onClick={() => {
                     onGoalSelected({ type: 'click', label: 'Clicks on element', source: 'manual' })
                     setManualSelector('')
                   }}
-                  className="mt-2 text-[11px] text-text hover:text-text-2 transition-colors cursor-pointer"
+                  className="mt-2 text-meta text-text"
                 >
                   Change element
-                </button>
+                </Button>
               </div>
             ) : (
               <>
-                <p className="text-[11px] text-text-3">
+                <p className="text-meta text-text-3">
                   Enter the CSS selector of the element users click to convert.
                 </p>
                 <div>
@@ -361,24 +339,25 @@ export function StepGoal({
                     onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
                     onKeyDown={(e) => e.key === 'Enter' && confirmManualGoal()}
                     placeholder=".buy-button, #checkout, button.cta"
-                    className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 py-2 px-3 text-[12px] text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="w-full rounded-md border border-border bg-bg-1 py-2 px-3 text-small text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   />
                   {manualSelectorError && (
-                    <p className="mt-1 text-[10px] text-err">{manualSelectorError}</p>
+                    <p className="mt-1 text-meta text-err">{manualSelectorError}</p>
                   )}
-                  <p className="mt-1 text-[10px] text-text-3">
+                  <p className="mt-1 text-meta text-text-3">
                     This is the element users must click for a conversion to be counted.{' '}
-                    <code className="text-text-2 bg-bg-2 px-1 rounded text-[9px]">.add-to-cart</code>,{' '}
-                    <code className="text-text-2 bg-bg-2 px-1 rounded text-[9px]">#signup-btn</code>
+                    <code className="text-text-2 bg-bg-2 px-1 rounded text-meta">.add-to-cart</code>,{' '}
+                    <code className="text-text-2 bg-bg-2 px-1 rounded text-meta">#signup-btn</code>
                   </p>
                 </div>
-                <button
+                <Button
+                  variant="primary" size="sm"
                   onClick={confirmManualGoal}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-[11px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 cursor-pointer"
+                  className="hover:opacity-90"
                 >
                   <Check className="h-3 w-3" />
                   Apply Selector
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -386,14 +365,15 @@ export function StepGoal({
       </div>
 
       {/* Confirm button */}
-      <button
+      <Button
+        variant="primary"
         onClick={onConfirm}
         disabled={isConfirmDisabled}
-        className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-fill-invert py-2.5 text-[13px] font-semibold text-text-on-invert transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        className="w-full gap-2 rounded-md py-2.5 text-body hover:opacity-90 disabled:opacity-30"
       >
         <Check className="h-4 w-4" />
         Confirm conversion goal
-      </button>
+      </Button>
     </div>
   )
 }

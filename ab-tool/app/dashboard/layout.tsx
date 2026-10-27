@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const avatarUrl = profileRes.data?.avatar_url ?? null
 
   return (
-    <div className="min-h-screen bg-bg-0 font-[family-name:var(--font-sans)] text-[13px] antialiased">
+    <div className="min-h-screen bg-bg-0 font-[family-name:var(--font-sans)] text-body antialiased">
       <SentryInit />
       <Sidebar email={user.email ?? ''} plan={plan} avatarUrl={avatarUrl} />
       {/* UX-02: pt-12 macht Platz für die mobile Topbar, md:pt-0 + md:pl-[220px]

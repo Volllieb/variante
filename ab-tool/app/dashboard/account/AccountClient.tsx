@@ -5,35 +5,9 @@ import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, X, Camera, User, Copy, FlaskConical } from 'lucide-react'
 import Image from 'next/image'
+import { Button, Card, Toggle } from '@/app/components'
 
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
-
-/**
- * Schalter im Monochrom-Stil. role="switch" + aria-checked, damit Screenreader
- * den Zustand ansagen (Plan A11Y-01), sichtbarer focus-visible-Ring statt
- * outline-none ohne Ersatz (Plan A11Y-03).
- */
-function Toggle({ checked, onChange, label, id }: { checked: boolean; onChange: (next: boolean) => void; label: string; id: string }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      id={id}
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 ${
-        checked ? 'border-transparent bg-fill-invert' : 'border-border bg-bg-2'
-      }`}
-    >
-      <span
-        className={`absolute top-1/2 h-[16px] w-[16px] -translate-y-1/2 rounded-full transition-[left,background-color] ${
-          checked ? 'left-[19px] bg-text-on-invert' : 'left-[2px] bg-text-3'
-        }`}
-      />
-    </button>
-  )
-}
 
 export function AccountClient({ email, domains: initialDomains, avatarUrl: initialAvatar, plan, apiToken: initialToken, notifyOnWinner: initialNotify, autoPromoteWinner: initialAutoPromote }: { email: string; domains: Domain[]; avatarUrl: string | null; plan: string; apiToken: string | null; notifyOnWinner: boolean; autoPromoteWinner: boolean }) {
   const router = useRouter()
@@ -419,13 +393,13 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
   return (
     <div className="min-w-0 flex-1 px-5 py-6 sm:px-8">
       <div className="mx-auto max-w-lg space-y-6">
-        <h1 className="text-[18px] font-semibold text-text">Account</h1>
+        <h1 className="text-heading font-semibold text-text">Account</h1>
 
         {/* Avatar */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-4">
             <Camera className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Profile Picture</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">Profile Picture</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -451,16 +425,16 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               )}
               {avatarUploading && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  <Loader2 className="h-5 w-5 animate-spin text-text" />
                 </div>
               )}
               <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                <Camera className="h-4 w-4 text-white" />
+                <Camera className="h-4 w-4 text-text" />
               </div>
             </button>
 
             <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-[12px] text-text-3">
+              <p className="text-small text-text-3">
                 {avatarUrl
                   ? 'Click the image to upload a new picture. PNG, JPEG, WebP or GIF — max 2 MB.'
                   : 'Upload a profile picture. PNG, JPEG, WebP or GIF — max 2 MB.'}
@@ -478,7 +452,8 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 }}
               />
               {avatarUrl && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={async () => {
                     setAvatarUploading(true)
                     try {
@@ -492,80 +467,82 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                     }
                   }}
                   disabled={avatarUploading}
-                  className="text-[11px] text-text-3 underline hover:text-err disabled:opacity-40"
+                  className="text-meta underline hover:text-err"
                 >
                   Remove
-                </button>
+                </Button>
               )}
               {avatarError && (
-                <p className="text-[11px] text-err">{avatarError}</p>
+                <p className="text-meta text-err">{avatarError}</p>
               )}
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Current email */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-4">
             <Mail className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Email</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">Email</span>
           </div>
-          <p className="text-[15px] font-medium text-text">{email}</p>
+          <p className="text-title font-medium text-text">{email}</p>
 
           <div className="mt-4 space-y-3">
-            <p className="text-[11px] text-text-3">Change to a new email address. A confirmation link will be sent.</p>
+            <p className="text-meta text-text-3">Change to a new email address. A confirmation link will be sent.</p>
             <div className="flex gap-2">
               <input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-[13px] text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="flex-1 rounded-md border border-border bg-bg-2 px-3 py-2 text-body text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
-              <button
+              <Button
+                variant="primary" size="md"
                 onClick={changeEmail}
                 disabled={busy || emailSent}
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-40"
+                className="shrink-0 text-meta"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emailSent ? <Check className="h-3.5 w-3.5" /> : null}
                 {emailSent ? 'Sent' : 'Change'}
-              </button>
+              </Button>
             </div>
             {emailSent && (
-              <p className="flex items-center gap-1.5 text-[12px] text-ok">
+              <p className="flex items-center gap-1.5 text-small text-ok">
                 <Check className="h-3 w-3" />
                 Confirmation sent — check both old and new inbox.
               </p>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Connected Pages */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-4">
             <Globe className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Connected Pages</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">Connected Pages</span>
           </div>
 
-          <p className="mb-4 text-[12px] text-text-3 leading-relaxed">
+          <p className="mb-4 text-small text-text-3 leading-relaxed">
             This is where your variante snippet lives. We check these pages to verify the snippet is installed.
-            Subpages like <code className="rounded-[3px] bg-white/[0.06] px-1 text-[11px]">/pricing</code> inherit the snippet automatically — no need to add them separately.
+            Subpages like <code className="rounded-sm bg-white/[0.06] px-1 text-meta">/pricing</code> inherit the snippet automatically — no need to add them separately.
             When creating a test, you can use <strong className="text-text-2">any URL on a connected domain</strong>.
           </p>
 
           {/* ── Empty state ── */}
           {domains.length === 0 && !addingPage && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
+              <div className="flex items-center gap-2 rounded-md border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
                 <AlertTriangle className="h-4 w-4 shrink-0 text-pro" />
-                <p className="text-[13px] text-pro">No page connected yet — tests won&apos;t run without a snippet.</p>
+                <p className="text-body text-pro">No page connected yet — tests won&apos;t run without a snippet.</p>
               </div>
-              <button
+              <Button
+                variant="primary" size="md"
                 onClick={() => { setAddingPage(true); setAddState('input'); setAddError(''); setAddUrl('') }}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover"
+                className="text-meta"
               >
                 Seite hinzufügen
-              </button>
+              </Button>
             </div>
           )}
 
@@ -575,57 +552,59 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               {domains.map((d) => (
                 <div
                   key={d.id}
-                  className={`flex items-center justify-between gap-3 rounded-[var(--radius-md)] border px-3.5 py-2.5 ${
+                  className={`flex items-center justify-between gap-3 rounded-md border px-3.5 py-2.5 ${
                     d.verified ? 'border-ok/20 bg-ok/[0.04]' : 'border-pro/20 bg-pro/[0.03]'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-[13px] font-medium text-text truncate">{d.url}</span>
+                    <span className="text-body font-medium text-text truncate">{d.url}</span>
                     {d.verified ? (
-                      <span className="flex shrink-0 items-center gap-1 rounded-full bg-ok/15 px-1.5 py-0.5 text-[9px] font-semibold text-ok">
+                      <span className="flex shrink-0 items-center gap-1 rounded-full bg-ok/15 px-1.5 py-0.5 text-meta font-semibold text-ok">
                         <Check className="h-2.5 w-2.5" /> Verified
                       </span>
                     ) : (
-                      <span className="flex shrink-0 items-center gap-1 rounded-full bg-pro/15 px-1.5 py-0.5 text-[9px] font-semibold text-pro">
+                      <span className="flex shrink-0 items-center gap-1 rounded-full bg-pro/15 px-1.5 py-0.5 text-meta font-semibold text-pro">
                         <AlertTriangle className="h-2.5 w-2.5" /> Not verified
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {!d.verified && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => verifyDomain(d.id, d.url)}
                         disabled={verifying === d.id}
-                        className="cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[10px] font-semibold text-text-2 transition-colors hover:text-text disabled:opacity-40"
+                        className="rounded-sm px-2 py-1 text-meta font-semibold"
                       >
                         {verifying === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Re-verify'}
-                      </button>
+                      </Button>
                     )}
                     {deleteId === d.id ? (
                       <div className="flex items-center gap-1">
-                        <button
+                        <Button variant="danger" size="sm"
                           onClick={() => deleteDomain(d.id)}
                           disabled={domainBusy}
-                          className="cursor-pointer rounded-[var(--radius-sm)] bg-err px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-err/90 disabled:opacity-40"
+                          className="bg-err px-2 py-0.5 text-text hover:bg-err/90"
                         >
                           {domainBusy ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : 'Confirm'}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setDeleteId(null)}
                           disabled={domainBusy}
-                          className="cursor-pointer rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[9px] text-text-3 hover:text-text"
+                          className="rounded-sm px-1.5 py-0.5 text-meta"
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <button
+                      <Button variant="ghost" size="icon"
                         onClick={() => setDeleteId(d.id)}
-                        className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3/50 transition-colors hover:text-err"
+                        className="h-6 w-6 text-text-3/50 hover:bg-transparent hover:text-err"
                         aria-label={`Remove ${d.url}`}
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -637,27 +616,28 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           {domains.length > 0 && !addingPage && (
             <div className="mt-2">
               {plan === 'free' ? (
-                <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-pro/20 bg-pro/[0.02] px-3 py-2">
-                  <span className="text-[10px] font-medium text-pro/80">Free plan: 1 page</span>
-                  <a href="/dashboard/billing" className="text-[10px] font-semibold text-pro underline hover:text-pro/80 transition-colors">Pro includes 5 pages →</a>
+                <div className="flex items-center gap-2 rounded-md border border-dashed border-pro/20 bg-pro/[0.02] px-3 py-2">
+                  <span className="text-meta font-medium text-pro/80">Free plan: 1 page</span>
+                  <a href="/dashboard/billing" className="text-meta font-semibold text-pro underline hover:text-pro/80 transition-colors">Pro includes 5 pages →</a>
                 </div>
               ) : (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => { setAddingPage(true); setAddState('input'); setAddError(''); setAddUrl('') }}
-                  className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-dashed border-border py-2 text-[10px] font-semibold text-text-3 transition-colors hover:border-border-strong hover:text-text-2"
+                  className="w-full gap-1.5 border-dashed py-2 text-meta font-semibold text-text-3 hover:text-text-2"
                 >
                   + Weitere Seite hinzufügen
-                </button>
+                </Button>
               )}
             </div>
           )}
 
           {/* ── Inline add form — input → saving → verified / not-found / limit ── */}
           {addingPage && (
-            <div className="mt-3 space-y-2 rounded-[var(--radius-md)] bg-bg-2 p-3">
+            <div className="mt-3 space-y-2 rounded-md bg-bg-2 p-3">
               {(addState === 'input' || addState === 'saving') && (
                 <>
-                  <div className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-bg-1 px-2.5 py-2">
+                  <div className="flex items-center gap-2 rounded-sm border border-border bg-bg-1 px-2.5 py-2">
                     <Globe className="h-3.5 w-3.5 shrink-0 text-text-3" />
                     <input
                       type="text"
@@ -667,15 +647,16 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       placeholder="yoursite.com"
                       disabled={addState !== 'input'}
                       autoFocus
-                      className="flex-1 bg-transparent text-[12px] text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="flex-1 bg-transparent text-small text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                     />
                   </div>
-                  {addError && <p className="text-[11px] text-err">{addError}</p>}
+                  {addError && <p className="text-meta text-err">{addError}</p>}
                   <div className="flex gap-1.5">
-                    <button
+                    <Button
+                      variant="primary"
                       onClick={addAdditionalPage}
                       disabled={addState !== 'input' || !addUrl.trim()}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-30"
+                      className="flex-1 gap-1.5 rounded-sm py-1.5 text-meta disabled:opacity-30"
                     >
                       {addState === 'saving' ? (
                         <>
@@ -685,26 +666,27 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       ) : (
                         'Add'
                       )}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="secondary" size="sm"
                       onClick={resetAddFlow}
-                      className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text"
+                      className="rounded-sm text-text-3"
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}
 
               {addState === 'not-found' && (
                 <div className="space-y-2">
-                  <p className="text-[11px] text-pro">Snippet not found on <strong>{normalize(addUrl)}</strong>. Add it to the page&apos;s &lt;head&gt; and retry.</p>
+                  <p className="text-meta text-pro">Snippet not found on <strong>{normalize(addUrl)}</strong>. Add it to the page&apos;s &lt;head&gt; and retry.</p>
                   <div className="flex gap-1.5">
-                    <button onClick={addAdditionalPage} className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">
+                    <Button variant="primary" size="sm" onClick={addAdditionalPage} className="rounded-sm">
                       <Loader2 className="h-2.5 w-2.5" /> Retry
-                    </button>
-                    <button onClick={() => { setAddState('input'); setAddError('') }} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Change URL</button>
-                    <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => { setAddState('input'); setAddError('') }} className="rounded-sm text-text-3">Change URL</Button>
+                    <Button variant="ghost" size="sm" onClick={resetAddFlow} className="rounded-sm">Cancel</Button>
                   </div>
                 </div>
               )}
@@ -712,67 +694,67 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               {/* Plan limit hit — a contextual swap prompt instead of a permanent "Change" button */}
               {addState === 'limit' && (
                 <div className="space-y-2">
-                  <p className="text-[11px] text-pro">{addError || 'Page limit reached.'}</p>
+                  <p className="text-meta text-pro">{addError || 'Page limit reached.'}</p>
                   {domains.length === 1 ? (
                     <>
-                      <p className="text-[11px] text-text-3">
+                      <p className="text-meta text-text-3">
                         Replace <strong className="text-text-2">{domains[0].url}</strong> with <strong className="text-text-2">{normalize(addUrl)}</strong>?
                         We&apos;ll confirm the new snippet is live first — your current page stays connected until then.
                       </p>
                       <div className="flex gap-1.5">
-                        <button onClick={replaceExistingPage} className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">
+                        <Button variant="primary" size="sm" onClick={replaceExistingPage} className="rounded-sm">
                           Replace page
-                        </button>
-                        <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={resetAddFlow} className="rounded-sm text-text-3">Cancel</Button>
                       </div>
                     </>
                   ) : (
                     <div className="flex gap-1.5">
-                      <a href="/dashboard/billing" className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">Upgrade plan</a>
-                      <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] border border-border px-3 py-1.5 text-[10px] text-text-3 transition-colors hover:text-text">Cancel</button>
+                      <a href="/dashboard/billing" className="cursor-pointer rounded-sm bg-fill-invert px-3 py-1.5 text-meta font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">Upgrade plan</a>
+                      <Button variant="secondary" size="sm" onClick={resetAddFlow} className="rounded-sm text-text-3">Cancel</Button>
                     </div>
                   )}
                 </div>
               )}
 
               {addState === 'replacing' && (
-                <div className="flex items-center gap-2 text-[11px] text-text-3">
+                <div className="flex items-center gap-2 text-meta text-text-3">
                   <Loader2 className="h-3 w-3 animate-spin" /> Checking snippet on {normalize(addUrl)}…
                 </div>
               )}
 
               {addState === 'verified' && (
                 <div className="space-y-2">
-                  <p className="flex items-center gap-1.5 text-[11px] text-ok"><Check className="h-3 w-3" /> <strong>{normalize(addUrl)}</strong> added &amp; verified.</p>
-                  <button onClick={resetAddFlow} className="cursor-pointer rounded-[var(--radius-sm)] bg-fill-invert px-3 py-1.5 text-[10px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover">Done</button>
+                  <p className="flex items-center gap-1.5 text-meta text-ok"><Check className="h-3 w-3" /> <strong>{normalize(addUrl)}</strong> added &amp; verified.</p>
+                  <Button variant="primary" size="sm" onClick={resetAddFlow} className="rounded-sm">Done</Button>
                 </div>
               )}
             </div>
           )}
 
           {domainError && (
-            <p className="mt-3 flex items-center gap-1.5 text-[12px] text-err">
+            <p className="mt-3 flex items-center gap-1.5 text-small text-err">
               <AlertTriangle className="h-3 w-3" />
               {domainError}
             </p>
           )}
-        </div>
+        </Card>
 
         {/* Experiments — Auto-Promotion & Winner-Mails (Plan RA-06) */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-4">
             <FlaskConical className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Experiments</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">Experiments</span>
           </div>
 
           <div className="space-y-4">
             {/* Auto-apply winners */}
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <label htmlFor="auto-promote" className="cursor-pointer text-[13px] font-medium text-text">
+                <label htmlFor="auto-promote" className="cursor-pointer text-body font-medium text-text">
                   Apply winners automatically
                 </label>
-                <p className="mt-1 text-[11px] leading-relaxed text-text-3">
+                <p className="mt-1 text-meta leading-relaxed text-text-3">
                   When a test reaches significance, serve the winning variant to{' '}
                   <strong className="font-medium text-text-2">all</strong> visitors and close the test.
                   Turn this off to review each winner before it goes live on your site.
@@ -787,9 +769,9 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
             </div>
 
             {!autoPromote && (
-              <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2.5">
+              <div className="flex items-start gap-2 rounded-md border border-border bg-bg-2 px-3 py-2.5">
                 <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ok" />
-                <p className="text-[11px] leading-relaxed text-text-3">
+                <p className="text-meta leading-relaxed text-text-3">
                   Winners will be recorded and you&apos;ll be notified, but nothing changes on your site
                   until you hit <strong className="font-medium text-text-2">Apply winner</strong> on the
                   test. Tests keep running at their current split in the meantime.
@@ -802,10 +784,10 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
             {/* Winner emails */}
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <label htmlFor="notify-winner" className="cursor-pointer text-[13px] font-medium text-text">
+                <label htmlFor="notify-winner" className="cursor-pointer text-body font-medium text-text">
                   Email me when a test finds a winner
                 </label>
-                <p className="mt-1 text-[11px] leading-relaxed text-text-3">
+                <p className="mt-1 text-meta leading-relaxed text-text-3">
                   One email per test, sent to <strong className="font-medium text-text-2">{email}</strong>.
                   In-app notifications stay on either way.
                 </p>
@@ -819,168 +801,176 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
             </div>
 
             {prefsError && (
-              <p className="flex items-center gap-1.5 text-[11px] text-err" role="alert">
+              <p className="flex items-center gap-1.5 text-meta text-err" role="alert">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 {prefsError}
               </p>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Password */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-4">
             <Key className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">Password</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">Password</span>
           </div>
-          <p className="text-[11px] text-text-3">
+          <p className="text-meta text-text-3">
             Receive a reset link at <strong className="font-medium text-text-2">{email}</strong>.
           </p>
-          <button
+          <Button
+            variant="secondary" size="md"
             onClick={changePassword}
             disabled={busy || pwSent}
-            className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text disabled:opacity-40"
+            className="mt-3 text-meta font-semibold"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : pwSent ? <Check className="h-3.5 w-3.5 text-ok" /> : <Key className="h-3.5 w-3.5" />}
             {pwSent ? 'Link sent — check your inbox' : 'Send password reset link'}
-          </button>
-        </div>
+          </Button>
+        </Card>
 
         {/* API Token — used by Figma plugin and API access */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-4">
             <Key className="h-4 w-4 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">API Token</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">API Token</span>
           </div>
 
           {!token ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
+              <div className="flex items-center gap-2 rounded-md border border-dashed border-pro/30 bg-pro/[0.03] px-4 py-3">
                 <AlertTriangle className="h-4 w-4 shrink-0 text-pro" />
-                <p className="text-[12px] text-pro">No API token found. This is required for the Figma plugin.</p>
+                <p className="text-small text-pro">No API token found. This is required for the Figma plugin.</p>
               </div>
-              <button
+              <Button
+                variant="primary" size="md"
                 onClick={regenerateToken}
                 disabled={tokenBusy}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[11px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-40"
+                className="text-meta"
               >
                 {tokenBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Key className="h-3.5 w-3.5" />}
                 Generate token
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-[11px] text-text-3 leading-relaxed">
+              <p className="text-meta text-text-3 leading-relaxed">
                 This token authenticates the <strong className="text-text-2">Figma plugin</strong> and API requests.
                 Treat it like a password — do not share it publicly.
               </p>
 
               {/* Token display */}
-              <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2.5">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-bg-2 px-3 py-2.5">
                 <Key className="h-3.5 w-3.5 shrink-0 text-text-3" />
-                <code className="flex-1 text-[12px] font-mono text-text truncate select-all">
+                <code className="flex-1 text-small font-mono text-text truncate select-all">
                   {showToken ? token : `••••••••••••••••${token.slice(-4)}`}
                 </code>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setShowToken((v) => !v)}
-                  className="shrink-0 cursor-pointer text-[10px] text-text-3 transition-colors hover:text-text-2"
+                  className="shrink-0 text-meta"
                   aria-label={showToken ? 'Hide token' : 'Show token'}
                 >
                   {showToken ? 'Hide' : 'Show'}
-                </button>
+                </Button>
               </div>
 
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="secondary" size="sm"
                   onClick={copyToken}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                  className="font-semibold"
                 >
                   {tokenCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                   {tokenCopied ? 'Copied' : 'Copy'}
-                </button>
+                </Button>
 
                 {!regenerateConfirm ? (
-                  <button
+                  <Button
+                    variant="ghost" size="sm"
                     onClick={() => setRegenerateConfirm(true)}
-                    className="cursor-pointer rounded-[var(--radius-md)] px-3 py-1.5 text-[11px] font-medium text-text-3 transition-colors hover:text-err"
+                    className="hover:text-err"
                   >
                     Regenerate
-                  </button>
+                  </Button>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <button
+                    <Button variant="danger" size="sm"
                       onClick={regenerateToken}
                       disabled={tokenBusy}
-                      className="flex cursor-pointer items-center gap-1 rounded-[var(--radius-sm)] bg-err px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:bg-err/90 disabled:opacity-40"
+                      className="gap-1 bg-err px-2.5 py-1 text-text hover:bg-err/90"
                     >
                       {tokenBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                       Confirm
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
                       onClick={() => setRegenerateConfirm(false)}
                       disabled={tokenBusy}
-                      className="cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[10px] text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                      className="rounded-sm px-2 py-1 text-meta disabled:opacity-30"
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
 
-              <p className="text-[10px] text-text-3/60">
+              <p className="text-meta text-text-3/60">
                 Regenerating invalidates the old token immediately. Update it in the Figma plugin afterwards.
               </p>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Danger Zone */}
-        <div className="rounded-[var(--radius-lg)] border border-err/20 bg-bg-1 p-5">
+        <div className="rounded-md border border-err/20 bg-bg-1 p-5">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="h-4 w-4 text-err" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-err">Danger Zone</span>
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-err">Danger Zone</span>
           </div>
           {!showDelete ? (
             <>
-              <p className="text-[12px] leading-relaxed text-text-3">
+              <p className="text-small leading-relaxed text-text-3">
                 Permanently delete your account and all associated data — experiments, stats, and settings. This cannot be undone.
               </p>
-              <button
+              <Button
+                variant="danger" size="md"
                 onClick={() => setShowDelete(true)}
-                className="mt-3 flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-2 text-[11px] font-semibold text-err transition-colors hover:bg-err/10"
+                className="mt-3 border border-err/20 text-meta hover:bg-err/10"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete account
-              </button>
+              </Button>
             </>
           ) : (
             <div className="space-y-3">
-              <p className="text-[12px] font-semibold text-err">
-                Type <code className="rounded-[var(--radius-sm)] bg-err-bg px-1.5 py-0.5 font-mono text-[12px]">{dangerConfirm}</code> to confirm:
+              <p className="text-small font-semibold text-err">
+                Type <code className="rounded-sm bg-err-bg px-1.5 py-0.5 font-mono text-small">{dangerConfirm}</code> to confirm:
               </p>
               <input
                 type="text"
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-[var(--radius-md)] border border-err/20 bg-bg-2 px-3 py-2 font-mono text-[13px] text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="w-full rounded-md border border-err/20 bg-bg-2 px-3 py-2 font-mono text-body text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
               />
               <div className="flex items-center gap-2">
-                <button
+                <Button variant="danger" size="sm"
                   onClick={deleteAccount}
                   disabled={deleting || deleteConfirm !== dangerConfirm}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-err px-4 py-2 text-[11px] font-semibold text-white transition-opacity hover:bg-err/90 disabled:opacity-30"
+                  className="gap-1.5 bg-err px-4 py-2 text-text hover:bg-err/90"
                 >
                   {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                   {deleting ? 'Deleting…' : 'Yes, delete my account'}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary" size="md"
                   onClick={() => { setShowDelete(false); setDeleteConfirm('') }}
                   disabled={deleting}
-                  className="cursor-pointer rounded-[var(--radius-md)] border border-border px-4 py-2 text-[11px] font-semibold text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                  className="text-meta font-semibold text-text-3 disabled:opacity-30"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -988,19 +978,20 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
 
         {/* Error */}
         {error && (
-          <div className="rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-3 text-[12px] text-err">
+          <div className="rounded-md border border-err/20 bg-err-bg px-4 py-3 text-small text-err">
             {error}
           </div>
         )}
 
         {/* Logout */}
         <div className="text-center">
-          <button
+          <Button
+            variant="ghost"
             onClick={logout}
-            className="cursor-pointer text-[12px] text-text-3 transition-colors hover:text-err"
+            className="text-small hover:text-err"
           >
             Sign out
-          </button>
+          </Button>
         </div>
       </div>
     </div>

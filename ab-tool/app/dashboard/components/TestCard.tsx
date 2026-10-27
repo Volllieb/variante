@@ -9,6 +9,7 @@ import type { DailyPoint } from '@/lib/forecast'
 import { describeDbGoal } from '@/lib/resultsHelpers'
 import { formatCompact, formatPercent, formatDelta, formatCount } from '@/lib/formatNumber'
 import { significanceTone } from './sigVisual'
+import { Badge, Button, StatusDot } from '@/app/components'
 
 
 export type TestRow = {
@@ -260,7 +261,7 @@ export function TestCard({
       : `~${formatCount(estimate.visitorsNeeded)} visitors to go`
     : null
 
-  const cardClassName = `group/card surface-interactive relative block w-full text-left rounded-[var(--radius-lg)] border p-2.5 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none ${
+  const cardClassName = `group/card surface-interactive relative block w-full text-left rounded-md border p-2.5 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none ${
     isDraft ? 'border-dashed border-border bg-bg-0/60 cursor-pointer' : 'border-border bg-bg-1'
   }`
 
@@ -277,9 +278,14 @@ export function TestCard({
       className={cardClassName}
       style={highlight ? { animation: 'testPulse 2s var(--ease-out)' } : undefined}
     >
-      {/* Live-Pulse: subtile Signatur für aktive Tests */}
+      {/* Live-Pulse: subtile Signatur für aktive Tests. aria-hidden, weil die
+          Status-Pille weiter unten dieselbe Information schon benennt. */}
       {status === 'active' && (
-        <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-ok motion-safe:animate-pulse" />
+        <StatusDot
+          status="live"
+          aria-hidden
+          className="absolute top-3 right-3 motion-safe:animate-pulse"
+        />
       )}
 
       {/* ── Row 1: favicon | name+url | pie chart ── */}
@@ -291,8 +297,8 @@ export function TestCard({
             steht nicht in der Sub-Prozessor-Tabelle, und die Docs behaupten
             ausdrücklich "No third-party analytics or CDNs". Jetzt ein lokal
             gerendertes Monogramm, kein externer Request. */}
-        <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-bg-2">
-          <span className="text-[10px] font-semibold uppercase text-text-3">
+        <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-sm bg-bg-2">
+          <span className="text-meta font-semibold uppercase text-text-3">
             {domain ? domain.replace(/^www\./, '').charAt(0) : 'W'}
           </span>
         </div>
@@ -307,20 +313,20 @@ export function TestCard({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
                 autoFocus
-                className="flex-1 rounded-[var(--radius-sm)] border border-border bg-bg-0 px-2 py-1 text-[12px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+                className="flex-1 rounded-sm border border-border bg-bg-0 px-2 py-1 text-small text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
               />
-              <button onClick={handleRename} disabled={busy} className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3 hover:text-text">
+              <Button variant="ghost" onClick={handleRename} disabled={busy} className="rounded-sm p-1">
                 <Check className="h-3 w-3" />
-              </button>
-              <button onClick={() => { setRenameOpen(false); setRenameValue(localName) }} className="cursor-pointer rounded-[var(--radius-sm)] p-1 text-text-3 hover:text-text">
+              </Button>
+              <Button variant="ghost" onClick={() => { setRenameOpen(false); setRenameValue(localName) }} className="rounded-sm p-1">
                 <X className="h-3 w-3" />
-              </button>
+              </Button>
             </div>
           ) : (
             <>
-              <p className="truncate text-[13px] font-medium text-text">{localName}</p>
+              <p className="truncate text-body font-medium text-text">{localName}</p>
               {t.site_url && (
-                <p className="mt-0.5 truncate text-[10px] text-text-3">{t.site_url}</p>
+                <p className="mt-0.5 truncate text-meta text-text-3">{t.site_url}</p>
               )}
             </>
           )}
@@ -332,18 +338,19 @@ export function TestCard({
 
           {/* Three-dot menu */}
           <div ref={menuRef} className="relative">
-            <button
+            <Button
+              variant="ghost" size="icon"
               onClick={openMenu}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               aria-label="Test actions"
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[5px] text-text-3 transition-colors hover:bg-bg-2 hover:text-text-2 focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+              className="h-7 w-7 rounded-sm"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
-            </button>
+            </Button>
 
             {menuOpen && (
-              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-44 rounded-[var(--radius-md)] border border-border bg-bg-2 py-1">
+              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-44 rounded-md border border-border bg-bg-2 py-1">
                 {/* Die ganze Karte ist ein <Link> — ein verschachteltes <a> waere
                     ungueltiges HTML und wuerde den Karten-Link zerreissen. Darum
                     window.open statt href, wie bei den uebrigen Menuepunkten. */}
@@ -351,7 +358,8 @@ export function TestCard({
                   const href = previewUrl(t.site_url, v)
                   if (!href) return null
                   return (
-                    <button
+                    <Button
+                      variant="ghost" size="sm"
                       key={v}
                       onClick={(e) => {
                         e.preventDefault()
@@ -360,42 +368,45 @@ export function TestCard({
                         setMenuOpen(false)
                       }}
                       title={`Open ${domain ?? 'the site'} with variant ${v.toUpperCase()} forced — not counted as a visitor`}
-                      className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"
+                      className="w-full gap-2 text-small hover:bg-bg-1"
                     >
                       <Eye className="h-3.5 w-3.5" /> Preview {v.toUpperCase()}
-                    </button>
+                    </Button>
                   )
                 })}
 
-                <button
+                <Button
+                  variant="ghost" size="sm"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRenameOpen(true); setMenuOpen(false) }}
-                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text"
+                  className="w-full gap-2 text-small hover:bg-bg-1"
                 >
                   <Pencil className="h-3.5 w-3.5" /> Rename
-                </button>
+                </Button>
 
                 {(status === 'active' || status === 'paused') && (
-                  <button
+                  <Button
+                    variant="ghost" size="sm"
                     onClick={togglePause}
                     disabled={busy}
-                    className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text disabled:opacity-40"
+                    className="w-full gap-2 text-small hover:bg-bg-1"
                   >
                     {status === 'active' ? (
                       <><Pause className="h-3.5 w-3.5" /> Pause</>
                     ) : (
                       <><Play className="h-3.5 w-3.5" /> Resume</>
                     )}
-                  </button>
+                  </Button>
                 )}
 
-                <button
+                <Button
+                  variant="ghost" size="sm"
                   onClick={handleDelete}
                   disabled={busy}
-                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-bg-1 hover:text-text disabled:opacity-40"
+                  className="w-full gap-2 text-small hover:bg-bg-1"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   {deleteConfirm ? 'Click to confirm' : 'Delete'}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -404,7 +415,7 @@ export function TestCard({
 
       {/* ── Row 1b: CR + Lift (nur bei aktiven/pausierten Tests mit Daten) ── */}
       {isLive && totalV > 0 && (
-        <div className="mt-1.5 flex items-center gap-2 text-[10px]">
+        <div className="mt-1.5 flex items-center gap-2 text-meta">
           <span className="text-text-3">
             A <strong className="text-text-2">{formatPercent(crA * 100)}</strong>
           </span>
@@ -429,7 +440,7 @@ export function TestCard({
 
       {/* ── Row 1c: Conversion-Ziel ── */}
       {!isDraft && (
-        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-text-3">
+        <div className="mt-1.5 flex items-center gap-1.5 text-meta text-text-3">
           <Target className="h-3 w-3 shrink-0" />
           <span className="truncate" title={goal.short}>{goal.short}</span>
         </div>
@@ -437,71 +448,49 @@ export function TestCard({
 
       {/* ── Row 2: status pill | health | duration | leader | winner ── */}
       <div className="mt-1.5 flex items-center gap-1 flex-wrap">
-        {/* Status pill */}
-        <span
-          className={[
-            'inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px]',
-            status === 'active' ? 'text-ok' : status === 'paused' ? 'text-pro' : 'text-text-2',
-          ].join(' ')}
+        {/* Status pill. „Done" bleibt neutral getönt, trägt den Punkt aber in
+            Grün, wenn B gewonnen hat — das war vorher inline nachgebaut. */}
+        <Badge
+          tone={status === 'active' ? 'ok' : status === 'paused' ? 'pro' : 'neutral'}
+          dot={status === 'active' || status === 'paused'}
         >
-          <span
-            className={[
-              'inline-block h-1.5 w-1.5 shrink-0 rounded-full',
-              status === 'active' ? 'bg-ok' :
-              status === 'paused' ? 'bg-pro' :
-              t.winner === 'B' ? 'bg-ok' : 'bg-text-3',
-            ].join(' ')}
-          />
+          {status === 'done' && <StatusDot status={t.winner === 'B' ? 'live' : 'paused'} aria-hidden />}
+          {isDraft && <StatusDot status="draft" aria-hidden />}
           {status === 'active' ? 'Active' : status === 'paused' ? 'Paused' : status === 'done' ? 'Done' : 'Draft'}
-        </span>
+        </Badge>
 
         {/* Draft: "Complete setup" call-to-action pill */}
         {isDraft && hasIssues && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-pro/20 bg-pro/[0.08] px-2 py-0.5 text-[11px] font-medium text-pro">
-            <Pencil className="h-3 w-3" />
+          <Badge tone="pro">
+            <Pencil className="h-3 w-3" aria-hidden />
             Complete setup
-          </span>
+          </Badge>
         )}
 
         {/* Health issues pill — only for non-draft tests */}
         {!isDraft && t.health_status === 'issues' && Array.isArray(t.health_issues) && t.health_issues.length > 0 && (
-          <span
-            className="inline-flex items-center gap-1 rounded-full border border-err/20 bg-err/[0.05] px-2 py-0.5 text-[11px] text-err"
-            title={t.health_issues.map(code => issueLabel(code)).join(', ')}
-          >
-            <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-err" />
-            {t.health_issues.length} {t.health_issues.length === 1 ? 'issue' : 'issues'}
-          </span>
+          <Badge tone="err" dot>
+            <span title={t.health_issues.map(code => issueLabel(code)).join(', ')}>
+              {t.health_issues.length} {t.health_issues.length === 1 ? 'issue' : 'issues'}
+            </span>
+          </Badge>
         )}
 
         {/* Duration pill */}
-        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-text-3">
-          {formatDuration(t.created_at)}
-        </span>
+        <Badge tone="neutral">{formatDuration(t.created_at)}</Badge>
 
         {/* Restweg bis zur Entscheidung */}
         {remaining && (
-          <span
-            className="rounded-full border border-border px-2 py-0.5 text-[11px] text-text-3"
-            title="Estimated from the traffic this test has seen so far"
-          >
-            {remaining}
-          </span>
+          <Badge tone="neutral">
+            <span title="Estimated from the traffic this test has seen so far">{remaining}</span>
+          </Badge>
         )}
 
         {/* Variant leader pill */}
-        {leader && isLive && (
-          <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-text-2">
-            Variant {leader}
-          </span>
-        )}
+        {leader && isLive && <Badge tone="neutral">Variant {leader}</Badge>}
 
         {/* Winner badge */}
-        {t.winner === 'B' && status === 'done' && (
-          <span className="rounded-full border border-ok/20 bg-ok-bg px-2 py-0.5 text-[11px] font-semibold text-ok">
-            Winner
-          </span>
-        )}
+        {t.winner === 'B' && status === 'done' && <Badge tone="ok">Winner</Badge>}
       </div>
     </Link>
   )

@@ -40,7 +40,7 @@ export default function CheckoutRedirectPage() {
     <main className="flex min-h-dvh flex-col items-center justify-center bg-bg-0 px-8 text-center">
       {error ? (
         <>
-          <p className="mb-2 text-[18px] text-err" role="alert">
+          <p className="mb-2 text-heading text-err" role="alert">
             {error}
           </p>
           <p className="text-text-3">Redirecting to your dashboard…</p>
@@ -52,7 +52,7 @@ export default function CheckoutRedirectPage() {
             role="status"
             aria-label="Setting up your Pro account"
           />
-          <p className="text-[18px] font-medium text-text">Setting up your Pro account…</p>
+          <p className="text-heading font-medium text-text">Setting up your Pro account…</p>
           <p className="mt-2 text-text-3">You&rsquo;ll be redirected to Stripe in a moment.</p>
         </>
       )}

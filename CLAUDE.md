@@ -41,7 +41,8 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/app/dashboard/` | Dashboard: `DashboardClient.tsx`, `Sidebar.tsx`, Unterseiten `tests/`, `results/[id]/`, `account/`, `billing/` (je `page.tsx` server + `*Client.tsx`) |
 | `ab-tool/app/dashboard/components/` | Dashboard-Komponenten; `NewTestDrawer.tsx` = Test-Wizard |
 | `ab-tool/app/dashboard/components/new-test/` | Wizard-Steps (`StepUrlAndElement`, `StepGoal`, `StepChange`, `StepReview`), Editoren, `delta.ts` (CSS-Diff/Change-Modell), `types.ts` |
-| `ab-tool/app/components/` | Geteilte UI-Primitives (Button, Card, Toast, Tooltip, Skeleton, `VariantPreview`) |
+| `ab-tool/app/components/` | Geteilte UI-Primitives, Sammel-Import über `index.ts` (Button, Card, Badge, StatusDot, Field/Input/Textarea/Select, Toggle, SegmentedControl, Table, Drawer, Modal/ConfirmDialog, Toast, Tooltip, Skeleton, EmptyState, `VariantPreview`) |
+| `ab-tool/app/components/ui/` | Radix-Bausteine aus `npx shadcn add`, auf v3-Tokens gezogen (`dialog`, `dropdown-menu`, `tabs`) + `chart.tsx`; nicht über `index.ts` re-exportiert |
 | `ab-tool/components/` | Nur Landing-/Logo-Grafiken (`PandaLogo`, `LandingIcons`, `TechLogos`) |
 | `ab-tool/app/{page,LandingDemo,LandingTrySite}.tsx` | Landingpage; Copy in `lib/landingCopy.ts` |
 | `ab-tool/app/{login,signup,update-password,onboarding,auth}/` | Auth- und Onboarding-Seiten |
@@ -80,6 +81,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | E-Mail | `lib/email.ts` (Resend), `app/api/cron/weekly-digest/` |
 | Figma-Plugin-API | `app/api/figma/stats/`, `app/api/tests/` |
 | Styling / Tokens | `app/globals.css` (`@theme`), `docs/brandguidelines.md` |
+| UI-Primitives | `app/components/` (+ `index.ts`), Radix-Basis in `app/components/ui/`, Klassen-Merge `lib/utils.ts` (`cn`) |
 
 ## Konventionen
 
@@ -88,7 +90,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 - **API-Route-Muster:** `export async function OPTIONS() { return preflight(methods) }` → `getApiUser(req)` / `unauthorized()` → `parseBody(req, zodSchema, methods)` → Supabase via `lib/supabase.ts` → `Response.json(..., { headers: corsHeaders(methods) })`. Plan-Gates mit `paymentRequired()`; Cron-Routen in `cronRoute()` wrappen.
 - **Fehler:** API antwortet `{ error: '<kurz>' }` (+ optional `message`, `details`) mit passendem Status; Logging über `safeError`/`safeWarn` (`lib/safeLog.ts`, PII-redigiert) statt rohem `console.error`. Ausgehende Fetches auf Nutzer-URLs nur über `lib/safeFetch.ts`.
 - **State:** kein globaler Store; React-`useState` lokal, Wizard-State in `NewTestDrawer`, Persistenz über `usePersistedValue`, Live-Updates über `useRealtime` (Supabase Realtime).
-- **Styling:** Regelwerk = `docs/brandguidelines.md` **v3** (inkl. Liste „Verboten im Code" §12). Tailwind v4 (Konfig nur in `globals.css` `@theme`, kein `tailwind.config.js`). Tokens: Farben `bg-bg-0..2`, `text-text/-2/-3`, `bg-ok` usw.; Schrift `text-meta|small|body|title|heading|display|display-lg` (11/12/13/15/18/24/36px) statt `text-[Npx]`; Layout-Spacing `gap-tight|snug|base|loose|section` (4/8/12/20/32px) statt `p-[Npx]`; Radius `rounded-sm|md|lg` (Cards = `md`). Dark-only, monochrom (Schwarz/Weiß + 3 Funktionsfarben), kein `font-bold`/`shadow-*`. UI-Primitives (`Button`, `Card`, `Badge` …) aus `app/components/` nutzen statt roher `<button>`. Icons: ausschließlich `lucide-react`, Charts: `recharts` (`app/components/ui/chart.tsx`, `chartTheme.ts`).
+- **Styling:** Regelwerk = `docs/brandguidelines.md` **v3** (inkl. Liste „Verboten im Code" §12). Tailwind v4 (Konfig nur in `globals.css` `@theme`, kein `tailwind.config.js`). Tokens: Farben `bg-bg-0..2`, `text-text/-2/-3`, `bg-ok` usw.; Schrift `text-meta|small|body|title|heading|display|display-lg` (11/12/13/15/18/24/36px) statt `text-[Npx]`; Layout-Spacing `gap-tight|snug|base|loose|section` (4/8/12/20/32px) statt `p-[Npx]`; Radius `rounded-sm|md|lg` (Cards = `md`). Dark-only, monochrom (Schwarz/Weiß + 3 Funktionsfarben), kein `font-bold`/`shadow-*`. UI-Primitives (`Button`, `Card`, `Field` …) über `import { … } from '@/app/components'` nutzen statt roher `<button>`/`<input>`; Klassen immer über `cn()` (`lib/utils.ts`) zusammensetzen, nie per Template-Literal. Neue Overlay-/Menü-Bausteine kommen per `npx shadcn add` nach `app/components/ui/` und werden dort auf die Tokens gezogen (die Default-Klassen der CLI verletzen §12). Icons: ausschließlich `lucide-react`, Charts: `recharts` (`app/components/ui/chart.tsx`, `chartTheme.ts`).
 - **Sprache:** UI-Texte Englisch; Code-Kommentare und Docs überwiegend Deutsch. Kommentare erklären das *Warum* (oft mit Plan-ID wie `SEC-05`, `DATA-01`).
 - **`ab.js`:** ES5, keine Abhängigkeiten, läuft auf Fremdseiten. Kein SRI (bewusst, siehe `README.md` §Security).
 - **DB:** neue Migration = nächste Nummer in `db/migrations/`, idempotent; Anwendung wird in `schema_migrations` getrackt.

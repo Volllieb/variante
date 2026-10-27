@@ -10,6 +10,8 @@
  * scrollt dann horizontal.
  */
 
+import { SegmentedControl } from '@/app/components'
+
 export type Breakpoint = 375 | 768 | 'desktop'
 
 export const BREAKPOINTS: Array<{ value: Breakpoint; label: string; width: number }> = [
@@ -25,22 +27,15 @@ export function BreakpointSwitcher({
   value: Breakpoint
   onChange: (next: Breakpoint) => void
 }) {
+  // Phase 2: war ein eigener Umschalter mit invertiertem Aktiv-Zustand.
+  // Nach §6.7 ist aktiv `bg-bg-2 text-text` — invertiert bleibt dem
+  // Primär-Button vorbehalten.
   return (
-    <div className="flex rounded-[var(--radius-sm)] border border-border bg-bg-0 p-0.5">
-      {BREAKPOINTS.map((bp) => (
-        <button
-          key={bp.value}
-          type="button"
-          onClick={() => onChange(bp.value)}
-          className={`rounded-[var(--radius-sm)] px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-            value === bp.value
-              ? 'bg-fill-invert text-text-on-invert'
-              : 'text-text-3 hover:text-text'
-          }`}
-        >
-          {bp.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      label="Preview width"
+      value={value}
+      onChange={onChange}
+      options={BREAKPOINTS.map((bp) => ({ value: bp.value, label: bp.label }))}
+    />
   )
 }

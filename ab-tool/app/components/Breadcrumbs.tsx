@@ -15,7 +15,7 @@ type Crumb = {
  */
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[12px]">
+    <nav aria-label="Breadcrumb" className="flex items-center gap-tight text-small">
       <Link
         href="/dashboard"
         className="text-text-3 transition-colors hover:text-text-2"

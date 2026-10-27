@@ -2,6 +2,8 @@
 
 import { type ReactNode } from 'react'
 
+import { cn } from '@/lib/utils'
+
 type TooltipProps = {
   content: string
   children: ReactNode
@@ -9,6 +11,8 @@ type TooltipProps = {
   side?: 'top' | 'bottom' | 'left' | 'right'
   /** max width of tooltip, default 200px */
   maxWidth?: number
+  /** Für die Hülle, z. B. `flex-1`, wenn das Kind sich Breite teilen soll. */
+  className?: string
 }
 
 const sideClasses: Record<string, string> = {
@@ -19,16 +23,26 @@ const sideClasses: Record<string, string> = {
 }
 
 /**
- * Simple CSS-only tooltip. Wrap any element.
- * Shows on hover after a short delay via CSS transition.
+ * CSS-only Tooltip (brandguidelines v3 §6.10). Beliebiges Element umschließen.
+ *
+ * Phase 1: `shadow-lg` entfernt (§12 — Tiefe kommt aus Hairline + Fill-Stufe,
+ * hier `bg-bg-2` auf `border-border-strong`), Größe auf `text-meta` gezogen.
+ * Und er zeigt sich jetzt auch bei Tastatur-Fokus: vorher hing er allein an
+ * `group-hover`, war per Tab also nicht erreichbar.
  */
-export function Tooltip({ content, children, side = 'top', maxWidth = 200 }: TooltipProps) {
+export function Tooltip({ content, children, side = 'top', maxWidth = 200, className }: TooltipProps) {
   return (
-    <span className="group/tip relative inline-flex">
+    <span className={cn('group/tip relative inline-flex', className)}>
       {children}
       <span
         role="tooltip"
-        className={`pointer-events-none absolute z-50 ${sideClasses[side]} rounded-[var(--radius-md)] border border-white/[0.14] bg-bg-2 px-2.5 py-1.5 text-[11px] leading-relaxed text-text/90 opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100 group-hover/tip:delay-300 whitespace-nowrap shadow-lg`}
+        className={cn(
+          'pointer-events-none absolute z-50 whitespace-nowrap rounded-md border border-border-strong bg-bg-2 px-2.5 py-1.5 text-meta leading-relaxed text-text/90',
+          'opacity-0 transition-opacity',
+          'group-hover/tip:opacity-100 group-hover/tip:delay-300',
+          'group-focus-within/tip:opacity-100 group-focus-within/tip:delay-300',
+          sideClasses[side],
+        )}
         style={{ maxWidth: `${maxWidth}px` }}
       >
         {content}

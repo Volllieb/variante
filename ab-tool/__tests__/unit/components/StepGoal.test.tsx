@@ -90,7 +90,14 @@ describe('StepGoal — Tested element', () => {
       url: '',
     })
 
-    expect(screen.getByRole('button', { name: 'Tested element' })).toBeDisabled()
+    // Seit dem Umbau auf <SegmentedControl> sperrt die Option per
+    // `aria-disabled` statt per `disabled`: so bleibt sie fokussierbar und
+    // erklärt sich auch per Tastatur — ein `disabled`-Button zeigt in Firefox
+    // weder :hover noch seinen Tooltip.
+    const tested = screen.getByRole('button', { name: 'Tested element' })
+    expect(tested).toHaveAttribute('aria-disabled', 'true')
+    fireEvent.click(tested)
+    expect(tested).toHaveAttribute('aria-pressed', 'false')
     // Der Tooltip ist nur bei Hover sichtbar, aber immer im Dokument.
     expect(screen.getByText('It seems that the tested element is not clickable')).toBeInTheDocument()
     expect(onGoalSelected).not.toHaveBeenCalled()

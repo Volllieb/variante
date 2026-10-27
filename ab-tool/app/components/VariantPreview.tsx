@@ -22,13 +22,13 @@ export function VariantPreview({
   if (!html) return null
 
   return (
-    <div className={`group rounded-xl border transition-colors ${
+    <div className={`group rounded-md border transition-colors ${
       winner
-        ? 'border-emerald-400/30 bg-emerald-400/[0.05]'
-        : 'border-white/[0.08] bg-white/[0.02]'
+        ? 'border-ok/20 bg-ok/[0.04]'
+        : 'border-border bg-bg-1'
     }`}>
       {/* Browser chrome */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06]">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
         {/* Traffic lights */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="inline-block h-2.5 w-2.5 rounded-full bg-err/60" />
@@ -36,20 +36,20 @@ export function VariantPreview({
           <span className="inline-block h-2.5 w-2.5 rounded-full bg-ok/60" />
         </div>
         {/* Label badge */}
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+        <span className={`text-meta font-semibold px-2 py-0.5 rounded-sm ${
           winner
-            ? 'bg-emerald-400/10 text-emerald-400'
-            : 'bg-white/[0.06] text-text-3'
+            ? 'bg-ok-bg text-ok'
+            : 'bg-bg-2 text-text-3'
         }`}>
           {label}
         </span>
         {winner && (
-          <span className="text-[10px] font-medium text-emerald-400/70">Winner</span>
+          <span className="text-meta font-medium text-ok">Winner</span>
         )}
         {/* Background toggle */}
         <button
           onClick={() => setBg(bg === 'light' ? 'dark' : 'light')}
-          className="ml-auto cursor-pointer rounded border border-white/10 px-2 py-0.5 text-[10px] text-white/30 transition-colors hover:border-white/20 hover:text-white/50"
+          className="ml-auto cursor-pointer rounded-sm border border-border px-2 py-0.5 text-meta text-text-3 transition-colors hover:border-border-strong hover:text-text-2"
           title={`Switch to ${bg === 'light' ? 'dark' : 'light'} background`}
         >
           {bg === 'light' ? '☀' : '☾'}

@@ -320,6 +320,13 @@ html {
   animation: slideInRight var(--duration-slow) var(--ease-out);
 }
 
+/* Gegenstück für zentrierte Dialoge und Toasts. Die fadeIn-Keyframe gab es
+   schon, aber nur als Arbitrary-Utility (`animate-[fadeIn_0.2s_ease-out]`)
+   im Toast — als Klasse ist sie für <Modal> und <Toast> gemeinsam nutzbar. */
+.animate-fade-in {
+  animation: fadeIn var(--duration-base) var(--ease-out);
+}
+
 /* ── Hero-specific ── */
 
 .hero-headline {

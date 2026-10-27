@@ -7,6 +7,7 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Copy, Globe, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react'
 import { SNIPPET_CODE, personalizedSnippet } from '@/lib/snippetCode'
+import { Button, Card } from '@/app/components'
 
 type Step = 1 | 2 | 3
 
@@ -197,7 +198,7 @@ export default function OnboardingPage() {
     }
   }
 
-  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-text-3 text-sm">Loading…</p></div>
+  if (!sessionChecked) return <div className="flex min-h-screen items-center justify-center bg-bg-0"><p className="text-text-3 text-body">Loading…</p></div>
 
   // ── Step 1: Install snippet ──
   if (step === 1) {
@@ -211,12 +212,12 @@ export default function OnboardingPage() {
               <span className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-white/10 text-white/70 mb-5">
                 <Globe className="h-6 w-6" />
               </span>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              <h1 className="text-display sm:text-display-lg font-semibold tracking-tight text-text">
                 Install the snippet
               </h1>
-              <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
+              <p className="mt-3 text-body sm:text-title text-white/55 max-w-lg mx-auto">
                 Paste this snippet into your site&apos;s{' '}
-                <code className="text-white/80 bg-white/5 px-1.5 py-0.5 rounded text-[13px]">&lt;head&gt;</code>{' '}
+                <code className="text-white/80 bg-white/5 px-1.5 py-0.5 rounded text-body">&lt;head&gt;</code>{' '}
                 tag. It loads async (~12 KB gzipped) — no impact on your page speed.
               </p>
 
@@ -229,42 +230,43 @@ export default function OnboardingPage() {
                     value={domainUrl}
                     aria-label="Your domain (optional)"
                     onChange={(e) => setDomainUrl(e.target.value)}
-                    className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-2.5 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="flex-1 rounded-md border border-border bg-bg-1 px-4 py-2.5 text-body text-text placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
                   />
                 </div>
               </div>
 
               <div className="mt-8 text-left">
-                <div className="relative rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
-                  <pre className="overflow-x-auto text-[13px] text-white/80 font-mono leading-relaxed whitespace-pre-wrap break-all">
+                <Card className="relative">
+                  <pre className="overflow-x-auto text-body text-white/80 font-mono leading-relaxed whitespace-pre-wrap break-all">
                     {snippetForDomain}
                   </pre>
-                  <button
+                  <Button variant="secondary" size="sm"
                     onClick={handleCopy}
-                    className="absolute top-3 right-3 flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
+                    className="absolute top-3 right-3 border-transparent bg-text/10 text-text-2 hover:bg-text/20 hover:text-text"
                   >
                     {copied ? (
                       <><Check className="h-3.5 w-3.5 text-ok" /> Copied!</>
                     ) : (
                       <><Copy className="h-3.5 w-3.5" /> Copy</>
                     )}
-                  </button>
-                </div>
-                <p className="mt-3 text-xs text-text-3">
+                  </Button>
+                </Card>
+                <p className="mt-3 text-small text-text-3">
                   Works with any stack: Next.js, WordPress, Webflow, Shopify, and more.
                 </p>
               </div>
 
               <div className="mt-8 space-y-3">
-                <button
+                <Button
+                  variant="primary"
                   onClick={() => setStep(2)}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
+                  className="gap-2 rounded-full px-8 py-3.5 text-body hover:bg-white/90"
                 >
                   I&apos;ve installed it
                   <ArrowRight className="h-4 w-4" />
-                </button>
-                <p className="text-xs text-text-3">
-                  Make sure the snippet is in your site&apos;s <code className="text-white/80 bg-white/5 px-1 rounded text-[11px]">&lt;head&gt;</code> before continuing.
+                </Button>
+                <p className="text-small text-text-3">
+                  Make sure the snippet is in your site&apos;s <code className="text-white/80 bg-white/5 px-1 rounded text-meta">&lt;head&gt;</code> before continuing.
                 </p>
               </div>
             </div>
@@ -293,10 +295,10 @@ export default function OnboardingPage() {
               }`}>
                 {isFound ? <Check className="h-6 w-6" /> : <Globe className="h-6 w-6" />}
               </span>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              <h1 className="text-display sm:text-display-lg font-semibold tracking-tight text-text">
                 {isFound ? 'Snippet detected!' : isNotFound ? 'Not detected yet' : 'Verify installation'}
               </h1>
-              <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
+              <p className="mt-3 text-body sm:text-title text-white/55 max-w-lg mx-auto">
                 {isFound
                   ? <>Your site <strong className="text-white/80">{normalized}</strong> is connected. Redirecting…</>
                   : isNotFound
@@ -324,12 +326,13 @@ export default function OnboardingPage() {
                       disabled={isChecking}
                       aria-label="Domain to verify"
                       aria-describedby="onboarding-domain-error"
-                      className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-1 px-4 py-3 text-sm text-white placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 disabled:opacity-50"
+                      className="flex-1 rounded-md border border-border bg-bg-1 px-4 py-3 text-body text-text placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 disabled:opacity-50"
                     />
-                    <button
+                    <Button
+                      variant="primary"
                       type="submit"
                       disabled={isChecking || !domainUrl.trim()}
-                      className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+                      className="gap-1.5 px-5 py-3 text-body hover:bg-white/90"
                     >
                       {isChecking ? (
                         <>
@@ -343,10 +346,10 @@ export default function OnboardingPage() {
                       ) : (
                         'Check'
                       )}
-                    </button>
+                    </Button>
                   </div>
                   {domainErr && (
-                    <p id="onboarding-domain-error" role="alert" className="mt-2 text-xs text-err text-left">{domainErr}</p>
+                    <p id="onboarding-domain-error" role="alert" className="mt-2 text-small text-err text-left">{domainErr}</p>
                   )}
                 </form>
               )}
@@ -354,14 +357,14 @@ export default function OnboardingPage() {
               {/* Checking animation */}
               {checkState.phase === 'checking' && (
                 <div className="mt-6 max-w-md mx-auto">
-                  <div className="rounded-[var(--radius-lg)] border border-pro/20 bg-pro/[0.04] p-4">
+                  <div className="rounded-md border border-pro/20 bg-pro/[0.04] p-4">
                     <div className="flex items-center gap-3">
                       <Loader2 className="h-5 w-5 animate-spin text-pro shrink-0" />
                       <div className="text-left">
-                        <p className="text-[13px] font-medium text-white">
+                        <p className="text-body font-medium text-text">
                           Looking for your snippet on {normalized}…
                         </p>
-                        <p className="text-[11px] text-text-3 mt-0.5">
+                        <p className="text-meta text-text-3 mt-0.5">
                           This may take a few seconds. Make sure your site is live.
                         </p>
                       </div>
@@ -387,15 +390,15 @@ export default function OnboardingPage() {
               {/* Found — success state */}
               {isFound && (
                 <div className="mt-6 max-w-md mx-auto">
-                  <div className="rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.05] p-4 text-center">
+                  <div className="rounded-md border border-ok/20 bg-ok/[0.05] p-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ok opacity-75" />
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-ok" />
                       </span>
-                      <span className="text-[12px] font-medium text-ok">Live connection established</span>
+                      <span className="text-small font-medium text-ok">Live connection established</span>
                     </div>
-                    <p className="text-[13px] text-white/70">
+                    <p className="text-body text-white/70">
                       Your site is ready for A/B testing. Taking you to the dashboard…
                     </p>
                   </div>
@@ -405,12 +408,12 @@ export default function OnboardingPage() {
               {/* Not found — troubleshooting */}
               {isNotFound && (
                 <div className="mt-6 max-w-md mx-auto text-left space-y-4">
-                  <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
-                    <p className="text-[12px] font-medium text-white mb-2">Checklist — make sure:</p>
-                    <ul className="space-y-1.5 text-[11px] text-text-2">
+                  <Card>
+                    <p className="text-small font-medium text-text mb-2">Checklist — make sure:</p>
+                    <ul className="space-y-1.5 text-meta text-text-2">
                       <li className="flex items-start gap-2">
                         <span className="text-text-3 mt-0.5 shrink-0">•</span>
-                        The snippet must be in the <code className="text-white/80 bg-white/5 px-1 rounded text-[10px]">&lt;head&gt;</code> of every page
+                        The snippet must be in the <code className="text-white/80 bg-white/5 px-1 rounded text-meta">&lt;head&gt;</code> of every page
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-text-3 mt-0.5 shrink-0">•</span>
@@ -425,33 +428,34 @@ export default function OnboardingPage() {
                         Check for CSP or adblockers that might block third-party scripts
                       </li>
                     </ul>
-                  </div>
+                  </Card>
 
                   {/* Show personalized snippet for re-copy */}
-                  <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
-                    <p className="text-[11px] text-text-3 mb-2">
+                  <Card>
+                    <p className="text-meta text-text-3 mb-2">
                       Your snippet for <strong className="text-text-2">{normalized}</strong>:
                     </p>
-                    <pre className="overflow-x-auto text-[11px] text-white/70 font-mono leading-relaxed whitespace-pre-wrap break-all">
+                    <pre className="overflow-x-auto text-meta text-white/70 font-mono leading-relaxed whitespace-pre-wrap break-all">
                       {snippetForDomain}
                     </pre>
-                    <button
+                    <Button variant="secondary" size="sm"
                       onClick={handleCopy}
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/80 transition-colors hover:bg-white/20"
+                      className="mt-3 border-transparent bg-text/10 text-text-2 hover:bg-text/20 hover:text-text"
                     >
                       {copied ? <><Check className="h-3 w-3 text-ok" /> Copied!</> : <><Copy className="h-3 w-3" /> Copy snippet</>}
-                    </button>
-                  </div>
+                    </Button>
+                  </Card>
 
                   <div className="flex items-center gap-3 pt-1">
-                    <button
+                    <Button
+                      variant="secondary" size="sm"
                       onClick={handleRetry}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                      className="text-small"
                     >
                       <Loader2 className="h-3.5 w-3.5" />
                       Check again
-                    </button>
-                    <span className="text-[11px] text-text-3">
+                    </Button>
+                    <span className="text-meta text-text-3">
                       Auto-checking every 8s for 40s…
                     </span>
                   </div>
@@ -461,13 +465,14 @@ export default function OnboardingPage() {
               {/* Manual continue — only shown if not yet checking/found */}
               {!isFound && !isChecking && (
                 <div className="mt-8">
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => setStep(3)}
-                    className="text-[13px] font-medium text-text-3 transition-colors hover:text-text-2"
+                    className="text-body"
                   >
                     I&apos;ll verify later →
-                  </button>
-                  <p className="mt-1 text-[11px] text-text-3/60">
+                  </Button>
+                  <p className="mt-1 text-meta text-text-3/60">
                     You can always check in the dashboard.
                   </p>
                 </div>
@@ -486,7 +491,7 @@ export default function OnboardingPage() {
         <div className="flex items-center justify-between py-2.5 sm:py-3 max-w-6xl mx-auto w-full">
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
+            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-text transition-opacity duration-200 hover:opacity-80"
           >
             <PandaLogo size="md" />
             variante
@@ -500,50 +505,50 @@ export default function OnboardingPage() {
             <span className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-ok/[0.1] text-ok mb-5">
               <Check className="h-7 w-7" />
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-display sm:text-display-lg font-semibold tracking-tight text-text">
               {checkState.phase === 'found' ? <>You&apos;re all set!</> : <>Almost there!</>}
             </h1>
-            <p className="mt-3 text-sm sm:text-base text-white/55 max-w-lg mx-auto">
+            <p className="mt-3 text-body sm:text-title text-white/55 max-w-lg mx-auto">
               {checkState.phase === 'found'
                 ? 'Head to the dashboard to create your first A/B test.'
                 : 'Install the snippet on your site to finish setup. You can verify later in the dashboard.'}
             </p>
 
             <div className="mt-8 space-y-3 text-left max-w-md mx-auto">
-              <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
+              <Card className="flex items-start gap-3">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                 <div>
-                  <p className="text-sm font-semibold text-white">Snippet ready</p>
-                  <p className="text-xs text-text-3 mt-0.5">
+                  <p className="text-body font-semibold text-text">Snippet ready</p>
+                  <p className="text-small text-text-3 mt-0.5">
                     {domainUrl.trim()
                       ? <>Installed for <strong className="text-text-2">{normalize(domainUrl)}</strong></>
                       : 'Paste it into your site\'s <head> to start tracking.'}
                   </p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-border bg-bg-1 p-4">
+              </Card>
+              <Card className="flex items-start gap-3">
                 {checkState.phase === 'found' ? (
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" />
                 ) : (
                   <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-text-3" />
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-body font-semibold text-text">
                     {checkState.phase === 'found' ? 'Snippet verified' : 'Verification pending'}
                   </p>
-                  <p className="text-xs text-text-3 mt-0.5">
+                  <p className="text-small text-text-3 mt-0.5">
                     {checkState.phase === 'found'
                       ? 'Live connection confirmed.'
                       : 'Check in the dashboard after installing the snippet.'}
                   </p>
                 </div>
-              </div>
+              </Card>
             </div>
 
             <div className="mt-8">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
+                className="inline-flex items-center gap-2 rounded-full bg-fill-invert px-8 py-3.5 text-body font-semibold text-text-on-invert transition-all hover:bg-white/90 active:scale-[0.98]"
               >
                 Go to dashboard
                 <ArrowRight className="h-4 w-4" />
@@ -573,28 +578,30 @@ function OnboardingHeader({
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-white transition-opacity duration-200 hover:opacity-80"
+            className="flex items-center gap-2.5 text-[1.1rem] font-semibold tracking-tight text-text transition-opacity duration-200 hover:opacity-80"
           >
             <PandaLogo size="md" />
             variante
           </Link>
           {step > 1 && (
-            <button
+            <Button
+              variant="ghost" size="sm"
               onClick={() => setStep((step - 1) as Step)}
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
+              className="rounded-full text-body hover:bg-white/[0.04]"
             >
               <ChevronLeft className="h-4 w-4" />
               Back
-            </button>
+            </Button>
           )}
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => router.push('/dashboard')}
           aria-label="Skip onboarding and go to dashboard"
-          className="rounded-full px-4 py-1.5 text-sm font-medium text-text-3 transition-colors hover:text-text-2 hover:bg-white/[0.04]"
+          className="rounded-full px-4 py-1.5 text-body hover:bg-white/[0.04]"
         >
           Skip to dashboard
-        </button>
+        </Button>
       </div>
     </header>
   )
@@ -607,9 +614,9 @@ function StepIndicator({ step }: { step: Step }) {
         <div key={s} className="flex items-center gap-2" role="listitem">
           <div
             aria-current={s === step ? 'step' : undefined}
-            className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold transition-colors ${
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-meta font-semibold transition-colors ${
               s === step
-                ? 'bg-white text-black'
+                ? 'bg-fill-invert text-text-on-invert'
                 : s < step
                 ? 'bg-ok/20 text-ok'
                 : 'bg-bg-2 text-text-3'

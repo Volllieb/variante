@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { Button } from '@/app/components'
 
 export default function ResultsError({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
@@ -17,16 +18,17 @@ export default function ResultsError({ error, reset }: { error: Error; reset: ()
         <p className="text-4xl font-semibold text-text-3">Error</p>
         <p className="mt-2 text-sm text-text-3">Something went wrong loading this result.</p>
         <div className="mt-6 flex items-center justify-center gap-3">
-          <button
+          <Button
+            variant="secondary" size="md"
             onClick={reset}
-            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
+            className="text-xs text-text-3"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Retry
-          </button>
+          </Button>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Dashboard

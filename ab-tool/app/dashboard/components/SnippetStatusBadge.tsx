@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Globe, Check, X, Loader2, Copy, ChevronDown, ExternalLink, AlertTriangle } from 'lucide-react'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
 import { FrameworkExamples } from './FrameworkExamples'
+import { Button } from '@/app/components'
 
 /* ── Types ── */
 
@@ -153,50 +154,52 @@ function SnippetVerifiedBadge({
     pageCheck.phase === 'done' ? pageCheck.pages.filter((p) => !p.detected) : []
 
   return (
-    <div className="mb-5 rounded-[var(--radius-lg)] border border-ok/20 bg-ok/[0.04] px-4 py-2.5">
+    <div className="mb-5 rounded-md border border-ok/20 bg-ok/[0.04] px-4 py-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ok opacity-60" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-ok" />
           </span>
-          <span className="text-[13px] font-medium text-text truncate">
+          <span className="text-body font-medium text-text truncate">
             Snippet active on <strong>{domain}</strong>
           </span>
           {ago && (
-            <span className="hidden sm:inline text-[11px] text-text-3 whitespace-nowrap">
+            <span className="hidden sm:inline text-meta text-text-3 whitespace-nowrap">
               Last checked: {ago}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          <Button
+            variant="ghost"
             onClick={onRecheck}
-            className="cursor-pointer text-[11px] font-medium text-text-3 transition-colors hover:text-text"
+            className="text-meta"
           >
             Re-check
-          </button>
+          </Button>
           <a
             href="/dashboard/account"
-            className="cursor-pointer text-[11px] font-medium text-pro transition-colors hover:text-pro/80"
+            className="cursor-pointer text-meta font-medium text-pro transition-colors hover:text-pro/80"
           >
             + Add site
           </a>
-          <button
+          <Button
+            variant="ghost" size="icon"
             onClick={handleToggle}
             aria-expanded={expanded}
-            className="flex cursor-pointer items-center justify-center h-5 w-5 rounded-[var(--radius-sm)] text-text-3 transition-colors hover:bg-ok/10 hover:text-text"
+            className="h-5 w-5 rounded-sm hover:bg-ok/10"
           >
             <ChevronDown
               className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`}
             />
-          </button>
+          </Button>
         </div>
       </div>
 
       {expanded && (
         <div className="mt-3 border-t border-ok/10 pt-3 space-y-2">
-          <p className="text-[12px] text-text-2 leading-relaxed">
+          <p className="text-small text-text-2 leading-relaxed">
             {missingPages.length > 0
               ? 'The snippet is missing on some pages you are testing. Those tests cannot record anything.'
               : 'Data is flowing. Visitors and conversions are being tracked.'}
@@ -206,22 +209,22 @@ function SnippetVerifiedBadge({
               stehen. Eine verifizierte Domain sagt nur, dass es auf EINER Seite
               gefunden wurde — meist der Startseite. */}
           {pageCheck.phase === 'loading' && (
-            <p className="flex items-center gap-1.5 text-[11px] text-text-3">
+            <p className="flex items-center gap-1.5 text-meta text-text-3">
               <Loader2 className="h-3 w-3 animate-spin" /> Checking the pages your tests run on…
             </p>
           )}
 
           {pageCheck.phase === 'error' && (
-            <p className="text-[11px] text-text-3">Could not check the individual pages right now.</p>
+            <p className="text-meta text-text-3">Could not check the individual pages right now.</p>
           )}
 
           {pageCheck.phase === 'done' && pageCheck.pages.length > 0 && (
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">
+              <p className="text-meta font-semibold uppercase tracking-[0.2em] text-text-3/60">
                 Pages with tests
               </p>
               {pageCheck.pages.map((page) => (
-                <div key={page.url} className="flex items-start gap-2 text-[12px]">
+                <div key={page.url} className="flex items-start gap-2 text-small">
                   {page.detected ? (
                     <Check className="mt-0.5 h-3 w-3 shrink-0 text-ok" />
                   ) : (
@@ -232,7 +235,7 @@ function SnippetVerifiedBadge({
                       {pathLabel(page.url)}
                     </span>
                     {!page.detected && (
-                      <span className="block text-[11px] text-err">
+                      <span className="block text-meta text-err">
                         {page.outdated
                           ? 'Outdated snippet — paste the current one again.'
                           : 'No snippet in the <head> of this page.'}
@@ -247,9 +250,9 @@ function SnippetVerifiedBadge({
 
           {otherDomains.length > 0 && (
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-3/60">All domains</p>
+              <p className="text-meta font-semibold uppercase tracking-[0.2em] text-text-3/60">All domains</p>
               {[domain, ...otherDomains.map((d) => d.url)].map((url) => (
-                <div key={url} className="flex items-center gap-2 text-[12px] text-text-2">
+                <div key={url} className="flex items-center gap-2 text-small text-text-2">
                   <Check className="h-3 w-3 shrink-0 text-ok" />
                   <span>{url}</span>
                 </div>
@@ -258,15 +261,15 @@ function SnippetVerifiedBadge({
           )}
 
           <div className="flex items-center gap-2 pt-1">
-            <button
+            <Button
+              variant="secondary" size="sm"
               onClick={onRecheck}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
             >
               Re-check snippet
-            </button>
+            </Button>
             <a
               href="/dashboard/account"
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-[11px] font-medium text-pro transition-colors hover:border-pro/30 hover:text-pro"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-meta font-medium text-pro transition-colors hover:border-pro/30 hover:text-pro"
             >
               + Add another site
             </a>
@@ -436,7 +439,7 @@ function SnippetBanner({
     const progress = state.phase === 'checking' ? state.progress : undefined
 
     return (
-      <div className="mb-5 rounded-[var(--radius-lg)] border border-border-strong bg-bg-1 px-5 py-4" aria-live="polite">
+      <div className="mb-5 rounded-md border border-border-strong bg-bg-1 px-5 py-4" aria-live="polite">
         <div className="flex items-start gap-4">
           {/* Icon */}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5">
@@ -445,11 +448,11 @@ function SnippetBanner({
 
           <div className="min-w-0 flex-1 space-y-3">
             <div>
-              <p className="text-[14px] font-semibold text-white">
+              <p className="text-title font-semibold text-text">
                 Connect your domain to start A/B testing
               </p>
-              <p className="mt-1 text-[12px] text-text-3 max-w-prose">
-                Paste the variante snippet into the <code className="text-text-2 bg-bg-2 px-1 rounded text-[11px]">&lt;head&gt;</code> of every page on your domain,
+              <p className="mt-1 text-small text-text-3 max-w-prose">
+                Paste the variante snippet into the <code className="text-text-2 bg-bg-2 px-1 rounded text-meta">&lt;head&gt;</code> of every page on your domain,
                 then enter the domain below to verify.
               </p>
             </div>
@@ -470,31 +473,32 @@ function SnippetBanner({
                   autoFocus
                   aria-label="Domain to check"
                   aria-describedby="snippet-input-error"
-                  className="w-full h-[38px] rounded-[var(--radius-md)] border border-border bg-bg-0 px-3.5 text-[13px] text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none disabled:opacity-40"
+                  className="w-full h-[38px] rounded-md border border-border bg-bg-0 px-3.5 text-body text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none disabled:opacity-40"
                 />
               </div>
-              <button
+              <Button
+                variant="primary" size="md"
                 onClick={submitDomain}
                 disabled={isChecking || !urlInput.trim()}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-[12px] font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:opacity-30"
+                className="shrink-0 disabled:opacity-30"
               >
                 {isChecking ? (
                   <span className="flex items-center gap-1.5">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     <span>{state.phase === 'saving' ? 'Saving…' : `Checking…`}</span>
                     {progress !== undefined && (
-                      <span className="text-[10px] text-text-on-invert/60">{progress}%</span>
+                      <span className="text-meta text-text-on-invert/60">{progress}%</span>
                     )}
                   </span>
                 ) : (
                   'Check'
                 )}
-              </button>
+              </Button>
             </div>
 
             {/* Error */}
             {state.phase === 'input' && 'error' in state && state.error && (
-              <p id="snippet-input-error" role="alert" className="text-[12px] text-err">{state.error}</p>
+              <p id="snippet-input-error" role="alert" className="text-small text-err">{state.error}</p>
             )}
 
             {/* Progress bar while checking */}
@@ -515,14 +519,15 @@ function SnippetBanner({
             )}
 
             {/* Helper links */}
-            <div className="flex items-center gap-3 text-[11px]">
-              <button
+            <div className="flex items-center gap-3 text-meta">
+              <Button
+                variant="ghost"
                 onClick={copySnippet}
-                className="inline-flex cursor-pointer items-center gap-1 text-text-3 transition-colors hover:text-text"
+                className="gap-1"
               >
                 {snippetCopied ? <Check className="h-3 w-3 text-ok" /> : <Copy className="h-3 w-3" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
-              </button>
+              </Button>
               <a
                 href="/docs"
                 className="inline-flex cursor-pointer items-center gap-1 text-text-3 transition-colors hover:text-text"
@@ -543,7 +548,7 @@ function SnippetBanner({
     const stillPolling = retries < 5
 
     return (
-      <div className="mb-5 rounded-[var(--radius-lg)] border border-err/20 bg-err/[0.03] px-5 py-4" role="alert">
+      <div className="mb-5 rounded-md border border-err/20 bg-err/[0.03] px-5 py-4" role="alert">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-err/10">
             <X className="h-5 w-5 text-err" />
@@ -551,7 +556,7 @@ function SnippetBanner({
 
           <div className="min-w-0 flex-1 space-y-3">
             <div>
-              <p className="text-[14px] font-semibold text-white">
+              <p className="text-title font-semibold text-text">
                 {state.timeout
                   ? 'Site unreachable'
                   : state.outdated
@@ -559,7 +564,7 @@ function SnippetBanner({
                     : <>Snippet not found on <strong>{state.url}</strong></>
                 }
               </p>
-              <p className="mt-1 text-[12px] text-text-3">
+              <p className="mt-1 text-small text-text-3">
                 {state.timeout
                   ? 'Make sure your site is publicly accessible (no localhost or login walls).'
                   : state.outdated
@@ -570,11 +575,11 @@ function SnippetBanner({
 
             {/* Troubleshooting list */}
             {!state.timeout && !state.outdated && (
-              <ul className="space-y-1 text-[11px] text-text-2">
+              <ul className="space-y-1 text-meta text-text-2">
                 <li className="flex items-start gap-2">
                   <span className="text-err mt-0.5 shrink-0">1.</span>
                   Paste the snippet in your site&apos;s{' '}
-                  <code className="text-text bg-bg-2 px-1 rounded text-[10px]">&lt;head&gt;</code> —
+                  <code className="text-text bg-bg-2 px-1 rounded text-meta">&lt;head&gt;</code> —
                   it must be on <strong>every</strong> page
                 </li>
                 <li className="flex items-start gap-2">
@@ -590,46 +595,49 @@ function SnippetBanner({
 
             {/* Snippet code for re-copy */}
             <div>
-              <pre className="overflow-x-auto rounded-[var(--radius-md)] bg-black px-4 py-3 text-[10px] leading-relaxed text-text-3 ring-1 ring-border">
+              <pre className="overflow-x-auto rounded-md bg-black px-4 py-3 text-meta leading-relaxed text-text-3 ring-1 ring-border">
                 {SNIPPET_CODE}
               </pre>
             </div>
 
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-2">
-              <button
+              <Button
+                variant="secondary" size="sm"
                 onClick={copySnippet}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                className="bg-bg-2"
               >
                 {snippetCopied ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
                 {snippetCopied ? 'Copied!' : 'Copy snippet'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary" size="sm"
                 onClick={handleRetry}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-1.5 text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text"
+                className="bg-bg-2"
               >
                 <Loader2 className="h-3.5 w-3.5" />
                 Check again
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => onChange({ phase: 'input' })}
-                className="cursor-pointer text-[11px] text-text-3 transition-colors hover:text-text-2 ml-1"
+                className="text-meta ml-1"
               >
                 Change URL
-              </button>
+              </Button>
             </div>
 
             {/* Auto-retry indicator */}
             {stillPolling && (
-              <p className="text-[10px] text-text-3/60">
+              <p className="text-meta text-text-3/60">
                 Auto-checking every 10s ({5 - retries} attempts remaining)
               </p>
             )}
 
             {!stillPolling && retries >= 5 && (
-              <p className="text-[10px] text-text-3/60">
+              <p className="text-meta text-text-3/60">
                 Auto-check stopped after {retries} attempts.{' '}
-                <button onClick={handleRetry} className="underline cursor-pointer hover:text-text-3">Try again manually</button>.
+                <Button variant="link" size="inline" onClick={handleRetry}>Try again manually</Button>.
               </p>
             )}
 
@@ -638,7 +646,7 @@ function SnippetBanner({
             <div className="pt-1">
               <a
                 href="/docs"
-                className="inline-flex items-center gap-1 text-[11px] text-text-3 transition-colors hover:text-text"
+                className="inline-flex items-center gap-1 text-meta text-text-3 transition-colors hover:text-text"
               >
                 <ExternalLink className="h-3 w-3" />
                 Full setup guide

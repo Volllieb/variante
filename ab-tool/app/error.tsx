@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { RefreshCw, ArrowLeft } from 'lucide-react'
+import { Button } from '@/app/components'
 
 // Route-Level Error-Boundary — fängt Render-Fehler unterhalb des Root-Layouts.
 // Kein Sentry-Client-Import: Zero-Client-JS-Entscheidung (siehe instrumentation.ts),
@@ -19,19 +20,20 @@ export default function Error({
         <p className="text-6xl font-semibold text-text-3">500</p>
         <p className="mt-2 text-sm text-text-3">Something went wrong.</p>
         {error.digest && (
-          <p className="mt-1 text-[11px] text-text-3/60">Error ID: {error.digest}</p>
+          <p className="mt-1 text-meta text-text-3/60">Error ID: {error.digest}</p>
         )}
         <div className="mt-6 flex items-center justify-center gap-2">
-          <button
+          <Button
+            variant="secondary" size="md"
             onClick={reset}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+            className="text-xs text-text-3"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Try again
-          </button>
+          </Button>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-4 py-2 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-xs text-text-3 transition-colors duration-200 hover:border-border-strong hover:text-text focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to home

@@ -1,5 +1,7 @@
 'use client'
 
+import { SegmentedControl } from '@/app/components'
+
 export type Period = 7 | 30 | 'all'
 
 const OPTIONS: { value: Period; label: string }[] = [
@@ -45,27 +47,9 @@ export function PeriodSelector({
   period: Period
   onChange: (next: Period) => void
 }) {
+  // Phase 2: das Control selbst ist jetzt <SegmentedControl> (§6.7). Hier
+  // bleibt nur noch, was den Zeitraum ausmacht — Optionen und Bedeutung.
   return (
-    <div
-      role="group"
-      aria-label="Time range"
-      className="flex shrink-0 items-center gap-0.5 rounded-[var(--radius-md)] border border-border bg-bg-1 p-0.5"
-    >
-      {OPTIONS.map((o) => {
-        const active = o.value === period
-        return (
-          <button
-            key={String(o.value)}
-            onClick={() => onChange(o.value)}
-            aria-pressed={active}
-            className={`cursor-pointer rounded-[var(--radius-sm)] px-2 py-1 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none ${
-              active ? 'bg-bg-2 text-text' : 'text-text-3 hover:text-text-2'
-            }`}
-          >
-            {o.label}
-          </button>
-        )
-      })}
-    </div>
+    <SegmentedControl label="Time range" value={period} onChange={onChange} options={OPTIONS} />
   )
 }

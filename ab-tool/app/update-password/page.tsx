@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ShieldCheck } from 'lucide-react'
+import { Button, Card, Field, Input } from '@/app/components'
 
 export default function UpdatePasswordPage() {
   return (
@@ -22,15 +23,15 @@ function UpdatePasswordFallback() {
         <div className="mb-8 flex justify-center">
           <Link
             href="/"
-            className="flex items-center gap-2 text-xl font-semibold text-text transition-opacity hover:opacity-75"
+            className="flex items-center gap-2 text-heading font-semibold text-text transition-opacity hover:opacity-75"
           >
             <PandaLogo size="lg" />
             variante
           </Link>
         </div>
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8">
-          <p className="text-sm text-text-3">Checking your reset link…</p>
-        </div>
+        <Card className="p-8">
+          <p className="text-body text-text-3">Checking your reset link…</p>
+        </Card>
       </div>
     </div>
   )
@@ -91,87 +92,77 @@ function UpdatePasswordForm() {
         <div className="mb-8 flex justify-center">
           <Link
             href="/"
-            className="flex items-center gap-2 text-xl font-semibold text-text transition-opacity hover:opacity-75"
+            className="flex items-center gap-2 text-heading font-semibold text-text transition-opacity hover:opacity-75"
           >
             <PandaLogo size="lg" />
             variante
           </Link>
         </div>
 
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-8">
+        <Card className="p-8">
           {checking ? (
-            <p className="text-sm text-text-3">Checking your reset link…</p>
+            <p className="text-body text-text-3">Checking your reset link…</p>
           ) : !ready ? (
             <>
-              <h1 className="text-2xl font-semibold text-text">
+              <h1 className="text-heading font-semibold text-text">
                 Link expired
               </h1>
-              <p className="mt-2 text-sm text-text-3">
+              <p className="mt-2 text-small text-text-3">
                 {err || 'This reset link is no longer valid.'}
               </p>
-              <Link
-                href="/login"
-                className="mt-6 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90"
-              >
+              <Button href="/login" size="lg" className="mt-6 h-11 w-full">
                 Back to login
-              </Link>
+              </Button>
             </>
           ) : (
             <>
-              <h1 className="text-2xl font-semibold text-text">
+              <h1 className="text-heading font-semibold text-text">
                 Set new password
               </h1>
-              <p className="mt-1 text-sm text-text-3">
+              <p className="mt-1 text-small text-text-3">
                 Choose a strong password for your account.
               </p>
 
-              <form onSubmit={submit} className="mt-7 space-y-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="update-password" className="text-xs font-semibold uppercase tracking-wider text-text-3">
-                    New password
-                  </label>
+              <form onSubmit={submit} className="mt-7 flex flex-col gap-base">
+                <Field label="New password">
                   <div className="relative">
-                    <input
-                      id="update-password"
+                    <Input
                       type={showPassword ? 'text' : 'password'}
                       required
                       minLength={6}
                       placeholder="Min. 6 characters"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-2 px-4 py-3 pr-11 text-sm text-text placeholder:text-text-3 transition-colors duration-200 focus:border-text/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-text/10"
+                      className="pr-10"
                     />
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setShowPassword(p => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-text-3 transition-colors hover:text-text"
+                      className="absolute right-0.5 top-1/2 -translate-y-1/2"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </Button>
                   </div>
-                </div>
+                </Field>
 
                 {err && (
-                  <p className="rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-4 py-3 text-xs text-err">
+                  <p className="rounded-md border border-err/20 bg-err-bg px-4 py-3 text-meta text-err">
                     {err}
                   </p>
                 )}
 
                 <div className="pt-1">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-6 text-sm font-semibold text-black transition-colors duration-200 hover:bg-white/90 disabled:pointer-events-none disabled:opacity-50"
-                  >
+                  <Button type="submit" size="lg" loading={loading} className="h-11 w-full">
                     {loading ? 'Updating…' : 'Save password'}
-                    {!loading && <ShieldCheck className="h-4 w-4" />}
-                  </button>
+                    {!loading && <ShieldCheck className="h-4 w-4" aria-hidden />}
+                  </Button>
                 </div>
               </form>
             </>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   )

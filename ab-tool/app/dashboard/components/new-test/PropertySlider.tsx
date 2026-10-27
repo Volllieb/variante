@@ -31,7 +31,7 @@ export function PropertySlider({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <label className="text-[11px] font-medium text-text-2">{label}</label>
+        <label className="text-meta font-medium text-text-2">{label}</label>
         <div className="flex items-center gap-1">
           <input
             type="number"
@@ -42,9 +42,9 @@ export function PropertySlider({
             }}
             min={min}
             max={max}
-            className="w-14 rounded-[var(--radius-sm)] border border-border bg-bg-0 px-2 py-0.5 text-[11px] font-mono text-text text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+            className="w-14 rounded-sm border border-border bg-bg-0 px-2 py-0.5 text-meta font-mono text-text text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
           />
-          {unit && <span className="text-[11px] text-text-3">{unit}</span>}
+          {unit && <span className="text-meta text-text-3">{unit}</span>}
         </div>
       </div>
       <div className="relative">

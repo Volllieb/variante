@@ -3,7 +3,8 @@
 > **v3** — Regelwerk, keine Historie (Pivot- und Migrationsgeschichte: `docs/historie.md`).
 > Gilt für Web-Dashboard, Login/Signup, Landingpage und (eingeschränkt, §9) das Figma-Plugin.
 > Tokens: `ab-tool/app/globals.css` (`:root` + `@theme`). Primitives: `ab-tool/app/components/`.
-> **„TODO Phase 1"** = Komponente fehlt oder weicht ab; bis dahin gilt die Regel, nicht der Ist-Code.
+> **„TODO Phase 2"** = Komponente existiert, der Bestand nutzt sie noch nicht; bis dahin gilt die Regel, nicht der Ist-Code.
+> Phase 1 (Primitives bauen) ist abgeschlossen — siehe `ab-tool/app/components/` und `index.ts`.
 
 ---
 
@@ -89,7 +90,7 @@ in `globals.css`: Base 16px, Meta 13px, Hero 36–56px responsive, `leading-rela
 | — | `rounded-full` | 50% | Status-Dots, Avatare, Progress-Bars, Toggle-Switch |
 
 Bestehende Schreibweise `rounded-[var(--radius-md)]` ist gleichwertig; neuer Code nutzt `rounded-md`.
-Cards mit `--radius-lg` sind Altbestand und werden in Phase 4 auf `md` gezogen.
+Die Primitives (`Card`, `Skeleton`, `EmptyState`, `NotificationCenter`) sind auf `md` gezogen; verbleibende `--radius-lg` im Bestand fallen mit Phase 2.
 
 ### 4.2 Spacing (Layout-Abstände)
 
@@ -169,23 +170,34 @@ Login/Signup: zentrierte Card auf `bg-bg-0`, ein Primär-Button, Sekundär-Links
 | Destruktiv | `<Button variant="danger">` |
 | Ghost / Text-Aktion | `<Button variant="ghost">` |
 | Link als Button | `<Button href="…">` |
-| Icon-Button (quadratisch 32px, Toolbar 36px) | **TODO Phase 1:** `size="icon"` fehlt; aktuell handgebaut z. B. in `FilterDropdown.tsx` |
+| Icon-Button | `<Button size="icon">` (32px) bzw. `size="icon-lg"` (36px, Toolbar — auf Input-Höhe) |
+| Text-Aktion im Satz | `<Button variant="link" size="inline">` — ohne Fläche, erbt Schriftgröße, Farbe und Gewicht der Zeile |
 
 Größen: `sm` (`text-meta`), `md` (`text-small`, Default), `lg` (Landing/Onboarding). Icon links vom Label, `h-3.5 w-3.5`.
-**TODO Phase 1:** Button nutzt noch `text-[11px]`/`[12px]`/`[14px]`, `lg` → `text-body`; disabled+`href` wird nicht deaktiviert.
+Varianten laufen über cva, Klassen-Merge über `cn()`. `disabled`/`loading` deaktivieren auch die `href`-Form (rendert `<span aria-disabled>` statt `<a>`).
+**Phase 2:** 155 Stellen laufen über `<Button>`. Offen bleiben bewusst nur noch Optionskarten mit
+eigener Innenstruktur (Goal-Typ in `ResultsClient.tsx`, Vorschlagsliste in `StepUrlAndElement.tsx`),
+Farbfelder (`ColorPicker.tsx`) und die Avatar-Dropzone in `AccountClient.tsx` — das sind keine Buttons,
+sondern eigene Muster. Ein `<OptionCard>`-Primitive wäre dafür der nächste Schritt.
 
 ### 6.2 Badge / Pill → `<Badge>` (`app/components/Badge.tsx`)
 
 `<Badge tone="ok|pro|err|neutral" dot?>` — `text-meta`, `font-semibold`, `rounded-sm`, `px-1.5 py-0.5`.
 Neutral `bg-bg-2 text-text-2`, sonst `bg-{tone}-bg text-{tone}`. Pro-Badge: Text `PRO`, uppercase.
-**TODO Phase 1:** Badge ist `rounded-full` + `font-medium`, Größe `sm` = 9px → auf diese Regel ziehen.
+Eine Größe (`text-meta`); die frühere `size="sm"` mit 9px ist entfallen, 10px und kleiner sind nach §3 verboten.
 
 ### 6.3 Card → `<Card>` (`app/components/Card.tsx`)
 
 `bg-bg-1`, `border border-border`, `rounded-md`, Padding `p-4` (`padding="md"`). Klickbar → zusätzlich
 `.surface-interactive` (Hover: `border-border-strong` + `bg-bg-2`). Kein Lift, kein Schatten.
 Tones `ok/pro/err` nur für Banner/Hinweis-Cards (`variant="banner"`). `variant="dashed"` = Empty State/Drop-Zone.
-**TODO Phase 1:** Card nutzt `--radius-lg` → `--radius-md`; `variant="lift"` entfernen (Lift ist Landing-only, dort `.card-lift`); `interactive`-Prop für `.surface-interactive`.
+`interactive` setzt `.surface-interactive`; `variant="lift"` ist entfallen. Restliche `div`-Props gehen durch (Live-Region, `onClick`).
+`padding="none"` ist für Karten, die ihre Abschnitte selbst abpolstern (Listen mit Trennern).
+**Phase 2:** 41 Flächen laufen über `<Card>`. Dabei sind 21 Karten von `p-5` und 3 von `p-6` auf den
+hier festgelegten Default `p-4` gezogen worden — `p-5` war der häufigste Wert im Bestand und stand in
+keiner Regel. `Skeleton.tsx` ist auf `rounded-md` nachgezogen, damit Lade- und Fertigzustand gleich aussehen.
+Nicht umgestellt: `DecisionList.tsx` ist ein `<section aria-labelledby>` — die Semantik wiegt schwerer als
+die gemeinsame Hülle.
 
 ### 6.4 Status-Indikator (Dot/Ring)
 
@@ -196,7 +208,8 @@ Tones `ok/pro/err` nur für Banner/Hinweis-Cards (`variant="banner"`). `variant=
 | Pausiert | gefüllter Kreis `bg-text-3` |
 | Fehler | gefüllter Kreis `bg-err` |
 
-Gleiche Ikonografie in TestCard, DecisionList, Activity-Feed, Plugin. **TODO Phase 1:** `<StatusDot status>` fehlt (heute je Datei inline).
+Gleiche Ikonografie in TestCard, DecisionList, Activity-Feed, Plugin: `<StatusDot status="live|draft|paused|error">`, mit `aria-label` aus dem Status.
+**Phase 2:** `TestCard.tsx` nutzt `<StatusDot>` (Live-Puls und Status-Pille). Offen: Activity-Feed.
 
 ### 6.5 Formular-Felder
 
@@ -207,19 +220,24 @@ Gleiche Ikonografie in TestCard, DecisionList, Activity-Feed, Plugin. **TODO Pha
 | Hilfetext | unter dem Feld, `text-meta text-text-3`, Abstand `gap-tight` |
 | Fehlertext | ersetzt den Hilfetext, `text-meta text-err`, Feld `border-err`, `aria-invalid` + `aria-describedby` |
 | Feld↔Feld | `gap-base` (12px); Gruppen `gap-loose` |
-| Checkbox / Toggle | Checkbox `rounded-sm`, Toggle `rounded-full`; Label rechts, klickbar |
+| Checkbox / Toggle | Checkbox `rounded-sm`, Toggle `rounded-full` (`<Toggle checked onChange label>`); Label rechts, klickbar |
 | Formular-Aktionen | rechtsbündig, Primär rechts außen, Sekundär links daneben |
 
-**TODO Phase 1:** `<Input>`, `<Textarea>`, `<Select>`, `<Field label hint error>` fehlen (heute rohe Elemente).
+`<Field label hint error>` erzeugt die IDs selbst; `<Input>`, `<Textarea>` und `<Select>` greifen `htmlFor`, `aria-describedby` und `aria-invalid` per Context ab — die Aufrufstelle verdrahtet nichts.
+**Phase 2:** Login, Signup und Update-Password laufen über `<Field>`/`<Input>`; `<Toggle>` liegt jetzt in
+`app/components/` statt lokal in `AccountClient.tsx`. Offen: die Felder im Dashboard (Suchfeld in
+`TestsClient.tsx`, Wizard-Steps, `AccountClient.tsx`) — sie sind heute rohe `<input>` mit eigener
+Fläche, aber bereits auf Tokens.
 
 ### 6.6 Drawer & Modal
 
 - **Drawer** (Wizard, Detail-Panels): rechts, `bg-bg-0 border-l border-border`, `< sm` voll, `≥ sm` 50vw, `.animate-slide-in-right`,
   Backdrop `bg-black/60`. Kopf: Titel `text-title` + Close-Icon-Button; Fuß: Aktionen rechts, sticky.
   `role="dialog" aria-modal aria-labelledby`, Fokus-Trap, `Esc` schließt, Fokus kehrt zum Auslöser zurück.
-  Referenz: `NewTestDrawer.tsx`. **TODO Phase 1:** generischer `<Drawer>` fehlt; `NewTestDrawer` nutzt `shadow-2xl` (verboten).
+  `<Drawer open onOpenChange title footer>` auf Radix Dialog: Fokus-Trap, `Esc`, Scroll-Lock und Fokus-Rückgabe kommen von dort.
+  **TODO Phase 2:** `NewTestDrawer.tsx` darauf umstellen (nutzt noch eigenen Backdrop und `shadow-2xl`).
 - **Modal** (nur Bestätigungen, max. 1 Frage): zentriert, `max-w-md`, `bg-bg-1 border border-border rounded-lg p-6`, gleiche a11y-Regeln.
-  Nie als Upsell (§7). **TODO Phase 1:** `<Modal>` / `<ConfirmDialog>` fehlt.
+  Nie als Upsell (§7). `<Modal>` und `<ConfirmDialog confirmLabel tone onConfirm>` liegen in `app/components/Modal.tsx`.
 
 ### 6.7 Tabs & Segmented Control
 
@@ -228,7 +246,14 @@ Gleiche Ikonografie in TestCard, DecisionList, Activity-Feed, Plugin. **TODO Pha
 - **Segmented Control** (2–4 Optionen, z. B. Zeitraum 7/30/All, Preview A/B): Container `bg-bg-1 border border-border rounded-md p-0.5`,
   aktive Option `bg-bg-2 text-text`, sonst `text-text-3`; `aria-pressed`. Vorbilder: `PeriodSelector.tsx`, `new-test/PreviewStateToggle.tsx`.
 
-**TODO Phase 1:** `<Tabs>` und `<SegmentedControl>` fehlen.
+`<Tabs>` liegt in `app/components/ui/tabs.tsx` (Radix: Rollen und Pfeiltasten), `<SegmentedControl label value onChange options>` in `app/components/`.
+**Phase 2:** Acht Umschalter laufen über `<SegmentedControl>` — `PeriodSelector`, `PreviewBreakpoints`,
+`TextInputEditor`, die Modus-Wahl in `StepGoal` und `StepUrlAndElement`, der Border-Style in `ChangeList`
+und das Signifikanzniveau in `ResultsClient`. Sie zeigen den aktiven Zustand jetzt gleich
+(`bg-bg-2 text-text` statt dreimal unterschiedlich).
+`grow` verteilt die Optionen auf die volle Breite. Gesperrte Optionen tragen `aria-disabled` statt
+`disabled`: so bleiben sie fokussierbar und zeigen ihren `<Tooltip>` — ein `disabled`-Button feuert in
+Firefox kein `:hover`. Offen: `new-test/PreviewStateToggle.tsx`.
 
 ### 6.8 Dropdown / Menü
 
@@ -236,19 +261,22 @@ Auslöser = Icon-Button oder Sekundär-Button mit `ChevronDown`. Panel: `absolut
 min. 180px breit, 4px Abstand zum Auslöser. Item: `px-2.5 py-1.5 text-body text-text-2 rounded-sm hover:bg-bg-2 hover:text-text`,
 aktiv mit `Check`-Icon rechts. Gruppen-Label `text-meta text-text-3 uppercase`. Destruktives Item `text-err`, unten, abgetrennt.
 `aria-haspopup`/`aria-expanded`, `role="menu"` bzw. `"listbox"`, `Esc` + Klick außerhalb schließen.
-Vorbild: `FilterDropdown.tsx`. **TODO Phase 1:** `<Dropdown>`/`<Menu>` fehlt.
+`<DropdownMenu>` in `app/components/ui/dropdown-menu.tsx` (Radix). Highlight hängt an `data-highlighted`, damit Maus und Tastatur denselben Zustand zeigen; `<DropdownMenuItem tone="danger">` für destruktive Einträge.
+**Phase 2:** `FilterDropdown.tsx` läuft darüber — die drei Filter sind jetzt drei echte Radio-Gruppen
+statt einer `role="listbox"` mit gemischtem Inhalt.
 
 ### 6.9 Tabellen
 
 `w-full text-small`. Header: `text-meta font-medium text-text-3`, `border-b border-border`, `pb-2`. Zeilen: `border-b border-border`
 (letzte ohne), `py-2`, Hover `bg-bg-2` nur wenn klickbar. Zahlen rechtsbündig + `tabular-nums`, IDs/URLs `font-mono`.
 Container `overflow-x-auto`. Leere Tabelle → Empty State statt Kopfzeile ohne Inhalt.
-Vorbild: Rohdaten-Tabelle in `ResultsClient.tsx`. **TODO Phase 1:** `<Table>` fehlt.
+`<TableWrap>`/`<Table>`/`<TableHead>`/`<TableRow interactive>`/`<TableHeaderCell numeric>`/`<TableCell numeric mono>` in `app/components/Table.tsx`.
+**Phase 2:** Die Rohdaten-Tabelle in `ResultsClient.tsx` läuft darüber.
 
 ### 6.10 Tooltip → `<Tooltip>` (`app/components/Tooltip.tsx`)
 
 Nur Zusatzinfo, nie einzige Quelle einer Aktion. `bg-bg-2 border border-border-strong rounded-md text-small`, Delay 300ms.
-**TODO Phase 1:** `shadow-lg` entfernen; Tooltip auch bei Tastatur-Fokus zeigen (`group-focus-within`).
+Zeigt sich auch bei Tastatur-Fokus (`group-focus-within`), nicht nur bei Hover.
 
 ### 6.11 Toast → `useToast()` (`app/components/Toast.tsx`)
 
@@ -260,12 +288,19 @@ Fehler, die eine Handlung verlangen, gehören inline ans Feld/die Card, nicht in
 Dashed Card, lucide-Icon in `bg-bg-2`-Kreis, Titel `text-body font-semibold`, ein Satz `text-small text-text-2`, eine Primär-Aktion.
 **Leeres Dashboard:** „Create your first test" öffnet den Test-Wizard (`NewTestDrawer`): URL eingeben → Element per Picker wählen →
 KI baut Variante B. Ist das Snippet noch nicht verifiziert, zeigt der Empty State zuerst den Snippet-Schritt (Ebene 1, §8.1).
-**TODO Phase 1:** `EmptyState` nutzt `text-[13px]/[12px]` und `rounded-lg` → Tokens.
+`EmptyState` ist intern die Card aus §6.3 mit `variant="dashed"`.
 
 ### 6.13 Weitere vorhandene Primitives
 
 `<PageHeader>` (Seitenkopf), `<Breadcrumbs>` (Unterseiten), `Skeleton*` (`Skeleton.tsx`, Loading-States in `loading.tsx`),
-`<NotificationCenter>`, `<VariantPreview>` (iframe-Vorschau A/B). Charts: `recharts` über `app/components/ui/chart.tsx` + `chartTheme.ts`.
+`<NotificationCenter>`, `<VariantPreview>` (iframe-Vorschau A/B), `useToast()` (§6.11). Charts: `recharts` über `app/components/ui/chart.tsx` + `chartTheme.ts`.
+
+**Import:** alles aus `app/components/` über die Sammelstelle `app/components/index.ts`
+(`import { Button, Card, Field, Input } from '@/app/components'`). Die Radix-basierten Bausteine
+(`ui/dialog.tsx`, `ui/dropdown-menu.tsx`, `ui/tabs.tsx`) kommen aus `npx shadcn add`, sind auf unsere
+Tokens gezogen und werden bewusst **nicht** re-exportiert, damit ein erneuter `shadcn add`-Lauf sie
+überschreiben kann. `cn()` (`lib/utils.ts`) trennt per `extendTailwindMerge` Schriftgrößen- und
+Farb-Tokens — ohne das verschluckt twMerge `text-meta` neben `text-ok`.
 
 ### 6.14 Usage/Quota-Zeile & Winner-Hinweis
 
@@ -392,4 +427,4 @@ Gilt für `ab-tool/app/**` und `ab-tool/components/**` (`*.tsx`). Ausnahme jewei
 | 11 | Icons aus anderen Bibliotheken als `lucide-react` | lucide |
 
 Ausnahmen: Landing-Grafiken in `ab-tool/components/` (Logo-SVGs dürfen Hex), `public/ab.js` und `figma-plugin/` (eigene Regeln, §9).
-Regeln 8–9 greifen erst, wenn die Phase-1-Komponenten existieren.
+Regeln 8–9 sind ab sofort scharf: die Komponenten existieren (§6), der Bestand wird in Phase 2 nachgezogen.

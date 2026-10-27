@@ -80,6 +80,7 @@ import {
 import { formatCount, formatPercent, formatDelta, formatCompact } from '@/lib/formatNumber'
 import { significanceTone } from '@/app/dashboard/components/sigVisual'
 import { RefreshIndicator } from '@/app/dashboard/components/RefreshIndicator'
+import { Button, Card, SegmentedControl, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TableWrap } from '@/app/components'
 
 // CSS custom property helpers — SVGs support var() natively
 const OK = SERIES.ok
@@ -156,10 +157,10 @@ function ForecastBadge({ forecast }: { forecast: Forecast }) {
         }`}
       >
         <Clock className={`h-3 w-3 shrink-0 ${alarming ? 'text-err' : 'text-pro'}`} />
-        <span className={`text-[11px] ${alarming ? 'text-err' : 'text-pro/90'}`}>{headline}</span>
+        <span className={`text-meta ${alarming ? 'text-err' : 'text-pro/90'}`}>{headline}</span>
       </div>
       {(days !== null || limitedBy === 'beyond-horizon') && (
-        <span className="text-[10px] text-text-3">{note}</span>
+        <span className="text-meta text-text-3">{note}</span>
       )}
     </div>
   )
@@ -179,7 +180,7 @@ function ArmRequirement({ label, criterion }: { label: string; criterion: ArmCri
     !met && laggingArm === arm ? 'text-text-2' : 'text-text-3'
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-2 text-[10px] mb-0.5">
+      <div className="flex items-baseline justify-between gap-2 text-meta mb-0.5">
         <span className={met ? 'text-ok' : 'text-text-3'}>
           {met ? '✓' : '○'} {label}/arm
         </span>
@@ -564,78 +565,83 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
         <div className="flex items-center gap-3">
           <Breadcrumbs items={[{ label: from === 'tests' ? 'Tests' : 'Dashboard', href: backHref }, { label: name }]} />
-          <span className="text-[11px] text-text-3 ml-3">
+          <span className="text-meta text-text-3 ml-3">
             Created {formatCreatedAt(created_at)}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`rounded-[var(--radius-md)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
+          <span className={`rounded-md px-2.5 py-1 text-meta font-semibold uppercase tracking-wide ${statusColor}`}>
             {winnerPending ? `${winner} won · not applied` : winner ? `${winner} won` : status}
           </span>
           {/* Plan RA-06: Nur sichtbar, wenn die Auto-Promotion aus ist und ein
               Gewinner auf Freigabe wartet. Bei aktiver Auto-Promotion tritt
               dieser Zustand nie auf — der Cron setzt done direkt. */}
           {winnerPending && (
-            <button
+            <Button
+              variant="primary" size="sm"
               onClick={applyWinner}
               disabled={busy}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-3 py-1.5 text-xs font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="text-small"
             >
               <Trophy className="h-3 w-3" /> Apply winner
-            </button>
+            </Button>
           )}
           {status === 'active' && (
-            <button
+            <Button variant="secondary"
               onClick={() => toggleStatus('paused')}
               disabled={busy}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-pro/20 bg-pro-bg px-3 py-1.5 text-xs text-pro transition-colors hover:bg-pro/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border-pro/20 bg-pro-bg text-pro hover:border-pro/30 hover:bg-pro/10"
             >
               <Pause className="h-3 w-3" /> Pause
-            </button>
+            </Button>
           )}
           {status === 'paused' && (
-            <button
+            <Button variant="secondary"
               onClick={() => toggleStatus('active')}
               disabled={busy}
-              className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] border border-ok/20 bg-ok-bg px-3 py-1.5 text-xs text-ok transition-colors hover:bg-ok/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border-ok/20 bg-ok-bg text-ok hover:border-ok/30 hover:bg-ok/10"
             >
               <Play className="h-3 w-3" /> Resume
-            </button>
+            </Button>
           )}
           <Tooltip content="Refresh data">
-            <button
+            <Button
+              variant="secondary" size="icon"
               onClick={refresh}
-              className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-border text-text-3 transition-colors hover:border-white/[0.18] hover:text-text"
+              className="h-8 w-8 text-text-3 hover:border-white/[0.18]"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
+            </Button>
           </Tooltip>
           {!deleteConfirm ? (
             <Tooltip content="Delete experiment">
-              <button
+              <Button
+                variant="secondary" size="icon"
                 onClick={() => setDeleteConfirm(true)}
-                className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-border text-text-3 transition-colors hover:border-err/30 hover:text-err"
+                className="h-8 w-8 text-text-3 hover:border-err/30 hover:text-err"
                 aria-label="Delete experiment"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </Tooltip>
           ) : (
-            <div className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-err/20 bg-err-bg px-3 py-1.5">
-              <button
+            <div className="flex items-center gap-1.5 rounded-md border border-err/20 bg-err-bg px-3 py-1.5">
+              <Button
+                variant="danger"
                 onClick={deleteTest}
                 disabled={deleting}
-                className="cursor-pointer text-xs font-semibold text-err transition-colors hover:opacity-80 disabled:opacity-50"
+                className="text-small hover:opacity-80"
               >
                 {deleting ? 'Deleting…' : 'Yes, delete'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setDeleteConfirm(false)}
                 disabled={deleting}
-                className="cursor-pointer text-xs text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                className="text-small disabled:opacity-30"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -645,14 +651,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       {error && (
         <div className="border-b border-err/20 bg-err-bg px-5 py-2.5" role="alert">
           <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
-            <p className="text-[13px] text-err">{error}</p>
-            <button
+            <p className="text-body text-err">{error}</p>
+            <Button variant="ghost" size="icon"
               onClick={() => setError(null)}
-              className="flex shrink-0 cursor-pointer h-6 w-6 items-center justify-center rounded-[var(--radius-sm)] text-err/60 transition-colors hover:text-err"
+              className="h-6 w-6 text-err/60 hover:bg-transparent hover:text-err"
               aria-label="Dismiss error"
             >
               <X className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -660,7 +666,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-5">
 
         {/* ── Hero stat (V2: Significance-first layout) ── */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
+        <Card>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             {/* Left: Significance donut */}
             <div className="flex flex-col items-center">
@@ -681,13 +687,13 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-xl font-bold ${significanceTone(significance, significanceLevel).text}`}>
+                  <span className={`text-heading font-semibold ${significanceTone(significance, significanceLevel).text}`}>
                     {Math.round(significance * 100)}%
                   </span>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-text-3">Confidence</span>
+                  <span className="text-meta font-semibold uppercase tracking-wider text-text-3">Confidence</span>
                 </div>
               </div>
-              <p className="mt-2 text-[10px] text-center text-text-3 leading-relaxed max-w-[160px]">
+              <p className="mt-2 text-meta text-center text-text-3 leading-relaxed max-w-[160px]">
                 {significance >= significanceLevel
                   ? 'Statistically significant'
                   : significance >= 0.7
@@ -700,51 +706,51 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <div className="text-center">
               {decided && winner ? (
                 <>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-text-3">
+                  <p className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                     {winner} won
                   </p>
-                  <p className={`mt-1 text-4xl font-bold tracking-tight ${lift !== null && lift > 0 ? 'text-ok' : lift !== null && lift < 0 ? 'text-err' : 'text-text'}`}>
+                  <p className={`mt-1 text-4xl font-semibold tracking-tight ${lift !== null && lift > 0 ? 'text-ok' : lift !== null && lift < 0 ? 'text-err' : 'text-text'}`}>
                     {lift !== null ? formatDelta(lift) : '—'}
                   </p>
-                  <p className="mt-1 text-[12px] text-text-3">
+                  <p className="mt-1 text-small text-text-3">
                     {lift !== null ? 'Conversion uplift' : 'Not enough data'}
                   </p>
-                  <p className="mt-1 text-[11px] text-text-3">
+                  <p className="mt-1 text-meta text-text-3">
                     {formatCount(totalVisitors)} visitors · {formatCount(totalConversions)} conversions (A + B)
                   </p>
                 </>
               ) : !decided && lift !== null ? (
                 <>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-text-3">
+                  <p className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                     {lift > 0 ? 'B ahead' : lift < 0 ? 'A ahead' : 'Tied'}
                   </p>
-                  <p className={`mt-1 text-4xl font-bold tracking-tight ${lift > 0 ? 'text-ok' : lift < 0 ? 'text-pro' : 'text-text'}`}>
+                  <p className={`mt-1 text-4xl font-semibold tracking-tight ${lift > 0 ? 'text-ok' : lift < 0 ? 'text-pro' : 'text-text'}`}>
                     {formatDelta(lift)}
                   </p>
-                  <p className="mt-1 text-[12px] text-text-3">
+                  <p className="mt-1 text-small text-text-3">
                     Uplift · {formatCount(totalVisitors)} visitors (A + B)
                   </p>
-                  <p className="mt-1 text-[11px] text-text-3 tabular-nums">
+                  <p className="mt-1 text-meta text-text-3 tabular-nums">
                     A: {formatPercent(a.cr)} CR ({formatCount(a.conversions)}/{formatCount(a.views)}) ·
                     B: {formatPercent(b.cr)} CR ({formatCount(b.conversions)}/{formatCount(b.views)})
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-text-3">
+                  <p className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                     Collecting data
                   </p>
-                  <p className="mt-1 text-4xl font-bold tracking-tight text-text-3">
+                  <p className="mt-1 text-4xl font-semibold tracking-tight text-text-3">
                     {formatCount(totalVisitors)}
                   </p>
-                  <p className="mt-1 text-[12px] text-text-3">
+                  <p className="mt-1 text-small text-text-3">
                     visitors so far — A + B combined
                   </p>
-                  <p className="mt-1 text-[11px] text-text-3 tabular-nums">
+                  <p className="mt-1 text-meta text-text-3 tabular-nums">
                     A {formatCount(a.views)} · B {formatCount(b.views)}
                   </p>
                   {!enoughDataForUplift && totalVisitors > 0 && (
-                    <p className="mt-1 text-[10px] text-text-3">
+                    <p className="mt-1 text-meta text-text-3">
                       {upliftGap} more conversion{upliftGap !== 1 ? 's' : ''} in {upliftGapWhere} before the uplift means anything
                     </p>
                   )}
@@ -757,7 +763,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
             {/* Right: Multi-criteria progress (V3) */}
             <div className="space-y-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-text-3">Requirements</p>
+              <p className="text-meta font-semibold uppercase tracking-wider text-text-3">Requirements</p>
               {/* Besucher und Conversions gelten PRO ARM: beide Werte stehen da,
                   der Balken folgt dem schwächeren — er entscheidet. Der nackte
                   Minimum-Wert allein sah neben der Gesamtsumme im Feld daneben
@@ -766,7 +772,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               <ArmRequirement label="Conversions" criterion={convReq} />
               {/* Runtime */}
               <div>
-                <div className="flex justify-between text-[10px] mb-0.5">
+                <div className="flex justify-between text-meta mb-0.5">
                   <span className={runtime.met ? 'text-ok' : 'text-text-3'}>
                     {runtime.met ? '✓' : '○'} Runtime
                   </span>
@@ -785,7 +791,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   Liegt B nicht vorn, blockiert der Gate nicht (A kann gewinnen)
                   und die Zeile steht auf ✓. */}
               <div>
-                <div className="flex justify-between text-[10px] mb-0.5">
+                <div className="flex justify-between text-meta mb-0.5">
                   <span className={upliftReq.met ? 'text-ok' : 'text-text-3'}>
                     {upliftReq.met ? '✓' : '○'} Min uplift (B)
                   </span>
@@ -817,12 +823,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
               </div>
               {!decided && !allCriteriaMet && (
-                <p className="text-[9px] text-text-3 italic">
+                <p className="text-meta text-text-3 italic">
                   Each variant must clear both thresholds, and every line must be met, before a winner is declared.
                 </p>
               )}
               {!decided && allCriteriaMet && significance < significanceLevel && (
-                <p className="text-[10px] text-pro/80">
+                <p className="text-meta text-pro/80">
                   Thresholds met — waiting for {Math.round(significanceLevel * 100)}% confidence.
                 </p>
               )}
@@ -833,11 +839,11 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               schon treffen — hier an der Stelle, an der der Kunde die Zahlen
               tatsächlich liest. */}
           {srm && (
-            <div className="mt-5 rounded-[var(--radius-md)] border border-err/20 bg-err-bg p-4" role="alert">
-              <p className="text-[12px] font-medium text-err mb-1">
+            <div className="mt-5 rounded-md border border-err/20 bg-err-bg p-4" role="alert">
+              <p className="text-small font-medium text-err mb-1">
                 Traffic split is off — these numbers are not trustworthy
               </p>
-              <p className="text-[11px] leading-relaxed text-text-2">
+              <p className="text-meta leading-relaxed text-text-2">
                 A got {formatCount(a.views)} visitors, B got {formatCount(b.views)} — far from the
                 configured {100 - data.trafficSplit}/{data.trafficSplit} split. Until that is fixed no
                 winner will be declared, whatever the confidence above says. Usual causes: page
@@ -848,9 +854,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
           {/* Win #3: "0 Visitors" — konkrete nächste Schritte */}
           {totalVisitors === 0 && (
-            <div className="mt-5 rounded-[var(--radius-md)] border border-pro/15 bg-pro/[0.03] p-4">
-              <p className="text-[12px] font-medium text-pro mb-2">Your test is live — now drive traffic</p>
-              <ul className="space-y-1.5 text-[11px] text-text-2">
+            <div className="mt-5 rounded-md border border-pro/15 bg-pro/[0.03] p-4">
+              <p className="text-small font-medium text-pro mb-2">Your test is live — now drive traffic</p>
+              <ul className="space-y-1.5 text-meta text-text-2">
                 <li className="flex items-start gap-2">
                   <span className="text-text-3 mt-0.5 shrink-0">1.</span>
                   <span>Share your page URL with visitors — the snippet auto-assigns them to A or B.</span>
@@ -866,16 +872,16 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               </ul>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* ── Charts Row: Visitors + Conversions side-by-side ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Visitors over time — available for all plans */}
         {analytics && analytics.daily.length >= 2 ? (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-3.5 w-3.5 text-text-3" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+              <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                 Visitors per Day
               </span>
             </div>
@@ -902,25 +908,25 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <Line dataKey="B" stroke={PRO} {...lineProps} />
               </LineChart>
             </ChartContainer>
-          </div>
+          </Card>
         ) : analyticsLoaded ? (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2">
               <TrendingUp className="h-3.5 w-3.5 text-text-3" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+              <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                 Visitors per Day
               </span>
-              <span className="ml-auto text-[11px] text-text-3">Not enough data yet</span>
+              <span className="ml-auto text-meta text-text-3">Not enough data yet</span>
             </div>
-          </div>
+          </Card>
         ) : null}
 
         {/* ── Cumulative Conversions over Time ── */}
         {analytics && analytics.daily.length >= 2 ? (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2 mb-3">
               <Target className="h-3.5 w-3.5 text-text-3" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+              <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                 Cumulative Conversions
               </span>
             </div>
@@ -954,26 +960,26 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <Line dataKey="B" stroke={OK} {...lineProps} />
               </LineChart>
             </ChartContainer>
-          </div>
+          </Card>
         ) : analyticsLoaded ? (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2">
               <Target className="h-3.5 w-3.5 text-text-3" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+              <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                 Cumulative Conversions
               </span>
-              <span className="ml-auto text-[11px] text-text-3">Not enough data yet</span>
+              <span className="ml-auto text-meta text-text-3">Not enough data yet</span>
             </div>
-          </div>
+          </Card>
         ) : null}
         </div>{/* end charts grid */}
 
         {/* ── Significance over Time ── */}
         {analytics && analytics.daily.length >= 2 ? (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-3.5 w-3.5 text-text-3" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+              <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                 Significance over Time
               </span>
             </div>
@@ -1014,7 +1020,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <Line dataKey="significance" stroke={OK} {...lineProps} />
               </LineChart>
             </ChartContainer>
-            <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-text-3">
+            <div className="mt-2 flex items-center justify-center gap-4 text-meta text-text-3">
               <span className="flex items-center gap-1.5">
                 <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: OK }} /> Confidence
               </span>
@@ -1023,17 +1029,17 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 {Math.round(significanceLevel * 100)}% threshold
               </span>
             </div>
-          </div>
+          </Card>
         ) : analyticsLoaded ? (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2">
               <BarChart3 className="h-3.5 w-3.5 text-text-3" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+              <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                 Significance over Time
               </span>
-              <span className="ml-auto text-[11px] text-text-3">Not enough data yet</span>
+              <span className="ml-auto text-meta text-text-3">Not enough data yet</span>
             </div>
-          </div>
+          </Card>
         ) : null}
 
         {/* ── A/B Stats Cards (Significance jetzt im Hero) ── */}
@@ -1046,14 +1052,14 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             return (
               <div
                 key={v.id}
-                className={`rounded-[var(--radius-lg)] border p-6 ${
+                className={`rounded-md border p-6 ${
                   isWinner
                     ? 'border-ok/30 bg-ok-bg'
                     : 'border-border bg-bg-1'
                 }`}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <span className={`rounded-[var(--radius-md)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                  <span className={`rounded-md px-2.5 py-1 text-meta font-semibold uppercase tracking-wide ${
                     isVariantB
                       ? 'bg-pro-bg text-pro'
                       : 'bg-bg-2 text-text-3'
@@ -1061,7 +1067,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     Variant {v.label}
                   </span>
                   {isWinner && (
-                    <span className="flex items-center gap-1 rounded-[var(--radius-md)] bg-ok-bg px-2.5 py-1 text-[11px] font-semibold text-ok">
+                    <span className="flex items-center gap-1 rounded-md bg-ok-bg px-2.5 py-1 text-meta font-semibold text-ok">
                       <Check className="h-3 w-3" /> Winner
                     </span>
                   )}
@@ -1070,9 +1076,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 <p className="text-4xl font-semibold text-text">
                   {formatPercent(v.cr)}
                 </p>
-                <p className="mt-0.5 text-xs text-text-3">Conversion Rate</p>
+                <p className="mt-0.5 text-small text-text-3">Conversion Rate</p>
 
-                <div className="mt-4 space-y-1.5 text-xs text-text-3">
+                <div className="mt-4 space-y-1.5 text-small text-text-3">
                   <div className="flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5" />
                     {formatCount(v.views)} visitors
@@ -1084,7 +1090,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
 
                 {lift !== null && isVariantB && (
-                  <div className={`mt-4 rounded-[var(--radius-md)] px-3 py-2 text-xs font-semibold ${
+                  <div className={`mt-4 rounded-md px-3 py-2 text-small font-semibold ${
                     lift > 0
                       ? 'bg-ok-bg text-ok'
                       : 'bg-err-bg text-err'
@@ -1098,36 +1104,38 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     früherer Override `winner` gesetzt hat, verschwindet der Weg. */}
                 {!winner && (status === 'active' || status === 'paused') && (
                   declaringWinner !== v.id ? (
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setDeclaringWinner(v.id as 'A' | 'B')}
-                      className="mt-4 flex cursor-pointer items-center gap-1.5 text-xs text-text-3 transition-colors hover:text-text"
+                      className="mt-4 gap-1.5 text-small"
                     >
                       <Trophy className="h-3.5 w-3.5" /> Declare winner
-                    </button>
+                    </Button>
                   ) : (
-                    <div className={`mt-4 rounded-[var(--radius-md)] border p-3 ${
+                    <div className={`mt-4 rounded-md border p-3 ${
                       isLowerCr ? 'border-err/20 bg-err-bg' : 'border-border bg-bg-2'
                     }`}>
-                      <p className={`text-xs ${isLowerCr ? 'text-err' : 'text-text-2'}`}>
+                      <p className={`text-small ${isLowerCr ? 'text-err' : 'text-text-2'}`}>
                         {isLowerCr
                           ? `Variant ${v.label} currently has a lower conversion rate (${formatPercent(v.cr)} vs ${formatPercent(other.cr)}). Declare it winner anyway?`
                           : `Declare Variant ${v.label} as the winner? This ends the test and serves it to all visitors.`}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
-                        <button
+                        <Button variant="link" size="inline"
                           onClick={() => declareWinner(v.id as 'A' | 'B')}
                           disabled={busy}
-                          className="cursor-pointer text-xs font-semibold text-ok transition-colors hover:opacity-80 disabled:opacity-50"
+                          className="text-small font-semibold"
                         >
                           Yes, declare winner
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setDeclaringWinner(null)}
                           disabled={busy}
-                          className="cursor-pointer text-xs text-text-3 transition-colors hover:text-text disabled:opacity-30"
+                          className="text-small disabled:opacity-30"
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )
@@ -1138,17 +1146,17 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
         </div>
 
         {/* Variant comparison bar chart — available for all plans */}
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="h-3.5 w-3.5 text-text-3" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+            <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
               Variant Comparison
             </span>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {/* Visitors bar chart */}
             <div>
-              <p className="mb-2 text-[10px] font-medium text-text-3" id="visitors-bar-label">Visitors</p>
+              <p className="mb-2 text-meta font-medium text-text-3" id="visitors-bar-label">Visitors</p>
               <ChartContainer
                 config={barConfig}
                 className="h-[140px] w-full"
@@ -1181,7 +1189,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             </div>
             {/* Conversion rate bar chart */}
             <div>
-              <p className="mb-2 text-[10px] font-medium text-text-3">Conversion Rate</p>
+              <p className="mb-2 text-meta font-medium text-text-3">Conversion Rate</p>
               <ChartContainer
                 config={barConfig}
                 className="h-[140px] w-full"
@@ -1211,10 +1219,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               </ChartContainer>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Conversion Goal */} 
-        <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+        <Card>
           {!editingGoal ? (
             <>
             <div className="flex items-center justify-between">
@@ -1226,28 +1234,29 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 ) : (
                   <Globe className="h-3.5 w-3.5 text-ok" />
                 )}
-                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+                <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                   Conversion Goal
                 </span>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => {
                   const p = parseGoal(data.goal)
                   setGoalType(p.type)
                   setGoalValue(p.value)
                   setEditingGoal(true)
                 }}
-                className="flex cursor-pointer items-center gap-1.5 text-xs text-text-3 transition-colors hover:text-text"
+                className="gap-1.5 text-small"
               >
                 <Pencil className="h-3 w-3" /> Edit
-              </button>
+              </Button>
             </div>
-            <p className="mt-2 text-[13px] text-text-2">
+            <p className="mt-2 text-body text-text-2">
               {(() => {
                 // Dieselbe Zuordnung wie auf der Testkarte (lib/resultsHelpers).
                 const g = describeGoal(goalType, goalValue, data.selector)
                 return g.code ? (
-                  <>{g.label} <code className="text-[11px] font-mono text-text-3 bg-bg-2 px-1.5 py-0.5 rounded">{g.code}</code></>
+                  <>{g.label} <code className="text-meta font-mono text-text-3 bg-bg-2 px-1.5 py-0.5 rounded">{g.code}</code></>
                 ) : (
                   g.label
                 )
@@ -1258,7 +1267,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Target className="h-3.5 w-3.5 text-text-3" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+                <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                   Conversion Goal
                 </span>
               </div>
@@ -1277,19 +1286,19 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <button
                     key={opt.type}
                     onClick={() => { setGoalType(opt.type); setGoalSaved(false) }}
-                    className={`flex-1 cursor-pointer rounded-[var(--radius-md)] border px-3 py-2 text-left transition-colors ${
+                    className={`flex-1 cursor-pointer rounded-md border px-3 py-2 text-left transition-colors ${
                       goalType === opt.type
                         ? 'border-white/20 bg-white/[0.06]'
                         : 'border-border bg-transparent hover:border-white/[0.14]'
                     }`}
                   >
                     <div className="flex items-center gap-1.5">
-                      <opt.icon className={`h-3 w-3 ${goalType === opt.type ? 'text-white' : 'text-text-3'}`} />
-                      <span className={`text-[11px] font-semibold ${goalType === opt.type ? 'text-white' : 'text-text-3'}`}>
+                      <opt.icon className={`h-3 w-3 ${goalType === opt.type ? 'text-text' : 'text-text-3'}`} />
+                      <span className={`text-meta font-semibold ${goalType === opt.type ? 'text-text' : 'text-text-3'}`}>
                         {opt.label}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-[10px] text-text-3 hidden sm:block">{opt.desc}</p>
+                    <p className="mt-0.5 text-meta text-text-3 hidden sm:block">{opt.desc}</p>
                   </button>
                 ))}
               </div>
@@ -1297,13 +1306,13 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               {/* Value input for click / url */}
               {goalType === 'click' && (
                 <div className="mb-3">
-                  <label className="text-[10px] font-semibold text-text-3 uppercase tracking-wider">CSS Selector</label>
+                  <label className="text-meta font-semibold text-text-3 uppercase tracking-wider">CSS Selector</label>
                   <input
                     type="text"
                     placeholder=".cta-button, #signup-link, a.btn-primary"
                     value={goalValue}
                     onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-sm text-text font-mono placeholder:text-text/25 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
+                    className="mt-1 w-full rounded-md border border-border bg-bg-2 px-3 py-2 text-body text-text font-mono placeholder:text-text/25 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
                   />
                 </div>
               )}
@@ -1311,94 +1320,97 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               {/* Bestandstest mit url:-Goal — die Option wird nicht mehr
                   angeboten, der gespeicherte Wert muss aber erklärt werden. */}
               {goalType === 'url' && (
-                <div className="mb-3 rounded-[var(--radius-md)] border border-err/30 bg-err/[0.06] px-3 py-2.5">
-                  <p className="text-[12px] text-text-2">
-                    This test uses a URL goal (<code className="text-[11px] font-mono bg-bg-2 px-1 py-0.5 rounded">{goalValue}</code>), which the snippet never supported —
+                <div className="mb-3 rounded-md border border-err/30 bg-err/[0.06] px-3 py-2.5">
+                  <p className="text-small text-text-2">
+                    This test uses a URL goal (<code className="text-meta font-mono bg-bg-2 px-1 py-0.5 rounded">{goalValue}</code>), which the snippet never supported —
                     <strong className="text-text"> no conversions have been tracked for it</strong>. Pick a click goal above to start measuring.
                   </p>
                 </div>
               )}
 
               {goalType === 'element' && data.selector && (
-                <p className="mb-3 text-[12px] text-text-3">
-                  The element <code className="text-[11px] font-mono bg-bg-2 px-1 py-0.5 rounded">{data.selector}</code> is the conversion goal. Users who click it convert.
+                <p className="mb-3 text-small text-text-3">
+                  The element <code className="text-meta font-mono bg-bg-2 px-1 py-0.5 rounded">{data.selector}</code> is the conversion goal. Users who click it convert.
                 </p>
               )}
               {goalType === 'element' && !data.selector && (
-                <p className="mb-3 text-[12px] text-pro">
+                <p className="mb-3 text-small text-pro">
                   No element selector stored. Set a click or URL goal instead.
                 </p>
               )}
 
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="primary" size="md"
                   onClick={saveGoal}
                   // url: ist kein speicherbarer Zustand mehr — der Nutzer muss
                   // erst einen unterstützten Zieltyp wählen (Katalog RUN-03).
                   disabled={goalSaving || goalType === 'url' || (goalType !== 'element' && !goalValue.trim())}
-                  className="cursor-pointer rounded-[var(--radius-md)] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-40"
+                  className="hover:bg-white/90"
                 >
                   {goalSaving ? 'Saving…' : 'Save'}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
                   onClick={() => setEditingGoal(false)}
-                  className="cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-2 text-xs text-text-3 transition-colors hover:text-text"
+                  className="px-3 py-2 text-small text-text-3"
                 >
                   Cancel
-                </button>
+                </Button>
                 {goalSaved && (
-                  <span className="flex items-center gap-1 text-xs text-ok">
+                  <span className="flex items-center gap-1 text-small text-ok">
                     <Check className="h-3.5 w-3.5" /> Saved
                   </span>
                 )}
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Raw data table */}
         {analytics && analytics.daily.length > 0 && (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-5">
+          <Card>
             <div className="flex items-center gap-2">
-              <button
+              <Button variant="ghost"
                 onClick={() => setShowRawData(!showRawData)}
-                className="flex items-center gap-2 cursor-pointer"
+                className="gap-snug p-0 hover:bg-transparent"
               >
                 <Table2 className="h-3.5 w-3.5 text-text-3" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-text-3">
+                <span className="text-meta font-semibold uppercase tracking-[0.24em] text-text-3">
                   Raw Data
                 </span>
-              </button>
-              <span className="text-[11px] text-text-3">
+              </Button>
+              <span className="text-meta text-text-3">
                 · {analytics.daily.length} days
               </span>
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => exportCsv(analytics!.daily, name)}
-                className="ml-auto flex cursor-pointer items-center gap-1 rounded-[var(--radius-md)] border border-border px-2.5 py-1 text-[10px] text-text-3 transition-colors hover:border-white/[0.18] hover:text-text"
+                className="ml-auto gap-1 px-2.5 py-1 text-meta text-text-3 hover:border-white/[0.18]"
               >
                 <Download className="h-3 w-3" /> CSV
-              </button>
+              </Button>
             </div>
             {showRawData && (
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-border text-text-3">
-                      <th className="pb-2 pr-3 font-medium">Date</th>
-                      <th className="pb-2 pr-3 font-medium text-right">Vis A</th>
-                      <th className="pb-2 pr-3 font-medium text-right">Vis B</th>
+              <TableWrap className="mt-3">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell>Date</TableHeaderCell>
+                      <TableHeaderCell numeric>Vis A</TableHeaderCell>
+                      <TableHeaderCell numeric>Vis B</TableHeaderCell>
                       {/* Ohne die Conversions ist die CR-Spalte nicht
                           nachrechenbar — "0.0%" konnte null Conversions oder
                           eine sehr kleine Rate heissen. Der CSV-Export lieferte
                           sie laengst, die Tabelle nicht. */}
-                      <th className="pb-2 pr-3 font-medium text-right">Conv A</th>
-                      <th className="pb-2 pr-3 font-medium text-right">Conv B</th>
-                      <th className="pb-2 pr-3 font-medium text-right">CR A</th>
-                      <th className="pb-2 pr-3 font-medium text-right">CR B</th>
-                      <th className="pb-2 font-medium text-right">Lift</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                      <TableHeaderCell numeric>Conv A</TableHeaderCell>
+                      <TableHeaderCell numeric>Conv B</TableHeaderCell>
+                      <TableHeaderCell numeric>CR A</TableHeaderCell>
+                      <TableHeaderCell numeric>CR B</TableHeaderCell>
+                      <TableHeaderCell numeric>Lift</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {analytics.daily.map((row: DailyRow) => {
                       // "—%" stand vorher an jedem Tag ohne Besucher in dem Arm:
                       // der Gedankenstrich kam aus dem Fallback, das Prozent-
@@ -1407,37 +1419,40 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       const crB = row.visitors_b > 0 ? formatPercent(conversionRate(row.visitors_b, row.conversions_b)) : '—'
                       const rowLift = dailyLift(row)
                       return (
-                        <tr key={row.date} className="border-b border-border text-text-3 transition-colors duration-[var(--duration-fast)] ease-out hover:bg-bg-2 hover:text-text-2">
-                          <td className="py-1.5 pr-3">{formatDayLabel(row.date)}</td>
-                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.visitors_a)}</td>
-                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.visitors_b)}</td>
-                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.conversions_a)}</td>
-                          <td className="py-1.5 pr-3 text-right tabular-nums">{formatCount(row.conversions_b)}</td>
-                          <td className="py-1.5 pr-3 text-right tabular-nums">{crA}</td>
-                          <td className="py-1.5 pr-3 text-right tabular-nums">{crB}</td>
-                          <td className={`py-1.5 text-right tabular-nums ${rowLift !== null ? (rowLift > 0 ? 'text-ok' : rowLift < 0 ? 'text-err' : '') : ''}`}>
+                        <TableRow key={row.date}>
+                          <TableCell>{formatDayLabel(row.date)}</TableCell>
+                          <TableCell numeric>{formatCount(row.visitors_a)}</TableCell>
+                          <TableCell numeric>{formatCount(row.visitors_b)}</TableCell>
+                          <TableCell numeric>{formatCount(row.conversions_a)}</TableCell>
+                          <TableCell numeric>{formatCount(row.conversions_b)}</TableCell>
+                          <TableCell numeric>{crA}</TableCell>
+                          <TableCell numeric>{crB}</TableCell>
+                          <TableCell
+                            numeric
+                            className={rowLift !== null ? (rowLift > 0 ? 'text-ok' : rowLift < 0 ? 'text-err' : '') : ''}
+                          >
                             {rowLift !== null ? formatDelta(rowLift) : '—'}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       )
                     })}
-                  </tbody>
-                </table>
-                <p className="mt-2 text-[10px] text-text-3">
+                  </TableBody>
+                </Table>
+                <p className="mt-2 text-meta text-text-3">
                   Daily values, not cumulative. Lift stays empty until a day has at least{' '}
                   {MIN_CONV_FOR_UPLIFT} conversions in both variants — below that it is noise.
                 </p>
-              </div>
+              </TableWrap>
             )}
-          </div>
+          </Card>
         )}
 
         {/* Preview */}
         {(data.originalHtml || data.variantBHtml || editingB) && (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
+          <Card>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-text">Preview</h2>
-              <span className="text-[10px] text-text-3">
+              <h2 className="text-body font-semibold text-text">Preview</h2>
+              <span className="text-meta text-text-3">
                 {hasSiteCss ? 'Live rendering of your variants' : 'Text-only — no site styles captured'}
               </span>
             </div>
@@ -1451,7 +1466,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   <TextPane label="A · Original" value={extractTextFromHtml(data.originalHtml || '')} />
                   <TextPane label="B · Variant" value={extractTextFromHtml(data.variantBHtml || '')} />
                 </div>
-                <p className="mt-2 text-[11px] text-[#ededed]/40">
+                <p className="mt-2 text-meta text-[#ededed]/40">
                   This test was created without the visual picker, so your site&apos;s styles for
                   this element were never captured. Re-pick the element to get a rendered preview.
                 </p>
@@ -1475,61 +1490,65 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     label="B · Variant"
                     winner={winner === 'B'}
                   />
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => { setDraftB(data.variantBHtml || ''); setEditingB(true) }}
-                    className="flex cursor-pointer items-center gap-1.5 text-xs text-text-3 transition-colors hover:text-text-2"
+                    className="gap-1.5 text-small"
                   >
                     <Pencil className="h-3 w-3" /> Edit Variant B HTML
-                  </button>
+                  </Button>
                 </div>
               )}
               {!editingB && !data.variantBHtml && data.originalHtml && (
-                <div className="flex items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] min-h-[280px]">
-                  <button
+                <div className="flex items-center justify-center rounded-md border border-dashed border-white/[0.08] bg-white/[0.01] min-h-[280px]">
+                  <Button
+                    variant="ghost"
                     onClick={() => { setDraftB('<div class="ab-v">\n  <style>\n    .ab-v { /* your styles */ }\n  </style>\n</div>'); setEditingB(true) }}
-                    className="cursor-pointer text-xs text-text-3 transition-colors hover:text-text-2"
+                    className="text-small"
                   >
                     + Add Variant B HTML
-                  </button>
+                  </Button>
                 </div>
               )}
               {editingB && (
-                <div className="rounded-[var(--radius-md)] border border-border bg-bg-2 p-4">
-                  <p className="mb-2 text-xs font-semibold text-text-2">Edit Variant B HTML</p>
+                <div className="rounded-md border border-border bg-bg-2 p-4">
+                  <p className="mb-2 text-small font-semibold text-text-2">Edit Variant B HTML</p>
                   <textarea
                     value={draftB}
                     onChange={e => setDraftB(e.target.value)}
-                    className="w-full rounded-[var(--radius-md)] border border-border bg-bg-1 px-3 py-2 font-mono text-xs text-ok focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
+                    className="w-full rounded-md border border-border bg-bg-1 px-3 py-2 font-mono text-small text-ok focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
                     rows={10}
                   />
                   <div className="mt-2 flex gap-2">
-                    <button
+                    <Button
+                      variant="primary" size="sm"
                       onClick={saveVariantB}
                       disabled={busy}
-                      className="cursor-pointer rounded-[var(--radius-md)] bg-white px-3 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="text-small hover:bg-white/90"
                     >
                       Save
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="secondary" size="sm"
                       onClick={() => setEditingB(false)}
-                      className="cursor-pointer rounded-[var(--radius-md)] border border-border px-3 py-1.5 text-xs text-text-3 transition-colors hover:text-text"
+                      className="text-small text-text-3"
                     >
                       <X className="h-3 w-3" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
             )}
-          </div>
+          </Card>
         )}
 
         {/* Auto-winner */}
         {pro && (
-          <div className="rounded-[var(--radius-lg)] border border-border bg-bg-1 p-6">
-            <h2 className="mb-1 text-sm font-semibold text-text">Auto Winner</h2>
+          <Card>
+            <h2 className="mb-1 text-body font-semibold text-text">Auto Winner</h2>
             {done ? (
-              <p className="mt-2 text-[13px] text-ok">
+              <p className="mt-2 text-body text-ok">
                 ✓ Test complete —{' '}
                 {winner
                   ? `Variant ${winner} wins and is now served to all visitors.`
@@ -1541,25 +1560,26 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               // unmissverständlich sein, sonst glaubt der Kunde, die Variante
               // sei live.
               <div className="mt-2 space-y-3">
-                <p className="text-[13px] text-pro">
+                <p className="text-body text-pro">
                   Variant {winner} won — <strong className="font-semibold">not applied yet</strong>.
                 </p>
-                <p className="text-xs leading-relaxed text-text-3">
+                <p className="text-small leading-relaxed text-text-3">
                   Auto-apply is off, so your site is unchanged and the test keeps running at its
                   current split. Applying the winner serves Variant {winner} to all visitors and
                   closes the test.
                 </p>
-                <button
+                <Button
+                  variant="primary" size="md"
                   onClick={applyWinner}
                   disabled={busy}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-fill-invert px-4 py-2 text-xs font-semibold text-text-on-invert transition-opacity hover:bg-fill-invert-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  className="text-small"
                 >
                   <Trophy className="h-3.5 w-3.5" /> Apply winner
-                </button>
+                </Button>
               </div>
             ) : (
               <>
-                <p className="mt-1 text-xs text-text-3 leading-relaxed">
+                <p className="mt-1 text-small text-text-3 leading-relaxed">
                   Once every requirement above is met — visitors and conversions in
                   <em> both </em> variants, minimum runtime, confidence and minimum uplift —
                   Variant B becomes the winner. If auto-apply is on
@@ -1568,7 +1588,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <label className="block space-y-1.5">
-                    <span className="text-xs font-semibold text-text-2">
+                    <span className="text-small font-semibold text-text-2">
                       Min Visitors <span className="font-normal text-text-3">per variant</span>
                     </span>
                     <input
@@ -1577,11 +1597,11 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                       step={100}
                       value={minVisitors}
                       onChange={e => setMinVisitors(Number(e.target.value))}
-                      className="w-full rounded-[var(--radius-md)] border border-border bg-bg-2 px-3 py-2 text-sm text-text focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
+                      className="w-full rounded-md border border-border bg-bg-2 px-3 py-2 text-body text-text focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
                     />
                   </label>
                   <label className="block space-y-1.5">
-                    <span className="text-xs font-semibold text-text-2">
+                    <span className="text-small font-semibold text-text-2">
                       Min Uplift B · {Math.round(minUplift * 100)}%
                     </span>
                     <input
@@ -1601,37 +1621,33 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 
                 {/* Segmented control: significance level */}
                 <fieldset className="mt-4">
-                  <legend className="text-xs font-semibold text-text-2 mb-2">Significance Level</legend>
-                  <div className="flex gap-1">
-                    {([0.9, 0.95, 0.99] as const).map((lvl) => (
-                      <button
-                        key={lvl}
-                        type="button"
-                        onClick={() => setSignificanceLevel(lvl)}
-                        className={`flex-1 cursor-pointer rounded-[var(--radius-md)] border px-3 py-2 text-xs font-semibold transition-colors ${
-                          significanceLevel === lvl
-                            ? 'border-white/30 bg-white text-black'
-                            : 'border-border bg-bg-2 text-text-2 hover:text-text'
-                        }`}
-                      >
-                        {Math.round(lvl * 100)}%
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-1 text-[10px] text-text-3">
+                  <legend className="text-small font-semibold text-text-2 mb-2">Significance Level</legend>
+                  {/* Phase 2: war ein eigener Umschalter mit invertiertem
+                      Aktiv-Zustand — nach §6.7 ist aktiv `bg-bg-2 text-text`. */}
+                  <SegmentedControl
+                    label="Significance level"
+                    grow
+                    value={significanceLevel}
+                    onChange={setSignificanceLevel}
+                    options={[0.9, 0.95, 0.99].map((lvl) => ({
+                      value: lvl,
+                      label: `${Math.round(lvl * 100)}%`,
+                    }))}
+                  />
+                  <p className="mt-1 text-meta text-text-3">
                     {significanceLevel === 0.9 ? 'Looser threshold, faster results' : significanceLevel === 0.99 ? 'Strictest threshold, most confident' : 'Balanced confidence (default)'}
                   </p>
                 </fieldset>
 
                 {minVisitors < MIN_VISITORS_PER_ARM && (
-                  <p className="mt-2 text-[11px] text-text-3">
+                  <p className="mt-2 text-meta text-text-3">
                     Below the system floor — {formatCount(MIN_VISITORS_PER_ARM)} visitors per variant
                     are required regardless, so a lower value has no effect.
                   </p>
                 )}
 
                 <div className="mt-4">
-                  <div className="mb-1.5 flex justify-between text-xs text-text-3">
+                  <div className="mb-1.5 flex justify-between text-small text-text-3">
                     <span>Visitor threshold</span>
                     {/* Derselbe Wert wie in der Anforderungsliste oben: schwächerer
                         Arm gegen die effektive Schwelle. Vorher stand hier die
@@ -1649,37 +1665,39 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </div>
 
                 <div className="mt-4 flex items-center gap-3">
-                  <button
+                  <Button
+                    variant="primary" size="md"
                     onClick={saveConfig}
                     disabled={busy}
-                    className="cursor-pointer rounded-[var(--radius-md)] bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="hover:bg-white/90"
                   >
                     Save
-                  </button>
+                  </Button>
                   {saved && (
-                    <span className="flex items-center gap-1 text-xs text-ok">
+                    <span className="flex items-center gap-1 text-small text-ok">
                       <Check className="h-3.5 w-3.5" /> Saved
                     </span>
                   )}
                 </div>
               </>
             )}
-          </div>
+          </Card>
         )}
 
         {!pro && (
-          <div className="rounded-[var(--radius-lg)] border border-dashed border-border p-6 text-center">
-            <h2 className="text-sm font-semibold text-text">Auto Winner</h2>
-            <p className="mt-2 text-xs text-text-3">
+          <div className="rounded-md border border-dashed border-border p-6 text-center">
+            <h2 className="text-body font-semibold text-text">Auto Winner</h2>
+            <p className="mt-2 text-small text-text-3">
               Auto-Winner configuration is available from the Pro plan onward.
             </p>
-            <button
+            <Button
+              variant="primary"
               onClick={upgrade}
               disabled={busy}
-              className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--radius-md)] bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+              className="mt-4 gap-1.5 px-5 py-2 text-body hover:bg-white/90"
             >
               {busy ? 'Redirecting…' : 'Upgrade to Pro'}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -1699,9 +1717,9 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
 function TextPane({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-[#ededed]/40">{label}</p>
-      <div className="flex min-h-[120px] items-center rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-        <p className="text-sm leading-relaxed text-[#ededed] break-words">{value || '—'}</p>
+      <p className="mb-1 text-meta font-medium uppercase tracking-wider text-[#ededed]/40">{label}</p>
+      <div className="flex min-h-[120px] items-center rounded-md border border-white/[0.08] bg-white/[0.02] p-4">
+        <p className="text-body leading-relaxed text-[#ededed] break-words">{value || '—'}</p>
       </div>
     </div>
   )
