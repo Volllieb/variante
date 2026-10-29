@@ -25,7 +25,12 @@ function test(overrides: Partial<TestRow> = {}): TestRow {
     conversions_a: 0,
     conversions_b: 0,
     winner: null,
-    created_at: new Date(Date.now() - 10 * DAY).toISOString(),
+    // Auf die Tagesgrenze ausgerichtet, nicht auf "jetzt minus 10 Tage": die
+    // Karte misst das Tempo gegen displayDay() (UTC-Mitternacht, weil
+    // daily_stats nachts abgeschlossen wird). Mit einem Zeitstempel von jetzt
+    // war die verstrichene Zeit 10 Tage minus dem heute schon vergangenen
+    // Anteil — der Restweg kippte dadurch um 16:00 UTC von "~15d" auf "~14d".
+    created_at: new Date(Math.floor(Date.now() / DAY) * DAY - 10 * DAY).toISOString(),
     ...overrides,
   }
 }

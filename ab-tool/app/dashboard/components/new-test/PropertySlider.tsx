@@ -6,6 +6,8 @@
  * Wiederverwendbar für: padding, border-radius, font-size, font-weight, border-width.
  */
 
+import { Input } from '@/app/components'
+
 interface PropertySliderProps {
   value: number
   onChange: (value: number) => void
@@ -33,7 +35,7 @@ export function PropertySlider({
       <div className="flex items-center justify-between">
         <label className="text-meta font-medium text-text-2">{label}</label>
         <div className="flex items-center gap-1">
-          <input
+          <Input
             type="number"
             value={value}
             onChange={(e) => {
@@ -42,7 +44,7 @@ export function PropertySlider({
             }}
             min={min}
             max={max}
-            className="w-14 rounded-sm border border-border bg-bg-0 px-2 py-0.5 text-meta font-mono text-text text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+            className="w-14 rounded-sm bg-bg-0 text-meta font-mono text-right"
           />
           {unit && <span className="text-meta text-text-3">{unit}</span>}
         </div>

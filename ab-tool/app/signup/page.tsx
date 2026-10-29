@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
-import { Button, Card, Field, Input } from '@/app/components'
+import { Button, Card, Checkbox, Field, Input } from '@/app/components'
 
 function norm(s: string): string {
   return s.trim().toLowerCase()
@@ -330,27 +330,26 @@ export default function SignupPage() {
 
           {/* Plan LEGAL-01: DSGVO Art. 7 — aktive Einwilligung per Checkbox.
               Der Timestamp wird in profiles.terms_accepted_at gespeichert. */}
-          <div className="mt-base flex items-start gap-snug">
-            <input
-              type="checkbox"
-              id="signup-terms"
-              checked={termsAccepted}
-              onChange={(e) => { setTermsAccepted(e.target.checked); setErr('') }}
-              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-sm border-border bg-bg-1 accent-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
-              aria-required="true"
-            />
-            <label htmlFor="signup-terms" className="text-small leading-relaxed text-text-3 cursor-pointer select-none">
-              I agree to the{' '}
-              <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-text">
-                Terms of Service
-              </Link>
-              {' '}and{' '}
-              <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-text">
-                Privacy Policy
-              </Link>
-              .
-            </label>
-          </div>
+          <Checkbox
+            id="signup-terms"
+            checked={termsAccepted}
+            onChange={(e) => { setTermsAccepted(e.target.checked); setErr('') }}
+            aria-required="true"
+            wrapperClassName="mt-base"
+            label={
+              <>
+                I agree to the{' '}
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-text">
+                  Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-text">
+                  Privacy Policy
+                </Link>
+                .
+              </>
+            }
+          />
         </Card>
 
         <p className="mt-5 text-center text-body text-text-3">

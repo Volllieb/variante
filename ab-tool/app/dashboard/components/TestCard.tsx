@@ -9,7 +9,7 @@ import type { DailyPoint } from '@/lib/forecast'
 import { describeDbGoal } from '@/lib/resultsHelpers'
 import { formatCompact, formatPercent, formatDelta, formatCount } from '@/lib/formatNumber'
 import { significanceTone } from './sigVisual'
-import { Badge, Button, StatusDot } from '@/app/components'
+import { Badge, Button, Input, StatusDot } from '@/app/components'
 
 
 export type TestRow = {
@@ -307,13 +307,13 @@ export function TestCard({
         <div className="min-w-0 flex-1">
           {renameOpen ? (
             <div className="flex items-center gap-1" onClick={(e) => { e.preventDefault(); e.stopPropagation() }}>
-              <input
+              <Input
                 type="text"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleRename(e); else if (e.key === 'Escape') { setRenameOpen(false); setRenameValue(localName) } }}
                 autoFocus
-                className="flex-1 rounded-sm border border-border bg-bg-0 px-2 py-1 text-small text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+                className="flex-1 rounded-sm bg-bg-0 text-small"
               />
               <Button variant="ghost" onClick={handleRename} disabled={busy} className="rounded-sm p-1">
                 <Check className="h-3 w-3" />

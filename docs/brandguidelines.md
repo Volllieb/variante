@@ -220,14 +220,15 @@ Gleiche Ikonografie in TestCard, DecisionList, Activity-Feed, Plugin: `<StatusDo
 | Hilfetext | unter dem Feld, `text-meta text-text-3`, Abstand `gap-tight` |
 | Fehlertext | ersetzt den Hilfetext, `text-meta text-err`, Feld `border-err`, `aria-invalid` + `aria-describedby` |
 | Feld↔Feld | `gap-base` (12px); Gruppen `gap-loose` |
-| Checkbox / Toggle | Checkbox `rounded-sm`, Toggle `rounded-full` (`<Toggle checked onChange label>`); Label rechts, klickbar |
+| Checkbox / Toggle | `<Checkbox label>` und `<Toggle checked onChange label>`; Label rechts, klickbar. Der Radius der Checkbox bleibt ohne Wirkung, solange das native Kästchen gezeichnet wird |
 | Formular-Aktionen | rechtsbündig, Primär rechts außen, Sekundär links daneben |
 
 `<Field label hint error>` erzeugt die IDs selbst; `<Input>`, `<Textarea>` und `<Select>` greifen `htmlFor`, `aria-describedby` und `aria-invalid` per Context ab — die Aufrufstelle verdrahtet nichts.
-**Phase 2:** Login, Signup und Update-Password laufen über `<Field>`/`<Input>`; `<Toggle>` liegt jetzt in
-`app/components/` statt lokal in `AccountClient.tsx`. Offen: die Felder im Dashboard (Suchfeld in
-`TestsClient.tsx`, Wizard-Steps, `AccountClient.tsx`) — sie sind heute rohe `<input>` mit eigener
-Fläche, aber bereits auf Tokens.
+**Phase 2:** abgeschlossen — alle textartigen Felder laufen über `<Input>`, `<Textarea>` und `<Select>`,
+Login/Signup/Update-Password zusätzlich über `<Field>`. `<Toggle>` und `<Checkbox>` liegen in
+`app/components/` statt lokal in `AccountClient.tsx` bzw. `signup/page.tsx`.
+Bewusst roh geblieben, weil `<Input>` sie nicht modelliert: `type="range"` (`PropertySlider.tsx`,
+`ResultsClient.tsx`), `type="color"` (`ColorPicker.tsx`) und der Avatar-Upload (`type="file"`).
 
 ### 6.6 Drawer & Modal
 

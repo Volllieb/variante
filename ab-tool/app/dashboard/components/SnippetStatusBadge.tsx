@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Globe, Check, X, Loader2, Copy, ChevronDown, ExternalLink, AlertTriangle } from 'lucide-react'
 import { SNIPPET_CODE } from '@/lib/snippetCode'
 import { FrameworkExamples } from './FrameworkExamples'
-import { Button } from '@/app/components'
+import { Button, Input } from '@/app/components'
 
 /* ── Types ── */
 
@@ -460,7 +460,7 @@ function SnippetBanner({
             {/* Input row */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1 max-w-[320px]">
-                <input
+                <Input
                   type="text"
                   value={urlInput}
                   onChange={(e) => {
@@ -473,7 +473,7 @@ function SnippetBanner({
                   autoFocus
                   aria-label="Domain to check"
                   aria-describedby="snippet-input-error"
-                  className="w-full h-[38px] rounded-md border border-border bg-bg-0 px-3.5 text-body text-text placeholder:text-text-3 focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:outline-none disabled:opacity-40"
+                  className="h-[38px] bg-bg-0"
                 />
               </div>
               <Button

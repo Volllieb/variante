@@ -80,7 +80,7 @@ import {
 import { formatCount, formatPercent, formatDelta, formatCompact } from '@/lib/formatNumber'
 import { significanceTone } from '@/app/dashboard/components/sigVisual'
 import { RefreshIndicator } from '@/app/dashboard/components/RefreshIndicator'
-import { Button, Card, SegmentedControl, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TableWrap } from '@/app/components'
+import { Button, Card, Input, SegmentedControl, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TableWrap, Textarea } from '@/app/components'
 
 // CSS custom property helpers — SVGs support var() natively
 const OK = SERIES.ok
@@ -1307,12 +1307,12 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               {goalType === 'click' && (
                 <div className="mb-3">
                   <label className="text-meta font-semibold text-text-3 uppercase tracking-wider">CSS Selector</label>
-                  <input
+                  <Input
                     type="text"
                     placeholder=".cta-button, #signup-link, a.btn-primary"
                     value={goalValue}
                     onChange={e => { setGoalValue(e.target.value); setGoalSaved(false) }}
-                    className="mt-1 w-full rounded-md border border-border bg-bg-2 px-3 py-2 text-body text-text font-mono placeholder:text-text/25 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
+                    className="mt-1 bg-bg-2 font-mono placeholder:text-text/25"
                   />
                 </div>
               )}
@@ -1513,10 +1513,10 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
               {editingB && (
                 <div className="rounded-md border border-border bg-bg-2 p-4">
                   <p className="mb-2 text-small font-semibold text-text-2">Edit Variant B HTML</p>
-                  <textarea
+                  <Textarea
                     value={draftB}
                     onChange={e => setDraftB(e.target.value)}
-                    className="w-full rounded-md border border-border bg-bg-1 px-3 py-2 font-mono text-small text-ok focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
+                    className="font-mono text-small text-ok"
                     rows={10}
                   />
                   <div className="mt-2 flex gap-2">
@@ -1591,13 +1591,13 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                     <span className="text-small font-semibold text-text-2">
                       Min Visitors <span className="font-normal text-text-3">per variant</span>
                     </span>
-                    <input
+                    <Input
                       type="number"
                       min={MIN_VISITORS_PER_ARM}
                       step={100}
                       value={minVisitors}
                       onChange={e => setMinVisitors(Number(e.target.value))}
-                      className="w-full rounded-md border border-border bg-bg-2 px-3 py-2 text-body text-text focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:ring-1 focus:ring-border-strong"
+                      className="bg-bg-2"
                     />
                   </label>
                   <label className="block space-y-1.5">

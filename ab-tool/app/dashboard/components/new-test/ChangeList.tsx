@@ -19,7 +19,7 @@ import { ColorPicker } from './ColorPicker'
 import { PropertySlider } from './PropertySlider'
 import { describeChange } from './delta'
 import type { ChangeEntry, ChangeProperty } from './types'
-import { Button, SegmentedControl } from '@/app/components'
+import { Button, Input, SegmentedControl } from '@/app/components'
 
 interface ChangeListProps {
   entries: ChangeEntry[]
@@ -302,14 +302,14 @@ function InlineControl({ entry, onChange }: { entry: ChangeEntry; onChange: (aft
   return (
     <div>
       <p className="mb-1.5 text-meta font-medium text-text-2">{label}</p>
-      <input
+      <Input
         type="text"
         value={entry.after}
         onChange={(e) => onChange(e.target.value)}
         placeholder={label}
         maxLength={200}
         autoFocus
-        className="w-full rounded-md border border-border bg-bg-0 px-3 py-2 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+        className="bg-bg-0"
       />
     </div>
   )

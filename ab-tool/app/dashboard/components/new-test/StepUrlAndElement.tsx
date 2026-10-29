@@ -21,7 +21,7 @@ import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown, Co
 import type { ElementSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
 import { usePickerBridge } from '@/lib/pickerBridge'
-import { Button, Card, SegmentedControl } from '@/app/components'
+import { Button, Card, Input, SegmentedControl, Select, Textarea } from '@/app/components'
 
 type DomainConnectState = 'idle' | 'saving' | 'not-found' | 'verified'
 
@@ -286,19 +286,18 @@ export function StepUrlAndElement({
             <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">Page</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
-              <select
+              <Select
                 value={selectedDomain ?? ''}
                 onChange={(e) => {
                   onUrlChange(`https://${e.target.value}/`)
                   setScanState('idle'); setScanResult(null); setScanError('')
                 }}
-                className="w-full appearance-none rounded-md border border-border bg-bg-1 py-2.5 pl-9 pr-8 text-body text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10 cursor-pointer"
+                className="pl-9 cursor-pointer"
               >
                 {verifiedDomains.map((d) => (
                   <option key={d.url} value={d.url}>{d.url}</option>
                 ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
+              </Select>
             </div>
             <p className="mt-1 text-meta text-text-3">
               The test runs on this page — the one your snippet is verified on. Sub-pages
@@ -311,7 +310,7 @@ export function StepUrlAndElement({
             <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">Your site</label>
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-3" />
-              <input
+              <Input
                 type="text"
                 value={url}
                 onChange={(e) => {
@@ -319,7 +318,7 @@ export function StepUrlAndElement({
                   if (scanState !== 'idle') { setScanState('idle'); setScanResult(null); setScanError('') }
                 }}
                 placeholder="yoursite.com"
-                className="w-full rounded-md border border-border bg-bg-1 py-2.5 pl-9 pr-3 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+                className="pl-9 pr-3"
               />
             </div>
 
@@ -512,13 +511,13 @@ export function StepUrlAndElement({
             <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
               CSS Selector
             </label>
-            <input
+            <Input
               type="text"
               value={manualSelector}
               onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
               onKeyDown={(e) => e.key === 'Enter' && confirmManual()}
               placeholder=".cta-button, #hero-headline, button.primary"
-              className="w-full rounded-md border border-border bg-bg-1 py-2.5 px-3 text-body text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong"
+              className="font-mono"
             />
             {manualSelectorError && (
               <p className="mt-1 text-meta text-err">{manualSelectorError}</p>
@@ -554,28 +553,28 @@ export function StepUrlAndElement({
                       text editor. "Image" and "Form" used to be offered here but had
                       no editor at all — picking them silently produced a button
                       editor, which made no sense for an image or a form. */}
-                  <select
+                  <Select
                     value={manualElementType}
                     onChange={(e) => setManualElementType(e.target.value)}
-                    className="w-full rounded-md border border-border bg-bg-0 py-2.5 px-3 text-body text-text cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="bg-bg-0 cursor-pointer"
                   >
                     <option value="element">Generic Element</option>
                     <option value="button">Button</option>
                     <option value="link">Link</option>
                     <option value="headline">Headline</option>
                     <option value="text">Text / Paragraph</option>
-                  </select>
+                  </Select>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
                     Display Name
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={manualElementName}
                     onChange={(e) => setManualElementName(e.target.value)}
                     placeholder='e.g. "Hero CTA Button"'
-                    className="w-full rounded-md border border-border bg-bg-0 py-2.5 px-3 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="bg-bg-0"
                   />
                 </div>
               </div>
@@ -584,12 +583,12 @@ export function StepUrlAndElement({
                 <label className="mb-1.5 block text-meta font-medium text-text-3 uppercase tracking-wider">
                   Original HTML <span className="font-normal text-text-3/60">(helps AI generate better variants)</span>
                 </label>
-                <textarea
+                <Textarea
                   value={manualHtml}
                   onChange={(e) => setManualHtml(e.target.value)}
                   placeholder='<button class="cta">Get Started</button>'
                   rows={3}
-                  className="w-full rounded-md border border-border bg-bg-0 py-2.5 px-3 text-small text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 resize-none"
+                  className="bg-bg-0 text-small font-mono resize-none"
                 />
               </div>
             </Card>

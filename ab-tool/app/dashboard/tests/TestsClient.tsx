@@ -18,7 +18,7 @@ import {
   FlaskConical,
   Code,
 } from 'lucide-react'
-import { Button } from '@/app/components'
+import { Button, Input } from '@/app/components'
 
 /* ── Component ── */
 
@@ -73,19 +73,20 @@ export function TestsClient({
       <div className="mb-3 flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
-          <input
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find test…"
-            className="w-full h-[30px] rounded-md border border-border bg-bg-1 py-1.5 pl-8 pr-3 text-body text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+            className="pl-8 pr-3"
           />
         </div>
         <FilterDropdown filter={filter} onChange={setFilter} />
         <Tooltip content="Refresh test list">
           <Button
-            variant="secondary" size="icon"
+            variant="secondary"
+            size="icon-lg"
             onClick={refresh}
-            className="h-[30px] w-[30px] bg-bg-1"
+            className="bg-bg-1"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isPending ? 'animate-spin' : ''}`} />
           </Button>

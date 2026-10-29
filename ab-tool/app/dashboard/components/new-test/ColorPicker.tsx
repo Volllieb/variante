@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { Button, Card } from '@/app/components'
+import { Button, Card, Input } from '@/app/components'
 
 interface ColorPickerProps {
   value: string
@@ -87,14 +87,14 @@ export function ColorPicker({ value, onChange, label, originalColor, onReset }: 
         />
         {/* Hex Input */}
         <div className="relative flex-1">
-          <input
+          <Input
             type="text"
             value={inputValue}
             onChange={handleInputChange}
             onFocus={() => setShowPresets(true)}
             placeholder="#000000"
             maxLength={7}
-            className="w-full rounded-md border border-border bg-bg-0 py-2 pl-3 pr-2.5 text-small font-mono text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+            className="bg-bg-0 pl-3 pr-2.5 text-small font-mono"
           />
         </div>
       </div>

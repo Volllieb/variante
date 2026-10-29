@@ -86,11 +86,11 @@ export function DashboardSkeleton() {
         <Skeleton className="h-4 w-16" />
         {/* Toolbar */}
         <div className="flex items-center gap-2">
-          <Skeleton className="h-[30px] flex-1" />
-          <Skeleton className="h-[30px] w-[30px]" />
-          <Skeleton className="h-[30px] w-[30px]" />
-          <Skeleton className="h-[30px] w-[30px]" />
-          <Skeleton className="h-[30px] w-24" />
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 w-9" />
+          <Skeleton className="h-9 w-9" />
+          <Skeleton className="h-9 w-9" />
+          <Skeleton className="h-9 w-24" />
         </div>
         <TestGridSkeleton />
       </div>

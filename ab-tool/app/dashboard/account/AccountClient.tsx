@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { Mail, Globe, Key, Trash2, AlertTriangle, Check, Loader2, X, Camera, User, Copy, FlaskConical } from 'lucide-react'
 import Image from 'next/image'
-import { Button, Card, Toggle } from '@/app/components'
+import { Button, Card, Input, Toggle } from '@/app/components'
 
 type Domain = { id: string; url: string; verified: boolean; verified_at?: string | null }
 
@@ -490,12 +490,12 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
           <div className="mt-4 space-y-3">
             <p className="text-meta text-text-3">Change to a new email address. A confirmation link will be sent.</p>
             <div className="flex gap-2">
-              <input
+              <Input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="new@email.com"
-                className="flex-1 rounded-md border border-border bg-bg-2 px-3 py-2 text-body text-text placeholder:text-text-3 focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="flex-1 bg-bg-2"
               />
               <Button
                 variant="primary" size="md"
@@ -639,7 +639,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                 <>
                   <div className="flex items-center gap-2 rounded-sm border border-border bg-bg-1 px-2.5 py-2">
                     <Globe className="h-3.5 w-3.5 shrink-0 text-text-3" />
-                    <input
+                    <Input
                       type="text"
                       value={addUrl}
                       onChange={(e) => { setAddUrl(e.target.value); setAddError('') }}
@@ -647,7 +647,7 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
                       placeholder="yoursite.com"
                       disabled={addState !== 'input'}
                       autoFocus
-                      className="flex-1 bg-transparent text-small text-text placeholder:text-text-3/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                      className="flex-1 bg-transparent text-small placeholder:text-text-3/50"
                     />
                   </div>
                   {addError && <p className="text-meta text-err">{addError}</p>}
@@ -947,12 +947,12 @@ export function AccountClient({ email, domains: initialDomains, avatarUrl: initi
               <p className="text-small font-semibold text-err">
                 Type <code className="rounded-sm bg-err-bg px-1.5 py-0.5 font-mono text-small">{dangerConfirm}</code> to confirm:
               </p>
-              <input
+              <Input
                 type="text"
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={dangerConfirm}
-                className="w-full rounded-md border border-err/20 bg-bg-2 px-3 py-2 font-mono text-body text-text placeholder:text-text-3 focus:border-err/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                className="border-err/20 bg-bg-2 font-mono focus:border-err/40"
               />
               <div className="flex items-center gap-2">
                 <Button variant="danger" size="sm"

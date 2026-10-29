@@ -21,7 +21,7 @@ import {
 import type { GoalSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
 import { usePickerBridge } from '@/lib/pickerBridge'
-import { Button, SegmentedControl } from '@/app/components'
+import { Button, Input, SegmentedControl } from '@/app/components'
 
 interface StepGoalProps {
   elementType: string
@@ -333,13 +333,13 @@ export function StepGoal({
                   Enter the CSS selector of the element users click to convert.
                 </p>
                 <div>
-                  <input
+                  <Input
                     type="text"
                     value={manualSelector}
                     onChange={(e) => { setManualSelector(e.target.value); setManualSelectorError('') }}
                     onKeyDown={(e) => e.key === 'Enter' && confirmManualGoal()}
                     placeholder=".buy-button, #checkout, button.cta"
-                    className="w-full rounded-md border border-border bg-bg-1 py-2 px-3 text-small text-text font-mono placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="text-small font-mono"
                   />
                   {manualSelectorError && (
                     <p className="mt-1 text-meta text-err">{manualSelectorError}</p>

@@ -19,7 +19,7 @@ import { inheritRootHtml, scratchVariantHtml } from './delta'
 import type { EditorMode } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
 import { extractTextFromHtml } from '@/lib/previewDoc'
-import { Button, Card, SegmentedControl } from '@/app/components'
+import { Button, Card, Input, SegmentedControl } from '@/app/components'
 
 interface TextInputEditorProps {
   element: ElementSelection
@@ -120,13 +120,13 @@ export function TextInputEditor({ element, originalHtml, baseCss, modeLocked, on
       {/* Text Input */}
       <div>
         <label className="mb-1.5 block text-meta font-medium text-text-2">Text</label>
-        <input
+        <Input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text"
           maxLength={200}
-          className="w-full rounded-md border border-border bg-bg-0 px-3 py-2 text-body text-text placeholder:text-text-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0 focus:border-border-strong focus:ring-2 focus:ring-text/10"
+          className="bg-bg-0"
         />
       </div>
 

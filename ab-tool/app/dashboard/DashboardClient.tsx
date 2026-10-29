@@ -21,12 +21,11 @@ import {
   Plus,
   Check,
   Globe,
-  ChevronDown,
 } from 'lucide-react'
 import { SnippetStatusBadge } from './components/SnippetStatusBadge'
 import { PlanUsageBar } from './components/PlanUsageBar'
 import { RefreshIndicator, useRefreshTransition } from './components/RefreshIndicator'
-import { Button, Card } from '@/app/components'
+import { Button, Card, Select } from '@/app/components'
 
 /** So viele Tests zeigt die Overview — die vollständige Liste lebt in /dashboard/tests. */
 const TOP_TESTS = 5
@@ -251,24 +250,25 @@ export function DashboardClient({
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="relative min-w-0">
           {domainOptions.length > 1 ? (
-            <select
+            // Der Domain-Scope steht hier als Ueberschrift, nicht als
+            // Formularfeld: ohne Rahmen und Fuellung. Das Chevron bringt
+            // <Select> selbst mit — das zweite, lokal positionierte ist
+            // deshalb entfallen.
+            <Select
               value={scope}
               onChange={(e) => setScopeAndPersist(e.target.value)}
               aria-label="Filter by domain"
-              className="appearance-none bg-transparent text-title font-semibold text-text pr-5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+              className="h-auto border-transparent bg-transparent px-0 text-title font-semibold hover:border-transparent"
             >
               <option value="all">All domains</option>
               {domainOptions.filter((d) => d !== 'all').map((url) => (
                 <option key={url} value={url}>{url}</option>
               ))}
-            </select>
+            </Select>
           ) : (
             <p className="text-title font-semibold text-text">
               {primaryDomain ? primaryDomain : 'All domains'}
             </p>
-          )}
-          {domainOptions.length > 1 && (
-            <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-3" />
           )}
           {hasVerifiedDomain && (
             <p className="text-small text-text-3 mt-0.5">

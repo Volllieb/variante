@@ -7,7 +7,7 @@ import { getBrowserSupabase } from '@/lib/supabaseBrowser'
 import { PandaLogo } from '@/components/PandaLogo'
 import { Check, Copy, Globe, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react'
 import { SNIPPET_CODE, personalizedSnippet } from '@/lib/snippetCode'
-import { Button, Card } from '@/app/components'
+import { Button, Card, Input } from '@/app/components'
 
 type Step = 1 | 2 | 3
 
@@ -224,13 +224,13 @@ export default function OnboardingPage() {
               {/* Domain hint: enter domain to personalize */}
               <div className="mt-6 max-w-md mx-auto">
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     type="text"
                     placeholder="yoursite.com (optional, personalizes snippet)"
                     value={domainUrl}
                     aria-label="Your domain (optional)"
                     onChange={(e) => setDomainUrl(e.target.value)}
-                    className="flex-1 rounded-md border border-border bg-bg-1 px-4 py-2.5 text-body text-text placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30"
+                    className="flex-1"
                   />
                 </div>
               </div>
@@ -313,7 +313,7 @@ export default function OnboardingPage() {
                   className="mt-8 max-w-md mx-auto"
                 >
                   <div className="flex gap-2">
-                    <input
+                    <Input
                       type="text"
                       required
                       placeholder="yoursite.com"
@@ -326,7 +326,7 @@ export default function OnboardingPage() {
                       disabled={isChecking}
                       aria-label="Domain to verify"
                       aria-describedby="onboarding-domain-error"
-                      className="flex-1 rounded-md border border-border bg-bg-1 px-4 py-3 text-body text-text placeholder:text-text-3 transition-colors focus:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/30 disabled:opacity-50"
+                      className="flex-1 disabled:opacity-50"
                     />
                     <Button
                       variant="primary"
