@@ -30,6 +30,8 @@ import type { ChangeEntry, ChangeProperty, VariantChangeSet } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
 import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
 import { BreakpointSwitcher, BREAKPOINTS, type Breakpoint } from './PreviewBreakpoints'
+import { PreviewStateToggle } from './PreviewStateToggle'
+import type { PreviewState } from './PreviewStateToggle'
 
 interface StepChangeProps {
   element: ElementSelection
@@ -64,6 +66,7 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [scratchEditorOpen, setScratchEditorOpen] = useState(false)
   const [breakpoint, setBreakpoint] = useState<Breakpoint>(375)
+  const [previewState, setPreviewState] = useState<PreviewState>('normal')
 
   // ─── Listen-Mutationen ───
 
@@ -92,14 +95,16 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
       }
 
       const newEntries = targets.map((prop): ChangeEntry => {
-        let before = baselineValue(changes.baseline, prop) ?? ''
-        let after = baselineValue(changes.baseline, prop) ?? COLOR_FALLBACKS[prop] ?? ''
+        // hoverBgColor liest aus der Hover-Baseline — eine neue Hover-Zeile
+        // soll bei A's Hover starten, nicht bei dessen Ruhefarbe.
+        let before = baselineValue(changes.baseline, prop, changes.hoverBaseline) ?? ''
+        let after = baselineValue(changes.baseline, prop, changes.hoverBaseline) ?? COLOR_FALLBACKS[prop] ?? ''
         if (prop === 'text') {
           before = extractTextFromHtml(element.originalHtml)
           after = before
         }
         if (prop === 'paddingX' || prop === 'paddingY') {
-          after = baselineValue(changes.baseline, prop) ?? (prop === 'paddingY' ? '12' : '24')
+          after = baselineValue(changes.baseline, prop, changes.hoverBaseline) ?? (prop === 'paddingY' ? '12' : '24')
         }
         return { id: entryId(), property: prop, before, after, source: 'manual', status: 'applied' }
       })
@@ -142,16 +147,16 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
           rawCss: css.trim(),
         })
       }
-      onChanges({ mode: 'scratch', entries, baseline: changes.baseline })
+      onChanges({ mode: 'scratch', entries, baseline: changes.baseline, hoverBaseline: changes.hoverBaseline })
     },
-    [element.originalHtml, changes.baseline, onChanges],
+    [element.originalHtml, changes.baseline, changes.hoverBaseline, onChanges],
   )
 
   /** Scratch verwerfen: zurück zur leeren Änderungsliste (B ≡ A). */
   const discardScratch = useCallback(() => {
-    onChanges({ mode: 'inherit', entries: [], baseline: changes.baseline })
+    onChanges({ mode: 'inherit', entries: [], baseline: changes.baseline, hoverBaseline: changes.hoverBaseline })
     setScratchEditorOpen(false)
-  }, [changes.baseline, onChanges])
+  }, [changes.baseline, changes.hoverBaseline, onChanges])
 
   // ─── Vorschau ───
 
@@ -164,12 +169,21 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
   // Markup mitgebracht hat — sonst der ehrliche Textvergleich.
   const canRenderPreview = !!element.originalCss.trim() && !!element.originalHtml.trim()
   const previewWidth = BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375
+  // Hover ist eine eigene Ansicht, kein Dauerzustand: der Picker misst ihn
+  // getrennt, und die Vorschau zeigt per Default das, was ein Besucher zuerst
+  // sieht. Zu zeigen gibt es ihn, wenn A einen hat oder B einen bekommt.
+  const hoverAvailable =
+    !!element.styleContext?.computedHover ||
+    applied.some((e) => e.property.startsWith('hover'))
   const srcDoc = buildPreviewSrcDoc(
     [
       { html: element.originalHtml || '' },
       { html: composed.html, css: composed.css, scopeToSelector: true, selector },
     ],
-    { siteCss: element.styleContext?.css ?? element.originalCss },
+    {
+      siteCss: element.styleContext?.css ?? element.originalCss,
+      state: hoverAvailable ? previewState : 'normal',
+    },
   )
 
   return (
@@ -187,7 +201,14 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
             <Sparkles className="h-3 w-3" />
             Preview
           </p>
-          <BreakpointSwitcher value={breakpoint} onChange={setBreakpoint} />
+          <div className="flex items-center gap-2">
+            <PreviewStateToggle
+              value={previewState}
+              onChange={setPreviewState}
+              hoverAvailable={hoverAvailable}
+            />
+            <BreakpointSwitcher value={breakpoint} onChange={setBreakpoint} />
+          </div>
         </div>
         {canRenderPreview ? (
           <div className="overflow-x-auto">

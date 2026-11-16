@@ -9,8 +9,8 @@
 // ausgelieferten Code.
 //
 // Sektion: von "// --- Relevantes CSS" bis "// --- Goal-Kandidaten". Enthält
-// COMPUTED_PROPS, PSEUDO_RE, matchesPseudo, computedValues, computedBlock,
-// computedMap, collectCss und styleContext — genau das, was die Tests
+// COMPUTED_PROPS, PSEUDO_RE, matchesPseudo, computedValues, computedBlock, hoverBlock,
+// restingValues, hoverStyles, collectCss und styleContext — genau das, was die Tests
 // brauchen, inklusive der Helfer, die die alten Kopien implizit mitnahmen.
 //
 // Die Funktionen referenzieren Browser-Globals (document, CSSRule,
@@ -35,7 +35,7 @@ if (start === -1 || end === -1 || end <= start) {
 // globalThis auf — deshalb muss die Fixture sie vor dem Aufruf setzen.
 const factory = new Function(
   source.slice(start, end)
-    + '\nreturn { COMPUTED_PROPS, PSEUDO_RE, matchesPseudo, computedValues, computedBlock, computedMap, collectCss, styleContext };'
+    + '\nreturn { COMPUTED_PROPS, PSEUDO_RE, matchesPseudo, computedValues, computedBlock, hoverBlock, restingValues, hoverStyles, collectCss, styleContext };'
 )
 
 export const abSource = factory()

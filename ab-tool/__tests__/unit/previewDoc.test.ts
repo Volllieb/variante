@@ -251,3 +251,78 @@ describe('buildPreviewSrcDoc — Paritaet Wizard/Results', () => {
     expect(wizardCall).toBe(resultsCall)
   })
 })
+
+/**
+ * Hover-Trennung: Der Picker misst den Ruhezustand am Klon (`.__original`) und
+ * die :hover-Abweichung am Element selbst (`.__original_hover`). Vorher steckte
+ * der Hover-Zustand im einzigen computed-Block und wirkte unbedingt — A sah in
+ * der Vorschau dauerhaft gehovert aus, obwohl der Live-Test korrekt rendert.
+ */
+describe('buildPreviewSrcDoc — Hover-Zustand', () => {
+  const STORED = [
+    '/* computed styles of original element (reference) */',
+    '.__original {',
+    '  background-color: rgb(37, 99, 235);',
+    '  width: 142px;',
+    '}',
+    '/* computed :hover styles of original element (reference) */',
+    '.__original_hover {',
+    '  background-color: rgb(17, 17, 17);',
+    '  transform: scale(1.05);',
+    '  transform-origin: 50% 50%;',
+    '}',
+  ].join('\n')
+
+  it('Default: Ruhezustand unbedingt, Hover nur unter :hover', () => {
+    const doc = buildPreviewSrcDoc([{ html: '<button class="cta">Buy</button>' }], { siteCss: STORED })
+    expect(doc).toContain(`.${PREVIEW_ROOT_CLASS} > * {`)
+    expect(doc).toContain(`.${PREVIEW_ROOT_CLASS} > *:hover {`)
+    expect(doc).toContain('background-color: rgb(37, 99, 235)')
+    expect(doc).toContain('background-color: rgb(17, 17, 17)')
+    // Der Hover-Block steht NACH dem Ruhe-Block — sonst gewinnt er nie.
+    expect(doc.indexOf(`.${PREVIEW_ROOT_CLASS} > *:hover`))
+      .toBeGreaterThan(doc.indexOf(`.${PREVIEW_ROOT_CLASS} > * {`))
+    // Beide Daten-Selektoren verschwinden aus dem srcDoc.
+    expect(doc).not.toContain('.__original')
+  })
+
+  it("state: 'hover' zeigt den Hover-Zustand statisch", () => {
+    const doc = buildPreviewSrcDoc(
+      [{ html: '<button class="cta">Buy</button>' }],
+      { siteCss: STORED, state: 'hover' }
+    )
+    expect(doc).not.toContain(`.${PREVIEW_ROOT_CLASS} > *:hover`)
+    expect(doc).toContain('background-color: rgb(17, 17, 17)')
+  })
+
+  it('transform-origin bleibt im Hover-Block, width fliegt raus', () => {
+    const doc = buildPreviewSrcDoc([{ html: '<button class="cta">Buy</button>' }], { siteCss: STORED })
+    // Ein Hover-scale() ohne seinen Ursprung waechst aus der falschen Ecke.
+    expect(doc).toContain('transform-origin: 50% 50%')
+    expect(doc).not.toContain('width: 142px')
+  })
+
+  it('altes site_css ohne Hover-Block bleibt unveraendert nutzbar', () => {
+    const onlyResting = STORED.split('/* computed :hover')[0]
+    const doc = buildPreviewSrcDoc([{ html: '<button class="cta">Buy</button>' }], { siteCss: onlyResting })
+    expect(doc).toContain('background-color: rgb(37, 99, 235)')
+    expect(doc).not.toContain(':hover')
+  })
+
+  it("state: 'hover' macht auch B's eigene :hover-Regeln unbedingt", () => {
+    const doc = buildPreviewSrcDoc(
+      [
+        { html: '<button class="cta">A</button>' },
+        {
+          html: '<button class="cta">B</button>',
+          css: '.cta:hover { background-color: #00ff00; }',
+          scopeToSelector: true,
+          selector: '.cta',
+        },
+      ],
+      { siteCss: STORED, state: 'hover' }
+    )
+    expect(doc).toContain('background-color: #00ff00')
+    expect(doc).not.toContain(':hover')
+  })
+})

@@ -1,5 +1,7 @@
 # kursdefinition.md — variante
 
+> **Übergeordnet seit 09.11.2026:** `scaling-framework.md` ($100M Scaling Roadmap). variante steht in **Stage 0**; das Ziel „erster zahlender Pro-Kunde“ unten ist das Abschlusskriterium von Stage 1. Kanäle, Pipeline und Pipeline-Log hier gelten weiter als operativer Plan.
+
 > **Stand: 20.08.2026** — nach Urlaubs-Neubewertung festgelegt. Verbindlich bis zum ersten zahlenden Pro-Kunden. Wo `gotomarket.md` oder `PROJEKT.md` abweichen, gilt dieses Dokument.
 
 ## Erfolgskriterium (nächste 90 Tage)

@@ -183,14 +183,34 @@ export function baselineFromCss(css: string | null | undefined): StyleBaseline |
 }
 
 /**
- * Extrahiert den `.__original`-Block (gemessene Computed-Styles des Pickers)
- * aus dem gesammelten Site-CSS eines Drafts — als Property-Map in der Form
- * von `styleContext.computed` / `buildStyleBaseline`.
+ * Baseline des HOVER-Zustands aus bestehendem CSS (KI-Ergebnis): nur die
+ * Deklarationen aus `:hover`/`:focus`-Regeln.
+ *
+ * Gegenstück zu baselineFromCss, das den Ruhezustand liest — dort gewinnt bei
+ * doppelten Properties die erste Deklaration, also die aus der Grundregel.
+ * Ohne diese Trennung hätte der Hover-Delta im KI-Fall die falsche
+ * Vergleichsbasis: er würde gegen A's gemessenen Hover prüfen, während in der
+ * Vorschau längst der Hover des KI-Designs steht.
  */
-export function collectedOriginalComputed(css: string | null | undefined): Record<string, string> | null {
+export function hoverBaselineFromCss(css: string | null | undefined): StyleBaseline | null {
   if (!css) return null
   const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
-  const m = /\.__original\s*\{([^{}]*)\}/.exec(clean)
+  const parts: string[] = []
+  for (const rule of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (/:(?:hover|focus)\b/.test(rule[1])) parts.push(rule[2])
+  }
+  return parts.length ? baselineFromCss(parts.join(';')) : null
+}
+
+/**
+ * Extrahiert einen der beiden computed-Blöcke des Pickers aus dem gesammelten
+ * Site-CSS eines Drafts — als Property-Map in der Form von
+ * `styleContext.computed` / `buildStyleBaseline`.
+ */
+function collectedBlock(css: string | null | undefined, blockRe: RegExp): Record<string, string> | null {
+  if (!css) return null
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const m = blockRe.exec(clean)
   if (!m) return null
   const decls: Record<string, string> = {}
   for (const match of m[1].matchAll(/[\w-]+\s*:\s*[^;{}]+/g)) {
@@ -199,6 +219,22 @@ export function collectedOriginalComputed(css: string | null | undefined): Recor
     decls[match[0].slice(0, sep).trim().toLowerCase()] = match[0].slice(sep + 1).trim()
   }
   return Object.keys(decls).length ? decls : null
+}
+
+/** Der `.__original`-Block: der gemessene RUHEZUSTAND von A. */
+export function collectedOriginalComputed(css: string | null | undefined): Record<string, string> | null {
+  // Das `\s*\{` grenzt gegen `.__original_hover` ab: dort folgt `_`, kein `{`.
+  return collectedBlock(css, /\.__original\s*\{([^{}]*)\}/)
+}
+
+/**
+ * Der `.__original_hover`-Block: nur die Properties, die `:hover` an A ändert.
+ * Fehlt er (Pick vor der Hover-Trennung des Pickers), gibt es keine
+ * Hover-Baseline — der Editor verhält sich dann wie vorher und emittiert
+ * gesetzte Hover-Werte absolut.
+ */
+export function collectedOriginalHoverComputed(css: string | null | undefined): Record<string, string> | null {
+  return collectedBlock(css, /\.__original_hover\s*\{([^{}]*)\}/)
 }
 
 
@@ -264,7 +300,9 @@ export function generateButtonCss(
   edits: UserEdits,
   selector: string,
   baseline: StyleBaseline | null,
-  mode: EditorMode
+  mode: EditorMode,
+  /** Gemessener :hover-Zustand von A. null = kein Vergleich moeglich. */
+  hoverBaseline: StyleBaseline | null = null
 ): string {
   const isDelta = mode === 'inherit'
   const differs = (value: unknown, base: unknown): boolean =>
@@ -304,12 +342,20 @@ export function generateButtonCss(
   }
 
   if (edits.hoverEnabled) {
-    // Hover-Werte sind immer B-spezifisch (computed kann :hover nicht messen)
-    // und werden emittiert, sobald sie gesetzt sind — wie vor dem Delta-Modell.
+    // Seit der Picker Ruhe- und Hover-Zustand getrennt misst, hat auch Hover
+    // eine Baseline — das Delta-Prinzip gilt hier also genauso: emittiert wird
+    // nur, was sich von A's Hover unterscheidet. Ohne hoverBaseline (Picks vor
+    // der Trennung, scratch-Modus) bleibt es beim alten Verhalten: gesetzt
+    // heisst emittiert.
+    const hoverDiffers = (value: unknown, base: unknown): boolean =>
+      value !== undefined && (!isDelta || !hoverBaseline || value !== base)
     const hoverDecls: string[] = []
-    if (edits.hoverBgColor !== undefined) {
+    if (hoverDiffers(edits.hoverBgColor, hoverBaseline?.bgColor)) {
       hoverDecls.push(`  background-color: ${edits.hoverBgColor};`)
     }
+    // scale und shadow bleiben absolut: aus einem gemessenen transform /
+    // box-shadow laesst sich kein verlaesslicher Prozent- bzw. Preset-Wert
+    // zurueckrechnen, ein Vergleich waere geraten.
     if (edits.hoverScale !== undefined && edits.hoverScale !== 100) {
       hoverDecls.push(`  transform: scale(${edits.hoverScale / 100});`)
     }
@@ -440,7 +486,8 @@ export function composeVariant(
     edits,
     selector,
     set.mode === 'inherit' ? set.baseline : null,
-    set.mode
+    set.mode,
+    set.mode === 'inherit' ? set.hoverBaseline ?? null : null
   )
   const raw = applied
     .filter((e) => e.property === 'other' && e.rawCss)
@@ -473,9 +520,19 @@ function toHexExact(value: string): string | null {
  * Anzeige-/Vergleichswert der Baseline für ein Property — null wenn keine
  * messbar war. Exportiert: StepChange nutzt ihn als Startwert neuer Zeilen.
  */
-export function baselineValue(baseline: StyleBaseline | null, property: ChangeProperty): string | null {
+export function baselineValue(
+  baseline: StyleBaseline | null,
+  property: ChangeProperty,
+  hoverBaseline?: StyleBaseline | null
+): string | null {
+  // hoverBgColor liest aus der Hover-Baseline (`.__original_hover`), nicht aus
+  // der Ruhe-Baseline. hoverScale/hoverShadow bleiben ohne Vergleichswert —
+  // siehe generateButtonCss.
+  if (property === 'hoverBgColor') {
+    const hv = hoverBaseline?.bgColor
+    return hv === undefined || hv === null ? null : String(hv)
+  }
   if (!baseline) return null
-  // hover-Properties haben bewusst keine Baseline: computed kann :hover nicht messen.
   const map: Partial<Record<ChangeProperty, keyof StyleBaseline>> = {
     bgColor: 'bgColor', textColor: 'textColor', fontSize: 'fontSize',
     fontWeight: 'fontWeight', borderRadius: 'borderRadius', paddingX: 'paddingX',
@@ -507,7 +564,8 @@ export function baselineValue(baseline: StyleBaseline | null, property: ChangePr
 export function diffCssToEntries(
   css: string | null | undefined,
   baseline: StyleBaseline | null,
-  source: ChangeEntry['source']
+  source: ChangeEntry['source'],
+  hoverBaseline?: StyleBaseline | null
 ): ChangeEntry[] {
   if (!css) return []
   const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
@@ -524,7 +582,7 @@ export function diffCssToEntries(
 
     const rawDecls: Array<{ prop: string; value: string }> = []
     const pushEntry = (property: ChangeProperty, after: string) => {
-      const base = baselineValue(baseline, property)
+      const base = baselineValue(baseline, property, hoverBaseline)
       if (base !== null && base === after) return
       entries.push({ id: entryId(), property, before: base ?? '', after, source, status: 'suggested' })
     }

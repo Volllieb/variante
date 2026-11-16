@@ -101,8 +101,14 @@
         try { return el.matches(base) } catch (_) { return false }
       }
       var COMPUTED_PROPS = ['color','background-color','background-image','background-size','background-position','background-repeat','border','border-width','border-style','border-color','border-radius','padding','margin','width','height','font-family','font-size','font-weight','line-height','letter-spacing','text-align','text-transform','text-decoration','white-space','display','flex-direction','align-items','justify-content','gap','object-fit','box-shadow','transition','transform','transform-origin','animation','backdrop-filter','cursor','opacity']
-      // Eine Messung, zwei Ausgaben: computedBlock und computedMap brauchten
-      // vorher je einen getComputedStyle-Durchlauf ueber dieselben Properties.
+      // getComputedStyle loest die Kaskade INKLUSIVE aktiver Pseudo-Klassen auf.
+      // Gemessen wird aber im click-Handler, und da liegt der Zeiger per
+      // Definition auf dem Element: die Werte beschrieben bisher den HOVER-
+      // Zustand. In der Wizard-Vorschau und in der Delta-Baseline sah Variante A
+      // deshalb dauerhaft gehovert aus — der Live-Pfad war nie betroffen, der
+      // nutzt die Computed-Werte gar nicht.
+      // Deshalb zwei getrennte Messungen: restingValues fuer den Normalzustand,
+      // hoverDelta fuer das, was :hover daran aendert.
       function computedValues(el) {
         try {
           var cs = getComputedStyle(el)
@@ -114,21 +120,83 @@
           return out
         } catch (_) { return {} }
       }
-      function computedBlock(el) {
-        var vals = computedValues(el)
+      // Normalzustand: an einem Klon messen. Der liegt nicht unter dem Zeiger,
+      // loest also dieselbe Kaskade ohne :hover auf. Er wird VOR el eingefuegt
+      // und uebernimmt damit dessen Geschwister-Position, sodass :nth-of-type,
+      // :first-child & Co. gleich matchen. Einfuegen, Messen und Entfernen
+      // laufen synchron in einem Task — dazwischen gibt es keinen Paint.
+      function restingValues(el) {
+        var parent = el && el.parentNode
+        if (!parent) return computedValues(el)
+        var clone = null
+        try {
+          clone = el.cloneNode(true)
+          parent.insertBefore(clone, el)
+          return computedValues(clone)
+        } catch (_) {
+          return computedValues(el)
+        } finally {
+          try { if (clone && clone.parentNode) clone.parentNode.removeChild(clone) } catch (_) {}
+        }
+      }
+      // Der Hover-Zustand kommt aus den GESCHRIEBENEN :hover-Regeln, nicht aus
+      // getComputedStyle. Zwei Gruende, beide in der Praxis beobachtet:
+      //   1. Transitions. Beim Klick ist eine Hover-Transition gerade erst
+      //      gestartet; gemessen wird dann ein Zwischenwert. Auf der Testseite
+      //      kam so `transform: matrix(1, 0, 0, 1, 0, 0)` und ein voll
+      //      transparenter box-shadow heraus — Werte, die nichts beschreiben.
+      //   2. Der Zeiger muss beim Klick gar nicht auf dem Element liegen
+      //      (Tastatur, Touch). Dann gaebe es ueberhaupt keinen Hover zu messen.
+      // Eine :hover-Regel listet per Definition nur, was sie aendert — das
+      // Ergebnis ist also schon der Delta gegenueber dem Ruhezustand.
+      // Nur unbedingte Regeln: eine :hover-Regel aus einem @media-Block gilt
+      // nicht ueberall und darf nicht als genereller Hover-Zustand durchgehen.
+      var HOVER_RE = /:hover\b/
+      function hoverStyles(el) {
+        var out = {}
+        try {
+          var sheets = document.styleSheets
+          for (var i = 0; i < sheets.length; i++) {
+            var href = sheets[i].href
+            if (href && href.indexOf(location.origin) !== 0 && href.charAt(0) !== '/') continue
+            var rules; try { rules = sheets[i].cssRules } catch (_) { continue }
+            if (!rules) continue
+            for (var j = 0; j < rules.length; j++) {
+              var rule = rules[j]
+              if (rule.type !== CSSRule.STYLE_RULE) continue
+              var sel = rule.selectorText
+              if (!sel || !HOVER_RE.test(sel) || !matchesPseudo(el, sel)) continue
+              // Dokumentreihenfolge: eine spaetere Regel ueberschreibt eine
+              // fruehere. Ueber Shorthands wird bewusst per getPropertyValue
+              // gelesen — `background: #6d28d9` soll als background-color
+              // ankommen, nicht als vier Longhands, die der Wizard nicht kennt.
+              for (var p = 0; p < COMPUTED_PROPS.length; p++) {
+                var v = rule.style.getPropertyValue(COMPUTED_PROPS[p])
+                if (v) out[COMPUTED_PROPS[p]] = v
+              }
+            }
+          }
+        } catch (_) {}
+        return out
+      }
+      function declBlock(comment, selector, vals) {
         var lines = []
         for (var prop in vals) lines.push('  ' + prop + ': ' + vals[prop] + ';')
         if (!lines.length) return ''
-        // Der '.__original'-Selektor ist hier ABSICHT: delta.ts parst genau
-        // diesen Block beim Draft-Resume (collectedOriginalComputed) und die
-        // AI-Kontexte (generatePrompts.ts) nutzen ihn. Die Dashboard-Vorschau
-        // bezieht ihre Styles aus styleContext.computed statt aus diesem Text.
-        return '/* computed styles of original element (reference) */\n.__original {\n' + lines.join('\n') + '\n}'
+        return comment + '\n' + selector + ' {\n' + lines.join('\n') + '\n}'
       }
-      // Gleiche Messung wie computedBlock, aber als Map — Grundlage fuer die
-      // Style-Baseline des Delta-Editors im Wizard.
-      function computedMap(el) {
-        return computedValues(el)
+      // Die Selektoren sind ABSICHT: delta.ts parst genau diese Bloecke beim
+      // Draft-Resume (collectedOriginalComputed / collectedOriginalHoverComputed),
+      // die AI-Kontexte (generatePrompts.ts) nutzen sie, und previewDoc.ts hebt
+      // sie fuer die Vorschau heraus. Die Dashboard-Vorschau bezieht ihre Styles
+      // aus styleContext.computed statt aus diesem Text.
+      function computedBlock(el, resting) {
+        return declBlock('/* computed styles of original element (reference) */',
+          '.__original', resting || restingValues(el))
+      }
+      function hoverBlock(el, hover) {
+        return declBlock('/* computed :hover styles of original element (reference) */',
+          '.__original_hover', hover || {})
       }
         // Custom Properties muessen mit, sonst greift jedes var() in den
         // Element-Regeln ins Leere. Aber nur DEFINITIONEN (`--x: wert`), nicht
@@ -136,7 +204,7 @@
         // vorher `body { background: var(--bg) }` und hunderte fremde Regeln
         // mit herein, sprengte das Budget unten und kaperte die Vorschau.
         var CUSTOM_PROP_DECL_RE = /(^|[;{])\s*--[\w-]+\s*:/
-      function collectCss(el) {
+      function collectCss(el, measured) {
         var out = [], seen = {}, len = 0
         function push(rule) {
           if (seen[rule.cssText]) return
@@ -198,17 +266,29 @@
           if (rulesText.length + out[n].length + 1 > 18000) break
           rulesText += (rulesText ? '\n' : '') + out[n]
         }
-        var comp = computedBlock(el)
-        if (!comp) return rulesText
-        // Passt beides nicht ins Gesamtbudget, gewinnt der computed-Block: er
-        // beschreibt das Element vollstaendig und herkunftsunabhaengig.
-        if (rulesText.length + comp.length + 2 > 24000) return comp
-        return rulesText + '\n\n' + comp
+        // Beide Messungen kommen von styleContext durchgereicht, damit der
+        // Klon aus restingValues nicht zweimal eingehaengt wird. Standalone
+        // (site_css im capture-Body, Swap-Modus) misst collectCss selbst.
+        var m = measured || { resting: restingValues(el), hover: {} }
+        var comp = computedBlock(el, m.resting)
+        var compHover = hoverBlock(el, m.hover)
+        var extras = comp && compHover ? comp + '\n\n' + compHover : (comp || compHover)
+        if (!extras) return rulesText
+        // Passt beides nicht ins Gesamtbudget, gewinnen die computed-Bloecke: sie
+        // beschreiben das Element vollstaendig und herkunftsunabhaengig.
+        if (rulesText.length + extras.length + 2 > 24000) return extras
+        return rulesText + '\n\n' + extras
       }
       // Kontext des Originals fuer den Wizard: relevantes CSS (inkl. @media-
-      // Wrapper) + gemessene Computed-Styles.
+      // Wrapper) + gemessene Computed-Styles, getrennt nach Normal- und
+      // Hover-Zustand. Beide Messungen laufen genau einmal und gehen an
+      // collectCss weiter.
       function styleContext(el) {
-        return { css: collectCss(el), computed: computedMap(el) }
+        var resting = restingValues(el)
+        var hover = hoverStyles(el)
+        var ctx = { css: collectCss(el, { resting: resting, hover: hover }), computed: resting }
+        for (var k in hover) { ctx.computedHover = hover; break }
+        return ctx
       }
 
       // --- Goal-Kandidaten: klickbare Elemente fürs Plugin-Dropdown --------
@@ -419,7 +499,7 @@
               html: cfg.mode === 'goal' ? '' : (el.outerHTML || '').slice(0, 10000),
               // Knapper gedeckelt als beim postMessage-Weg: diese Nutzlast laeuft
               // durch das URL-Fragment.
-              css: cfg.mode === 'goal' ? '' : collectCss(el).slice(0, 8000),
+              css: cfg.mode === 'goal' ? '' : cssFull.slice(0, 8000),
               tagName: el.tagName,
               text: text,
               origin: location.origin,
@@ -430,6 +510,9 @@
                 computed: ctx.computed || {},
                 cssTruncated: cssFull.length > CSS_CAP,
               }
+              // Nur wenn das Element ueberhaupt einen Hover-Effekt hat — sonst
+              // bleibt das Feld weg und der Wizard schaltet seinen Toggle aus.
+              if (ctx.computedHover) payload.styleContext.computedHover = ctx.computedHover
             }
             // Bewusst `origin` (Herkunft des ab.js-Scripts) statt cfg.apiBase:
             // apiBase ist über ?ab_api= steuerbar, und eine Navigation dorthin

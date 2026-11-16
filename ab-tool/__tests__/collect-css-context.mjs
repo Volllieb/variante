@@ -21,7 +21,7 @@ import { strict as assert } from 'node:assert'
 import { JSDOM } from 'jsdom'
 import { abSource } from './helpers/abSource.mjs'
 
-const { collectCss, styleContext } = abSource
+const { collectCss, styleContext, restingValues, hoverStyles } = abSource
 
 let passed = 0
 let failed = 0
@@ -174,6 +174,64 @@ check('styleContext buendelt css + computed-Map', () => {
   assert.equal(typeof ctx.computed, 'object')
   assert.equal(ctx.computed.color, 'rgb(1, 2, 3)')
   assert.equal(ctx.computed['font-size'], '16px')
+})
+
+console.log('\n── Ruhe- vs. Hover-Zustand ──\n')
+
+// Der Klick-Handler misst zwangslaeufig MIT :hover — der Zeiger liegt auf dem
+// Element. restingValues umgeht das ueber einen Klon an derselben Position, der
+// nicht unter dem Zeiger liegt.
+check('restingValues misst am Klon und raeumt ihn wieder ab', () => {
+  const dom = buildPage()
+  const el = dom.window.document.querySelector('.cta')
+  const parent = el.parentNode
+  const before = parent.childNodes.length
+  const seen = []
+  const real = dom.window.getComputedStyle.bind(dom.window)
+  globalThis.getComputedStyle = (node) => { seen.push(node); return real(node) }
+  const vals = restingValues(el)
+  assert.equal(parent.childNodes.length, before, 'Klon wurde nicht entfernt')
+  assert.ok(seen.length > 0, 'getComputedStyle wurde nie aufgerufen')
+  assert.ok(seen.every((n) => n !== el), 'am Original gemessen statt am Klon')
+  assert.equal(typeof vals, 'object')
+})
+
+// Der Hover-Zustand kommt aus den geschriebenen :hover-Regeln, nicht aus
+// getComputedStyle: waehrend einer laufenden Transition liefert die Messung
+// Zwischenwerte, und beim Klick per Tastatur gibt es gar keinen Hover.
+check('hoverStyles liest die :hover-Regel des Elements', () => {
+  const dom = buildPage()
+  const el = dom.window.document.querySelector('.cta')
+  const hover = hoverStyles(el)
+  // Fixture: .cta:hover { color: #f00 }
+  assert.ok(hover.color, JSON.stringify(hover))
+  assert.ok(/red|#f00|rgb\(255, 0, 0\)/.test(hover.color), hover.color)
+  // Was die Hover-Regel NICHT setzt, gehoert auch nicht in den Hover-Block.
+  assert.equal(hover.padding, undefined, JSON.stringify(hover))
+})
+
+check('kein Hover-Effekt → kein computedHover, kein .__original_hover', () => {
+  const dom = new JSDOM(
+    '<!DOCTYPE html><html><head><style>.plain { color: #111; }</style></head>' +
+    '<body><a class="plain" href="/x">Go</a></body></html>',
+    { url: 'https://example.com/' }
+  )
+  setupGlobals(dom)
+  const el = dom.window.document.querySelector('.plain')
+  const ctx = styleContext(el)
+  assert.equal(ctx.computedHover, undefined)
+  assert.ok(!ctx.css.includes('.__original_hover'), ctx.css.slice(-300))
+})
+
+check('styleContext trennt Ruhe- und Hover-Zustand in zwei Bloecke', () => {
+  const dom = buildPage()
+  const el = dom.window.document.querySelector('.cta')
+  el.style.cssText = 'background-color: rgb(37, 99, 235);'
+  const ctx = styleContext(el)
+  assert.equal(ctx.computed['background-color'], 'rgb(37, 99, 235)', 'Ruhezustand verfaelscht')
+  assert.ok(ctx.computedHover.color, JSON.stringify(ctx.computedHover))
+  assert.ok(ctx.css.includes('.__original {'), ctx.css.slice(-400))
+  assert.ok(ctx.css.includes('.__original_hover {'), ctx.css.slice(-400))
 })
 
 console.log(`\n${'─'.repeat(46)}`)

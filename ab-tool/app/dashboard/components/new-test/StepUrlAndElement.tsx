@@ -21,7 +21,7 @@ import { Globe, ExternalLink, Loader2, Check, MousePointerClick, ChevronDown, Co
 import type { ElementSelection } from '../NewTestDrawer'
 import { validateManualSelector } from '@/lib/manualSelector'
 import { usePickerBridge } from '@/lib/pickerBridge'
-import { Button, Card, Input, SegmentedControl, Select, Textarea } from '@/app/components'
+import { Badge, Button, Card, Input, OptionCard, SegmentedControl, Select, Textarea } from '@/app/components'
 
 type DomainConnectState = 'idle' | 'saving' | 'not-found' | 'verified'
 
@@ -403,32 +403,22 @@ export function StepUrlAndElement({
           {scanResult.suggestions.map((s, i) => {
             const isPrimary = scanResult.primarySuggestion?.element === s.element
             return (
-              <button
+              <OptionCard
                 key={s.element}
+                layout="aside"
+                tone={isPrimary ? 'pro' : 'neutral'}
                 onClick={() => applySuggestion(s)}
-                className={`flex w-full cursor-pointer items-start gap-2.5 rounded-md px-3 py-2.5 text-left transition-colors ${
-                  isPrimary
-                    ? 'border border-pro/25 bg-pro/[0.05] hover:bg-pro/[0.09]'
-                    : 'border border-border hover:border-border-strong'
-                }`}
-              >
-                <div className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-meta font-semibold ${
-                  isPrimary ? 'bg-pro/15 text-pro' : 'bg-bg-2 text-text-3'
-                }`}>
-                  {i + 1}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-small font-semibold text-text">{s.element}</p>
-                    {isPrimary && (
-                      <span className="shrink-0 rounded-full bg-pro/15 px-1.5 py-0.5 text-meta font-semibold text-pro">
-                        Best pick
-                      </span>
-                    )}
+                leading={
+                  <div className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-meta font-semibold ${
+                    isPrimary ? 'bg-pro/15 text-pro' : 'bg-bg-2 text-text-3'
+                  }`}>
+                    {i + 1}
                   </div>
-                  <p className="mt-0.5 line-clamp-1 text-meta leading-relaxed text-text-3">{s.rationale}</p>
-                </div>
-              </button>
+                }
+                title={<span className="text-small text-text">{s.element}</span>}
+                trailing={isPrimary ? <Badge tone="pro">Best pick</Badge> : undefined}
+                description={<span className="line-clamp-1">{s.rationale}</span>}
+              />
             )
           })}
           <Button

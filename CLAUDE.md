@@ -1,7 +1,7 @@
 # CLAUDE.md — variante
 
 A/B-Testing für beliebige Websites: Snippet `ab.js` einbinden → im Dashboard-Wizard Element per Built-in-Picker wählen → KI (OpenAI) baut Variante B → `ab.js` liefert A/B aus und zählt Conversions. Ein Figma-Plugin zeigt Live-Stats. Domain: www.getvariante.com.
-**Phase:** GTM, Ziel = erster zahlender Pro-Kunde bis ~18.11.2026 (verbindlich: `docs/kursdefinition.md`).
+**Phase:** Stage 0 „Improvise“ der $100M Scaling Roadmap (verbindliches Framework: `docs/scaling-framework.md`; operativer Plan: `docs/kursdefinition.md`).
 
 ## Regeln für Agenten (zuerst lesen)
 
@@ -41,7 +41,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/app/dashboard/` | Dashboard: `DashboardClient.tsx`, `Sidebar.tsx`, Unterseiten `tests/`, `results/[id]/`, `account/`, `billing/` (je `page.tsx` server + `*Client.tsx`) |
 | `ab-tool/app/dashboard/components/` | Dashboard-Komponenten; `NewTestDrawer.tsx` = Test-Wizard |
 | `ab-tool/app/dashboard/components/new-test/` | Wizard-Steps (`StepUrlAndElement`, `StepGoal`, `StepChange`, `StepReview`), Editoren, `delta.ts` (CSS-Diff/Change-Modell), `types.ts` |
-| `ab-tool/app/components/` | Geteilte UI-Primitives, Sammel-Import über `index.ts` (Button, Card, Badge, StatusDot, Field/Input/Textarea/Select, Checkbox, Toggle, SegmentedControl, Table, Drawer, Modal/ConfirmDialog, Toast, Tooltip, Skeleton, EmptyState, `VariantPreview`) |
+| `ab-tool/app/components/` | Geteilte UI-Primitives, Sammel-Import über `index.ts` (Button, Card, OptionCard, Badge, StatusDot, Field/Input/Textarea/Select, Checkbox, Toggle, SegmentedControl, Table, Drawer, Modal/ConfirmDialog, Toast, Tooltip, Skeleton, EmptyState, `VariantPreview`) |
 | `ab-tool/app/components/ui/` | Radix-Bausteine aus `npx shadcn add`, auf v3-Tokens gezogen (`dialog`, `dropdown-menu`, `tabs`) + `chart.tsx`; nicht über `index.ts` re-exportiert |
 | `ab-tool/components/` | Nur Landing-/Logo-Grafiken (`PandaLogo`, `LandingIcons`, `TechLogos`) |
 | `ab-tool/app/{page,LandingDemo,LandingTrySite}.tsx` | Landingpage; Copy in `lib/landingCopy.ts` |
@@ -56,7 +56,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/emails/` | Supabase-Auth-Mail-Templates (HTML) |
 | `figma-plugin/src/code.ts` / `ui.html` | Plugin-Sandbox / Plugin-UI (Vanilla JS inline, ~1080 Zeilen) |
 | `db/migrations/NNN_*.sql` | Supabase-Schema, fortlaufend (aktuell bis 044), manuell angewendet |
-| `docs/` | `architektur.md`, `runbook.md`, `Begriffe.md` (Glossar), `brandguidelines.md`, `kursdefinition.md`, `future-features/` |
+| `docs/` | `architektur.md`, `runbook.md`, `Begriffe.md` (Glossar), `brandguidelines.md`, `scaling-framework.md` (Stufen-Framework), `kursdefinition.md` (Kanäle/Pipeline), `future-features/` |
 | `PROJEKT.md`, `AGENTS.md` | Projektkontext / Arbeitsregeln |
 
 ## Wo finde ich …?
@@ -118,6 +118,15 @@ Lokal ist kein Dashboard-Login möglich (`.env.local` hat Platzhalter) → UI-Zu
 ## Große Dateien (nur gezielt lesen)
 
 `app/dashboard/results/[id]/ResultsClient.tsx` (~1700), `public/ab.js` (~1670), `figma-plugin/src/ui.html` (~1080), `app/dashboard/account/AccountClient.tsx` (~1000), `app/dashboard/components/NewTestDrawer.tsx` (~960), `lib/croAnalyze.ts` (~760), `new-test/delta.ts` (~720), `new-test/StepUrlAndElement.tsx` (~690), `SnippetStatusBadge.tsx` (~660), `app/onboarding/page.tsx` (~630).
+
+## Referenz-Implementierungen (bei Domänenproblemen zuerst nachschauen)
+
+Bei A/B-Testing-typischen Problemen nicht neu erfinden, sondern **gezielt** nachsehen, wie etablierte Tools es lösen, und die Erkenntnis kurz im Code-Kommentar oder in `docs/` festhalten. Das gilt für Flicker/Anti-Flicker, SPA-Navigation und spät nachgeladenes DOM, Bucketing/Hashing, Bot-Filter, Sample Ratio Mismatch (SRM), Peeking bzw. sequentielles Testen, Visual-Editor-Selektoren und Snippet-Performance.
+
+- **GrowthBook** (github.com/growthbook/growthbook, MIT): erste Wahl, echter lesbarer Code (JS-SDK, Visual Editor, Stats Engine Bayes/Frequentist/sequentiell).
+- **PostHog Experiments** (github.com/PostHog/posthog, MIT bis auf `ee/`): Stats und Feature-Flags.
+- **Optimizely**: nur öffentliche Doku, Knowledge Base und Paper (Stats Engine: Johari et al., „Peeking at A/B Tests“). **Kein Reverse Engineering** von Optimizely-Code (AGB) und **kein Code-Copy** aus proprietären Tools; bei Open Source die Lizenz beachten.
+- Pragmatisch bleiben: nur Ideen übernehmen, die zur Zielgruppe (kleine Teams, ein Snippet) passen, nicht die Enterprise-Komplexität.
 
 ## Stolperfallen
 

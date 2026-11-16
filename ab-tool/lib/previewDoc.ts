@@ -13,12 +13,13 @@
  *                       Vergleich verzerrt. Seiten-Selektoren (html/body/*)
  *                       fliegen raus: sie kapern den Rahmen statt das
  *                       Element zu treffen.
- *   3. computed-Block — die gemessenen Computed-Styles des Originals
- *                       (computedBlock() in ab.js). Er sitzt als Daten im
- *                       site_css und wird hier auf den Wrapper normalisiert
- *                       (s. u.). Bei CDN-gehostetem CSS (Webflow, Framer,
- *                       Tailwind-CDN), das collectCss cross-origin nicht
- *                       einsammeln kann, trägt er die Vorschau allein.
+ *   3. computed-Blöcke — die gemessenen Computed-Styles des Originals,
+ *                       getrennt nach Ruhe- (computedBlock()) und
+ *                       Hover-Zustand (hoverBlock() in ab.js). Sie sitzen als
+ *                       Daten im site_css und werden hier auf den Wrapper
+ *                       normalisiert (s. u.). Bei CDN-gehostetem CSS (Webflow,
+ *                       Framer, Tailwind-CDN), das collectCss cross-origin
+ *                       nicht einsammeln kann, tragen sie die Vorschau allein.
  *   4. variantCss     — Delta der Variante, zuletzt, gewinnt bei gleicher
  *                       Spezifität (wie forceImportant() zur Laufzeit).
  *
@@ -30,6 +31,14 @@
  * Anwenden raus: Pixel-Snapshots der Original-Box würden die Variante auf
  * deren Maße einfrieren, obwohl längerer Text wachsen soll — Padding und
  * Font bestimmen die Box ohnehin.
+ *
+ * Hover: `.__original_hover { … }` trägt nur die Properties, die :hover am
+ * Original ändert, und wird als `> *:hover` emittiert — die Vorschau verhält
+ * sich damit wie die echte Seite. Vorher steckte der Hover-Zustand im einzigen
+ * computed-Block (der Picker misst im click-Handler, also mit Zeiger auf dem
+ * Element) und wirkte unbedingt: A sah im Wizard dauerhaft gehovert aus,
+ * obwohl der Live-Test korrekt rendert. Mit `state: 'hover'` blendet der Wizard
+ * den Block bewusst statisch ein — damit der Zustand auch bearbeitbar ist.
  *
  * Grenzen, die nicht wegzukonfigurieren sind:
  * - Die CSP erlaubt `font-src 'self' data:`. Kunden-Webfonts laden im iframe
@@ -128,10 +137,26 @@ function dropUnterminatedTail(css: string): string {
 
 /** Kommentar, mit dem computedBlock() in ab.js seinen Block eröffnet. */
 const COMPUTED_MARKER = '/* computed styles of original element (reference) */'
-/** Beide in Produktion vorkommenden Selektoren des computed-Blocks. */
-const COMPUTED_SELECTOR_RE = /\.__original|\.__ab_preview_root\s*>\s*\*/
+/** Gegenstück für den :hover-Block (hoverBlock() in ab.js). */
+const HOVER_COMPUTED_MARKER = '/* computed :hover styles of original element (reference) */'
+/**
+ * Beide in Produktion vorkommenden Selektoren des computed-Blocks.
+ *
+ * Das `\b` hinter `original` grenzt gegen `.__original_hover` ab: `_` ist ein
+ * Wortzeichen, dort gibt es also keine Wortgrenze. Ohne diese Schärfung würde
+ * der Ruhe-Block-Regex den Hover-Block greifen und dessen Werte unbedingt als
+ * Normalzustand rendern — genau der Fehler, den diese Trennung behebt.
+ */
+const COMPUTED_SELECTOR_RE = /\.__original\b|\.__ab_preview_root\s*>\s*\*/
+const HOVER_COMPUTED_SELECTOR_RE = /\.__original_hover\b/
 /** Pixel-Snapshots der Original-Box — beim Anwenden schädlich (s. Modul-Docblock). */
 const BOX_FREEZE_LINE_RE = /^\s*(?:width|height|transform-origin)\s*:/
+/**
+ * Im Hover-Block bleibt transform-origin stehen: ein Hover-`scale()` ohne
+ * seinen Ursprung wächst aus der falschen Ecke. width/height sind auch hier
+ * eingefrorene Snapshots und fliegen raus.
+ */
+const HOVER_BOX_FREEZE_LINE_RE = /^\s*(?:width|height)\s*:/
 
 interface ComputedBlockFound {
   /** Position des Selektors im css-Text. */
@@ -141,15 +166,15 @@ interface ComputedBlockFound {
 }
 
 /**
- * Findet den computed-Block im site_css. Bevorzugt über den Marker-Kommentar
+ * Findet einen computed-Block im site_css. Bevorzugt über den Marker-Kommentar
  * von ab.js; ohne ihn (handgeschriebene Fixtures, alte Zeilen) über den
  * Selektor allein — dieselbe Heuristik wie collectedOriginalComputed() in
  * delta.ts.
  */
-function findComputedBlock(css: string): ComputedBlockFound | null {
-  const markerAt = css.indexOf(COMPUTED_MARKER)
-  const from = markerAt !== -1 ? markerAt + COMPUTED_MARKER.length : 0
-  const selMatch = COMPUTED_SELECTOR_RE.exec(css.slice(from))
+function findComputedBlock(css: string, marker: string, selectorRe: RegExp): ComputedBlockFound | null {
+  const markerAt = css.indexOf(marker)
+  const from = markerAt !== -1 ? markerAt + marker.length : 0
+  const selMatch = selectorRe.exec(css.slice(from))
   if (!selMatch) return null
   const selectorStart = from + selMatch.index
   const braceAt = css.indexOf('{', selectorStart + selMatch[0].length)
@@ -167,26 +192,32 @@ function findComputedBlock(css: string): ComputedBlockFound | null {
 }
 
 /**
- * Hebt den computed-Block aus dem site_css und normalisiert ihn für die
- * Vorschau: Selektor wird `.__ab_preview_root > *` (egal ob `.__original`
- * oder die Altform gespeichert ist), Box-Freeze-Properties fliegen raus.
- * Der gespeicherte Text bleibt unverändert — es wird nur die Kopie im
- * srcDoc umgebaut.
+ * Hebt beide computed-Blöcke aus dem site_css und gibt ihre Deklarationen
+ * zurück. Der gespeicherte Text bleibt unverändert — es wird nur die Kopie im
+ * srcDoc umgebaut. Den Selektor setzt buildPreviewSrcDoc, weil er vom
+ * gewählten Zustand (normal/hover) abhängt.
  */
-function extractComputedBlock(css: string): { rest: string; computed: string } | null {
-  const found = findComputedBlock(css)
-  if (!found) return null
-  const braceAt = css.indexOf('{', found.selectorStart)
-  const body = css.slice(braceAt + 1, found.end - 1)
-  const kept = body
-    .split('\n')
-    .filter((line) => !BOX_FREEZE_LINE_RE.test(line))
-    .join('\n')
-  if (!kept.trim()) return { rest: css, computed: '' }
-  const markerAt = css.indexOf(COMPUTED_MARKER)
-  const cutFrom = markerAt !== -1 ? Math.min(found.selectorStart, markerAt) : found.selectorStart
-  const rest = (css.slice(0, cutFrom) + css.slice(found.end)).trim()
-  return { rest, computed: `.${PREVIEW_ROOT_CLASS} > * {${kept}}` }
+function extractComputedBlocks(css: string): { rest: string; computed: string; computedHover: string } | null {
+  let rest = css
+  function cut(marker: string, selectorRe: RegExp, freezeRe: RegExp): string {
+    const found = findComputedBlock(rest, marker, selectorRe)
+    if (!found) return ''
+    const braceAt = rest.indexOf('{', found.selectorStart)
+    const body = rest.slice(braceAt + 1, found.end - 1)
+    const markerAt = rest.indexOf(marker)
+    const cutFrom = markerAt !== -1 && markerAt < found.selectorStart ? markerAt : found.selectorStart
+    rest = (rest.slice(0, cutFrom) + rest.slice(found.end)).trim()
+    return body
+      .split('\n')
+      .filter((line) => !freezeRe.test(line))
+      .join('\n')
+  }
+  // Reihenfolge: erst der Ruhe-Block, dann der Hover-Block aus dem Rest —
+  // jeder Schnitt verschiebt die Positionen des jeweils anderen.
+  const computed = cut(COMPUTED_MARKER, COMPUTED_SELECTOR_RE, BOX_FREEZE_LINE_RE)
+  const computedHover = cut(HOVER_COMPUTED_MARKER, HOVER_COMPUTED_SELECTOR_RE, HOVER_BOX_FREEZE_LINE_RE)
+  if (!computed.trim() && !computedHover.trim()) return rest === css ? null : { rest, computed: '', computedHover: '' }
+  return { rest, computed, computedHover }
 }
 
 // --- Wizard-Helfer (aus new-test/preview.ts übernommen) ----------------------
@@ -255,6 +286,24 @@ export function scopeCssForPreview(css: string, selector: string | null | undefi
 }
 
 /**
+ * Macht `:hover`-Regeln unbedingt wirksam — ausschliesslich für die
+ * Hover-Ansicht des Wizards.
+ *
+ * Der gemessene Hover-Zustand von A kommt aus dem computed-Block, aber die
+ * Hover-Änderungen, die der User gerade an B macht, stehen als `…:hover { … }`
+ * im Varianten-CSS. Ohne diesen Schritt zeigt der Toggle nur die halbe
+ * Wahrheit. Angefasst wird nur der Selektorteil; Deklarationen (und damit
+ * z. B. `transition`) bleiben unberührt.
+ */
+export function forceHoverSelectors(css: string): string {
+  if (!css) return css
+  return css.replace(/([^{}]+)(\{[^{}]*\})/g, (match, sel: string, block: string) => {
+    if (!/:hover\b/.test(sel)) return match
+    return sel.replace(/:hover\b/g, '') + block
+  })
+}
+
+/**
  * Überträgt Klassen/Inline-Styles/data-* von A's Wurzel auf B — dasselbe,
  * was adoptPresentation() in ab.js zur Laufzeit tut. Ohne diesen Schritt
  * sieht ein scratch/AI-B (nur class="ab-variant-b") in der Vorschau nackt
@@ -314,6 +363,14 @@ export interface PreviewDocOptions {
   siteCss?: string | null
   /** Hintergrund der Vorschaufläche. Default: das dunkle Dashboard-Schwarz. */
   background?: string
+  /**
+   * Welchen Zustand des Originals die Vorschau zeigt.
+   *
+   * `normal` (Default) verhält sich wie die echte Seite. `hover` zeigt den
+   * gemessenen Hover-Zustand statisch, damit der Wizard ihn anzeigen und
+   * bearbeiten lassen kann, ohne dass der User die Maus stillhalten muss.
+   */
+  state?: 'normal' | 'hover'
 }
 
 /**
@@ -330,10 +387,20 @@ export function buildPreviewSrcDoc(
   // Erst sanitizen, dann die Seiten-Selektoren ziehen: sanitizeCssText kann
   // Deklarationen entfernen, aber nie Selektoren umschreiben.
   const siteFull = stripPageLevelRules(dropUnterminatedTail(sanitizeCssText(opts?.siteCss)))
-  const extracted = extractComputedBlock(siteFull)
+  const extracted = extractComputedBlocks(siteFull)
   const site = extracted ? extracted.rest : siteFull
   const cssParts = [site]
-  if (extracted && extracted.computed.trim()) cssParts.push(extracted.computed)
+  if (extracted && extracted.computed.trim()) {
+    cssParts.push(`.${PREVIEW_ROOT_CLASS} > * {${extracted.computed}}`)
+  }
+  if (extracted && extracted.computedHover.trim()) {
+    // 'normal' verhaelt sich wie die echte Seite: die gemessenen Hover-Werte
+    // greifen nur bei echtem Hover. 'hover' blendet sie unbedingt ein — und
+    // steht NACH dem Ruhe-Block, gewinnt also bei gleicher Spezifitaet.
+    const hoverSel =
+      opts?.state === 'hover' ? `.${PREVIEW_ROOT_CLASS} > *` : `.${PREVIEW_ROOT_CLASS} > *:hover`
+    cssParts.push(`${hoverSel} {${extracted.computedHover}}`)
+  }
   const bodies: string[] = []
 
   for (let i = 0; i < blocks.length; i++) {
@@ -348,6 +415,9 @@ export function buildPreviewSrcDoc(
       const aHtml = b.adoptFrom ?? (i > 0 ? blocks[0].html ?? '' : '')
       html = markPreviewRoot(adoptPresentationPreview(aHtml, html))
     }
+    // In der Hover-Ansicht muss auch das gelten, was der User gerade an B's
+    // Hover aendert — sonst zeigt der Toggle nur A's gemessenen Hover.
+    if (opts?.state === 'hover') css = forceHoverSelectors(css)
     if (css.trim()) cssParts.push(css)
     bodies.push(`<div class="${PREVIEW_ROOT_CLASS}">${html}</div>`)
   }

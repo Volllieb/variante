@@ -6,6 +6,7 @@
  * deshalb hier geprüft statt im Browser.
  */
 
+import { useState } from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 
@@ -19,6 +20,7 @@ import { SegmentedControl } from '@/app/components/SegmentedControl'
 import { Select } from '@/app/components/Select'
 import { StatusDot } from '@/app/components/StatusDot'
 import { Toggle } from '@/app/components/Toggle'
+import { OptionCard, OptionCardGroup } from '@/app/components/OptionCard'
 import { cn } from '@/lib/utils'
 
 describe('cn', () => {
@@ -248,6 +250,82 @@ describe('Badge, Card, StatusDot', () => {
     const cls = screen.getByRole('img', { name: 'Draft' }).className
     expect(cls).toContain('border-dashed')
     expect(cls).not.toContain('bg-ok')
+  })
+})
+
+describe('OptionCard', () => {
+  it('mit selected ist sie eine Radio-Option, nicht irgendeine Schaltfläche', () => {
+    render(
+      <OptionCardGroup label="Conversion goal">
+        <OptionCard selected title="Replaced element" description="Click on the original" />
+        <OptionCard selected={false} title="Click selector" description="Pick a CSS selector" />
+      </OptionCardGroup>,
+    )
+    const group = screen.getByRole('radiogroup', { name: 'Conversion goal' })
+    expect(group).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Replaced element/ })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: /Click selector/ })).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('ohne selected ist sie eine Aktion und kennt keinen Auswahlzustand', () => {
+    const onClick = vi.fn()
+    render(<OptionCard title=".hero .cta" description="Most clicked element" onClick={onClick} />)
+    const card = screen.getByRole('button', { name: /\.hero \.cta/ })
+    expect(card).not.toHaveAttribute('aria-checked')
+    fireEvent.click(card)
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('tone=pro hebt hervor, ohne Auswahl zu behaupten', () => {
+    render(<OptionCard tone="pro" title="Best pick" />)
+    const card = screen.getByRole('button', { name: 'Best pick' })
+    expect(card.className).toContain('border-pro/25')
+    expect(card).not.toHaveAttribute('aria-checked')
+  })
+
+  it('nutzt keine Roh-Weißtöne mehr (§12 Regel 7)', () => {
+    // Vorher: border-white/20 bg-white/[0.06] fuer die Auswahl.
+    render(<OptionCard selected title="Replaced element" />)
+    const cls = screen.getByRole('radio').className
+    expect(cls).toContain('border-border-strong')
+    expect(cls).not.toContain('white/')
+  })
+
+  it('Pfeiltasten wandern durch die Gruppe und wählen aus', () => {
+    // Wer role="radio" ansagt, muss auch die Pfeiltasten bedienen — sonst
+    // steht die Rolle für ein Verhalten, das die Gruppe nicht hat.
+    function Group() {
+      const [value, setValue] = useState('a')
+      return (
+        <OptionCardGroup label="Conversion goal">
+          {['a', 'b', 'c'].map((v) => (
+            <OptionCard
+              key={v}
+              selected={value === v}
+              onClick={() => setValue(v)}
+              title={`Option ${v}`}
+            />
+          ))}
+        </OptionCardGroup>
+      )
+    }
+    render(<Group />)
+    const group = screen.getByRole('radiogroup')
+    const option = (v: string) => screen.getByRole('radio', { name: `Option ${v}` })
+
+    // Nur die gewählte Option ist per Tab erreichbar (roving tabindex).
+    expect(option('a')).toHaveAttribute('tabindex', '0')
+    expect(option('b')).toHaveAttribute('tabindex', '-1')
+
+    option('a').focus()
+    fireEvent.keyDown(group, { key: 'ArrowRight' })
+    expect(option('b')).toHaveAttribute('aria-checked', 'true')
+    expect(document.activeElement).toBe(option('b'))
+
+    // und laeuft am Ende wieder vorne herum
+    fireEvent.keyDown(group, { key: 'ArrowRight' })
+    fireEvent.keyDown(group, { key: 'ArrowRight' })
+    expect(option('a')).toHaveAttribute('aria-checked', 'true')
   })
 })
 

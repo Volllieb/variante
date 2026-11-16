@@ -18,6 +18,8 @@ import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from 
 import { formatCount } from '@/lib/formatNumber'
 import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
 import { BreakpointSwitcher, BREAKPOINTS, type Breakpoint } from './PreviewBreakpoints'
+import { PreviewStateToggle } from './PreviewStateToggle'
+import type { PreviewState } from './PreviewStateToggle'
 
 interface StepReviewProps {
   url: string
@@ -38,6 +40,9 @@ export function StepReview({
   // (transform: scale loest keine Media-Queries aus). Desktop ist breiter als
   // der Drawer — der Container scrollt dann horizontal.
   const [breakpoint, setBreakpoint] = useState<Breakpoint>(375)
+  // Der Zustand gilt fuer BEIDE iframes gemeinsam — A und B in
+  // verschiedenen Zustaenden nebeneinander waere kein Vergleich mehr.
+  const [previewState, setPreviewState] = useState<PreviewState>('normal')
   // Domain und Pfad getrennt anzeigen. "Site" stand hier fuer die volle URL,
   // waehrend dasselbe Wort im Dashboard die verbundene Domain meint — zwei
   // verschiedene Dinge unter einem Label. Der Test haengt an beidem: die Domain
@@ -57,6 +62,9 @@ export function StepReview({
   const canRenderPreview = !!element.originalCss.trim() && !!element.originalHtml.trim()
 
   const appliedEntries = changes.entries.filter((e) => e.status === 'applied')
+  const hoverAvailable =
+    !!element.styleContext?.computedHover ||
+    appliedEntries.some((e) => e.property.startsWith('hover'))
 
   return (
     <div className="space-y-4">
@@ -101,13 +109,21 @@ export function StepReview({
                     <Sparkles className="h-3 w-3" />
                     Preview
                   </p>
-                  <BreakpointSwitcher value={breakpoint} onChange={setBreakpoint} />
+                  <div className="flex items-center gap-2">
+                    <PreviewStateToggle
+                      value={previewState}
+                      onChange={setPreviewState}
+                      hoverAvailable={hoverAvailable}
+                    />
+                    <BreakpointSwitcher value={breakpoint} onChange={setBreakpoint} />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 overflow-x-auto">
                   <ElementPreview
                     label="Original (A)"
                     html={element.originalHtml}
                     siteCss={element.styleContext?.css ?? element.originalCss}
+                    state={hoverAvailable ? previewState : 'normal'}
                     width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
                   />
                   <ElementPreview
@@ -120,6 +136,7 @@ export function StepReview({
                     // Einzel-Block pro iframe: ohne explizites adoptFrom liefe
                     // adoptPresentationPreview nie (Index-Regel braucht Block 0).
                     adoptFrom={element.originalHtml}
+                    state={hoverAvailable ? previewState : 'normal'}
                     width={BREAKPOINTS.find((bp) => bp.value === breakpoint)?.width ?? 375}
                   />
                 </div>
@@ -239,7 +256,7 @@ function DetailRow({ icon: Icon, label, value }: { icon: typeof Globe; label: st
  * nackt rendert und B die Wahrheit zeigt.
  */
 function ElementPreview({
-  label, html, css, siteCss, scopeToSelector, selector, adoptFrom, width,
+  label, html, css, siteCss, scopeToSelector, selector, adoptFrom, state, width,
 }: {
   label: string
   html: string
@@ -248,11 +265,12 @@ function ElementPreview({
   scopeToSelector?: boolean
   selector?: string
   adoptFrom?: string
+  state?: PreviewState
   width: number
 }) {
   const srcDoc = buildPreviewSrcDoc(
     [{ html, css, scopeToSelector, selector, adoptFrom }],
-    { siteCss }
+    { siteCss, state }
   )
   return (
     <div className="min-w-0">

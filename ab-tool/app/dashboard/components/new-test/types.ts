@@ -98,6 +98,12 @@ export interface VariantChangeSet {
   entries: ChangeEntry[]
   /** Gemessene Werte von A, mitpersistiert — die Liste bleibt selbsterklärend. */
   baseline: StyleBaseline | null
+  /**
+   * Gemessener :hover-Zustand von A (`.__original_hover` im site_css).
+   * Optional: Picks von vor der Hover-Trennung haben ihn nicht, dann bleibt
+   * es beim alten Verhalten (Hover-Werte werden absolut emittiert).
+   */
+  hoverBaseline?: StyleBaseline | null
 }
 
 /** Ermittelt den Editor-Typ basierend auf elementType */

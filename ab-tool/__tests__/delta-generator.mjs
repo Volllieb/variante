@@ -21,6 +21,9 @@ const {
   scratchVariantHtml,
   composeVariant,
   diffCssToEntries,
+  collectedOriginalComputed,
+  collectedOriginalHoverComputed,
+  hoverBaselineFromCss,
   diffTextToEntry,
   entriesToEdits,
   describeChange,
@@ -128,6 +131,81 @@ check('hover wird nur mit hoverEnabled emittiert', () => {
   )
   assert.ok(hoverCss.includes(`${SEL}:hover {`), hoverCss)
   assert.ok(hoverCss.includes('background-color: #111111;'), hoverCss)
+})
+
+// Der Picker misst Ruhe- und Hover-Zustand seit der Hover-Trennung getrennt.
+// Damit gilt das Delta-Prinzip auch fuer Hover: was A's Hover ohnehin tut,
+// gehoert nicht in B's CSS.
+const HOVER_BASELINE = buildStyleBaseline({ 'background-color': 'rgb(17, 17, 17)' })
+
+check('Hover-Wert wie bei A → kein :hover-Block (Delta)', () => {
+  const edits = { ...initialEdits(BASELINE, 'Go'), hoverEnabled: true, hoverBgColor: '#111111', hoverScale: 100, hoverShadow: false }
+  const css = generateButtonCss(edits, SEL, BASELINE, 'inherit', HOVER_BASELINE)
+  assert.ok(!css.includes(':hover'), css)
+})
+
+check('abweichender Hover-Wert wird emittiert', () => {
+  const edits = { ...initialEdits(BASELINE, 'Go'), hoverEnabled: true, hoverBgColor: '#00ff00' }
+  const css = generateButtonCss(edits, SEL, BASELINE, 'inherit', HOVER_BASELINE)
+  assert.ok(css.includes(`${SEL}:hover {`), css)
+  assert.ok(css.includes('background-color: #00ff00;'), css)
+})
+
+check('ohne Hover-Baseline (alte Picks) bleibt es beim alten Verhalten', () => {
+  const edits = { ...initialEdits(BASELINE, 'Go'), hoverEnabled: true, hoverBgColor: '#111111' }
+  const css = generateButtonCss(edits, SEL, BASELINE, 'inherit', null)
+  assert.ok(css.includes('background-color: #111111;'), css)
+})
+
+check('scale und shadow bleiben absolut — kein Baseline-Vergleich', () => {
+  const edits = { ...initialEdits(BASELINE, 'Go'), hoverEnabled: true, hoverScale: 105, hoverShadow: true }
+  const css = generateButtonCss(edits, SEL, BASELINE, 'inherit', HOVER_BASELINE)
+  assert.ok(css.includes('transform: scale(1.05);'), css)
+  assert.ok(css.includes('box-shadow:'), css)
+})
+
+check('KI-CSS: Hover-Zeile faellt raus, wenn sie dem Hover von A entspricht', () => {
+  const entries = diffCssToEntries(`${SEL}:hover { background-color: #111111; }`, BASELINE, 'ai', HOVER_BASELINE)
+  assert.equal(entries.filter((e) => e.property === 'hoverBgColor').length, 0, JSON.stringify(entries))
+})
+
+console.log('\n── computed-Bloecke aus site_css ──\n')
+
+const SITE_CSS = [
+  '/* computed styles of original element (reference) */',
+  '.__original {',
+  '  background-color: rgb(37, 99, 235);',
+  '  color: rgb(255, 255, 255);',
+  '}',
+  '',
+  '/* computed :hover styles of original element (reference) */',
+  '.__original_hover {',
+  '  background-color: rgb(17, 17, 17);',
+  '}',
+].join('\n')
+
+check('.__original liefert den Ruhezustand — nicht den Hover-Block', () => {
+  const computed = collectedOriginalComputed(SITE_CSS)
+  assert.equal(computed['background-color'], 'rgb(37, 99, 235)')
+})
+
+check('.__original_hover liefert nur die Hover-Abweichung', () => {
+  const hover = collectedOriginalHoverComputed(SITE_CSS)
+  assert.equal(hover['background-color'], 'rgb(17, 17, 17)')
+  assert.equal(hover.color, undefined)
+})
+
+check('altes site_css ohne Hover-Block → keine Hover-Baseline', () => {
+  const only = SITE_CSS.split('/* computed :hover')[0]
+  assert.equal(collectedOriginalHoverComputed(only), null)
+  assert.ok(collectedOriginalComputed(only))
+})
+
+check('hoverBaselineFromCss liest nur aus :hover-Regeln', () => {
+  const css = `${SEL} { background-color: #2563eb; }
+${SEL}:hover { background-color: #1d4ed8; }`
+  assert.equal(hoverBaselineFromCss(css).bgColor, '#1d4ed8')
+  assert.equal(hoverBaselineFromCss(`${SEL} { background-color: #2563eb; }`), null)
 })
 
 console.log('\n── Markup ──\n')

@@ -80,7 +80,7 @@ import {
 import { formatCount, formatPercent, formatDelta, formatCompact } from '@/lib/formatNumber'
 import { significanceTone } from '@/app/dashboard/components/sigVisual'
 import { RefreshIndicator } from '@/app/dashboard/components/RefreshIndicator'
-import { Button, Card, Input, SegmentedControl, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TableWrap, Textarea } from '@/app/components'
+import { Button, Card, Input, OptionCard, OptionCardGroup, SegmentedControl, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TableWrap, Textarea } from '@/app/components'
 
 // CSS custom property helpers — SVGs support var() natively
 const OK = SERIES.ok
@@ -1272,7 +1272,7 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                 </span>
               </div>
 
-              <div className="flex gap-1 mb-3">
+              <OptionCardGroup label="Conversion goal" className="mb-3">
                 {([
                   { type: 'element' as const, label: 'Replaced element', icon: MousePointerClick, desc: 'Click on the original element is the conversion' },
                   { type: 'click' as const, label: 'Click selector', icon: MousePointerClick, desc: 'Pick a CSS selector users click' },
@@ -1283,25 +1283,22 @@ export function ResultsClient({ initial, experimentId, pro }: { initial: Experim
                   // (Katalog RUN-03). Bestandstests mit url:-Goal zeigen unten
                   // eine Warnung, statt die Option weiter anzubieten.
                 ]).map((opt) => (
-                  <button
+                  <OptionCard
                     key={opt.type}
+                    selected={goalType === opt.type}
                     onClick={() => { setGoalType(opt.type); setGoalSaved(false) }}
-                    className={`flex-1 cursor-pointer rounded-md border px-3 py-2 text-left transition-colors ${
-                      goalType === opt.type
-                        ? 'border-white/20 bg-white/[0.06]'
-                        : 'border-border bg-transparent hover:border-white/[0.14]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <opt.icon className={`h-3 w-3 ${goalType === opt.type ? 'text-text' : 'text-text-3'}`} />
-                      <span className={`text-meta font-semibold ${goalType === opt.type ? 'text-text' : 'text-text-3'}`}>
-                        {opt.label}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-meta text-text-3 hidden sm:block">{opt.desc}</p>
-                  </button>
+                    className="flex-1"
+                    leading={
+                      <opt.icon
+                        className={`h-3 w-3 shrink-0 ${goalType === opt.type ? 'text-text' : 'text-text-3'}`}
+                        aria-hidden
+                      />
+                    }
+                    title={opt.label}
+                    description={<span className="hidden sm:block">{opt.desc}</span>}
+                  />
                 ))}
-              </div>
+              </OptionCardGroup>
 
               {/* Value input for click / url */}
               {goalType === 'click' && (

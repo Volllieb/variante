@@ -175,10 +175,9 @@ Login/Signup: zentrierte Card auf `bg-bg-0`, ein Primär-Button, Sekundär-Links
 
 Größen: `sm` (`text-meta`), `md` (`text-small`, Default), `lg` (Landing/Onboarding). Icon links vom Label, `h-3.5 w-3.5`.
 Varianten laufen über cva, Klassen-Merge über `cn()`. `disabled`/`loading` deaktivieren auch die `href`-Form (rendert `<span aria-disabled>` statt `<a>`).
-**Phase 2:** 155 Stellen laufen über `<Button>`. Offen bleiben bewusst nur noch Optionskarten mit
-eigener Innenstruktur (Goal-Typ in `ResultsClient.tsx`, Vorschlagsliste in `StepUrlAndElement.tsx`),
-Farbfelder (`ColorPicker.tsx`) und die Avatar-Dropzone in `AccountClient.tsx` — das sind keine Buttons,
-sondern eigene Muster. Ein `<OptionCard>`-Primitive wäre dafür der nächste Schritt.
+**Phase 2:** abgeschlossen. Die Stellen laufen über `<Button>`, die Optionskarten über `<OptionCard>`
+(§6.3). Roh geblieben sind nur noch Muster, die kein Button sind: die Farbfelder in `ColorPicker.tsx`
+und die Avatar-Dropzone in `AccountClient.tsx`.
 
 ### 6.2 Badge / Pill → `<Badge>` (`app/components/Badge.tsx`)
 
@@ -193,6 +192,18 @@ Eine Größe (`text-meta`); die frühere `size="sm"` mit 9px ist entfallen, 10px
 Tones `ok/pro/err` nur für Banner/Hinweis-Cards (`variant="banner"`). `variant="dashed"` = Empty State/Drop-Zone.
 `interactive` setzt `.surface-interactive`; `variant="lift"` ist entfallen. Restliche `div`-Props gehen durch (Live-Region, `onClick`).
 `padding="none"` ist für Karten, die ihre Abschnitte selbst abpolstern (Listen mit Trennern).
+
+**Klickbare Karte mit zwei Zeilen → `<OptionCard>`** (`app/components/OptionCard.tsx`): Titel,
+Beschreibung, optional ein Vorspann (Icon, Nummer) und ein `trailing`-Badge. Zwei Verwendungen:
+
+| Verwendung | Umsetzung |
+|---|---|
+| Auswahl, eine aus mehreren | `<OptionCardGroup label>` + `<OptionCard selected>` — die Gruppe ist eine `role="radiogroup"`, die Karten sind `role="radio"` mit Pfeiltasten-Navigation und Roving-Tabindex |
+| Aktion (die Karte führt etwas aus) | `<OptionCard>` ohne `selected`; `tone="pro"` hebt eine Empfehlung hervor, ist aber **kein** Auswahlzustand |
+
+`layout="inline"` stellt den Vorspann neben den Titel, `layout="aside"` als linke Spalte neben beide
+Zeilen. Gewählt = `border-border-strong bg-bg-2`; die Fläche ist sonst transparent, weil die Karten
+mal auf `bg-bg-0` und mal in einer Card auf `bg-bg-1` liegen.
 **Phase 2:** 41 Flächen laufen über `<Card>`. Dabei sind 21 Karten von `p-5` und 3 von `p-6` auf den
 hier festgelegten Default `p-4` gezogen worden — `p-5` war der häufigste Wert im Bestand und stand in
 keiner Regel. `Skeleton.tsx` ist auf `rounded-md` nachgezogen, damit Lade- und Fertigzustand gleich aussehen.

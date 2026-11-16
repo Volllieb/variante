@@ -28,6 +28,7 @@ import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
 import {
   collectedOriginalComputed,
+  collectedOriginalHoverComputed,
   buildStyleBaseline,
   composeVariant,
   diffCssToEntries,
@@ -164,6 +165,7 @@ function parseChanges(raw: unknown): VariantChangeSet | null {
     mode: obj.mode === 'scratch' ? 'scratch' : 'inherit',
     entries,
     baseline: sanitizeBaseline(obj.baseline),
+    hoverBaseline: sanitizeBaseline(obj.hoverBaseline),
   }
 }
 
@@ -189,14 +191,15 @@ function reconstructChanges(
   originalHtml: string | null | undefined,
   variantHtml: string | null | undefined,
   variantCss: string | null | undefined,
-  baseline: StyleBaseline | null
+  baseline: StyleBaseline | null,
+  hoverBaseline: StyleBaseline | null = null
 ): VariantChangeSet {
   const textEntry = diffTextToEntry(originalHtml ?? '', variantHtml ?? null, 'ai')
   const entries = [
-    ...diffCssToEntries(variantCss ?? null, baseline, 'ai'),
+    ...diffCssToEntries(variantCss ?? null, baseline, 'ai', hoverBaseline),
     ...(textEntry ? [textEntry] : []),
   ].map((e) => ({ ...e, status: 'applied' as const }))
-  return { mode: 'inherit', entries, baseline }
+  return { mode: 'inherit', entries, baseline, hoverBaseline }
 }
 
 /** Komponiert variantResult aus der Änderungsliste — nie direkt gesetzt. */
@@ -317,15 +320,22 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         // Styles aus dem site_css (.__original-Block), sonst die
         // mitpersistierte Baseline der Liste.
         const computed = collectedOriginalComputed(resumeTest.site_css ?? '')
+        const computedHover = collectedOriginalHoverComputed(resumeTest.site_css ?? '')
         const measuredBaseline = buildStyleBaseline(computed)
+        const measuredHoverBaseline = buildStyleBaseline(computedHover)
         const parsedChanges = parseChanges(resumeTest.variant_b_changes)
         const variantChanges = parsedChanges
-          ? { ...parsedChanges, baseline: parsedChanges.baseline ?? measuredBaseline }
+          ? {
+              ...parsedChanges,
+              baseline: parsedChanges.baseline ?? measuredBaseline,
+              hoverBaseline: parsedChanges.hoverBaseline ?? measuredHoverBaseline,
+            }
           : reconstructChanges(
               resumeTest.original_html,
               resumeTest.variant_b_html,
               resumeTest.variant_b_css,
               measuredBaseline,
+              measuredHoverBaseline,
             )
         // Determine first incomplete step — "hat Variante" heisst jetzt:
         // die Änderungsliste trägt angewandte Zeilen.
@@ -349,7 +359,13 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
             // was getEditorCategory immer auf 'button' fallen liess.
             elementType: resumeTest.element_type ?? 'element',
             elementName: resumeTest.selector,
-            styleContext: resumeTest.site_css ? { css: resumeTest.site_css, computed: computed ?? {} } : undefined,
+            styleContext: resumeTest.site_css
+              ? {
+                  css: resumeTest.site_css,
+                  computed: computed ?? {},
+                  ...(computedHover ? { computedHover } : {}),
+                }
+              : undefined,
           } : null,
           elementConfirmed: !!resumeTest.selector,
           variantChanges,
@@ -371,15 +387,22 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         const { draft } = await res.json()
         if (draft && mountedRef.current) {
           const draftComputed = collectedOriginalComputed(draft.site_css ?? '')
+          const draftComputedHover = collectedOriginalHoverComputed(draft.site_css ?? '')
           const draftBaseline = buildStyleBaseline(draftComputed)
+          const draftHoverBaseline = buildStyleBaseline(draftComputedHover)
           const draftParsed = parseChanges(draft.variant_b_changes)
           const draftChanges = draftParsed
-            ? { ...draftParsed, baseline: draftParsed.baseline ?? draftBaseline }
+            ? {
+                ...draftParsed,
+                baseline: draftParsed.baseline ?? draftBaseline,
+                hoverBaseline: draftParsed.hoverBaseline ?? draftHoverBaseline,
+              }
             : reconstructChanges(
                 draft.original_html,
                 draft.variant_b_html,
                 draft.variant_b_css,
                 draftBaseline,
+                draftHoverBaseline,
               )
           setState((prev) => ({
             ...prev,
@@ -391,7 +414,13 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               originalCss: draft.site_css ?? '',
               elementType: draft.element_type ?? 'element',
               elementName: draft.element_name ?? draft.selector,
-              styleContext: draft.site_css ? { css: draft.site_css, computed: draftComputed ?? {} } : undefined,
+              styleContext: draft.site_css
+                ? {
+                    css: draft.site_css,
+                    computed: draftComputed ?? {},
+                    ...(draftComputedHover ? { computedHover: draftComputedHover } : {}),
+                  }
+                : undefined,
             } : null,
             elementConfirmed: !!draft.selector,
             variantChanges: draftChanges,
@@ -776,9 +805,14 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
                 // Ohne Picker degeneriert das Delta bewusst zu absoluten
                 // Werten — Step 0 warnt dann sichtbar.
                 const baseline = buildStyleBaseline(state.selectedElement?.styleContext?.computed) ?? null
+                const hoverBaseline = buildStyleBaseline(state.selectedElement?.styleContext?.computedHover) ?? null
                 updateState({
                   elementConfirmed: true,
-                  variantChanges: { ...state.variantChanges, baseline: baseline ?? state.variantChanges.baseline },
+                  variantChanges: {
+                    ...state.variantChanges,
+                    baseline: baseline ?? state.variantChanges.baseline,
+                    hoverBaseline: hoverBaseline ?? state.variantChanges.hoverBaseline,
+                  },
                 })
               }}
               verifiedDomains={localDomains}

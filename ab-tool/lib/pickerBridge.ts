@@ -28,6 +28,12 @@ export interface StyleContext {
   computed: Record<string, string>
   /** true, wenn css im Fragment-Fallback gekappt wurde → Vorschau auf computed-only. */
   cssTruncated?: boolean
+  /**
+   * Nur die Properties, die `:hover` am Original ändert — der Picker misst
+   * Ruhe- und Hover-Zustand getrennt. Fehlt das Feld, hat das Element keinen
+   * Hover-Effekt oder der Pick stammt aus einer älteren ab.js.
+   */
+  computedHover?: Record<string, string>
 }
 
 export interface PickerPayload {
