@@ -397,8 +397,26 @@
         var lastEl = null, HL = '2px solid #2563eb', HL2 = '2px solid #f59e0b'
         var reorderEl1 = null, reorderSel1 = null // gespeichert bis zweiter Klick
 
-        function onOver(e) { if (lastEl) lastEl.style.outline = ''; lastEl = e.target; lastEl.style.outline = HL }
-        function onOut(e) { if (e.target && e.target.style) e.target.style.outline = '' }
+        // Klick auf Text/Icon IN einem Button oder Link meint den Button.
+        // Ohne das landete der Picker auf dem inneren <span> — der Wizard sah
+        // ein generisches „Element" statt eines Links und bot keine
+        // Button-Vorschläge an (Live-Test 16.11.2026). Visual Editoren wie
+        // GrowthBook wählen ebenfalls das klickbare Element.
+        function pickable(el) {
+          if (!el || !el.closest) return el
+          var tag = (el.tagName || '').toLowerCase()
+          if (tag === 'a' || tag === 'button') return el
+          var inline = /^(span|strong|em|b|i|small|svg|path|img|use|picture|mark|u)$/.test(tag)
+          if (!inline) return el
+          var host = el.closest('a,button,[role="button"]')
+          if (!host) return el
+          // nur nahe Vorfahren (max. 3 Ebenen) — eine Karte, die als Ganzes ein Link ist, soll ihr Bild behalten
+          var depth = 0, cur = el
+          while (cur && cur !== host && depth < 4) { cur = cur.parentElement; depth++ }
+          return cur === host ? host : el
+        }
+        function onOver(e) { if (lastEl) lastEl.style.outline = ''; lastEl = pickable(e.target); lastEl.style.outline = HL }
+        function onOut(e) { var t = pickable(e.target); if (t && t.style) t.style.outline = '' }
 
         // Ein 401/403 entsteht hier nur, wenn ein Token MITGESCHICKT und
         // abgelehnt wurde -- ohne Token wird gar nicht erst gesendet. Der nackte
@@ -536,7 +554,7 @@
 
         function onClick(e) {
           e.preventDefault(); e.stopPropagation()
-          var el = e.target
+          var el = pickable(e.target)
           // Hover-Rahmen VOR der Erfassung entfernen: onOut feuert beim direkten
           // Klick oft nicht, das outline hinge sonst ueber outerHTML fest in
           // Variante A (blauer Rahmen, der nicht mehr verschwindet).
