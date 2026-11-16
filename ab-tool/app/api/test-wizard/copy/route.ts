@@ -15,7 +15,7 @@ import { getSessionUser } from '@/lib/supabaseServer'
 import { getPlanForUser } from '@/lib/auth'
 import { safeError } from '@/lib/safeLog'
 import { getPlanAiLimits, startOfBillingMonth } from '@/lib/planLimits'
-import { checkRateLimit } from '@/lib/rateLimit'
+import { checkRateLimit, getUsage, recordUsage } from '@/lib/rateLimit'
 import { parseBody } from '@/lib/apiHelpers'
 import { copyVariantsBody } from '@/lib/validation'
 import { assertOwnedDomain } from '@/lib/domainGate'
@@ -48,18 +48,17 @@ export async function POST(req: Request) {
   const pageUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
 
   // ─── Monatslimit (Anzahl Vorschlags-Runden) ───
+  // Gezählt wird erst nach Erfolg (recordUsage unten) — fehlgeschlagene
+  // Aufrufe kosten kein Kontingent.
   const plan = await getPlanForUser(user.id)
   const limits = getPlanAiLimits(plan)
-  if (limits.variantGens !== Infinity) {
-    const month = startOfBillingMonth().toISOString().slice(0, 7)
-    const windowMs = 32 * 24 * 60 * 60_000
-    if (!(await checkRateLimit(`copygen:${user.id}:${month}`, limits.variantGens, windowMs))) {
-      return Response.json({
-        error: 'limit reached',
-        message: `You've used all ${limits.variantGens} AI suggestions for this month on the ${plan} plan. Upgrade to Pro for more.`,
-        limit: limits.variantGens,
-      }, { status: 429, headers })
-    }
+  const usageKey = `copygen:${user.id}:${startOfBillingMonth().toISOString().slice(0, 7)}`
+  if (limits.variantGens !== Infinity && (await getUsage(usageKey)) >= limits.variantGens) {
+    return Response.json({
+      error: 'limit reached',
+      message: `You've used all ${limits.variantGens} AI suggestions for this month on the ${plan} plan. Upgrade to Pro for more.`,
+      limit: limits.variantGens,
+    }, { status: 429, headers })
   }
 
   // ─── Budget (Kostenbremse, unabhängig vom Zähler) ───
@@ -83,6 +82,7 @@ export async function POST(req: Request) {
         message: 'The AI could not write variants that pass our checks for this element. Try again or write your own.',
       }, { status: 422, headers })
     }
+    await recordUsage(usageKey, 32 * 24 * 60 * 60)
     return Response.json(result, { headers })
   } catch (err) {
     safeError('copy-variants-failed', err)

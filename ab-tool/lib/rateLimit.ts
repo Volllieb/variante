@@ -82,6 +82,43 @@ export async function checkRateLimit(
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// Nutzungszähler (z. B. KI-Vorschläge pro Monat): Lesen und Zählen getrennt,
+// damit nur ERFOLGREICHE Nutzung zählt. checkRateLimit zählt jeden Versuch —
+// beim Start von „Suggest copy" (16.11.2026) kosteten so auch 502er Kontingent.
+// Redis: INCR + EXPIRE beim ersten Treffer; In-Memory-Fallback wie oben.
+// ─────────────────────────────────────────────────────────────────────────
+const usageCounts = new Map<string, { n: number; exp: number }>()
+
+export async function getUsage(key: string): Promise<number> {
+  if (redis) {
+    try {
+      return Number((await redis.get<number>(`usage:${key}`)) ?? 0)
+    } catch (err) {
+      console.error('[rateLimit] Redis-Error (getUsage), fallback to in-memory:', String(err))
+      redis = null
+    }
+  }
+  const e = usageCounts.get(key)
+  return e && e.exp > Date.now() ? e.n : 0
+}
+
+export async function recordUsage(key: string, ttlSeconds: number): Promise<void> {
+  if (redis) {
+    try {
+      const n = await redis.incr(`usage:${key}`)
+      if (n === 1) await redis.expire(`usage:${key}`, ttlSeconds)
+      return
+    } catch (err) {
+      console.error('[rateLimit] Redis-Error (recordUsage), fallback to in-memory:', String(err))
+      redis = null
+    }
+  }
+  const e = usageCounts.get(key)
+  if (e && e.exp > Date.now()) e.n++
+  else usageCounts.set(key, { n: 1, exp: Date.now() + ttlSeconds * 1000 })
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // Einmal-Marker. Gibt true zurück, wenn der Key im TTL-Fenster zum ersten Mal
 // gesehen wird, false bei jeder Wiederholung. Zwei Aufrufer:
 //
