@@ -622,6 +622,13 @@
           if (!cfg.token && !cfg.tempToken) {
             if (sentToOpener) {
               showOverlay(cfg.mode === 'goal' ? 'Goal sent to wizard' : 'Element sent to wizard', sel, false)
+              // Zurück zum Wizard: Popup schließt sich selbst und holt das
+              // Dashboard nach vorn. Bisher blieb es offen, und Nutzer lasen
+              // Meldungen des Dashboard-Fensters dahinter als Picker-Fehler
+              // (Live-Test 16.11.2026). Klappt close() nicht (Fenster nicht per
+              // Script geöffnet), bleibt das Overlay mit Hinweis stehen.
+              try { window.opener.focus() } catch (_) {}
+              setTimeout(function () { try { window.close() } catch (_) {} }, 1200)
             } else if (!returnToDashboard(el, sel, text)) {
               showOverlay('Could not send the selection back', 'Keep the dashboard tab open and start the picker again.', true)
             }

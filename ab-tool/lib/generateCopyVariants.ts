@@ -118,24 +118,55 @@ function detectLanguage(p: Page, original: string): 'German' | 'English' {
 
 // ─── OpenAI ───
 
+/**
+ * Fehler mit stabilem Code (z. B. `openai_404_model_not_found`, `page_fetch_403`).
+ * Die Route gibt den Code als `details` zurück: ohne Vercel-Login sind die
+ * Function-Logs nicht lesbar, und „temporarily unavailable" allein sagte beim
+ * ersten Live-Test (16.11.2026) nichts über die Ursache.
+ */
+export class CopyGenError extends Error {
+  constructor(public code: string, message: string) {
+    super(message)
+    this.name = 'CopyGenError'
+  }
+}
+
+// Rückfallebene, falls der Key ein Modell nicht freigeschaltet hat (404/403).
+// gpt-4.1-mini ist kein Reasoning-Modell und kennt reasoning_effort nicht.
+const MODEL_CHAIN: { model: string; reasoning: boolean }[] = [
+  { model: MODEL, reasoning: true },
+  { model: 'gpt-5-mini', reasoning: true },
+  { model: 'gpt-4.1-mini', reasoning: false },
+]
+let modelIndex = 0
+
 async function callJson<T>(system: string, user: string, name: string, schema: object): Promise<T> {
   const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) throw new Error('OPENAI_API_KEY missing')
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-      response_format: { type: 'json_schema', json_schema: { name, strict: true, schema } },
-      reasoning_effort: 'low',
-      max_completion_tokens: 6000,
-    }),
-    signal: AbortSignal.timeout(25_000),
-  })
-  const body = await res.json() as { choices?: { message: { content: string } }[]; error?: { message: string } }
-  if (!res.ok) throw new Error(`OpenAI ${res.status}: ${(body.error?.message ?? '').slice(0, 160)}`)
-  return JSON.parse(body.choices?.[0]?.message?.content ?? '{}') as T
+  if (!apiKey) throw new CopyGenError('openai_key_missing', 'OPENAI_API_KEY missing')
+  for (;;) {
+    const { model, reasoning } = MODEL_CHAIN[modelIndex]
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+        response_format: { type: 'json_schema', json_schema: { name, strict: true, schema } },
+        ...(reasoning ? { reasoning_effort: 'low', max_completion_tokens: 6000 } : { max_completion_tokens: 2000 }),
+      }),
+      signal: AbortSignal.timeout(25_000),
+    })
+    const body = await res.json() as { choices?: { message: { content: string } }[]; error?: { message: string; code?: string } }
+    if (res.ok) return JSON.parse(body.choices?.[0]?.message?.content ?? '{}') as T
+    const code = `openai_${res.status}${body.error?.code ? `_${body.error.code}` : ''}`
+    // Modell nicht verfügbar → nächstes Modell, für diese Instanz gemerkt
+    if ((res.status === 404 || res.status === 403 || body.error?.code === 'model_not_found') && modelIndex < MODEL_CHAIN.length - 1) {
+      safeError('copy-variants-model-fallback', { message: `${model}: ${code}` })
+      modelIndex++
+      continue
+    }
+    throw new CopyGenError(code, `OpenAI ${res.status} (${model}): ${(body.error?.message ?? '').slice(0, 160)}`)
+  }
 }
 
 // ─── Stufe 1: Seiten-Briefing ───
@@ -336,7 +367,7 @@ export async function generateCopyVariants(input: GenerateCopyInput): Promise<Ge
   let cached = briefCache.get(url)
   if (!cached || Date.now() - cached.at > BRIEF_TTL_MS) {
     const res = await safeFetch(url, { timeoutMs: 10_000, maxSize: 2_000_000, headers: { 'Accept-Language': 'de,en;q=0.8' } })
-    if (!res.ok) throw new Error(`page fetch failed: ${res.status} ${res.error ?? ''}`.trim())
+    if (!res.ok) throw new CopyGenError(`page_fetch_${res.status || 'error'}`, `page fetch failed: ${res.status} ${res.error ?? ''}`.trim())
     const page = readPage(res.text, selector)
     const briefInput = [
       `URL: ${url}`,

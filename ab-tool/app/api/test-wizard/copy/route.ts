@@ -19,7 +19,7 @@ import { checkRateLimit } from '@/lib/rateLimit'
 import { parseBody } from '@/lib/apiHelpers'
 import { copyVariantsBody } from '@/lib/validation'
 import { assertOwnedDomain } from '@/lib/domainGate'
-import { generateCopyVariants } from '@/lib/generateCopyVariants'
+import { CopyGenError, generateCopyVariants } from '@/lib/generateCopyVariants'
 
 export const maxDuration = 60
 
@@ -86,9 +86,12 @@ export async function POST(req: Request) {
     return Response.json(result, { headers })
   } catch (err) {
     safeError('copy-variants-failed', err)
-    const msg = err instanceof Error && err.message.startsWith('page fetch failed')
+    const code = err instanceof CopyGenError ? err.code
+      : err instanceof Error && err.name === 'TimeoutError' ? 'timeout'
+        : err instanceof SyntaxError ? 'bad_json' : 'unknown'
+    const msg = code.startsWith('page_fetch')
       ? 'We could not read your page. Check that it is online and try again.'
       : 'AI suggestions are temporarily unavailable. Try again in a moment or write your own.'
-    return Response.json({ error: 'generation failed', message: msg }, { status: 502, headers })
+    return Response.json({ error: 'generation failed', message: msg, details: code }, { status: 502, headers })
   }
 }
