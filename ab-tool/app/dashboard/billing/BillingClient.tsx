@@ -67,11 +67,9 @@ export function BillingClient({ data }: { data: BillingData }) {
           {isAgency ? (
             <div className="mt-4 space-y-2">
               <FeatureRow icon={Check} label="Everything in Pro" />
-              <FeatureRow icon={Check} label="Up to 100 domains" />
-              <FeatureRow icon={Check} label="White-label — no Variante mention" />
-              <FeatureRow icon={Check} label="Dedicated support — direct line" />
-              <FeatureRow icon={Check} label="Team access" />
-              <FeatureRow icon={Check} label="Client reports — branded PDFs" />
+              <FeatureRow icon={Check} label="Up to 100 websites" />
+              <FeatureRow icon={Check} label="Unlimited AI suggestions" />
+              <FeatureRow icon={Check} label="Personal onboarding & direct support" />
             </div>
           ) : isPro ? (
             <div className="mt-4 space-y-2">
@@ -94,8 +92,11 @@ export function BillingClient({ data }: { data: BillingData }) {
                   className="w-full gap-2 py-2.5 text-body"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Upgrade to Pro
+                  Upgrade to Pro — 35 €/month
                 </Button>
+                <p className="mt-2 text-center text-meta text-text-3">
+                  Unlimited tests, up to 5 websites, auto-winner, no badge. Cancel any time.
+                </p>
               </div>
             </div>
           )}

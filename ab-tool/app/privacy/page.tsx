@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             <h1 className="text-3xl font-semibold text-text">
               Privacy Policy
             </h1>
-            <p className="mt-1.5 text-sm text-text-3">Last updated: July 7, 2026</p>
+            <p className="mt-1.5 text-sm text-text-3">Last updated: November 16, 2026</p>
 
             <div className="mt-10 space-y-8 text-sm leading-relaxed">
 
@@ -45,10 +45,11 @@ export default function PrivacyPage() {
                   {[
                     { label: 'Account data', body: 'email address and hashed password (via Supabase Auth) when you sign up. No further profile data is stored.' },
                     { label: 'Experiment data', body: 'HTML/CSS snapshots of elements you pick, variant code, page URL, and conversion events — stored per test. You choose the URL and element. The original page content is not analyzed or read beyond the element you selected.' },
-                    { label: 'AI generation (OpenAI)', body: "When you generate a variant, the extracted HTML/CSS context of the original element and the Figma export data are sent to OpenAI's API. The data is used only for generation and is not stored by OpenAI. Do not submit personal data in prompts or designs." },
+                    { label: 'AI suggestions (OpenAI)', body: "When you request AI suggestions or a page scan, the publicly visible text of the page you connected (headings, page copy, page title) and the text of the selected element are sent to OpenAI's API to write variants. OpenAI does not use API data to train its models and may keep it for up to 30 days for abuse monitoring before deleting it. Your pages should not contain personal data of others in the selected elements." },
                     { label: 'Payment data', body: 'Credit card details are processed directly by Stripe. We never have access to full card numbers. Stripe shares only: status, payment method type, and last 4 digits.' },
                     { label: 'Waitlist', body: 'email address if you submit the coming-soon form.' },
                     { label: 'Usage data', body: 'the ab.js snippet sends only the domain name (host) to our servers to check for active tests — never the full page path. Variant assignment and conversion events are collected as anonymized counters only. No personal visitor data or browsing history is stored.' },
+                    { label: 'Visitor assignment (your site’s visitors)', body: 'to show a visitor the same variant on every page without cookies or local storage, our server computes a salted one-way hash from the visitor’s IP address and browser user agent when ab.js asks for a variant. The IP address and user agent are not stored; the hash is kept for up to 24 hours only to count each visitor once per test. Legal basis: legitimate interest of the site operator in a reliable A/B test (Art. 6(1)(f) GDPR). Site operators can switch to consent-based storage with window.varianteConsent.' },
                     { label: 'Analytics data (Vercel)', body: 'anonymous page view counts, referrer, browser/device type, and country-level geo. No cookies, no IP storage, no fingerprinting. Vercel Web Analytics and Speed Insights are cookieless and GDPR-compliant by default. Data is aggregated and never contains personal identifiers.' },
                   ].map(({ label, body }) => (
                     <li key={label} className="flex gap-2.5">
@@ -119,9 +120,9 @@ export default function PrivacyPage() {
                         ['Supabase Inc.', 'Database, Auth & Google OAuth', 'Frankfurt, DE', 'DPA + SCCs'],
                         ['Vercel Inc.', 'Hosting + Web Analytics & Speed Insights', 'us-east, USA', 'DPA + SCCs (EU-US DPF)'],
                         ['Stripe Inc.', 'Payments', 'Global', 'DPF certified'],
-                        ['OpenAI', 'AI generation', 'US', 'API only, no storage'],
+                        ['OpenAI', 'AI suggestions', 'US', 'DPA + SCCs, no training, max. 30 days'],
                         ['Resend Inc.', 'Email notifications', 'US (us-east)', 'DPA + SCCs'],
-                        ['Upstash Inc.', 'Rate limiting (IP addresses)', 'Global', 'DPA + SCCs'],
+                        ['Upstash Inc.', 'Rate limiting (IP addresses), visitor dedup (hashes, 24 h)', 'Global', 'DPA + SCCs'],
                       ].map(([service, purpose, location, safeguard], i, arr) => (
                         <tr key={service} className={i < arr.length - 1 ? 'border-b border-border' : ''}>
                           <td className="px-4 py-3 text-text">{service}</td>

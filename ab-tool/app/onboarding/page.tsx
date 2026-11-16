@@ -218,7 +218,7 @@ export default function OnboardingPage() {
               <p className="mt-3 text-body sm:text-title text-white/55 max-w-lg mx-auto">
                 Paste this snippet into your site&apos;s{' '}
                 <code className="text-white/80 bg-white/5 px-1.5 py-0.5 rounded text-body">&lt;head&gt;</code>{' '}
-                tag. It loads async (~12 KB gzipped) — no impact on your page speed.
+                tag. It loads async (about 26 KB compressed) and only changes pages with a running test.
               </p>
 
               {/* Domain hint: enter domain to personalize */}

@@ -90,7 +90,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <main id="main">
 
       {/* ── Hero ── */}
-      <section className="px-0 pt-8 pb-6 sm:pt-10 sm:pb-8">
+      {/* px-4: Hero-Text klebte ohne Seitenabstand am Rand (.container hat kein Padding) */}
+      <section className="px-4 pt-8 pb-6 sm:px-6 sm:pt-10 sm:pb-8">
         <div className="container grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
           {/* Left: Text — second on mobile */}
           <div className="order-2 lg:order-1 text-center sm:text-left">
@@ -157,7 +158,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {
                 icon: Code2,
                 title: 'Install the snippet',
-                body: 'Paste one script tag into your site. It loads async at 5 KB — zero impact on performance.',
+                body: 'Paste one script tag into your site. It loads async (about 26 KB compressed) and keeps your page as it is until a test runs.',
               },
               {
                 icon: MousePointer2,
@@ -167,7 +168,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               {
                 icon: FlaskConical,
                 title: 'Create a variant & test',
-                body: 'Write the new version — or let the AI draft one. Variante splits traffic and measures conversions.',
+                body: 'Let AI suggest new headline and button copy, or write your own. Variante splits traffic and counts clicks on your goal.',
               },
             ].map((step, i) => (
               <div key={step.title} className="step-card relative rounded-xl border border-border bg-bg-1 p-5 sm:p-6">
