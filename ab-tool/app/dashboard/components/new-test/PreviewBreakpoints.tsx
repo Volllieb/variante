@@ -46,14 +46,25 @@ export function ScaledFrame({
     return () => ro.disconnect()
   }, [])
 
-  const scale = boxWidth ? Math.min(1, boxWidth / width) : 1
+  // Höchstens auf MIN_SCALE verkleinern: buildPreviewSrcDoc zentriert A und B
+  // im Viewport, rechts und links ist Leerraum. Volle Skalierung machte die
+  // Buttons bei Desktop (1024 → ~330 px Rahmen) unlesbar klein. Was dann
+  // noch übersteht, wird symmetrisch abgeschnitten — die Mitte bleibt sichtbar.
+  const MIN_SCALE = 0.7
+  const scale = boxWidth ? Math.max(MIN_SCALE, Math.min(1, boxWidth / width)) : 1
+  const offsetX = boxWidth ? Math.min(0, (boxWidth - width * scale) / 2) : 0
   return (
     <div ref={boxRef} className="w-full overflow-hidden" style={{ height: Math.ceil(height * scale) }}>
       <iframe
         srcDoc={srcDoc}
         sandbox=""
         title={title}
-        style={{ width, height, transform: `scale(${scale})`, transformOrigin: 'top left' }}
+        style={{
+          width,
+          height,
+          transform: `translateX(${offsetX}px) scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
       />
     </div>
   )
