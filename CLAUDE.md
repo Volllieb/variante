@@ -52,7 +52,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 | `ab-tool/public/ab.js` | Kunden-Snippet, ES5-IIFE, ohne Build, von ESLint ausgenommen |
 | `ab-tool/public/test-page/` | Statische Testseite für Picker/Snippet |
 | `ab-tool/__tests__/*.mjs` | Node-Unit-Tests (`test:node`), `unit/` = Vitest+jsdom, `e2e/` = Playwright, `load/` = k6 |
-| `ab-tool/scripts/` | Ops-Skripte (Bot, Leadgen, Dashboard-Verify) |
+| `ab-tool/scripts/` | Ops-Skripte (Bot, Leadgen, Dashboard-Verify); `copy-eval/` = Eval der KI-Textvarianten gegen echte Seiten (Regressionstest vor Prompt-Änderungen) |
 | `ab-tool/emails/` | Supabase-Auth-Mail-Templates (HTML) |
 | `figma-plugin/src/code.ts` / `ui.html` | Plugin-Sandbox / Plugin-UI (Vanilla JS inline, ~1080 Zeilen) |
 | `db/migrations/NNN_*.sql` | Supabase-Schema, fortlaufend (aktuell bis 044), manuell angewendet |
@@ -65,7 +65,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 |---|---|
 | Test/Variante anlegen (UI) | `app/dashboard/components/NewTestDrawer.tsx` + `new-test/*` |
 | Test/Variante anlegen (API) | `app/api/test-wizard/{scan,generate,create,draft}`, `app/api/tests/` |
-| KI-Generierung | `lib/generateVariantText.ts`, `lib/generate{Prompts,Helpers,Constants}.ts`, `lib/croAnalyze.ts` (Seiten-Scan), `lib/previewAnalyze.ts` (Onboarding), `lib/agentTools.ts` (`/api/agent`) |
+| KI-Generierung | **Textvarianten (Wizard „Suggest copy“):** `lib/generateCopyVariants.ts` + `lib/copyLevers.ts`, Route `app/api/test-wizard/copy/`, UI `new-test/CopySuggestions.tsx`; sonst `lib/generateVariantText.ts`, `lib/generate{Prompts,Helpers,Constants}.ts`, `lib/croAnalyze.ts` (Seiten-Scan), `lib/previewAnalyze.ts` (Onboarding), `lib/agentTools.ts` (`/api/agent`) |
 | Varianten-Vorschau (iframe srcDoc) | `lib/previewDoc.ts`, `app/components/VariantPreview.tsx` |
 | Element-Picker | `public/ab.js` (Block `?ab_pick=`), `app/api/capture/`, `lib/pickerBridge.ts`, `app/picker-return/` |
 | Tracking / Ausspielung | `public/ab.js`, `app/api/{resolve,assign,event}/`, `lib/assignBucket.ts`, `lib/assignToken.ts`, `lib/variantHash.ts` |

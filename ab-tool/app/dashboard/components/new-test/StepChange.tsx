@@ -13,8 +13,10 @@
  * in der Liste (inkl. `other`-Roh-CSS) und wird beim Editieren einzelner
  * Zeilen nicht ersetzt — dasselbe Garant wie früher baseCss → mergeVariantCss.
  *
- * Die Änderungen entstehen ausschliesslich manuell. Der frühere KI-Pfad
- * ("Suggest changes") ist raus — er lieferte keine brauchbaren Designs.
+ * Der frühere KI-Pfad ("Suggest changes", Design + Text) ist raus — er
+ * lieferte keine brauchbaren Designs. Seit 16.11.2026 schreibt die KI wieder,
+ * aber NUR Text für Headline und Button (CopySuggestions, Eval in
+ * scripts/copy-eval/). Gestaltung bleibt manuell.
  * `status: 'suggested'` bleibt im Datenmodell: Alttests und Drafts tragen es,
  * und die Liste kann solche Zeilen weiterhin annehmen oder verwerfen.
  */
@@ -32,11 +34,27 @@ import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
 import { BreakpointSwitcher, BREAKPOINTS, type Breakpoint } from './PreviewBreakpoints'
 import { PreviewStateToggle } from './PreviewStateToggle'
 import type { PreviewState } from './PreviewStateToggle'
+import { CopySuggestions, type CopySuggestion } from './CopySuggestions'
+import { LEVER_LABELS } from '@/lib/copyLevers'
 
 interface StepChangeProps {
   element: ElementSelection
   changes: VariantChangeSet
   onChanges: (next: VariantChangeSet) => void
+  /** Seite, auf der das Element steht — Grundlage der KI-Textvorschläge. */
+  pageUrl?: string
+}
+
+/**
+ * Rolle für die KI: Button/Link → CTA, Überschrift → Headline. Kurzer Fließtext
+ * wird wie eine Headline behandelt (Aussage), langer bekommt keine Vorschläge —
+ * die Pipeline ist auf Headline und Button geeicht.
+ */
+function copyKindFor(elementType: string, text: string): 'headline' | 'cta' | null {
+  if (elementType === 'button' || elementType === 'link') return 'cta'
+  if (elementType === 'headline') return 'headline'
+  if (elementType === 'text' && text.length <= 120) return 'headline'
+  return null
 }
 
 /** „+ Add change"-Menü je Editor-Kategorie (getEditorCategory). */
@@ -57,8 +75,10 @@ const COLOR_FALLBACKS: Partial<Record<ChangeProperty, string>> = {
   borderColor: 'transparent',
 }
 
-export function StepChange({ element, changes, onChanges }: StepChangeProps) {
+export function StepChange({ element, changes, onChanges, pageUrl }: StepChangeProps) {
   const category = getEditorCategory(element.elementType)
+  const originalText = extractTextFromHtml(element.originalHtml).trim()
+  const copyKind = pageUrl && originalText.length >= 2 ? copyKindFor(element.elementType, originalText) : null
 
   // ── Inline-Editor-Zeile (kontrolliert, damit neue Zeilen direkt aufgehen) ──
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -122,6 +142,30 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
     },
     [changes, element.originalHtml, updateEntries],
   )
+
+  /**
+   * KI-Vorschlag übernehmen: genau eine Text-Zeile, vorhandene Text-Zeile wird
+   * ersetzt (ein Element hat nur einen Text). Hebel und Begründung reisen mit,
+   * damit sich später auswerten lässt, welche Hebel gewinnen.
+   */
+  const applySuggestion = useCallback(
+    (s: CopySuggestion) => {
+      const entry: ChangeEntry = {
+        id: entryId(),
+        property: 'text',
+        before: originalText,
+        after: s.text,
+        source: 'ai',
+        status: 'applied',
+        explanation: `${LEVER_LABELS[s.lever] ?? s.lever}: ${s.why}`,
+        lever: s.lever,
+      }
+      updateEntries([...changes.entries.filter((e) => e.property !== 'text'), entry])
+      setEditingId(null)
+    },
+    [changes.entries, originalText, updateEntries],
+  )
+  const currentText = changes.entries.find((e) => e.property === 'text' && e.status === 'applied')?.after
 
   // ─── Advanced / Scratch ───
 
@@ -257,6 +301,18 @@ export function StepChange({ element, changes, onChanges }: StepChangeProps) {
         </div>
       ) : (
         <>
+          {/* KI-Textvorschläge zuerst: der schnellste Weg zu einer Variante */}
+          {copyKind && pageUrl && (
+            <CopySuggestions
+              pageUrl={pageUrl}
+              original={originalText}
+              kind={copyKind}
+              selector={element.selector || undefined}
+              currentText={currentText}
+              onUse={applySuggestion}
+            />
+          )}
+
           <ChangeList
             entries={changes.entries}
             editingId={editingId}

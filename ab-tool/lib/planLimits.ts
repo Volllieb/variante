@@ -11,7 +11,10 @@ export const PLAN_LIMITS = {
     domains: 1,
     activeTests: 1,
     aiScans: 1,          // CRO-Analysen pro Monat (fetchSite + analyzeCRO)
-    aiVariantGens: 1,    // Varianten-Generationen pro Monat (generateVariant / generateVariantText)
+    // Vorschlags-Runden pro Monat (/api/test-wizard/copy). War 1 — zu wenig für
+    // einen Aha-Moment; eine Runde kostet mit gpt-5.4-mini Bruchteile eines Cents,
+    // aiMonthlyBudget bleibt die harte Kostenbremse.
+    aiVariantGens: 20,
     aiAgentRuns: 0,      // Vollautomatische Agent-Runs pro Monat (nur Pro+)
     aiMonthlyBudget: 5,  // $ OpenAI-Monatsbudget
   },
@@ -19,7 +22,7 @@ export const PLAN_LIMITS = {
     domains: 5,
     activeTests: Infinity,
     aiScans: 10,
-    aiVariantGens: 30,
+    aiVariantGens: 200,
     aiAgentRuns: 5,
     aiMonthlyBudget: 20,
   },

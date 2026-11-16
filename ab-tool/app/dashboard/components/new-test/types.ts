@@ -85,6 +85,8 @@ export interface ChangeEntry {
   source: 'manual' | 'ai' | 'figma'
   status: 'applied' | 'suggested'
   explanation?: string
+  /** KI-Hebel (lib/copyLevers.ts), wenn die Zeile aus „Suggest copy" stammt — für spätere Auswertung, welche Hebel gewinnen. */
+  lever?: string
   /** Nur für property==='other': das rohe CSS, das nicht als Regler abbildbar ist. */
   rawCss?: string
 }

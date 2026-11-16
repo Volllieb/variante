@@ -119,6 +119,14 @@ export const captureBody = z.object({
   reorder_selector: z.string().optional(),
 })
 
+/** POST /api/test-wizard/copy — KI-Textvarianten für Headline oder Button. */
+export const copyVariantsBody = z.object({
+  url: siteUrl,
+  original: z.string().trim().min(2, 'The element has no text to rewrite.').max(300, 'Pick a shorter text element (max. 300 characters).'),
+  kind: z.enum(['headline', 'cta']),
+  selector: z.string().max(512).optional(),
+})
+
 export const generateBody = z.object({
   testId: testId,
   frameContent: z.unknown().optional(),

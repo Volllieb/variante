@@ -842,6 +842,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               element={state.selectedElement}
               changes={state.variantChanges}
               onChanges={applyVariantChanges}
+              pageUrl={state.url}
             />
           )}
 

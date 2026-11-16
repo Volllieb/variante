@@ -23,13 +23,14 @@ interface Props {
   onRefreshed?: () => void
 }
 
-// Statische Vorschlaege als Teaser-Inhalt (wird im Free-Tier geblurred).
-// Werden nie live angezeigt — nur als Silhouette hinter dem Blur.
+// Statische Silhouette hinter dem Blur im Free-Tier. Bewusst ohne Zahlen und
+// Erfolgsversprechen: Der Text steht im DOM (Seitentext, Screenreader) — die
+// früheren Beispiele („convert up to 40% better", „Trusted by 2,000+ teams")
+// waren erfundene Claims (Product Audit 16.11.2026). Zusätzlich aria-hidden.
 const TEASER_SUGGESTIONS: Suggestion[] = [
-  { element: 'Hero Headline', original: 'Welcome to Acme', variant: 'Double Your Revenue in 30 Days — or It\'s Free', why: 'Benefit-driven headlines convert up to 40% better than welcome-oriented ones.' },
-  { element: 'CTA Button', original: 'Sign Up', variant: 'Start Free Trial — No Credit Card', why: 'A no-risk message lowers the barrier to entry.' },
-  { element: 'Pricing Section', original: 'Monthly billing default', variant: 'Annual billing default + 20% savings badge', why: 'Annual billing roughly triples customer lifetime value; the badge makes the saving visible.' },
-  { element: 'Footer / Trust', original: 'No social proof present', variant: 'Customer logo bar: "Trusted by 2,000+ teams"', why: 'Social proof is the strongest trust driver — logos plus a number build credibility in milliseconds.' },
+  { element: 'Hero Headline', original: 'Your current headline', variant: 'A headline that names the result', why: 'Example: a page-specific idea appears here.' },
+  { element: 'CTA Button', original: 'Your current button', variant: 'A button that names the next step', why: 'Example: a page-specific idea appears here.' },
+  { element: 'Pricing Section', original: 'Your pricing section', variant: 'A clearer plan comparison', why: 'Example: a page-specific idea appears here.' },
 ]
 
 export function WhatToTestNext({ siteUrl, plan, setupComplete, domain, onRefreshed }: Props) {
@@ -65,7 +66,7 @@ function FreeTeaser({ domain }: { domain: string | null }) {
       {/* Geblurrter Inhalt */}
       <Card padding="none" className="relative overflow-hidden">
         {/* Blur-Layer */}
-        <div className="pointer-events-none select-none px-3.5 py-3 space-y-2.5 blur-[6px]">
+        <div aria-hidden="true" className="pointer-events-none select-none px-3.5 py-3 space-y-2.5 blur-[6px]">
           {TEASER_SUGGESTIONS.map((tip) => (
             <div key={tip.element} className="flex items-start gap-2 rounded-md border border-border bg-bg-2 px-3 py-2">
               <div className="min-w-0 flex-1">

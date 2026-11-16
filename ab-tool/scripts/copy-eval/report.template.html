@@ -1,0 +1,330 @@
+<title>Copy-Eval Blindtest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: eine schmale Lesespalte, je Element eine Karte mit Original oben und gemischten Varianten darunter. */
+:root {
+  --bg: #f6f6f4; --surface: #ffffff; --fg: #18181a; --fg-2: #55555c; --line: #e2e2de;
+  --yes: #1f7a4d; --yes-bg: #e3f3ea; --no: #a8322d; --no-bg: #f8e5e3; --warn: #8a5a00; --warn-bg: #fbf0d9;
+  --accent: #2b2b30;
+  --f-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121214; --surface: #1b1b1e; --fg: #ececee; --fg-2: #a0a0a8; --line: #2e2e33;
+  --yes: #6fd3a0; --yes-bg: #173327; --no: #f08a83; --no-bg: #3a1c1a; --warn: #e8b960; --warn-bg: #33270f;
+  --accent: #ececee; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121214; --surface: #1b1b1e; --fg: #ececee; --fg-2: #a0a0a8; --line: #2e2e33;
+  --yes: #6fd3a0; --yes-bg: #173327; --no: #f08a83; --no-bg: #3a1c1a; --warn: #e8b960; --warn-bg: #33270f;
+  --accent: #ececee; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 24px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: 28px; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 500; font-size: 17px; margin: 0; overflow-wrap: anywhere; }
+.lead { color: var(--fg-2); margin: 6px 0 0; max-width: 62ch; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+  padding-block: 10px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.progress { font-variant-numeric: tabular-nums; font-weight: 500; }
+.meter { flex: 1 1 160px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; min-width: 120px; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+label.opt { display: flex; gap: 6px; align-items: center; color: var(--fg-2); font-size: 13px; cursor: pointer; }
+button { font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 6px 12px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 13px; color: var(--fg-2); }
+.page { display: flex; flex-direction: column; gap: 12px; }
+.page-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.seg { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--fg-2); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.kind { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-2); }
+.orig { font-family: var(--f-display); font-size: 19px; font-weight: 500; overflow-wrap: anywhere; }
+.rows { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding-block: 10px; border-bottom: 1px solid var(--line); align-items: center; }
+.row > .txt { min-width: 0; overflow-wrap: anywhere; }
+.row .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chip { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); }
+.chip.arm { background: var(--line); color: var(--fg); font-family: var(--f-mono); }
+.why { font-size: 13px; color: var(--fg-2); }
+.vote { display: flex; gap: 6px; }
+.vote button { min-width: 64px; }
+.vote button[aria-pressed="true"].yes { background: var(--yes-bg); color: var(--yes); border-color: var(--yes); }
+.vote button[aria-pressed="true"].no { background: var(--no-bg); color: var(--no); border-color: var(--no); }
+.row.done .txt { opacity: .75; }
+.note { color: var(--fg-2); font-size: 13px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--fg-2); font-weight: 500; }
+.tablebox { overflow-x: auto; }
+.pass { color: var(--yes); font-weight: 600; } .fail { color: var(--no); font-weight: 600; }
+.vote button.fav { min-width: 44px; }
+.vote button.fav[aria-pressed="true"] { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
+.row.is-fav .txt > div:first-child { font-weight: 600; }
+.alert { margin: 0; padding: 10px 14px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-weight: 500; }
+#copyOut { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size: 12px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; box-sizing: border-box; }
+.ctx { font-size: 13px; color: var(--fg-2); display: flex; flex-direction: column; gap: 2px; max-width: 70ch; }
+.ctx b { color: var(--fg); font-weight: 500; }
+.limit { font-size: 12px; color: var(--fg-2); font-variant-numeric: tabular-nums; }
+.len { font-size: 12px; color: var(--fg-2); font-variant-numeric: tabular-nums; }
+.reasons { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.reasons button { font-size: 12px; padding: 2px 10px; border-radius: 999px; }
+.reasons button[aria-pressed="true"] { background: var(--no-bg); color: var(--no); border-color: var(--no); }
+@media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .meter > i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Copy-Eval Blindtest</h1>
+    <p class="lead">Je Seite siehst du, worum es auf der Seite geht, das Original und 6 KI-Varianten aus zwei Prompts, gemischt und ohne Herkunft. Wichtigste Frage pro Element: <strong>Auf welche Variante würdest du wetten?</strong> Markier sie mit ☆. Ja/Nein pro Zeile und die Nein-Gründe sind optional. Gelbe Hinweise sind automatische Prüfungen und nur eine Hilfe.</p>
+  </header>
+
+  <div class="bar">
+    <span class="progress" id="progress">0 / 0 bewertet</span>
+    <span class="meter" aria-hidden="true"><i id="meter"></i></span>
+    <label class="opt"><input type="checkbox" id="onlyOpen"> nur offene</label>
+    <button type="button" id="revealBtn">Auflösen</button>
+    <button type="button" id="copyBtn">Ergebnis kopieren</button>
+    <span class="status" id="status">Verbinde Speicher …</span>
+  </div>
+  <p class="alert" id="alert" hidden>Der Speicher ist in dieser Ansicht nicht verbunden. Deine Bewertungen werden nur in diesem Browser gesichert. Klick am Ende auf „Ergebnis kopieren“ und füg das Ergebnis im Chat ein.</p>
+  <textarea id="copyOut" hidden readonly aria-label="Ergebnis zum Kopieren"></textarea>
+
+  <section id="summary" hidden></section>
+  <main id="list" class="wrap" style="padding:0"></main>
+</div>
+
+<script>
+const DATA = "__DATA__";
+const ARM_LABEL = { old: 'Bisher (gpt-4o-mini, alter Prompt)', mini: 'gpt-5.4-mini', big: 'gpt-5.5', base: 'Prompt R4 (ohne Hebel)', levers: 'Prompt R5 (mit Hebeln)' };
+const REASONS = ['Sinn verfehlt', 'zu generisch', 'zu nah am Original', 'falsche Fakten', 'holprig/unnatürlich', 'zu lang', 'Sprache/Anrede'];
+const LS_KEY = 'copy-eval-' + DATA.runId;
+const ratings = {};          // variantId -> { ship: boolean, reasons: string[] }
+const favorites = {};        // elementKey -> variantId (dein Favorit pro Element)
+const elKey = (e) => e.variants[0].id.split('-').slice(0, 3).join('-');
+const allElements = DATA.pages.flatMap(p => p.elements.filter(e => !e.missing && e.variants.length));
+let revealed = false;
+let db = null;
+const statusEl = document.getElementById('status');
+const armsInRun = [...new Set(DATA.pages.flatMap(p => p.elements.flatMap(e => e.variants.map(v => v.arm))))];
+const allVariants = DATA.pages.flatMap(p => p.elements.flatMap(e => e.variants));
+
+// Sicherung im Browser: überlebt Neuladen, auch wenn der Speicher fehlt
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(ratings)); localStorage.setItem(LS_KEY + '-fav', JSON.stringify(favorites)); } catch (_) {} }
+try { Object.assign(ratings, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); Object.assign(favorites, JSON.parse(localStorage.getItem(LS_KEY + '-fav') || '{}')); } catch (_) {}
+
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k) n.append(k);
+  return n;
+}
+
+function render() {
+  const onlyOpen = document.getElementById('onlyOpen').checked;
+  const list = document.getElementById('list');
+  const y = window.scrollY;
+  list.replaceChildren();
+  for (const p of DATA.pages) {
+    const sec = el('section', { class: 'page' },
+      el('div', { class: 'page-head' }, el('h2', { text: p.url.replace(/^https?:\/\//, '') }), el('span', { class: 'seg', text: p.segment + (p.language ? ' · ' + p.language : '') + (p.address ? ' · ' + p.address : '') })));
+    if (p.error) { sec.append(el('p', { class: 'note', text: 'Seite nicht abrufbar: ' + p.error })); list.append(sec); continue; }
+    if (p.offer) {
+      const ctx = el('div', { class: 'ctx' });
+      ctx.append(el('span', {}, el('b', { text: 'Angebot: ' }), p.offer));
+      if (p.audience) ctx.append(el('span', {}, el('b', { text: 'Für: ' }), p.audience));
+      sec.append(ctx);
+    }
+    let any = false;
+    for (const e of p.elements) {
+      const card = el('div', { class: 'card' }, el('div', { class: 'kind', text: e.kind === 'headline' ? 'Headline · Aussage, worum es geht' : 'Haupt-CTA · Button, der etwas auslöst' }));
+      if (e.missing) { card.append(el('p', { class: 'note', text: 'Element auf der Seite nicht gefunden.' })); sec.append(card); continue; }
+      if (onlyOpen && favorites[elKey(e)]) continue;
+      card.append(el('div', { class: 'orig', text: '„' + e.original + '“' }));
+      if (e.kind === 'headline' && p.subline) card.append(el('div', { class: 'ctx', text: 'Darunter: „' + p.subline + '“' }));
+      if (e.maxChars) card.append(el('div', { class: 'limit', text: 'Original ' + e.original.length + ' Zeichen · Limit ' + e.maxChars }));
+      const rows = el('div', { class: 'rows' });
+      for (const v of e.variants) {
+        const r = ratings[v.id];
+        any = true;
+        const meta = el('div', { class: 'meta' }, el('span', { class: 'len', text: v.text.length + ' Z.' }));
+        for (const f of v.flags) meta.append(el('span', { class: 'chip', text: f }));
+        if (revealed) meta.append(el('span', { class: 'chip arm', text: ARM_LABEL[v.arm] || v.arm }));
+        const txt = el('div', { class: 'txt' }, el('div', { text: v.text || '(leer)' }), meta);
+        if (revealed && v.why) txt.append(el('div', { class: 'why', text: (v.angle ? v.angle + ' · ' : '') + v.why }));
+        const yes = el('button', { type: 'button', class: 'yes', 'aria-pressed': String(r?.ship === true), text: 'Ja' });
+        const no = el('button', { type: 'button', class: 'no', 'aria-pressed': String(r?.ship === false), text: 'Nein' });
+        yes.addEventListener('click', () => rate(v.id, r?.ship === true ? null : { ship: true, reasons: [] }));
+        no.addEventListener('click', () => rate(v.id, r?.ship === false ? null : { ship: false, reasons: r?.reasons || [] }));
+        const isFav = favorites[elKey(e)] === v.id;
+        const fav = el('button', { type: 'button', class: 'fav', 'aria-pressed': String(isFav), title: 'Mein Favorit für dieses Element', text: isFav ? '★ Favorit' : '☆' });
+        fav.addEventListener('click', () => setFavorite(elKey(e), isFav ? null : v.id));
+        const row = el('div', { class: 'row' + (r ? ' done' : '') + (isFav ? ' is-fav' : '') }, txt, el('div', { class: 'vote', role: 'group', 'aria-label': 'Bewertung' }, fav, yes, no));
+        if (r?.ship === false) {
+          const rs = el('div', { class: 'reasons', role: 'group', 'aria-label': 'Gründe' });
+          for (const reason of REASONS) {
+            const on = r.reasons.includes(reason);
+            const b = el('button', { type: 'button', 'aria-pressed': String(on), text: reason });
+            b.addEventListener('click', () => rate(v.id, { ship: false, reasons: on ? r.reasons.filter(x => x !== reason) : [...r.reasons, reason] }));
+            rs.append(b);
+          }
+          row.append(rs);
+        }
+        rows.append(row);
+      }
+      if (Object.keys(e.armErrors).length && revealed) card.append(el('p', { class: 'note', text: 'Fehler: ' + JSON.stringify(e.armErrors) }));
+      card.append(rows);
+      sec.append(card);
+    }
+    if (onlyOpen && !any) continue;
+    list.append(sec);
+  }
+  window.scrollTo(0, y);
+  const nf = allElements.filter(e => favorites[elKey(e)]).length;
+  const n = allVariants.filter(v => ratings[v.id]).length;
+  document.getElementById('progress').textContent = nf + ' / ' + allElements.length + ' Favoriten · ' + n + ' bewertet';
+  document.getElementById('meter').style.width = (allElements.length ? 100 * nf / allElements.length : 0) + '%';
+  renderSummary();
+}
+
+function stats() {
+  return armsInRun.map(arm => {
+    let rated = 0, yes = 0, elems = 0, passed = 0, flagged = 0, total = 0;
+    const reasons = {};
+    for (const p of DATA.pages) for (const e of p.elements) {
+      const vs = e.variants.filter(v => v.arm === arm);
+      total += vs.length; flagged += vs.filter(v => v.flags.length).length;
+      const r = vs.filter(v => ratings[v.id]);
+      rated += r.length; yes += r.filter(v => ratings[v.id].ship).length;
+      for (const v of r) for (const x of ratings[v.id].reasons || []) reasons[x] = (reasons[x] || 0) + 1;
+      if (vs.length && r.length === vs.length) { elems++; if (vs.filter(v => ratings[v.id].ship).length >= 2) passed++; }
+    }
+    return { arm, rated, yes, elems, passed, flagged, total, reasons };
+  });
+}
+
+function renderSummary() {
+  const box = document.getElementById('summary');
+  box.hidden = !revealed;
+  if (!revealed) return;
+  box.replaceChildren(el('h2', { text: 'Auswertung' }),
+    el('p', { class: 'note', text: 'Kriterium: Auf mindestens 80 % der Elemente sind mindestens 2 von 3 Varianten „Ja“. Gezählt werden nur vollständig bewertete Elemente.' }));
+  const t = el('table');
+  t.append(el('tr', {}, ...['Modell', 'Ja-Quote', 'Elemente ≥ 2/3', 'Kriterium', 'Häufigste Nein-Gründe'].map(h => el('th', { text: h }))));
+  for (const r of stats()) {
+    const share = r.elems ? r.passed / r.elems : 0;
+    const top = Object.entries(r.reasons).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => k + ' (' + n + ')').join(', ');
+    t.append(el('tr', {},
+      el('td', { text: ARM_LABEL[r.arm] || r.arm }),
+      el('td', { text: r.rated ? Math.round(100 * r.yes / r.rated) + ' % (' + r.yes + '/' + r.rated + ')' : '–' }),
+      el('td', { text: r.elems ? r.passed + ' / ' + r.elems + ' (' + Math.round(100 * share) + ' %)' : '–' }),
+      el('td', { class: r.elems ? (share >= .8 ? 'pass' : 'fail') : '', text: r.elems ? (share >= .8 ? 'erfüllt' : 'nicht erfüllt') : '–' }),
+      el('td', { text: top || '–' })));
+  }
+  box.append(el('div', { class: 'tablebox' }, t));
+
+  // Favoriten: welcher Prompt liefert die stärkste Variante?
+  const byId = Object.fromEntries(allVariants.map(v => [v.id, v]));
+  const favs = Object.values(favorites).map(id => byId[id]).filter(Boolean);
+  const ft = el('table');
+  ft.append(el('tr', {}, ...['Quelle', 'Favoriten', 'Anteil'].map(h => el('th', { text: h }))));
+  for (const arm of armsInRun) {
+    const c = favs.filter(v => v.arm === arm).length;
+    ft.append(el('tr', {}, el('td', { text: ARM_LABEL[arm] || arm }), el('td', { text: String(c) }), el('td', { text: favs.length ? Math.round(100 * c / favs.length) + ' %' : '–' })));
+  }
+  box.append(el('h2', { text: 'Favoriten' }), el('div', { class: 'tablebox' }, ft));
+  const levers = {};
+  for (const v of favs) if (v.angle) levers[v.angle] = (levers[v.angle] || 0) + 1;
+  const top = Object.entries(levers).sort((a, b) => b[1] - a[1]).map(([k, c]) => k + ' (' + c + ')').join(', ');
+  box.append(el('p', { class: 'note', text: 'Hebel bzw. Blickwinkel deiner Favoriten: ' + (top || '–') }));
+}
+
+async function setFavorite(key, variantId) {
+  if (variantId === null) delete favorites[key]; else favorites[key] = variantId;
+  saveLocal();
+  render();
+  if (!db) return;
+  try {
+    const ref = db.collection('favorites').doc(key);
+    if (variantId === null) await ref.delete(); else await ref.set({ variantId, at: new Date().toISOString() });
+    statusEl.textContent = 'Gespeichert';
+  } catch (e) {
+    statusEl.textContent = 'Speichern fehlgeschlagen (' + (e && e.code || 'Fehler') + ') – im Browser gesichert';
+    document.getElementById('alert').hidden = false;
+  }
+}
+
+async function rate(id, value) {
+  if (value === null) delete ratings[id]; else ratings[id] = value;
+  saveLocal();
+  render();
+  if (!db) return;
+  try {
+    const ref = db.collection('ratings').doc(id);
+    if (value === null) await ref.delete(); else await ref.set({ ship: value.ship, reasons: value.reasons, at: new Date().toISOString() });
+    statusEl.textContent = 'Gespeichert';
+  } catch (e) {
+    statusEl.textContent = 'Speichern fehlgeschlagen (' + (e && e.code || 'Fehler') + ') – im Browser gesichert';
+    document.getElementById('alert').hidden = false;
+  }
+}
+
+document.getElementById('onlyOpen').addEventListener('change', render);
+document.getElementById('revealBtn').addEventListener('click', () => {
+  revealed = !revealed;
+  document.getElementById('revealBtn').textContent = revealed ? 'Wieder verdecken' : 'Auflösen';
+  render();
+});
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const payload = JSON.stringify({ run: DATA.runId, ratings, favorites });
+  const out = document.getElementById('copyOut');
+  out.value = payload;
+  const done = () => { document.getElementById('copyBtn').textContent = 'Kopiert'; };
+  const fallback = () => { out.hidden = false; out.focus(); out.select(); document.getElementById('copyBtn').textContent = 'Text unten markiert'; };
+  try { navigator.clipboard.writeText(payload).then(done, fallback); } catch (_) { fallback(); }
+});
+
+render();
+
+(async () => {
+  try { db = window.claude ? await window.claude.use('db') : null; } catch (_) { db = null; }
+  if (!db) {
+    statusEl.textContent = 'Nur im Browser gesichert';
+    document.getElementById('alert').hidden = false;
+    return;
+  }
+  const timer = setTimeout(() => { statusEl.textContent = 'Speicher antwortet nicht – im Browser gesichert'; document.getElementById('alert').hidden = false; }, 10000);
+  db.collection('ratings').onSnapshot(snap => {
+    if (!snap.metadata.fromCache) clearTimeout(timer);
+    const prefix = DATA.runId + '-';
+    const remote = {};
+    for (const d of snap.docs) {
+      if (!d.id.startsWith(prefix)) continue;
+      const b = d.data();
+      if (b && typeof b.ship === 'boolean') remote[d.id] = { ship: b.ship, reasons: Array.isArray(b.reasons) ? b.reasons : [] };
+    }
+    // Lokale Bewertungen, die der Speicher noch nicht hat, nachtragen
+    for (const [id, v] of Object.entries(ratings)) if (!remote[id]) rate(id, v);
+    Object.assign(ratings, remote);
+    saveLocal();
+    statusEl.textContent = 'Gespeichert & verbunden';
+    document.getElementById('alert').hidden = true;
+    render();
+  }, err => { clearTimeout(timer); statusEl.textContent = 'Speicher getrennt (' + err.code + ') – im Browser gesichert'; document.getElementById('alert').hidden = false; });
+  db.collection('favorites').onSnapshot(snap => {
+    const prefix = DATA.runId + '-';
+    const remote = {};
+    for (const d of snap.docs) { if (!d.id.startsWith(prefix)) continue; const b = d.data(); if (b && typeof b.variantId === 'string') remote[d.id] = b.variantId; }
+    for (const [k, v] of Object.entries(favorites)) if (!remote[k]) setFavorite(k, v);
+    Object.assign(favorites, remote);
+    saveLocal();
+    render();
+  }, () => {});
+})();
+</script>
