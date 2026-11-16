@@ -260,7 +260,8 @@ export function StepChange({ element, changes, onChanges, pageUrl }: StepChangeP
               srcDoc={srcDoc}
               title="Live preview — original vs. variant"
               width={previewWidth}
-              height={260}
+              // Mobil stehen A und B untereinander, ab Tablet nebeneinander
+              height={breakpoint === 375 ? 260 : 150}
             />
           </div>
         ) : (

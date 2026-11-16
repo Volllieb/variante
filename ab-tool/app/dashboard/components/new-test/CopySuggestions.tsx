@@ -96,7 +96,8 @@ export function CopySuggestions({ pageUrl, original, kind, selector, currentText
 
   return (
     <div className="flex flex-col gap-snug">
-      <OptionCardGroup label={kind === 'headline' ? 'Headline suggestions' : 'Button text suggestions'}>
+      {/* Untereinander: nebeneinander schnitt der Badge die Vorschläge auf „keep m…" ab */}
+      <OptionCardGroup label={kind === 'headline' ? 'Headline suggestions' : 'Button text suggestions'} className="flex-col">
         {state.variants.map((v) => (
           <OptionCard
             key={v.text}

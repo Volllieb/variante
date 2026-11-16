@@ -276,7 +276,7 @@ function ElementPreview({
     <div className="min-w-0">
       <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>
       <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
-        <ScaledFrame srcDoc={srcDoc} title={`${label} preview`} width={width} height={220} />
+        <ScaledFrame srcDoc={srcDoc} title={`${label} preview`} width={width} height={150} />
       </div>
     </div>
   )

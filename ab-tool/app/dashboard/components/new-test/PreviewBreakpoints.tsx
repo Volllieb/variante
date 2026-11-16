@@ -52,7 +52,8 @@ export function ScaledFrame({
   // noch übersteht, wird symmetrisch abgeschnitten — die Mitte bleibt sichtbar.
   const MIN_SCALE = 0.7
   const scale = boxWidth ? Math.max(MIN_SCALE, Math.min(1, boxWidth / width)) : 1
-  const offsetX = boxWidth ? Math.min(0, (boxWidth - width * scale) / 2) : 0
+  // negativ = Ränder abschneiden, positiv = schmale Vorschau im breiten Rahmen zentrieren
+  const offsetX = boxWidth ? (boxWidth - width * scale) / 2 : 0
   return (
     <div ref={boxRef} className="w-full overflow-hidden" style={{ height: Math.ceil(height * scale) }}>
       <iframe
