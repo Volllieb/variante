@@ -67,9 +67,25 @@ function deriveHostname(raw: string): string | null {
 }
 
 export function StepUrlAndElement({
-  url, onUrlChange, selectedElement, onElementSelected, onConfirm, verifiedDomains,
+  url: urlProp, onUrlChange, selectedElement, onElementSelected, onConfirm, verifiedDomains,
   domainConnectState, domainConnectError, connectingDomain, onConnectDomain,
 }: StepUrlAndElementProps) {
+  // Ein Test laeuft auf GENAU der verbundenen Seite, deren Snippet geprueft
+  // wurde. Deshalb gibt es hier weder eine Pfad-Eingabe noch eine freie URL:
+  // Eine Unterseite ist nie auf das Snippet geprueft worden und damit nicht
+  // testbar — sie anzubieten hat nur zwei URL-Felder erzeugt, die dasselbe
+  // zu meinen schienen. Die Auswahl ist die Domain, die URL ist ihre Wurzel.
+  const matchedDomain = verifiedDomains.find((d) => urlProp === `https://${d.url}/`)
+  const selectedDomain = matchedDomain?.url
+    ?? verifiedDomains.find((d) => urlProp.startsWith(`https://${d.url}`))?.url
+    ?? verifiedDomains[0]?.url
+  const desiredUrl = selectedDomain ? `https://${selectedDomain}/` : ''
+  // Was das Auswahlfeld zeigt, ist auch die Seite, mit der gearbeitet wird.
+  // Live-Test 16.11.2026: Der Wizard-State trug beim Öffnen eine leere URL
+  // (Draft-Restore überschreibt den Sync-Effekt unten), das Feld zeigte aber
+  // schon „vallisride.com" — „Open page" blieb gesperrt, bis man die Seite
+  // neu wählte. Mit dem Fallback hängt nichts mehr an der Effekt-Reihenfolge.
+  const url = urlProp || desiredUrl
   const [pickerOpen, setPickerOpen] = useState(false)
   const [waitingForPicker, setWaitingForPicker] = useState(false)
   const [pickerBlocked, setPickerBlocked] = useState(false)
@@ -247,24 +263,13 @@ export function StepUrlAndElement({
   const hasSnippet = verifiedDomains.length > 0
   const showPickerMode = mode === 'picker'
 
-  // Ein Test laeuft auf GENAU der verbundenen Seite, deren Snippet geprueft
-  // wurde. Deshalb gibt es hier weder eine Pfad-Eingabe noch eine freie URL:
-  // Eine Unterseite ist nie auf das Snippet geprueft worden und damit nicht
-  // testbar — sie anzubieten hat nur zwei URL-Felder erzeugt, die dasselbe
-  // zu meinen schienen. Die Auswahl ist die Domain, die URL ist ihre Wurzel.
-  const matchedDomain = verifiedDomains.find((d) => url === `https://${d.url}/`)
-  const selectedDomain = matchedDomain?.url
-    ?? verifiedDomains.find((d) => url.startsWith(`https://${d.url}`))?.url
-    ?? verifiedDomains[0]?.url
-  const desiredUrl = selectedDomain ? `https://${selectedDomain}/` : ''
-
   // Alt-Drafts und Alttests koennen noch einen Pfad oder eine nie verbundene
   // Domain tragen. Beides wird auf die verbundene Wurzel gezogen, sobald der
   // Step sichtbar ist — der Wizard soll nie eine Seite anzeigen, die er nicht
   // testen kann.
   useEffect(() => {
-    if (desiredUrl && url !== desiredUrl) onUrlChange(desiredUrl)
-  }, [desiredUrl, url, onUrlChange])
+    if (desiredUrl && urlProp !== desiredUrl) onUrlChange(desiredUrl)
+  }, [desiredUrl, urlProp, onUrlChange])
 
   // Inline domain-connect status for the CURRENTLY typed hostname. If the user
   // edits the URL after a connect attempt, the status reverts to idle rather

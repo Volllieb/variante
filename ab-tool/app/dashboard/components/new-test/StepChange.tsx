@@ -31,7 +31,7 @@ import { getEditorCategory } from './types'
 import type { ChangeEntry, ChangeProperty, VariantChangeSet } from './types'
 import type { ElementSelection } from '../NewTestDrawer'
 import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
-import { BreakpointSwitcher, BREAKPOINTS, type Breakpoint } from './PreviewBreakpoints'
+import { BreakpointSwitcher, BREAKPOINTS, ScaledFrame, type Breakpoint } from './PreviewBreakpoints'
 import { PreviewStateToggle } from './PreviewStateToggle'
 import type { PreviewState } from './PreviewStateToggle'
 import { CopySuggestions, type CopySuggestion } from './CopySuggestions'
@@ -255,16 +255,13 @@ export function StepChange({ element, changes, onChanges, pageUrl }: StepChangeP
           </div>
         </div>
         {canRenderPreview ? (
-          <div className="overflow-x-auto">
-            <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
-              <iframe
-                srcDoc={srcDoc}
-                sandbox=""
-                title="Live preview — original vs. variant"
-                className="h-32"
-                style={{ width: previewWidth }}
-              />
-            </div>
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
+            <ScaledFrame
+              srcDoc={srcDoc}
+              title="Live preview — original vs. variant"
+              width={previewWidth}
+              height={260}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2.5">

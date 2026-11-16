@@ -17,7 +17,7 @@ import { ChangeList } from './ChangeList'
 import { MIN_VISITORS_PER_ARM, MIN_CONVERSIONS_PER_ARM, MIN_RUNTIME_DAYS } from '@/lib/significance'
 import { formatCount } from '@/lib/formatNumber'
 import { buildPreviewSrcDoc, extractTextFromHtml } from '@/lib/previewDoc'
-import { BreakpointSwitcher, BREAKPOINTS, type Breakpoint } from './PreviewBreakpoints'
+import { BreakpointSwitcher, BREAKPOINTS, ScaledFrame, type Breakpoint } from './PreviewBreakpoints'
 import { PreviewStateToggle } from './PreviewStateToggle'
 import type { PreviewState } from './PreviewStateToggle'
 
@@ -118,7 +118,7 @@ export function StepReview({
                     <BreakpointSwitcher value={breakpoint} onChange={setBreakpoint} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2.5 overflow-x-auto">
+                <div className="grid grid-cols-2 gap-2.5">
                   <ElementPreview
                     label="Original (A)"
                     html={element.originalHtml}
@@ -276,13 +276,7 @@ function ElementPreview({
     <div className="min-w-0">
       <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-3">{label}</p>
       <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-bg-0">
-        <iframe
-          srcDoc={srcDoc}
-          sandbox=""
-          title={`${label} preview`}
-          className="h-28"
-          style={{ width }}
-        />
+        <ScaledFrame srcDoc={srcDoc} title={`${label} preview`} width={width} height={220} />
       </div>
     </div>
   )

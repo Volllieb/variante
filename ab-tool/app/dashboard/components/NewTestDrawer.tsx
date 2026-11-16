@@ -407,7 +407,9 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
           setState((prev) => ({
             ...prev,
             step: draft.step ?? 0,
-            url: draft.url ?? '',
+            // Leerer Draft-URL darf die schon gesetzte Seite nicht löschen: der
+            // Restore läuft async NACH dem Sync in StepUrlAndElement (Live-Test 16.11.2026).
+            url: draft.url || prev.url,
             selectedElement: draft.selector ? {
               selector: draft.selector,
               originalHtml: draft.original_html ?? '',
