@@ -1,5 +1,7 @@
 'use client'
 
+import { useChunkErrorReload } from '@/lib/chunkReload'
+
 import Link from 'next/link'
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
@@ -7,6 +9,8 @@ import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Button } from '@/app/components'
 
 export default function AccountError({ error, reset }: { error: Error; reset: () => void }) {
+  // Deployment-Skew: fehlender Chunk → einmal neu laden statt Fehlerseite
+  useChunkErrorReload(error)
   useEffect(() => {
     console.error('[account:error-boundary]', error)
     Sentry.captureException(error)

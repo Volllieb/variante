@@ -1,5 +1,7 @@
 'use client'
 
+import { useChunkErrorReload } from '@/lib/chunkReload'
+
 // Global Error-Boundary — ersetzt das Root-Layout, wenn dieses selbst crasht.
 // Inline-Styles statt Tailwind-Tokens: globals.css wird hier nicht geladen,
 // und genau in diesem Fehlerfall darf nichts von der CSS-Pipeline abhängen.
@@ -10,6 +12,8 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  // Deployment-Skew: fehlender Chunk → einmal neu laden statt Fehlerseite
+  useChunkErrorReload(error)
   return (
     <html lang="en">
       <body

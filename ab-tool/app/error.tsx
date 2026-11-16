@@ -1,5 +1,7 @@
 'use client'
 
+import { useChunkErrorReload } from '@/lib/chunkReload'
+
 import Link from 'next/link'
 import { RefreshCw, ArrowLeft } from 'lucide-react'
 import { Button } from '@/app/components'
@@ -14,6 +16,8 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  // Deployment-Skew: fehlender Chunk → einmal neu laden statt Fehlerseite
+  useChunkErrorReload(error)
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-0">
       <div className="text-center">

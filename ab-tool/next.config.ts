@@ -72,13 +72,12 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
-      // Statische Assets: langes Caching (fingerprinted via Next.js Build)
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
+      // /_next/static bekommt bewusst KEINE eigene Cache-Regel: Next/Vercel
+      // setzen für vorhandene, gehashte Dateien selbst „immutable“. Unsere
+      // Regel galt auch für 404-Antworten — wer während eines Deployments
+      // einen noch fehlenden Chunk anfragte, behielt die 404 ein Jahr lang
+      // im Cache, und das Dashboard crashte dauerhaft mit ChunkLoadError
+      // („500 Something went wrong", Live-Test 16.11.2026).
       // ab.js liegt unter einer unveraenderlichen URL im <head> fremder Seiten.
       // Mit max-age=3600 lief jeder Picker-/Tracking-Fix bis zu einer Stunde ins
       // Leere: Browser servierten die alte Datei ohne Revalidierung, und der
@@ -96,13 +95,6 @@ const nextConfig: NextConfig = {
         source: '/icon.svg',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' },
-        ],
-      },
-      // Fonts: 1 Jahr Cache
-      {
-        source: '/_next/static/media/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       // Pages: Weniger strikt (Dashboard braucht Framing für Preview-iframes nicht)
