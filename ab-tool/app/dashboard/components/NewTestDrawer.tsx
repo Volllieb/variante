@@ -158,6 +158,8 @@ function parseChanges(raw: unknown): VariantChangeSet | null {
       source: CHANGE_SOURCES.has(String(row.source)) ? row.source as ChangeEntry['source'] : 'ai',
       status: CHANGE_STATUSES.has(String(row.status)) ? row.status as ChangeEntry['status'] : 'suggested',
       ...(typeof row.explanation === 'string' ? { explanation: row.explanation } : {}),
+      // Hebel der KI-Variante (lib/copyLevers.ts) — ging beim Wiederöffnen verloren
+      ...(typeof row.lever === 'string' ? { lever: row.lever } : {}),
       ...(typeof row.rawCss === 'string' ? { rawCss: row.rawCss } : {}),
     })
   }

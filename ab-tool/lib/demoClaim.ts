@@ -106,7 +106,8 @@ function draftFromPick(pick: DemoPick, choice: ReturnType<typeof parseDemoChoice
     selector: el.s,
     original_html: el.x ?? `<${el.t}>${escapeHtml(el.o)}</${el.t}>`,
     element_type: elementType,
-    variant_b_changes: JSON.stringify(changes),
+    // jsonb-Spalte: als Objekt schreiben wie /api/test-wizard/create (kein JSON-String)
+    variant_b_changes: changes,
     goal: pick.c ? `click:${pick.c.s}` : 'click',
     name: kind === 'h' ? 'Headline test' : 'Button test',
   }
