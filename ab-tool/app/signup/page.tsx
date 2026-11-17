@@ -50,10 +50,17 @@ export default function SignupPage() {
 
   // UX: Bereits eingeloggt → direkt zum Dashboard.
   useEffect(() => {
-    getBrowserSupabase().auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // getUser() statt getSession(): eine nur lokal vorhandene, serverseitig
+    // ungültige Sitzung führte über proxy.ts in eine Login-Schleife
+    // („Loading…", Live-Test 17.11.2026) — siehe app/login/page.tsx.
+    const supabase = getBrowserSupabase()
+    supabase.auth.getUser().then(async ({ data: { user }, error }) => {
+      if (user && !error) {
         router.push('/dashboard')
         return
+      }
+      if (user) {
+        try { await supabase.auth.signOut({ scope: 'local' }) } catch { /* Formular trotzdem zeigen */ }
       }
       setSessionChecked(true)
     }).catch(() => {

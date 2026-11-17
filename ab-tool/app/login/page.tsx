@@ -45,10 +45,20 @@ export default function LoginPage() {
   // PASSWORD_RECOVERY-Event: User kommt aus alter Reset-Mail → redirect zu /update-password
   useEffect(() => {
     const supabase = getBrowserSupabase()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // getUser() statt getSession(): getSession liest nur den lokalen Speicher.
+    // War die Sitzung dort noch vorhanden, aber serverseitig ungültig, schickte
+    // die Seite zum Dashboard, proxy.ts sofort zurück (?error=Please log in…) —
+    // Endlosschleife mit dauerhaftem „Loading…" (Live-Test 17.11.2026).
+    // Kommt der Nutzer genau von diesem Redirect, gilt die lokale Sitzung als
+    // ungültig und wird lokal verworfen.
+    const cameFromGate = new URLSearchParams(window.location.search).has('error')
+    supabase.auth.getUser().then(async ({ data: { user }, error }) => {
+      if (user && !error && !cameFromGate) {
         router.push('/dashboard')
         return
+      }
+      if (user || cameFromGate) {
+        try { await supabase.auth.signOut({ scope: 'local' }) } catch { /* Formular trotzdem zeigen */ }
       }
       setSessionChecked(true)
     }).catch(() => {
