@@ -16,7 +16,7 @@
 import * as cheerio from 'cheerio'
 import { safeFetch } from '@/lib/safeFetch'
 import { safeError } from '@/lib/safeLog'
-import { LEVER_BLOCK, LEVER_IDS, type LeverId } from '@/lib/copyLevers'
+import { CTA_LEVERS, HEADLINE_LEVERS, LEVER_BLOCK, type LeverId } from '@/lib/copyLevers'
 
 const MODEL = 'gpt-5.4-mini'
 
@@ -267,7 +267,12 @@ Rules (all mandatory):
 7. "why": one short sentence in English: what changes compared to the original and why that could convert better.
 8. "lever": the id of the lever the variant tests.`
 
-const VARIANT_SCHEMA = {
+/** Nur die Hebel der Rolle: eine Headline mit CTA-Hebel (oder umgekehrt) lässt das Schema gar nicht zu. */
+export function leversFor(kind: CopyKind): LeverId[] {
+  return Object.keys(kind === 'headline' ? HEADLINE_LEVERS : CTA_LEVERS) as LeverId[]
+}
+
+const variantSchema = (kind: CopyKind) => ({
   type: 'object', additionalProperties: false, required: ['variants'],
   properties: {
     variants: {
@@ -276,13 +281,13 @@ const VARIANT_SCHEMA = {
         type: 'object', additionalProperties: false, required: ['text', 'lever', 'why'],
         properties: {
           text: { type: 'string' },
-          lever: { type: 'string', enum: LEVER_IDS },
+          lever: { type: 'string', enum: leversFor(kind) },
           why: { type: 'string' },
         },
       },
     },
   },
-}
+})
 
 // ─── Harte Regeln ───
 
@@ -303,6 +308,18 @@ export function tooClose(v: string, original: string): boolean {
   if (!a.size || !b.size) return false
   const inter = [...a].filter((w) => b.has(w)).length
   return inter / new Set([...a, ...b]).size >= 0.6
+}
+
+// Jede Variante soll einen ANDEREN Hebel testen (Versprechen im Wizard und in
+// der Outreach). Der Prompt verlangt das, das Modell hält sich aber nicht
+// immer daran: vallisride.com, 17.11.2026 → „Würzburg To New Zealand“ und
+// „Germany To New Zealand“, beide h_specific. Deshalb hier im Code prüfen.
+export function variantConflict(v: CopyVariant, accepted: CopyVariant[]): string | null {
+  const sameLever = accepted.find((a) => a.lever === v.lever)
+  if (sameLever) return `uses the lever ${v.lever} again (already used by "${sameLever.text}") — pick a different lever`
+  const near = accepted.find((a) => a.text.toLowerCase() === v.text.toLowerCase() || tooClose(v.text, a.text))
+  if (near) return `is too similar to the accepted variant "${near.text}" — write a clearly different hypothesis`
+  return null
 }
 
 // Nur echte Kaufanreize; „trial“ ist keiner („Create free account“ ist ein legitimer Tausch)
@@ -557,14 +574,16 @@ export async function generateCopyVariants(input: GenerateCopyInput): Promise<Ge
   for (let attempt = 0; attempt < 3 && keep.length < 3; attempt++) {
     const ask = attempt === 0
       ? user
-      : `${user}\n\nAlready accepted (do not repeat, write different ones): ${keep.map((v) => `"${v.text}"`).join(', ') || 'none'}\nYour previous answer broke mandatory rules:\n- ${feedback}\nWrite 3 new variants that follow every rule.`
-    const r = await callJson<{ variants: CopyVariant[] }>(SYSTEM, ask, 'copy_variants', VARIANT_SCHEMA)
+      : `${user}\n\nAlready accepted (do not repeat, write different ones): ${keep.map((v) => `"${v.text}" (${v.lever})`).join(', ') || 'none'}${keep.length ? `\nLevers already used, do NOT use them again: ${keep.map((v) => v.lever).join(', ')}` : ''}\nYour previous answer broke mandatory rules:\n- ${feedback}\nWrite 3 new variants that follow every rule.`
+    const r = await callJson<{ variants: CopyVariant[] }>(SYSTEM, ask, 'copy_variants', variantSchema(kind))
     const problems: string[] = []
     for (const v0 of r.variants ?? []) {
       const v = { ...v0, text: applyFormat(v0.text, fmt, company) }
       const p = violations(v.text)
+      const conflict = p.length ? null : variantConflict(v, keep)
       if (p.length) problems.push(...p.map((x) => `"${v.text}" ${x}`))
-      else if (keep.length < 3 && !keep.some((k) => k.text.toLowerCase() === v.text.toLowerCase())) keep.push(v)
+      else if (conflict) problems.push(`"${v.text}" ${conflict}`)
+      else if (keep.length < 3) keep.push(v)
     }
     feedback = problems.join('\n- ')
   }
