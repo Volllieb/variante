@@ -13,6 +13,13 @@ Gehe zu **[supabase.com/dashboard](https://supabase.com/dashboard)** → dein Pr
 
 ### 2. Templates ersetzen
 
+> **Wichtig (17.11.2026):** `confirm-sign-up.html` und `reset-password.html` verlinken auf
+> `{{ .SiteURL }}/auth/callback?token_hash=…` statt `{{ .ConfirmationURL }}`. Der Standard-Link nutzt
+> PKCE und funktioniert nur im **selben Browser**, in dem man sich registriert hat — öffnet die
+> Mail-App den Link woanders (anderes Fenster, Inkognito, Handy), landete man im Login statt im
+> Onboarding. `token_hash` wird serverseitig in `/auth/callback` per `verifyOtp` geprüft und
+> funktioniert überall. Voraussetzung: **Site URL** in Supabase = `https://www.getvariante.com`.
+
 Die Dateinamen entsprechen 1:1 den Supabase-Template-Tabs. Für jeden Tab:
 
 1. HTML-Inhalt aus der entsprechenden `.html`-Datei in diesem Ordner kopieren

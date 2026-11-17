@@ -33,6 +33,9 @@ export default function LoginPage() {
     const q = new URLSearchParams(window.location.search).get('error')
     return q ? decodeURIComponent(q) : ''
   })
+  // Vom Auth-Callback, wenn der Bestätigungslink in einem anderen Browser geöffnet wurde
+  const [emailConfirmed] = useState(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('confirmed') === '1')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
@@ -264,6 +267,11 @@ export default function LoginPage() {
             </Field>
 
             {/* Error / success */}
+            {emailConfirmed && !err && (
+              <p className="rounded-md border border-ok/20 bg-ok/[0.06] px-4 py-3 text-meta text-ok">
+                Your email is confirmed. Log in with your email and password to continue.
+              </p>
+            )}
             {err && (
               <p className="rounded-md border border-err/20 bg-err-bg px-4 py-3 text-meta text-err">
                 {err}

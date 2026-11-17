@@ -97,6 +97,15 @@ export async function GET(req: NextRequest) {
     try {
       const { error, data } = await supabase.auth.exchangeCodeForSession(code)
       if (error) {
+        // PKCE: Der Code-Verifier liegt als Cookie in dem Browser, in dem man
+        // sich registriert hat. Öffnet man den Bestätigungslink woanders
+        // (Mail-App, anderes Fenster, Inkognito), fehlt er. Die E-Mail ist zu
+        // diesem Zeitpunkt aber schon bestätigt → freundlich zum Login statt
+        // kryptischer Fehlermeldung (Live-Test 17.11.2026). Dauerhafte Lösung:
+        // token_hash-Links in emails/confirm-sign-up.html.
+        if (/code verifier|code_verifier|both auth code/i.test(error.message)) {
+          return NextResponse.redirect(new URL('/login?confirmed=1', req.url))
+        }
         return NextResponse.redirect(
           new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
         )

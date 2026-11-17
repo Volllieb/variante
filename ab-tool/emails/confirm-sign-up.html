@@ -39,13 +39,13 @@
               </p>
 
               <!-- CTA -->
-              <a href="{{ .ConfirmationURL }}" style="display:inline-block;background-color:#000000;color:#ffffff;padding:12px 28px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;line-height:1.4;white-space:nowrap;">
+              <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&amp;type=email&amp;next=/onboarding" style="display:inline-block;background-color:#000000;color:#ffffff;padding:12px 28px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;line-height:1.4;white-space:nowrap;">
                 Confirm email &rarr;
               </a>
 
               <p style="margin:24px 0 0;font-size:12px;color:#999999;line-height:1.5;">
                 Or copy this link:<br>
-                <code style="font-family:ui-monospace,'SF Mono','Fira Code',monospace;font-size:11px;color:#666666;word-break:break-all;">{{ .ConfirmationURL }}</code>
+                <code style="font-family:ui-monospace,'SF Mono','Fira Code',monospace;font-size:11px;color:#666666;word-break:break-all;">{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&amp;type=email&amp;next=/onboarding</code>
               </p>
 
             </td>
