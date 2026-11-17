@@ -26,6 +26,7 @@ import type { TestRow } from './TestCard'
 import { StepChange } from './new-test/StepChange'
 import { StepGoal } from './new-test/StepGoal'
 import { StepReview } from './new-test/StepReview'
+import { cn } from '@/lib/utils'
 import {
   collectedOriginalComputed,
   collectedOriginalHoverComputed,
@@ -301,10 +302,19 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
       // If resuming an existing draft test, populate from test data directly
       if (resumeTest) {
         if (!mountedRef.current) return
+        // Frisch vom Server laden: Die Zeile in der Testliste ist nach „Save
+        // Draft" unvollständig (nur Name/Status) — der Wizard startete dann leer
+        // bei Schritt 1, obwohl der Entwurf fertig war (Live-Test 17.11.2026).
+        let rt: TestRow = resumeTest
+        try {
+          const fresh = await fetch(`/api/tests/${resumeTest.id}`)
+          if (fresh.ok) rt = { ...resumeTest, ...(await fresh.json() as Partial<TestRow>) }
+        } catch { /* Fallback: Listenzeile */ }
+        if (!mountedRef.current) return
         // Parse goal from DB format (e.g. "click:.selector" or "click")
         let goalParsed: GoalSelection | null = null
-        if (resumeTest.goal) {
-          const goalStr = resumeTest.goal
+        if (rt.goal) {
+          const goalStr = rt.goal
           if (goalStr.startsWith('click:')) {
             const goalSelector = goalStr.slice(6)
             goalParsed = {
@@ -313,7 +323,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               label: goalSelector ? `Clicks on ${goalSelector}` : 'Clicks on element',
               // Identisch mit dem getesteten Selektor → das Element selbst ist
               // das Goal, StepGoal zeigt dann den 'tested'-Modus.
-              source: goalSelector && goalSelector === resumeTest.selector ? 'tested' : 'picker',
+              source: goalSelector && goalSelector === rt.selector ? 'tested' : 'picker',
             }
           }
         }
@@ -321,11 +331,11 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
         // variant_b_css/-html rekonstruiert. Baseline: gemessene Computed-
         // Styles aus dem site_css (.__original-Block), sonst die
         // mitpersistierte Baseline der Liste.
-        const computed = collectedOriginalComputed(resumeTest.site_css ?? '')
-        const computedHover = collectedOriginalHoverComputed(resumeTest.site_css ?? '')
+        const computed = collectedOriginalComputed(rt.site_css ?? '')
+        const computedHover = collectedOriginalHoverComputed(rt.site_css ?? '')
         const measuredBaseline = buildStyleBaseline(computed)
         const measuredHoverBaseline = buildStyleBaseline(computedHover)
-        const parsedChanges = parseChanges(resumeTest.variant_b_changes)
+        const parsedChanges = parseChanges(rt.variant_b_changes)
         const variantChanges = parsedChanges
           ? {
               ...parsedChanges,
@@ -333,18 +343,18 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               hoverBaseline: parsedChanges.hoverBaseline ?? measuredHoverBaseline,
             }
           : reconstructChanges(
-              resumeTest.original_html,
-              resumeTest.variant_b_html,
-              resumeTest.variant_b_css,
+              rt.original_html,
+              rt.variant_b_html,
+              rt.variant_b_css,
               measuredBaseline,
               measuredHoverBaseline,
             )
         // Determine first incomplete step — "hat Variante" heisst jetzt:
         // die Änderungsliste trägt angewandte Zeilen.
         let startStep = 0
-        const hasElement = !!resumeTest.selector
+        const hasElement = !!rt.selector
         const hasVariant = variantChanges.entries.some((e) => e.status === 'applied')
-        const hasGoal = !!resumeTest.goal
+        const hasGoal = !!rt.goal
         if (hasElement && hasGoal && hasVariant) startStep = 3   // all done → Review
         else if (hasElement && hasGoal) startStep = 2              // Change missing
         else if (hasElement) startStep = 1                        // Goal missing
@@ -352,31 +362,31 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
         setState({
           step: startStep,
-          url: resumeTest.site_url ?? '',
-          selectedElement: resumeTest.selector ? {
-            selector: resumeTest.selector,
-            originalHtml: resumeTest.original_html ?? '',
-            originalCss: resumeTest.site_css ?? '',
+          url: rt.site_url ?? '',
+          selectedElement: rt.selector ? {
+            selector: rt.selector,
+            originalHtml: rt.original_html ?? '',
+            originalCss: rt.site_css ?? '',
             // element_type kommt seit 044 aus der DB — vorher 'element',
             // was getEditorCategory immer auf 'button' fallen liess.
-            elementType: resumeTest.element_type ?? 'element',
-            elementName: resumeTest.selector,
-            styleContext: resumeTest.site_css
+            elementType: rt.element_type ?? 'element',
+            elementName: rt.selector,
+            styleContext: rt.site_css
               ? {
-                  css: resumeTest.site_css,
+                  css: rt.site_css,
                   computed: computed ?? {},
                   ...(computedHover ? { computedHover } : {}),
                 }
               : undefined,
           } : null,
-          elementConfirmed: !!resumeTest.selector,
+          elementConfirmed: !!rt.selector,
           variantChanges,
-          variantResult: resumeTest.selector
-            ? resultFromChanges(variantChanges, resumeTest.original_html ?? '', resumeTest.selector)
+          variantResult: rt.selector
+            ? resultFromChanges(variantChanges, rt.original_html ?? '', rt.selector)
             : null,
           selectedGoal: goalParsed,
           goalConfirmed: !!goalParsed,
-          testName: resumeTest.name?.startsWith('Demo test') ? '' : (resumeTest.name ?? ''),
+          testName: rt.name?.startsWith('Demo test') ? '' : (rt.name ?? ''),
           testStatus: 'active',
         })
         return
@@ -733,7 +743,7 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
               <FlaskConical className="h-4 w-4 text-text-on-invert" />
             </div>
             <div>
-              <h2 id="new-test-drawer-title" className="text-[14px] font-semibold text-text">New Test</h2>
+              <h2 id="new-test-drawer-title" className="text-[14px] font-semibold text-text">{resumeTest ? 'Edit draft' : 'New Test'}</h2>
               <p className="text-[11px] text-text-3">
                 Step {state.step + 1} of 4 — {stepLabels[state.step]}
               </p>
@@ -750,24 +760,36 @@ export function NewTestDrawer({ isOpen, onClose, userId, onTestCreated, verified
 
         {/* Step Indicator */}
         <div className="flex items-center gap-1 border-b border-border px-5 py-2.5">
-          {stepLabels.map((label, i) => (
+          {stepLabels.map((label, i) => {
+            // Jeder Schritt ist direkt anspringbar, sobald alle davor erledigt
+            // sind — ein fertiger Entwurf muss nicht mehr durchgeklickt werden.
+            const reachable = i !== state.step && Array.from({ length: i }, (_, j) => j).every((j) => canAdvanceFromStep(j))
+            return (
             <div key={label} className="flex items-center gap-1">
-              <div
-                className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-medium transition-colors ${
+              <button
+                type="button"
+                disabled={!reachable}
+                onClick={() => updateState({ step: i })}
+                aria-label={`Go to step ${i + 1}: ${label}`}
+                aria-current={i === state.step ? 'step' : undefined}
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-medium transition-colors',
                   i < state.step
                     ? 'bg-ok text-black'
                     : i === state.step
                       ? 'bg-fill-invert text-text-on-invert'
-                      : 'bg-bg-2 text-text-3'
-                }`}
+                      : reachable ? 'bg-bg-2 text-text-2 ring-1 ring-ok/50' : 'bg-bg-2 text-text-3',
+                  reachable ? 'cursor-pointer hover:opacity-80' : 'cursor-default',
+                )}
               >
                 {i < state.step ? <Check className="h-3 w-3" /> : i + 1}
-              </div>
+              </button>
               {i < 3 && (
                 <div className={`h-px w-5 transition-colors ${i < state.step ? 'bg-ok' : 'bg-border'}`} />
               )}
             </div>
-          ))}
+            )
+          })}
           <span className="ml-3 text-[10px] text-text-3">{stepLabels[state.step]}</span>
         </div>
 

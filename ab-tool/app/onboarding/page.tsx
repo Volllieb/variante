@@ -78,16 +78,28 @@ export default function OnboardingPage() {
   const normalize = (raw: string) =>
     raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '')
 
+  // ID der gespeicherten Domain — die Prüfung läuft über /api/domains/verify,
+  // das den Fund auch SPEICHERT. Vorher: /api/snippet-check (prüft nur) → das
+  // Onboarding zeigte „Snippet detected", das Dashboard aber weiter
+  // „Connect your domain to start A/B testing" (Live-Test 17.11.2026).
+  const domainIdRef = useRef<string | null>(null)
+
   const checkSnippet = useCallback(async (url: string, retries = 0) => {
     try {
-      const res = await fetch('/api/snippet-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_url: url }),
-      })
+      const res = domainIdRef.current
+        ? await fetch('/api/domains/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domainId: domainIdRef.current }),
+          })
+        : await fetch('/api/snippet-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ site_url: url }),
+          })
       if (!mountedRef.current) return
-      const json = await res.json()
-      if (json.detected) {
+      const json = await res.json().catch(() => ({})) as { detected?: boolean; verified?: boolean }
+      if (json.verified || json.detected) {
         if (pollRef.current) clearInterval(pollRef.current)
         setCheckState({ phase: 'found' })
         // Auto-advance to Step 3 after the success animation
@@ -133,6 +145,9 @@ export default function OnboardingPage() {
         setCheckState({ phase: 'input' })
         return
       }
+      // 201 liefert die neue Zeile, 409 die ID der schon verbundenen Domain
+      const saved = await saveRes.json().catch(() => ({})) as { id?: string }
+      domainIdRef.current = saved.id ?? null
     } catch {
       if (!mountedRef.current) return
       setDomainErr('Connection failed. Check your internet.')

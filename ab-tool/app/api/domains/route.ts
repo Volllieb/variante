@@ -55,6 +55,20 @@ export async function POST(req: Request) {
     return Response.json({ error: 'invalid domain' }, { status: 400, headers: corsHeaders('POST, OPTIONS') })
   }
 
+  // Schon verbunden (z. B. vom Try-Flow-Claim beim Signup)? Dann 409 wie bei
+  // einem Duplikat — VOR dem Limit prüfen. Vorher bekam ein Free-Account, dessen
+  // einzige Domain der Claim schon angelegt hatte, im Onboarding „Domain limit
+  // reached" für genau diese Domain (17.11.2026).
+  const { data: existing } = await supabase
+    .from('domains')
+    .select('id')
+    .eq('user_id', user.userId)
+    .eq('url', normalized)
+    .maybeSingle()
+  if (existing) {
+    return Response.json({ error: 'domain already exists', id: existing.id }, { status: 409, headers: corsHeaders('POST, OPTIONS') })
+  }
+
   // Plan-basiertes Domain-Limit (Free=1, Pro=5, Agency=100)
   const domainLimit = getDomainLimit(user.plan)
 
