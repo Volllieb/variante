@@ -83,7 +83,12 @@ export default async function DashboardPage(props: { searchParams: Promise<Recor
     if (demoUrlCookie?.value) {
       const demoUrl = decodeURIComponent(demoUrlCookie.value)
       if (demoUrl.includes('.')) {
-        demoCreated = await claimDemoUrlForUser(user.id, demoUrl)
+        demoCreated = await claimDemoUrlForUser(
+          user.id,
+          demoUrl,
+          cookieStore.get('variante_demo_pick')?.value,
+          cookieStore.get('variante_demo_choice')?.value,
+        )
         // Re-fetch tests to include the new draft
         if (demoCreated) {
           const { data: freshTests } = await supabase

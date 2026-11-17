@@ -65,7 +65,7 @@ Vercel Cron (ab-tool/vercel.json) ─► /api/cron/* (Auth via lib/cronAuth.ts, 
 |---|---|
 | Test/Variante anlegen (UI) | `app/dashboard/components/NewTestDrawer.tsx` + `new-test/*` |
 | Test/Variante anlegen (API) | `app/api/test-wizard/{scan,generate,create,draft}`, `app/api/tests/` |
-| KI-Generierung | **Textvarianten (Wizard „Suggest copy“):** `lib/generateCopyVariants.ts` + `lib/copyLevers.ts`, Route `app/api/test-wizard/copy/`, UI `new-test/CopySuggestions.tsx`; sonst `lib/generateVariantText.ts`, `lib/generate{Prompts,Helpers,Constants}.ts`, `lib/croAnalyze.ts` (Seiten-Scan), `lib/previewAnalyze.ts` (Onboarding), `lib/agentTools.ts` (`/api/agent`) |
+| KI-Generierung | **Textvarianten (Wizard „Suggest copy“):** `lib/generateCopyVariants.ts` + `lib/copyLevers.ts`, Route `app/api/test-wizard/copy/`, UI `new-test/CopySuggestions.tsx`; Try-Flow der Landing (vor Signup) `app/api/landing-demo/` + `app/LandingTrySite.tsx`, Übergabe in den ersten Entwurf `lib/demoClaim.ts`; sonst `lib/generateVariantText.ts`, `lib/generate{Prompts,Helpers,Constants}.ts`, `lib/croAnalyze.ts` (Seiten-Scan), `lib/previewAnalyze.ts` (Onboarding), `lib/agentTools.ts` (`/api/agent`) |
 | Varianten-Vorschau (iframe srcDoc) | `lib/previewDoc.ts`, `app/components/VariantPreview.tsx` |
 | Element-Picker | `public/ab.js` (Block `?ab_pick=`), `app/api/capture/`, `lib/pickerBridge.ts`, `app/picker-return/` |
 | Tracking / Ausspielung | `public/ab.js`, `app/api/{resolve,assign,event}/`, `lib/assignBucket.ts`, `lib/assignToken.ts`, `lib/variantHash.ts` |

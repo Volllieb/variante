@@ -36,6 +36,8 @@ export interface GenerateCopyInput {
   kind: CopyKind
   /** CSS-Selektor, um Nachbarn (Text darunter, Linkziel) im HTML zu finden. */
   selector?: string
+  /** Bereits geladenes HTML der Seite (Landing-Demo) — spart den zweiten Fetch. */
+  html?: string
 }
 
 export interface GenerateCopyResult {
@@ -205,8 +207,37 @@ const BRIEF_SYSTEM = 'You analyse a web page for a conversion copywriter. Read e
 
 // Briefing pro URL kurz zwischenspeichern: Headline und Button derselben
 // Seite teilen sich ein Briefing (spart einen Aufruf pro Element).
-const briefCache = new Map<string, { at: number; brief: Brief; page: Page }>()
+// Als Promise gespeichert: Headline und Button werden in der Landing-Demo
+// parallel erzeugt und sollen auf DASSELBE Briefing warten statt zwei zu bestellen.
+const briefCache = new Map<string, { at: number; brief: Promise<Brief> }>()
 const BRIEF_TTL_MS = 30 * 60_000
+
+/** Seite über den SSRF-geschützten Fetch laden. */
+export async function fetchPageHtml(url: string): Promise<string> {
+  const res = await safeFetch(url, { timeoutMs: 10_000, maxSize: 2_000_000, headers: { 'Accept-Language': 'de,en;q=0.8' } })
+  if (!res.ok) throw new CopyGenError(`page_fetch_${res.status || 'error'}`, `page fetch failed: ${res.status} ${res.error ?? ''}`.trim())
+  return res.text
+}
+
+function getBrief(url: string, page: Page): Promise<Brief> {
+  const hit = briefCache.get(url)
+  if (hit && Date.now() - hit.at < BRIEF_TTL_MS) return hit.brief
+  const input = [
+    `URL: ${url}`,
+    `Title: ${page.title}`,
+    page.description ? `Meta description: ${page.description}` : '',
+    page.nav.length ? `Navigation: ${page.nav.join(' | ')}` : '',
+    `Headings:\n${page.outline.join('\n')}`,
+    `Visible text:\n${page.pageText}`,
+  ].filter(Boolean).join('\n\n')
+  const brief = callJson<Brief>(BRIEF_SYSTEM, input, 'page_brief', BRIEF_SCHEMA)
+    // Ein abgeschnittenes Briefing kam im Eval einmal vor — ein Retry genügt
+    .catch(() => callJson<Brief>(BRIEF_SYSTEM, input, 'page_brief', BRIEF_SCHEMA))
+  brief.catch(() => briefCache.delete(url)) // Fehlschläge nicht cachen
+  briefCache.set(url, { at: Date.now(), brief })
+  if (briefCache.size > 200) briefCache.delete(briefCache.keys().next().value as string)
+  return brief
+}
 
 // ─── Stufe 2: Varianten ───
 
@@ -358,41 +389,139 @@ export function applyFormat(text: string, f: Format, brands: string[]): string {
   return t
 }
 
+// ─── Hero-Elemente finden (Landing-Demo, ohne Picker) ───
+// Portiert aus scripts/copy-eval/run.mts (dort an 15 echten Seiten geprüft):
+// Headline = erste H1/H2, die mehr ist als Logo/Marke und kein Login-Modal;
+// CTA = erster klick-artiger Link/Button im selben Abschnitt wie die Headline.
+
+export interface HeroElement {
+  text: string
+  selector: string
+  /** outerHTML, gekürzt — Basis von Variante A im Wizard-Entwurf */
+  html: string
+  tag: string
+  href?: string
+}
+
+const NAV_WORDS = /^(log ?in|sign ?in|anmelden|einloggen|menu|menü|skip|cart|warenkorb|search|suche|account|konto|close|schließen|de|en)$/i
+const AUTH_HEADING = /^(log ?in|sign ?(in|up)|anmelden|einloggen|registrieren|create (an )?account|konto erstellen)\b/i
+
+function dedupeText(t: string): string {
+  const half = t.length / 2
+  if (Number.isInteger(half - 0.5)) {
+    const a = t.slice(0, Math.floor(half)).trim(), b = t.slice(Math.ceil(half)).trim()
+    if (a && a === b) return a
+  }
+  return t
+}
+
+const SAFE_IDENT = /^[A-Za-z_][\w-]*$/
+type CheerioEl = Parameters<cheerio.CheerioAPI>[0]
+
+/** Möglichst kurzer, eindeutiger CSS-Selektor (wie ab.js' cssSelector: id, sonst Klassenpfad). */
+function cssPath($: cheerio.CheerioAPI, el: CheerioEl): string {
+  const parts: string[] = []
+  let node = $(el)
+  for (let depth = 0; node.length && depth < 8; depth++) {
+    const raw = node.get(0) as { tagName?: string } | undefined
+    const tag = (raw?.tagName ?? '').toLowerCase()
+    if (!tag || tag === 'html' || tag === 'body') break
+    const id = node.attr('id')
+    if (id && SAFE_IDENT.test(id)) { parts.unshift(`#${id}`); break }
+    const cls = (node.attr('class') ?? '').split(/\s+/).filter((c) => SAFE_IDENT.test(c)).slice(0, 2)
+    let part = tag + cls.map((c) => `.${c}`).join('')
+    const same = node.parent().children(tag)
+    if (same.length > 1) part += `:nth-of-type(${same.index(node) + 1})`
+    parts.unshift(part)
+    const sel = parts.join(' > ')
+    try { if ($(sel).length === 1) return sel } catch { /* weiter nach oben */ }
+    node = node.parent()
+  }
+  // Nicht eindeutig geworden (z. B. 4× <h1> ohne Klassen): voller Pfad mit nth-of-type ab <body>
+  const full: string[] = []
+  let cur = $(el)
+  while (cur.length) {
+    const tag = ((cur.get(0) as { tagName?: string } | undefined)?.tagName ?? '').toLowerCase()
+    if (!tag || tag === 'html' || tag === 'body') break
+    const id = cur.attr('id')
+    if (id && SAFE_IDENT.test(id)) { full.unshift(`#${id}`); break }
+    full.unshift(`${tag}:nth-of-type(${cur.parent().children(tag).index(cur) + 1})`)
+    cur = cur.parent()
+  }
+  return (full[0]?.startsWith('#') ? '' : 'body > ') + full.join(' > ')
+}
+
+export function findHeroElements(html: string): { headline: HeroElement | null; cta: HeroElement | null; title: string } {
+  const $ = cheerio.load(html)
+  $('script, style, noscript, template, iframe').remove()
+  const clean = (s: string) => s.replace(/\s+/g, ' ').trim()
+  // <br> und Blockgrenzen ohne Leerzeichen: "files<br>without" → "fileswithout"
+  const textOf = (el: CheerioEl) => {
+    const c = $(el).clone()
+    c.find('br').replaceWith(' ')
+    c.find('p, div, span, li').each((_, x) => { $(x).append(' ') })
+    return dedupeText(clean(c.text()))
+  }
+  const title = clean($('title').first().text())
+  const siteName = clean($('meta[property="og:site_name"]').attr('content') || '').toLowerCase()
+
+  const order = new Map<CheerioEl, number>()
+  $('*').toArray().forEach((el, i) => order.set(el, i))
+  const pos = (el: CheerioEl) => order.get(el) ?? 0
+
+  const isBrandOnly = (t: string) => {
+    const l = t.toLowerCase()
+    return t.length < 12 && ((!!siteName && l.includes(siteName)) || title.toLowerCase().startsWith(l) || /^[A-Z0-9 .&-]+$/.test(t))
+  }
+  const hEl = [...$('h1').toArray(), ...$('h2').toArray()].find((el) => {
+    const t = textOf(el)
+    if ($(el).closest('dialog, [role="dialog"], [aria-modal="true"], form, .modal').length) return false
+    return t.length >= 3 && t.length <= 200 && !isBrandOnly(t) && !AUTH_HEADING.test(t)
+  })
+  const hPos = hEl ? pos(hEl) : -1
+
+  const looksLikeAction = (el: CheerioEl) => {
+    const t = textOf(el)
+    if (t.length < 2 || t.length > 40 || NAV_WORDS.test(t)) return false
+    if ((t.match(/\p{L}/gu) ?? []).length < 3) return false
+    return !$(el).closest('nav').length
+  }
+  const isCta = (el: CheerioEl) => {
+    if (!looksLikeAction(el)) return false
+    const cls = `${$(el).attr('class') ?? ''} ${$(el).attr('id') ?? ''}`
+    return /btn|button|cta|primary/i.test(cls) || (el as { tagName?: string }).tagName === 'button'
+  }
+  let ctaEl: CheerioEl | undefined
+  if (hEl) {
+    let box = $(hEl).parent()
+    for (let i = 0; i < 6 && box.length && !ctaEl; i++, box = box.parent()) {
+      // Im Hero steht der Button nicht immer HINTER der Headline im DOM
+      // (vallisride.com: Button-Spalte vor dem <h1>). Hinter der Headline zuerst,
+      // sonst irgendwo im selben Abschnitt.
+      const all = box.find('a, button').toArray()
+      const after = all.filter((el) => pos(el) > hPos)
+      ctaEl = after.find(isCta) ?? all.find(isCta) ?? after.find(looksLikeAction)
+    }
+  }
+  ctaEl ??= $('a, button').toArray().find((el) => pos(el) > hPos && isCta(el))
+
+  const toHero = (el: CheerioEl | undefined): HeroElement | null => {
+    if (!el) return null
+    const tag = ((el as { tagName?: string }).tagName ?? '').toLowerCase()
+    const href = $(el).attr('href')
+    return { text: textOf(el), selector: cssPath($, el), html: ($.html(el) ?? '').slice(0, 1500), tag, ...(href ? { href: href.slice(0, 300) } : {}) }
+  }
+  return { headline: toHero(hEl), cta: toHero(ctaEl), title }
+}
+
 // ─── Hauptfunktion ───
 
 export async function generateCopyVariants(input: GenerateCopyInput): Promise<GenerateCopyResult> {
   const { url, original, kind, selector } = input
 
-  // Seite + Briefing (gecacht pro URL)
-  let cached = briefCache.get(url)
-  if (!cached || Date.now() - cached.at > BRIEF_TTL_MS) {
-    const res = await safeFetch(url, { timeoutMs: 10_000, maxSize: 2_000_000, headers: { 'Accept-Language': 'de,en;q=0.8' } })
-    if (!res.ok) throw new CopyGenError(`page_fetch_${res.status || 'error'}`, `page fetch failed: ${res.status} ${res.error ?? ''}`.trim())
-    const page = readPage(res.text, selector)
-    const briefInput = [
-      `URL: ${url}`,
-      `Title: ${page.title}`,
-      page.description ? `Meta description: ${page.description}` : '',
-      page.nav.length ? `Navigation: ${page.nav.join(' | ')}` : '',
-      `Headings:\n${page.outline.join('\n')}`,
-      `Visible text:\n${page.pageText}`,
-    ].filter(Boolean).join('\n\n')
-    let brief: Brief
-    try {
-      brief = await callJson<Brief>(BRIEF_SYSTEM, briefInput, 'page_brief', BRIEF_SCHEMA)
-    } catch {
-      // Ein abgeschnittenes Briefing kam im Eval einmal vor — ein Retry genügt
-      brief = await callJson<Brief>(BRIEF_SYSTEM, briefInput, 'page_brief', BRIEF_SCHEMA)
-    }
-    cached = { at: Date.now(), brief, page }
-    briefCache.set(url, cached)
-    if (briefCache.size > 200) briefCache.delete(briefCache.keys().next().value as string)
-  } else if (selector) {
-    // Briefing wiederverwenden, Nachbarn des neuen Elements trotzdem lesen
-    const res = await safeFetch(url, { timeoutMs: 10_000, maxSize: 2_000_000 })
-    if (res.ok) cached = { ...cached, page: readPage(res.text, selector) }
-  }
-  const { brief, page } = cached
+  const html = input.html ?? await fetchPageHtml(url)
+  const page = readPage(html, selector)
+  const brief = await getBrief(url, page)
 
   const language = detectLanguage(page, original)
   const fmt = formatOf(original, language)

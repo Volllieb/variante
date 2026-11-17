@@ -43,7 +43,12 @@ async function claimLandingDemo(userId: string, req: NextRequest): Promise<boole
   try {
     const demoUrl = decodeURIComponent(raw)
     if (!demoUrl.includes('.')) return false
-    return await claimDemoUrlForUser(userId, demoUrl)
+    return await claimDemoUrlForUser(
+      userId,
+      demoUrl,
+      req.cookies.get('variante_demo_pick')?.value,
+      req.cookies.get('variante_demo_choice')?.value,
+    )
   } catch {
     return false
   }
@@ -53,7 +58,9 @@ async function claimLandingDemo(userId: string, req: NextRequest): Promise<boole
 function redirectAfter(next: string, req: NextRequest, claimed: boolean): NextResponse {
   const res = NextResponse.redirect(new URL(next, req.url))
   if (claimed) {
-    res.cookies.set('variante_demo_url', '', { path: '/', maxAge: 0 })
+    for (const name of ['variante_demo_url', 'variante_demo_pick', 'variante_demo_choice']) {
+      res.cookies.set(name, '', { path: '/', maxAge: 0 })
+    }
   }
   return res
 }
