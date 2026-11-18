@@ -2,7 +2,7 @@
 
 Stand: 24.07.2026. 🛡️ Produktionsreife 92% — Security-Audit abgeschlossen, keine Launch-Blocker. Figma-Plugin LIVE. Outreach läuft (IbexAI, PostFox recherchiert). Produkt bereit für Design-Partner-Onboarding.
 
-> ⚠️ **Kursdefinition 20.08.2026 (verbindlich):** siehe `docs/kursdefinition.md` — Erfolgskriterium = erster zahlender Pro-Kunde (90 Tage, bis ~18.11.2026), Metriken = Sales-Pipeline, 2 Lead-Kanäle (Figma + Landingpage). Wo dieses Dokument abweicht, gilt die Kursdefinition.
+> ⚠️ **Kursdefinition 20.08.2026 (verbindlich):** siehe `docs/kursdefinition.md` — Erfolgskriterium = erster zahlender Pro-Kunde (90 Tage, bis ~18.11.2026), Metriken = Sales-Pipeline, **4 Lead-Kanäle** (Figma, Landingpage, Cold Email/nicht-technische Gründer, Web-Dev-Agenturen — Stand 18.11.2026). Wo dieses Dokument abweicht, gilt die Kursdefinition. Der Figma-PLG-Fokus unten ist historischer Stand.
 
 ## Strategie in einem Satz
 **Zwei Lead-Kanäle, ein Ziel — erster zahlender Pro-Kunde in 90 Tagen:** Figma-Plugin = Kanal A (Designer, Agenturen, Figma Developers), Landingpage = Kanal B (Indie Hacker, AI-Builder, Product Hunt). Sales-Pipeline-Metriken, pro Kanal getrennt. Details: `docs/kursdefinition.md`.
