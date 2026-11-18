@@ -97,8 +97,10 @@ Höhere Conversion-Rate → mehr Umsatz aus demselben Traffic. Bei Paid-Traffic 
 **Differenzierung:**
 > Die großen CRO-Tools sind für Growth-Teams gebaut. variante ist für den Chef, der selbst entscheidet — simpel genug, dass du es heute bedienst, günstig genug, dass es sich ab dem ersten Test rechnet.
 
-**Risiko-Umkehr (für CTA):**
-> Erste Einrichtung mache ich mit dir im Call, drei Monate kostenlos. Du siehst die Daten so oder so.
+**CTA / Risiko-Umkehr (Self-Serve, ehrlich):**
+> Ob diese Änderung deinen Gewinn steigert oder senkt, zeigt dir ein Vergleichstest — mit variante baust du ihn in 5 Minuten.
+
+Prinzip: Der Test (nicht wir) liefert die Antwort, und das Ergebnis ist offen („steigert oder senkt"). Kein „ich zeige dir", kein Demo-Zwang. Der Concierge-Call bleibt optionaler Fallback, nicht der Standard-CTA.
 
 ---
 
@@ -118,15 +120,15 @@ Eine Sache: Auf [ihre-seite.de] hängt der Umsatz an [Button/Headline X].
 Genau da holt man mit kleinen Textänderungen oft spürbar mehr raus —
 aus demselben Traffic, für den du eh schon zahlst.
 
-Ich hab das für eure Seite mal durchlaufen lassen. Wenn's dich
-interessiert, zeig ich dir die Varianten in 10 Minuten.
+Ob das deinen Gewinn steigert oder senkt, zeigt dir ein
+Vergleichstest — mit variante baust du ihn in 5 Minuten.
 
 [Vorname von dir]
 ```
 
 **Regeln für die Generierung:**
 - Erste Zeile = Beweis, dass es *kein* Massen-Mail ist (ihre echte Ad + echtes Element).
-- Max. ein CTA, niedrigschwellig („10 Minuten", kein „Kaufen").
+- Max. ein CTA, Self-Serve und ehrlich („steigert oder senkt", Vergleichstest in 5 Min), kein „ich zeige dir", kein „Kaufen".
 - Nie mehr als ~90 Wörter.
 - Ton: der rationale Mitgründer, nicht der Verkäufer.
 - Kein Druck, kein Hype, keine Emojis.
