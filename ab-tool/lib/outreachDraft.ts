@@ -12,6 +12,7 @@
 import { stripForCRO, extractStructure, type CROSuggestion, type AnalyzePageResult } from '@/lib/croAnalyze'
 import { isBlockedHost } from '@/lib/ssrf'
 import { safeError } from '@/lib/safeLog'
+import { extractContactEmail } from '@/lib/outreachContact'
 
 // Internes Tool, niedriges Volumen → stärkeres Modell als der Kunden-Pagechecker
 // (der auf gpt-4o-mini läuft). Bessere, konkretere Vorschläge + Mails.
@@ -37,6 +38,8 @@ export interface OutreachDraft {
   analyzedUrl: string
   pageTitle: string
   lang: string
+  /** Aus Seite/Impressum extrahierte Kontakt-E-Mail (null = nichts gefunden). */
+  contactEmail: string | null
   /** Der stärkste Erst-Test-Vorschlag — Aufhänger der Mail. */
   primary: CROSuggestion
   /** Alle Vorschläge (für Kontext / spätere Varianten). */
@@ -85,8 +88,8 @@ export function normalizeUrl(rawUrl: string): URL {
   return parsed
 }
 
-/** Einzelner Fetch-Versuch. Wirft bei Netzwerkfehler oder !ok. */
-async function fetchOnce(target: string): Promise<string> {
+/** Einzelner Fetch-Versuch. Wirft bei Netzwerkfehler oder !ok. Gibt HTML + finale URL (nach Redirects). */
+async function fetchOnce(target: string): Promise<{ html: string; finalUrl: string }> {
   const res = await fetch(target, {
     headers: BROWSER_HEADERS,
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
@@ -95,7 +98,7 @@ async function fetchOnce(target: string): Promise<string> {
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`)
   }
-  return res.text()
+  return { html: await res.text(), finalUrl: res.url || target }
 }
 
 /** Baut die http://-Variante einer URL (gleicher Host/Pfad). */
@@ -116,14 +119,17 @@ function toHttp(url: URL): string {
  *     gefolgt, der einzige TLS-Handshake läuft gegen das valide Zert.
  *  3. www-Variante (http) als letzter Versuch.
  */
-async function fetchPage(parsed: URL): Promise<{ html: string; title: string; lang: string }> {
+async function fetchPage(parsed: URL): Promise<{ html: string; title: string; lang: string; finalUrl: string }> {
   const attempts: string[] = [parsed.toString(), toHttp(parsed), toHttp(new URL(toggleWww(parsed)))]
 
   let html = ''
+  let finalUrl = parsed.toString()
   let lastErr = 'unbekannt'
   for (const target of attempts) {
     try {
-      html = await fetchOnce(target)
+      const r = await fetchOnce(target)
+      html = r.html
+      finalUrl = r.finalUrl
       break
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -143,7 +149,7 @@ async function fetchPage(parsed: URL): Promise<{ html: string; title: string; la
   }
   const title = html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim().slice(0, MAX_TITLE_LEN) ?? ''
   const lang = html.match(/<html[^>]*\slang="([a-z]{2})/i)?.[1]?.toLowerCase() ?? ''
-  return { html, title, lang }
+  return { html, title, lang, finalUrl }
 }
 
 const ANALYSIS_SYSTEM_PROMPT = [
@@ -342,7 +348,7 @@ export async function generateOutreachDraft(input: OutreachInput): Promise<Outre
   const parsed = normalizeUrl(input.url)
   const url = parsed.toString()
 
-  const { html, title, lang: pageLang } = await fetchPage(parsed)
+  const { html, title, lang: pageLang, finalUrl } = await fetchPage(parsed)
 
   // Bestehende CRO-Engine wiederverwenden — identische Logik wie der Pagechecker.
   // Kontext schärft die Vorschläge: Lead-Seiten sind Anzeigen-Landingpages mit
@@ -376,10 +382,19 @@ export async function generateOutreachDraft(input: OutreachInput): Promise<Outre
     lang,
   })
 
+  // Kontakt-E-Mail aus Seite/Impressum (DE-Impressumspflicht). Best-effort.
+  let contactEmail: string | null = null
+  try {
+    contactEmail = await extractContactEmail(html, finalUrl)
+  } catch (err) {
+    safeError('outreach-contact-extract', { message: err instanceof Error ? err.message : String(err) })
+  }
+
   return {
     analyzedUrl: url,
     pageTitle: title,
     lang,
+    contactEmail,
     primary,
     suggestions,
     email,
