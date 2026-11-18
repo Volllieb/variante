@@ -45,6 +45,23 @@ export interface OutreachDraft {
 const FETCH_TIMEOUT_MS = 25_000
 const MAX_TITLE_LEN = 200
 
+// Echter Browser-UA + Header. Viele Seiten (z. B. hinter Cloudflare/Shops)
+// blocken generische Bot-User-Agents mit Connection-Reset → "fetch failed".
+const BROWSER_HEADERS: Record<string, string> = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Cache-Control': 'no-cache',
+}
+
+/** Toggelt www. vor dem Host (für den Retry bei Netzwerkfehlern). */
+function toggleWww(url: URL): string {
+  const u = new URL(url.toString())
+  u.hostname = u.hostname.startsWith('www.') ? u.hostname.slice(4) : `www.${u.hostname}`
+  return u.toString()
+}
+
 /** URL normalisieren + SSRF-Guard. Wirft bei ungültiger/geblockter URL. */
 export function normalizeUrl(rawUrl: string): URL {
   let url = (rawUrl ?? '').trim()
@@ -66,19 +83,43 @@ export function normalizeUrl(rawUrl: string): URL {
   return parsed
 }
 
-/** Lead-Seite laden. Gibt rohes HTML + Titel + abgeleitete Sprache zurück. */
-async function fetchPage(url: string): Promise<{ html: string; title: string; lang: string }> {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'variante-outreach/1.0', Accept: 'text/html' },
+/** Einzelner Fetch-Versuch. Wirft bei Netzwerkfehler oder !ok. */
+async function fetchOnce(target: string): Promise<string> {
+  const res = await fetch(target, {
+    headers: BROWSER_HEADERS,
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     redirect: 'follow',
   })
   if (!res.ok) {
-    throw new Error(`page returned status ${res.status}`)
+    throw new Error(`HTTP ${res.status}`)
   }
-  const html = await res.text()
+  return res.text()
+}
+
+/**
+ * Lead-Seite laden. Gibt rohes HTML + Titel + abgeleitete Sprache zurück.
+ * Bei Netzwerkfehler (DNS/TLS/Reset) ein Retry mit getoggeltem www.
+ */
+async function fetchPage(parsed: URL): Promise<{ html: string; title: string; lang: string }> {
+  let html = ''
+  try {
+    html = await fetchOnce(parsed.toString())
+  } catch (first) {
+    const firstMsg = first instanceof Error ? first.message : String(first)
+    // Netzwerkfehler (nicht HTTP-Status) → www-Variante probieren.
+    if (!/^HTTP \d/.test(firstMsg)) {
+      try {
+        html = await fetchOnce(toggleWww(parsed))
+      } catch {
+        throw new Error(`Seite nicht erreichbar (${firstMsg}). Blockt evtl. automatisierte Zugriffe oder braucht JavaScript.`)
+      }
+    } else {
+      throw new Error(`Seite antwortete mit ${firstMsg}.`)
+    }
+  }
+
   if (!html || html.length < 100) {
-    throw new Error('page returned minimal content (may require JavaScript)')
+    throw new Error('Seite lieferte kaum Inhalt (rendert wahrscheinlich per JavaScript).')
   }
   const title = html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim().slice(0, MAX_TITLE_LEN) ?? ''
   const lang = html.match(/<html[^>]*\slang="([a-z]{2})/i)?.[1]?.toLowerCase() ?? ''
@@ -189,12 +230,21 @@ export async function generateOutreachDraft(input: OutreachInput): Promise<Outre
   const parsed = normalizeUrl(input.url)
   const url = parsed.toString()
 
-  const { html, title, lang: pageLang } = await fetchPage(url)
+  const { html, title, lang: pageLang } = await fetchPage(parsed)
 
   // Bestehende CRO-Engine wiederverwenden — identische Logik wie der Pagechecker.
+  // Kontext schärft die Vorschläge: Lead-Seiten sind Anzeigen-Landingpages mit
+  // bezahltem Traffic, Ziel = Direktkauf. Das lenkt die Analyse auf umsatznahe,
+  // konkrete Varianten statt generischer Texttipps.
+  const pageGoal = input.adContext
+    ? `Direktkauf / Sales — Anzeigen-Landingpage mit bezahltem Traffic. Beworbenes Angebot: ${input.adContext}`
+    : 'Direktkauf / Sales — Anzeigen-Landingpage mit bezahltem Traffic'
   const stripped = stripForCRO(html)
   const structure = extractStructure(html)
-  const { suggestions, primarySuggestionIndex } = await analyzePageWithPrimary(stripped, structure)
+  const { suggestions, primarySuggestionIndex } = await analyzePageWithPrimary(stripped, structure, {
+    pageGoal,
+    industry: input.adContext,
+  })
 
   if (suggestions.length === 0) {
     throw new Error('no suggestions generated')
