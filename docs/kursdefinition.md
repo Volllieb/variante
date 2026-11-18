@@ -22,23 +22,25 @@ Alles andere — Case-Studies, Product Hunt, Badge-Reichweite, Features — ist 
 
 > Die alte North-Star-Metrik (% Installs → Live-Test) wird reaktiviert, sobald die Pipeline Volumen hat (>100 Installs/Traffic). Vorher misst sie nichts — bei 1 Signup in 6 Wochen ist sie Leerlauf.
 
-## Die zwei Lead-Kanäle
+## Die vier Lead-Kanäle
 
-| | **Kanal A — Figma** | **Kanal B — Landingpage** |
-|---|---|---|
-| **Segment** | Designer, Design-Partner, Design-Agencies, Figma Developers | Indie Hacker, AI-Builder (v0/Bolt/Lovable), Gründer |
-| **Vehikel** | Plugin (Community Store), Figma-Foren, Reviews | www.getvariante.com, SEO, Product Hunt |
-| **Methode** | Design-Partner-Outreach (Loom-DMs), Concierge-Onboarding | Self-Serve (ab.js + Auto-Optimize-Pfad), PH-Launch |
-| **Value-Prop** | „A/B-Test direkt aus Figma" | „Kein Dev nötig — KI macht den Test" |
-| **Aha-Moment** | Live-Stats im Editor | Test in ~30s ohne Code |
+> **Update 18.11.2026:** Kanäle C (Cold Email) und D (Agenturen) ergänzt. A und B bleiben. Die Stufen-Disziplin aus `scaling-framework.md` gilt unverändert — alle vier sind manuelles/gezieltes Stage-0/1-Outreach, kein bezahltes Ads-Spiel (das wäre Stage 2).
 
-**Trennung ist Absicht:** Designer-Segment und Indie-Hacker-Segment kaufen unterschiedlich. Kanal A spricht Designer über den Plugin-Store an, Kanal B Gründer über die Landingpage. Kein Misch-Messaging.
+| | **A — Figma** | **B — Landingpage** | **C — Cold Email** | **D — Agenturen** |
+|---|---|---|---|---|
+| **Segment** | Designer, Design-Agencies, Figma Devs | Indie Hacker, AI-Builder (v0/Bolt/Lovable), Gründer | Nicht-technische Gründer mit laufendem Paid-Traffic | Web-Dev-Agenturen |
+| **Vehikel** | Plugin (Community Store), Foren, Reviews | www.getvariante.com, SEO, Product Hunt | Cold Email, Leads über die Facebook-Werbebibliothek | Direkt-Outreach an Agenturen |
+| **Methode** | Loom-DMs, Concierge-Onboarding | Self-Serve (ab.js), PH-Launch | Personalisierte Mail (laufende Ad + Pagechecker-Varianten), skaliert über das `/outreach`-Tool | Agency-Pitch: Tests auf Kundenseiten |
+| **Value-Prop** | „A/B-Test direkt aus Figma" | „Kein Dev nötig — KI macht den Test" | „Mehr Umsatz aus demselben Paid-Traffic" | „Testet die Seiten eurer Kunden — ein Account, alle Sites" |
+| **Aha-Moment** | Live-Stats im Editor | Test in ~30s ohne Code | Pagechecker zeigt bessere Headline/Button | Agency-Tier: bis 100 Sites |
+
+**Trennung ist Absicht — kein Misch-Messaging.** Jeder Kanal spricht sein Segment in dessen Sprache an. Voice/Tonalität je Kanal: `.claude/brand-voice-guidelines.md` (dort §7 = Cold-Email-Blaupause für Kanal C).
 
 ## Entscheidungsregeln
 
 Jede Arbeit (Feature, Post, Outreach, Refactor) muss **eine** dieser Fragen mit Ja beantworten:
 
-1. Trägt sie zu Kanal A (Figma) oder Kanal B (Landingpage) bei?
+1. Trägt sie zu einem der vier Kanäle bei (A Figma, B Landingpage, C Cold Email, D Agenturen)?
 2. Bewegt sie die Sales-Pipeline eine Stufe vorwärts (Lead → Gespräch → Test → Pro)?
 
 Sonst: **nicht machen.** Auch wenn's Spaß macht oder technisch elegant ist.

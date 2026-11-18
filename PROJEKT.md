@@ -10,12 +10,12 @@
 | Feld | Wert |
 |---|---|
 | **Produkt** | variante — autonomer KI-Agent für A/B-Testing, kein Dev nötig. "Total Control, Minimum Effort": KI macht alles, User greift nur ein wenn er will. |
-| **ICP** | Designer, Indie Hacker & Gründer (Solopreneure & kleine Teams) auf beliebigen Plattformen (Custom HTML, WordPress, Next/React, Shopify) |
+| **ICP** | Vier Segmente (18.11.2026): Designer/Agenturen (Figma), Indie Hacker/AI-Builder (Landingpage), **nicht-technische Gründer mit Paid-Traffic** (Cold Email), **Web-Dev-Agenturen**. Solopreneure & kleine Teams, beliebige Plattformen (Custom HTML, WordPress, Next/React, Shopify). Kanäle: `docs/kursdefinition.md` |
 | **Dashboard-Philosophie** | Vercel-Style Sidebar (220px), card-based Content, Dark-only. Test-Erstellung via 4-Step Drawer-Wizard (`NewTestDrawer`: Element → Goal → Variant → Review). StepVariantB: 3-Way-Switcher (AI Generate/Manual/Figma) mit Live-Preview, PropertyControls (ColorPicker, PropertySlider) und InspirationGallery (5 CRO-Patterns) im Manual-Modus; Figma-Tab ist reine Design-Inspiration, kein Datenimport. Figma-Plugin = Stats-Viewer + Dashboard-Link (keine Test-Erstellung mehr). |
 | **Rechtsform** | Einzelunternehmen (Bayern/DE) |
 | **Phase** | Post-MVP → Go-to-Market |
 | **Stand** | 24.07.2026 — 🛡️ **Produktionsreife ~92%**: Security-Audit (SEC-01–12), DB-Härtung (Migrationen 029–036), UX/A11Y-Fixes (15+), Consent-API, AVV-Vorlage. **Re-Audit 24.07.:** 1 live wirksamer Datenintegritäts-Fehler (`ASSIGN_SECRET` in Prod nie gesetzt) + 1 Logik-Bug (Auto-Promotion pausierter Tests) gefunden & behoben — **Env-Aktion nötig** (`ASSIGN_SECRET` in Vercel setzen). Siehe `docs/produktionsreife-massnahmenplan.md` §Re-Audit. **Kursdefinition 20.08.:** Erfolgskriterium = erster zahlender Pro-Kunde (90 Tage), Metriken = Sales-Pipeline, 2 Lead-Kanäle (Figma + Landingpage). Siehe `docs/kursdefinition.md`. |
-| **Ziel** | Kurs (20.08.2026): **erster zahlender Pro-Kunde bis ~18.11.2026** (90-Tage-Kriterium). Danach: 500–1.000 €/Mo passives Asset. 2 Lead-Kanäle: Figma (Designer/Agenturen) + Landingpage (Indie Hacker/PH). Metriken: Sales-Pipeline. Verbindlich: `docs/kursdefinition.md` |
+| **Ziel** | Kurs (20.08.2026): **erster zahlender Pro-Kunde bis ~18.11.2026** (90-Tage-Kriterium). Danach: 500–1.000 €/Mo passives Asset. 4 Lead-Kanäle (18.11.2026): Figma (Designer), Landingpage (Indie Hacker), Cold Email (nicht-technische Gründer, Paid-Traffic), Agenturen (Web-Dev). Metriken: Sales-Pipeline. Verbindlich: `docs/kursdefinition.md` |
 
 ## §2 Stack
 

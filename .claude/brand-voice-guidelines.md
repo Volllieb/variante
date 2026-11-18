@@ -4,6 +4,7 @@
 > Steuert jede nach außen gerichtete Kommunikation — Cold Email, Landingpage-Copy, Demo-Call-Skript, Pagechecker-Output-Ton.
 > **Nicht** zu verwechseln mit `docs/brandguidelines.md` (= Design-System: Farben, Tokens, Layout).
 > Quelle: Positionierungs-Fragebogen (18.11.2026). Stand: 18.11.2026.
+> **Scope:** primär **Kanal C** (Cold Email an nicht-technische Gründer mit Paid-Traffic, `docs/kursdefinition.md`). Die Tonprinzipien (§2–§5) gelten kanalübergreifend; die ICP-Spezifika sind auf Kanal C gemünzt. Kanäle A/B/D haben eigene Value-Props.
 > Konsumiert von `/brand-voice:enforce-voice`.
 
 ---
@@ -148,7 +149,7 @@ interessiert, zeig ich dir die Varianten in 10 Minuten.
 ## 9. Offene Fragen (für Validierung)
 
 1. **Ist der ICP wirklich „nicht-technisch"?** Selbst als Annahme markiert. Risiko: Die Facebook-Ad-Library-Treffer (Anja Staubli, PelviQueens, Dogflix) sind Solo-Expert:innen/Nischenanbieter — „nicht-technisch" vs. „kein eigenes Dev-Team" ist nicht dasselbe. → In den ersten 10 Calls direkt testen.
-2. **Konflikt mit dem Figma-Teil des Produkts.** Nicht-technische Gründer nutzen kein Figma. Soll der Figma-Plugin-Teil in der Außenkommunikation ganz verschwinden? (Empfehlung: ja — für diesen ICP.)
+2. **Figma gehört nicht in die Kanal-C-Kommunikation.** Nicht-technische Gründer nutzen kein Figma — in Cold Mails an sie (Kanal C) kommt der Figma-Plugin-Teil nicht vor. Für Kanal A (Designer) bleibt Figma dagegen die zentrale Value-Prop. Kein Konflikt, sondern Kanaltrennung.
 3. **Deutsch oder zweisprachig?** ICP-Beispiele sind deutschsprachig → Outreach primär Deutsch. Pagechecker arbeitet in Seitensprache. Guideline-Voice hier = Deutsch.
 4. **Wie offensiv die MVP-Ehrlichkeit?** „Kann nur die Basics" — im Cold Email nennen oder erst im Call? (Empfehlung: im Call, nicht im Opener.)
 
@@ -156,4 +157,4 @@ interessiert, zeig ich dir die Varianten in 10 Minuten.
 
 ## 10. Änderungshinweis für das Repo
 
-Diese Guideline setzt eine **Neupositionierung** gegenüber `PROJEKT.md §1` und `docs/gotomarket.md` (Designer/Figma/PLG → nicht-technischer Gründer/Cold-Email/Conversion). Beim nächsten Schreiben von `PROJEKT.md` dort §1 und die GTM-Strategie an diese Guideline angleichen, sonst widersprechen sich die Dokumente.
+Diese Guideline definiert die Voice für **Kanal C** (Cold Email an nicht-technische Gründer mit Paid-Traffic). Sie ersetzt **nicht** die bestehenden Kanäle — sie wurde am 18.11.2026 als dritter Kanal ergänzt (plus Kanal D = Web-Dev-Agenturen). Abgeglichen: `docs/kursdefinition.md` (4 Lead-Kanäle) und `PROJEKT.md §1` (ICP/Ziel).
